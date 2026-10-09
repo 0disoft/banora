@@ -7,7 +7,7 @@ Milestones establish delivery order, not release dates or completed functionalit
 Each implementation task should produce a small usable increment and a focused
 commit. Exact package versions remain UNDECIDED.
 
-## M1: Embeddable Board and Game Viewer
+## M1: Banora Studio and Read-Only Embedding
 
 - Headless TypeScript board and rules engine: captures, suicide policy, simple ko,
   pass, setup positions, and undo/redo.
@@ -15,18 +15,28 @@ commit. Exact package versions remain UNDECIDED.
   partial-board views, placement preview, and keyboard/pointer input.
 - SGF parsing and serialization, game metadata, comments, variations, and history
   navigation; preserve unrecognized properties semantically.
-- Responsive viewer with navigation controls, branch selection, and file loading.
-- Framework-independent integration and a React adapter example.
-- ESM/type distribution and browser script example once build tooling is added.
+- Banora Studio in `examples/studio`: responsive board, move controls, variation
+  tree, comments panel, SGF drag-and-drop/example loading, and SGF download.
+- Basic editing: play a continuation to create a variation, edit comments, and
+  add/remove existing label and shape marker types on the selected node.
+- A small read-only embedding example using the same public SDK exports.
+- Framework-independent integration and ESM/type packaging. Studio and examples
+  consume built public exports with no imports from SDK internals.
 
-**Exit evidence:** a consumer can load a real SGF, navigate a branch, play a legal
-move, undo it, and export the record without losing covered properties or branches.
-Headless imports work without a DOM, and the viewer works in the tested desktop
-and mobile browser matrix. Establish the MIT license and bundled asset provenance.
+**Exit evidence:** a user opens an SGF, navigates a variation, creates a continuation,
+edits comments/markers, downloads the record, and reopens it with supported edits,
+properties and branches preserved. Capture, illegal-move rejection and undo/redo
+remain consistent. Studio supports mobile and keyboard operation in the declared
+test matrix; read-only embedding and headless imports exercise the public package.
+Establish the MIT license and bundled asset provenance. No account, cloud storage
+or AI integration is needed to complete this flow.
 
 ## M2: Editing, Teaching, and Sharing
 
-- Variation editing, free stone setup, lines, arrows, and freehand annotations.
+- Extended variation editing (removal/reorganization), free stone setup, lines,
+  arrows, and freehand annotations beyond M1's continuation/comments/markers.
+- Optional React adapter/example and browser script distribution after the
+  framework-independent Studio and read-only workflows are usable.
 - Board rotation/reflection, animation, custom stone textures, and magnified
   touch placement with optional confirmation.
 - Side-by-side variation comparison with changed intersections highlighted.
@@ -65,7 +75,9 @@ storage, AI, or collaborative services are candidates after the basic SDK is use
 
 ## Delivery Constraints
 
-Do not turn M1 into a full game platform. Run checks that cover the changed risk,
+Do not turn M1 into a full game platform or a separately maintained editor product.
+Studio is a consumer example and public demo of the SDK, with no private API shortcuts.
+Run checks that cover the changed risk,
 batch validated pushes and release work, and expand verification only when a new
 change or unresolved failure warrants it. Broad compatibility claims require
 consumer evidence rather than successful internal compilation alone.

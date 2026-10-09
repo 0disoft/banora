@@ -6,7 +6,9 @@
 
 | Risk | Consequence | Planned response / closure evidence |
 | --- | --- | --- |
-| Four-library replacement scope | M1 never becomes usable | Deliver the viewer slice first; defer scoring, puzzles, AI and extra renderers |
+| Four-library replacement scope | M1 never becomes usable | Deliver the Studio SGF editing loop and read-only example first; defer scoring, puzzles, AI and extra renderers |
+| SDK tailored to Studio internals | Other consumers need private hooks or editor dependencies | Studio uses public package exports; exercise a separate minimal read-only embedding example |
+| Studio grows into a separate product | Demo work delays the SDK release | Keep its first scope to local SGF review/basic editing; defer accounts, cloud storage and analysis |
 | Rule names hide incomplete semantics | Incorrect moves or results | Specify each profile's policies; cover ko, repetition, suicide and scoring with focused fixtures |
 | SGF interpretation or encoding loses data | Edited records cannot be trusted | Define supported properties/encodings; round-trip real fixtures including unknown properties and branches |
 | Large or malformed records | Frozen UI or excessive memory | Bound input size, tree depth and work; explicit diagnostics; numerical limits UNDECIDED |

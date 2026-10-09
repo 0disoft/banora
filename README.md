@@ -19,8 +19,15 @@ shared game rules, SGF records, and optional integrations through clear boundari
 - Later milestones for scoring, puzzles, teaching tools, and external AI analysis.
 - Optional React integration, selective imports, and a browser script build.
 
-The first release focuses on the board, basic rules, SGF, variation navigation,
-and a usable viewer. See the [roadmap](docs/product/01-roadmap.md) for sequencing.
+The first release is driven by **Banora Studio**, a browser-based SGF review and
+editing example planned for `examples/studio` in this repository. Its core flow
+is to open a record, navigate variations, create a continuation, add comments or
+markers, and download an SGF that can be reopened with those edits preserved.
+
+Studio will also serve as the public demo. A small read-only embedding example
+will exercise a second consumer workflow. Both must use the SDK's public package
+exports rather than internal source imports. See the
+[roadmap](docs/product/01-roadmap.md) for sequencing. These examples do not exist yet.
 
 ## Design Documents
 

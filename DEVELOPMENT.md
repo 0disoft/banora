@@ -7,6 +7,7 @@
 
 - [Product specification](docs/product/02-spec.md) and [roadmap](docs/product/01-roadmap.md).
 - [Architecture decision](docs/adr/0001-initial-architecture-boundaries.md).
+- [First consumer decision](docs/adr/0003-studio-first-consumer.md).
 - [Public API](docs/sdk/public-api.md) and [compatibility](docs/sdk/compatibility.md).
 - [Validation](VALIDATION.md) and [testing standard](docs/engineering/05-testing-standard.md).
 
@@ -23,14 +24,22 @@ Do not publish command examples that refer to missing scripts or packages.
 
 ## First Implementation Slice
 
-Work toward the [M1 exit evidence](docs/product/01-roadmap.md): a consumer loads
-an SGF, views the board and comments, selects a variation, plays/undoes a move,
-and exports the record. Build the required core, record cursor, renderer and
-viewer together rather than expanding every optional module first.
+Work toward the [M1 exit evidence](docs/product/01-roadmap.md) through Banora Studio,
+planned at `examples/studio`: load an SGF, navigate branches, create a continuation,
+edit comments/markers, download it and reopen it with edits preserved. Build the
+required core, record cursor, renderer and viewer together rather than expanding
+every optional module first.
 
 Keep shared logic free of DOM/framework imports. Define ownership and failure
-semantics before publishing public signatures. Add a plain-browser viewer and
-headless consumer example, then exercise the React adapter over the same state.
+semantics before publishing public signatures. Studio must use built public SDK
+exports, not internal source imports, hidden hooks or a second game-state engine.
+Exercise the same public package in a minimal read-only browser embedding example
+and a headless consumer. Add the optional React integration in M2.
+
+The initial Studio interface is a board, move controls, variation tree and comments
+panel. Keep account management, cloud persistence, AI and broader editor tooling
+outside M1. Its public demo is planned; no hosting provider or deployment is selected
+or implemented by this decision.
 
 ## Verification and Change Discipline
 

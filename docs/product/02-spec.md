@@ -11,6 +11,23 @@ Banora is a modular Go SDK for embeddable boards, SGF viewers/editors, puzzles,
 teaching tools, and analysis interfaces. A consumer can start with a complete
 viewer or compose lower-level modules without adopting an application framework.
 
+## First Consumer and Initial Workflow
+
+Banora Studio is the initial reference consumer, planned at `examples/studio` in
+this repository and intended to become a public demo when implemented. The initial
+layout consists of the board, move controls, a variation tree, and a comments panel.
+
+1. Open a local SGF by drag-and-drop/file selection, or choose a bundled example.
+2. Move through the record and inspect comments and existing variations.
+3. Return to an earlier position and play a different move to create a continuation.
+4. Add or edit comments and labels/shape markers on the selected node.
+5. Download an SGF and reopen it with the supported changes preserved.
+
+The Studio UI uses public SDK package exports exclusively. It must not import
+internal source files or require demo-only SDK hooks. A second, minimal read-only
+embedding example verifies that the API also fits simpler consumers. Accounts,
+cloud storage and AI analysis are not part of Studio's initial workflow.
+
 ## Capability Scope
 
 | Area | Planned capability | First milestone |
@@ -20,10 +37,12 @@ viewer or compose lower-level modules without adopting an application framework.
 | Input | Pointer/touch/keyboard input, placement preview, responsive layout | M1 |
 | Rules | Captures, suicide policy, simple ko, pass, komi/handicap configuration, history | M1 |
 | Records | SGF import/export, metadata, comments, setup stones, branches and navigation | M1 |
-| Viewer | Navigation controls, branch selection, player information, file loading | M1 |
-| Integration | Framework-independent API, React adapter, selective ESM imports and browser script build | M1 |
+| Viewer / Studio | Navigation controls, variation tree, comments panel, player information, local/example loading and SGF download | M1 |
+| Basic editing | Create a continuation, edit comments, add/remove labels and shape markers | M1 |
+| Integration | Framework-independent API, selective ESM imports, Studio and read-only public-package consumers | M1 |
+| Additional integrations | Optional React adapter/example and browser script build | M2 |
 | Advanced presentation | Rotation/reflection, custom stone textures, placement animation | M2 |
-| Editing/teaching | Branch creation/removal, free setup, lines, arrows, pen annotations | M2 |
+| Extended editing/teaching | Branch removal/reorganization, free setup, lines, arrows, pen annotations | M2 |
 | Mobile placement | Magnified aim, drag-and-release selection, optional confirmation | M2 |
 | Comparison | Side-by-side variations and changed-stone highlighting | M2 |
 | Sharing/export | Position/node links, static diagrams, PNG and SVG output | M2 |
@@ -77,6 +96,8 @@ history context. Cancellation and stale-response rejection are required.
 - Dispose renderers, subscriptions, adapters, and pending work explicitly.
 - Provide runnable viewer, React board, puzzle, and analysis examples as their
   milestones ship. Design documents must not present proposed code as usable API.
+- Studio and the read-only example consume public SDK exports from the build/packed
+  artifact; internal source imports cannot substitute for consumer evidence.
 - Keyboard navigation, visible focus, accessible controls, and move announcements
   are part of the board/viewer design, alongside touch support.
 
@@ -89,12 +110,16 @@ Legacy WGo.js/Goban/Shudan/jGoBoard API compatibility is not promised.
 
 ## First-Release Acceptance
 
-1. Load a real SGF and show player information, comments, markers, and branches.
-2. Navigate forward/backward and choose a variation without losing record state.
-3. Apply a move, capture stones, reject an illegal move, and undo/redo consistently.
-4. Export the edited record while preserving the supported SGF property semantics.
-5. Use both a browser viewer and headless core consumer with documented imports.
-6. Complete a keyboard/mobile viewer smoke check in the declared test matrix.
+1. Open a real SGF or bundled example in Studio and display its metadata, comments,
+   markers and variation tree.
+2. Navigate forward/backward, select a branch, and create a new continuation at an
+   earlier position while preserving the original branch.
+3. Edit comments/markers; captures, illegal-move rejection and undo/redo remain consistent.
+4. Download and reopen the SGF with supported edits, original properties and branches preserved.
+5. Run Studio, a small read-only embedding example and a headless core consumer
+   through documented public package exports, without private source imports.
+6. Complete keyboard/mobile Studio smoke checks in the declared test matrix,
+   without requiring an account, cloud storage or AI service.
 7. Verify package contents, license/provenance, and runnable consumer examples.
 
 Exact runtime versions, API symbols, package exports, limits for untrusted SGF

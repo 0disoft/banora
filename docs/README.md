@@ -11,6 +11,11 @@
 5. [SDK contract](sdk/README.md): consumer-facing API and compatibility direction.
 6. [Development](../DEVELOPMENT.md): implementation and validation approach.
 
+The first consumer is **Banora Studio**, planned at `examples/studio`, plus a
+minimal read-only embedding example. Read the
+[first consumer decision](adr/0003-studio-first-consumer.md) for their role and
+the [specification](product/02-spec.md) for the initial editing/reopen workflow.
+
 ## Sources of Truth
 
 | Subject | Authoritative document |

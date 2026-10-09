@@ -18,6 +18,23 @@ board, rules, and record model rather than separate implementations.
 - Puzzle authors building curated problem sets with scripted responses.
 - Developers displaying results from an external Go AI engine.
 
+## First Consumer: Banora Studio
+
+The first integration target is Banora Studio, a browser-based SGF review and
+editing application planned for `examples/studio` in the same repository. It is
+both a usable public demo for Go players and a reference consumer for developers.
+
+The initial interface contains a board, move navigation controls, a variation
+tree, and a comments panel. Users open a local SGF or bundled example, review its
+branches, create a variation, add comments/markers, and download the edited record.
+Reopening the download must preserve the supported edits and original properties.
+
+Local file workflows require no account, cloud storage, or analysis service.
+Studio consumes only public SDK exports. A small read-only embedding example
+guards against tailoring the API solely to this editor. See
+[ADR 0003](../adr/0003-studio-first-consumer.md) for the decision and
+[the specification](02-spec.md) for release acceptance.
+
 ## Design Priorities
 
 1. A complete embeddable viewer with a small integration surface.

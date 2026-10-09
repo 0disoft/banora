@@ -40,7 +40,13 @@ signatures here before publication.
 
 ## API Validation Priorities
 
-Use real consumers to cover headless imports, browser mounting, React lifecycle,
-SGF export and selective imports. Once analysis ships, include delayed responses,
+Design the initial API around two browser consumers: Banora Studio's SGF review and
+basic editing flow, and a minimal read-only embedded record. Both use built public
+SDK exports. Studio may compose lower-level public modules, but may not bypass the
+contract through internal source imports or demo-only hooks.
+
+Verify headless imports, browser mounting, SGF download/reopen and selective imports
+in M1. Exercise React lifecycle as the adapter ships in M2.
+Once analysis ships, include delayed responses,
 context changes and cancellation. Migration examples must accompany breaking
 changes to actions, coordinates, events, serialization or ownership semantics.

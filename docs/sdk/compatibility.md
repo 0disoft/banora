@@ -9,6 +9,10 @@ script distribution. React is an optional peer dependency for its adapter and is
 not bundled into the core. Optional analysis, puzzle and renderer code must be
 excluded when the consumer does not import it.
 
+M1 validates the ESM/type package through Studio, a read-only browser example, and
+a headless consumer. React integration and browser script distribution follow in
+M2; they must not block the first Studio release.
+
 Choose exact export names and whether to use subpaths or separate packages during
 M1. CommonJS support is UNDECIDED and must not be claimed without consumer evidence.
 
@@ -47,7 +51,8 @@ policy of permanently freezing dependencies.
 
 ## Release Evidence
 
-Validate the packed artifact in browser and headless consumers, check declarations,
-exports, asset paths and notices, and run the relevant examples. Record the actual
+Validate the packed artifact in Studio, the read-only browser example and a headless
+consumer, check declarations, exports, asset paths and notices, and run the relevant
+examples. Reopen Studio's exported SGF to confirm the editing loop. Record the actual
 runtime versions tested. No release version or automatic bump applies while this
 repository contains only its design scaffold.

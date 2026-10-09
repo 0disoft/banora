@@ -12,7 +12,8 @@
 | Records / SGF | Parse/edit/export/reparse with comments, unknown properties, branches and setup |
 | State authority | Same actions yield equivalent headless/browser positions; invalid moves do not mutate |
 | Renderer/input | Coordinate transforms, hit testing, keyboard/mobile interaction and disposal |
-| Packaging/adapters | Packed consumer imports, declarations, asset paths, optional dependency exclusion |
+| Packaging/adapters | Studio/read-only/headless packed consumer imports, declarations, asset paths, optional dependency exclusion |
+| Studio workflow (M1) | Open SGF, navigate/create variation, edit comments/markers, download/reopen; keyboard and mobile operation |
 | Scoring (M3) | Confirmed dead-stone selection and each claimed scoring-policy edge case |
 | Puzzles (M3) | Accepted/rejected authored branches, scripted response and restart |
 | Analysis (M4) | Late responses, cancelled requests, changed context, provider failure and unmount |
