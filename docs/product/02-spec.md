@@ -64,15 +64,40 @@ an authored tree; arbitrary AI responses belong to a separate integration.
 - Rule profiles state exact capture, suicide, repetition, handicap, and scoring
   behavior. A familiar rule-system name must not imply unsupported edge cases.
 - Coordinate transforms affect presentation only; logical coordinates stay stable.
+  Public coordinates are zero-based `{ x, y }` from the top-left, and colors are
+  `'black'` / `'white'`.
 - Browser and server cores produce equivalent results for the same action history.
+- One controller owns the active record, selected node and edit history. Consumers
+  send commands and receive read-only state/change events. Disposing a view releases
+  its resources while preserving an externally supplied controller.
+
+## Editing History and Unsaved Changes
+
+Keep previous/next/branch navigation separate from edit Undo/Redo. Variation creation,
+comment changes and marker changes are undoable; a comment editing session is one
+undo unit. Navigation creates no edit entry and restores the selected path's rule
+history. Edit history must not substitute for repetition history.
+
+Dirty state compares semantic record content with its export baseline, excluding
+navigation and presentation. Imported records start clean. Successful export advances
+the baseline; Undo returning to it clears dirty state. Failed/cancelled export leaves
+the prior baseline intact. A browser download cannot establish actual disk persistence.
+
+Before Studio replaces or closes a dirty record, offer Export / Discard / Cancel.
+Only successful export or explicit discard allows the pending operation; cancellation
+retains the current record. Hosts own this UI; the SDK supplies state and operations.
+Autosave and recovery are deferred. See the [API contract](../sdk/public-api.md).
 
 ## SGF Preservation
 
-Preserve comments, branch order, setup nodes, metadata, and unknown property values
+Initially target SGF FF4 for Go: moves/pass, setup stones, branches, comments,
+player/game metadata, labels and shape markers. Preserve branch order and unknown property values
 through supported read/edit/write workflows. Preserve decoded property semantics,
 not byte-for-byte whitespace, property order, or original text formatting.
 
-Define the supported SGF subset and encoding behavior before claiming compatibility.
+Decode file bytes according to declared encoding; string input is already decoded.
+Export UTF-8. The supported input encoding list, absent-encoding policy and detailed
+property coverage remain UNDECIDED and must be documented before claiming compatibility.
 Unsupported or malformed input must produce an explicit error or diagnostic, not
 silently discard data. Imports should be validated before replacing the active
 record. Keep the original record available if an import fails.
@@ -114,8 +139,13 @@ Each adapter ships a runnable public-package consumer and documented tested vers
 Verify configuration updates, state notifications, remount/cleanup, type/component
 packaging, and the SSR/client-mount boundary for that framework. Integration is not
 considered validated merely because a DOM container can be mounted manually.
-Exact adapter exports, peer/compiler ranges and SSR guarantees remain UNDECIDED
-until implementation. See [ADR 0004](../adr/0004-framework-independent-adapters.md).
+Use one common SDK package and separate React, Vue and Svelte adapter packages in
+the same repository. Initial targets are Node 24 LTS, React 19, Vue 3 and Svelte 5;
+these are design targets, not validated support. Headless core/records can run on
+the server; board views mount on the client. Server-rendered board HTML/hydration
+are deferred. Exact exports, peer/compiler minimums and artifact details remain
+UNDECIDED. See [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
+and [compatibility](../sdk/compatibility.md).
 
 ## Out of Scope
 
@@ -138,6 +168,6 @@ Legacy WGo.js/Goban/Shudan/jGoBoard API compatibility is not promised.
    without requiring an account, cloud storage or AI service.
 7. Verify package contents, license/provenance, and runnable consumer examples.
 
-Exact runtime versions, API symbols, package exports, limits for untrusted SGF
+Browser support floors, tested runtime versions, API symbols, package exports, limits for untrusted SGF
 input, and measured performance budgets remain UNDECIDED until implemented and
 validated. The [risk register](03-risk-register.md) tracks these decisions.

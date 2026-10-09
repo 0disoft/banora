@@ -13,6 +13,8 @@
 | SGF interpretation or encoding loses data | Edited records cannot be trusted | Define supported properties/encodings; round-trip real fixtures including unknown properties and branches |
 | Large or malformed records | Frozen UI or excessive memory | Bound input size, tree depth and work; explicit diagnostics; numerical limits UNDECIDED |
 | Duplicate state in UI and core | Renderer-specific game behavior | One state authority; adapters issue actions and subscribe to snapshots |
+| Navigation mixed with edit Undo | Review actions obscure changes or restore the wrong branch | Separate cursor navigation, repetition history and record edit history; group comment edit sessions |
+| Incorrect dirty/export baseline | Lost edits or misleading save status | Semantic comparison, Undo-to-baseline behavior and Export/Discard/Cancel; failed export/import preserves state; download is not proof of disk persistence |
 | Late AI responses | Advice shown for the wrong position | Request identity, full analysis context, cancellation and apply-time freshness checks |
 | Dead-stone prediction treated as fact | Misleading scores | Separate confirmed scoring from estimates and allow user correction |
 | SVG performance with many boards | Slow lists or frequent overlays | Measure representative devices; add Canvas/workers only for observed bottlenecks |
@@ -25,9 +27,11 @@
 
 ## Decisions Still Open
 
-- Final API identifiers, npm name availability, and exact package/export layout.
-- Browser and Node.js support floors, React/Vue/Svelte peer/compiler ranges,
-  adapter package exports, SSR guarantees, and SGF encodings.
+- Final API identifiers, npm name availability and exact package entrypoints/artifacts.
+- Browser support floors and tested versions for the selected Node 24 LTS,
+  React 19, Vue 3 and Svelte 5 targets; framework peer/compiler minimums and export details.
+- Supported SGF input encodings, absent-encoding behavior, detailed FF4 Go property
+  coverage and host export acknowledgment semantics.
 - Numerical record limits, memory/latency/bundle budgets, and benchmark devices.
 - Exact named-rule coverage, superko algorithms, scoring corner cases, and annotation
   serialization conventions for nonstandard drawing data.
@@ -35,3 +39,6 @@
 - Hosted collaboration/storage design and any commercial service commitment.
 
 Resolve each item in the owning document before its milestone claims support.
+Package layout, initial major targets, client-only board rendering, SGF FF4/UTF-8
+direction and editing/dirty-state semantics are recorded in
+[ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md).

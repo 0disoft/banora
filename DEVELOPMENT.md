@@ -9,6 +9,7 @@
 - [Architecture decision](docs/adr/0001-initial-architecture-boundaries.md).
 - [First consumer decision](docs/adr/0003-studio-first-consumer.md).
 - [Framework support decision](docs/adr/0004-framework-independent-adapters.md).
+- [Initial API, record and package contracts](docs/adr/0005-initial-api-record-and-package-contracts.md).
 - [Public API](docs/sdk/public-api.md) and [compatibility](docs/sdk/compatibility.md).
 - [Validation](VALIDATION.md) and [testing standard](docs/engineering/05-testing-standard.md).
 
@@ -16,9 +17,11 @@
 
 Use TypeScript for the SDK and SGF model, SVG/CSS for the initial renderer, Vite
 for library/demo builds, and Bun for dependency installation and package scripts.
-Add optional React, Vue, and Svelte adapters over the shared browser SDK. Exact
-tool versions, test runner, adapter packaging, package layout,
-and executable commands remain UNDECIDED until implementation starts.
+Use one common SDK package in M1 and three separate optional React, Vue and Svelte
+adapter packages in M2, all in this repository. Initial compatibility targets are
+Node 24 LTS, React 19, Vue 3 and Svelte 5; actual consumer evidence is still pending.
+Exact tool versions, test runner, npm names/exports, adapter artifact details and
+executable commands remain UNDECIDED until implementation starts.
 
 Keep the workflow usable on Windows and Unix-like environments. Provide package
 scripts for actual development/build/validation tasks; Make is not required.
@@ -31,6 +34,12 @@ planned at `examples/studio`: load an SGF, navigate branches, create a continuat
 edit comments/markers, download it and reopen it with edits preserved. Build the
 required core, record cursor, renderer and viewer together rather than expanding
 every optional module first.
+
+Implement navigation separately from edit Undo/Redo, group comment edit sessions,
+and expose semantic dirty state with an export baseline. Studio needs Export /
+Discard / Cancel before replacing or closing dirty records. Its SGF workflow targets
+FF4 for Go, preserves unknown properties and exports UTF-8. See the specification
+for failure behavior and remaining encoding decisions.
 
 Keep shared logic free of DOM/framework imports. Define ownership and failure
 semantics before publishing public signatures. Studio must use built public SDK

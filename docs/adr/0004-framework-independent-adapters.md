@@ -6,6 +6,7 @@
 - Product scope: [Specification](../product/02-spec.md)
 - Delivery sequence: [Roadmap](../product/01-roadmap.md)
 - Extends: [ADR 0001](0001-initial-architecture-boundaries.md) and [ADR 0003](0003-studio-first-consumer.md)
+- Refined by: [ADR 0005](0005-initial-api-record-and-package-contracts.md) for package layout, major targets and SSR boundaries
 
 ## Context
 
@@ -28,8 +29,8 @@ renderer to one application framework.
    surrounding UI; the SDK owns its internal drawing subtree. Never let both
    systems reconcile the same SVG children concurrently.
 5. Isolate framework dependencies and native component artifacts from the core
-   and other adapters. Decide subpath/separate-package layout and peer/compiler
-   ranges with actual consumer builds; do not assume the plain JS build is enough
+   and other adapters. ADR 0005 selects separate adapter packages; refine exports
+   and peer/compiler minimums with consumer builds. Do not assume the plain JS build is enough
    for every framework's component distribution.
 6. Validate each adapter's update propagation, subscriptions, remount/cleanup,
    types/artifacts and SSR/client-mount boundary independently.
@@ -42,8 +43,9 @@ UI framework for simple consumers. Studio remains the framework-independent firs
 consumer and the read-only example guards its general embedding surface.
 
 Three wrappers add lifecycle/compiler/version maintenance. Limit them to shared
-functionality and focused real-consumer checks. Exact exported components/hooks,
-framework versions and SSR guarantees remain UNDECIDED until implementation.
+functionality and focused real-consumer checks. ADR 0005 records initial framework
+major targets and the headless-server/client-board boundary. Exact exported
+components/hooks, peer/compiler minimums and tested compatibility remain pending.
 Web Components or additional framework adapters are not required by this decision.
 
 ## Official Integration References

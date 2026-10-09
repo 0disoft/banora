@@ -5,6 +5,7 @@
 - Technical owner: UNASSIGNED
 - Product contract: [Specification](../product/02-spec.md)
 - Framework support extension: [ADR 0004](0004-framework-independent-adapters.md)
+- Initial contract refinement: [ADR 0005](0005-initial-api-record-and-package-contracts.md)
 
 ## Context
 
@@ -26,7 +27,8 @@ logic, theme control, record preservation, and room for external analysis later.
 4. Use Vite library distribution with ESM/types and browser script output. Use
    Bun for development scripts; consumers must not require Bun or Make.
 5. Keep core, records, rendering, viewer, scoring, puzzles and analysis logically
-   separate. Exact package/export layout is UNDECIDED; do not require a monorepo.
+   separate. ADR 0005 refines packaging to one common SDK and three optional
+   framework adapter packages in this repository; exact names/exports remain open.
 6. Separate confirmed scoring from life/death prediction. External analysis uses
    a provider-neutral contract, with KataGo JSON analysis as an integration candidate.
 7. Defer Canvas, workers and Rust/WASM until measured limitations justify them.

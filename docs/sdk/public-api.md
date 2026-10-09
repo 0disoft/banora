@@ -3,6 +3,7 @@
 - Status: Proposed API responsibilities; exact symbols/signatures UNDECIDED
 - Product contract: [Specification](../product/02-spec.md)
 - Architecture: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
+- Initial contracts: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
 
 ## Logical API Surfaces
 
@@ -32,6 +33,8 @@ signatures here before publication.
   captures, enforce ko or maintain a competing record model.
 - Use logical board coordinates in public actions/events. Display rotation,
   reflection and cropping must not change those meanings.
+  Coordinates use zero-based `{ x, y }`, with the origin at the top-left. Stone
+  colors use `'black'` and `'white'`; pass is a distinct action, not a coordinate.
 - Specify subscription cleanup and disposal. A destroyed view rejects late work
   while host-owned records remain available.
 - Separate scoring input/output from uncertain AI evaluations. Document score
@@ -42,6 +45,31 @@ signatures here before publication.
 - Define the renderer-owned DOM subtree so frameworks mount a container without
   concurrently managing its internal SVG elements. Cleanup releases listeners and
   subscriptions while retaining host-owned records/controllers as documented.
+
+## Controller and Editing Contract
+
+One controller owns the current record, selected node/cursor and edit history.
+Consumers send commands and subscribe to read-only state/change events. Views
+release their own renderer, listeners and subscriptions on disposal; an externally
+supplied controller remains available. Exact constructor/command names, snapshot
+types and export acknowledgment signatures remain UNDECIDED.
+
+Previous/next and branch selection are navigation operations, separate from edit
+Undo/Redo. Variation creation, comments and marker changes are undoable edits.
+Group a comment editing session into one undo unit. Navigation adds no edit entry
+and does not mark the record dirty; changing branches restores the rule-relevant
+history for that path. Repetition history and edit history are separate concepts.
+
+Dirty state compares semantic record content with the export baseline, excluding
+cursor/presentation state. Import establishes a clean baseline; a successful export
+advances it. Undo to that content clears dirty state. Failed/cancelled exports keep
+the previous baseline. A browser download request does not prove disk persistence;
+document the host acknowledgment boundary when export APIs are implemented.
+
+Studio offers Export / Discard / Cancel before replacing or closing a dirty record.
+Export continues only after success, Discard allows replacement/close, and Cancel
+retains the active record. The SDK exposes these operations/state without requiring
+a confirmation dialog in every host. Autosave and recovery are deferred.
 
 ## API Validation Priorities
 
@@ -54,7 +82,8 @@ Verify headless imports, browser mounting, SGF download/reopen and selective imp
 in M1. In M2, exercise React, Vue, and Svelte configuration updates, state/event
 bindings, remount/dispose, type/component packaging and SSR/client-mount behavior
 in separate consumer examples. No shared smoke check establishes all three frameworks'
-compatibility. Exact exported components/hooks and peer/compiler ranges remain open.
+compatibility. [Initial major targets](compatibility.md) are selected; exact exported
+components/hooks and peer/compiler minimums remain open.
 Once analysis ships, include delayed responses,
 context changes and cancellation. Migration examples must accompany breaking
 changes to actions, coordinates, events, serialization or ownership semantics.

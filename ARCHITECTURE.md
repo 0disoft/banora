@@ -3,6 +3,7 @@
 - Status: Planned architecture; implementation not started
 - Decision: [ADR 0001](docs/adr/0001-initial-architecture-boundaries.md)
 - Framework support: [ADR 0004](docs/adr/0004-framework-independent-adapters.md)
+- Initial contracts: [ADR 0005](docs/adr/0005-initial-api-record-and-package-contracts.md)
 - Capability scope: [Product specification](docs/product/02-spec.md)
 
 ## Technology Direction
@@ -17,19 +18,24 @@
 | Development | Bun package/script workflow | Convenient development on Windows and other platforms |
 | AI integration | Provider adapter; external KataGo JSON analysis candidate | Analysis display without bundling an AI engine |
 
-Exact versions and exported symbols remain UNDECIDED. Bun is a development choice,
+Initial compatibility targets are Node 24 LTS, React 19, Vue 3 and Svelte 5; tested
+support remains pending. Exact tooling versions and exported symbols remain UNDECIDED.
+Bun is a development choice,
 not a required runtime for SDK consumers. Make is not required for the planned
 developer workflow.
 
 ## Module Boundaries
 
-Separate responsibilities and import entrypoints without committing yet to a
-multi-package workspace. The logical modules are core, SGF/records, SVG rendering,
+Use one repository with one common SDK package and three separate optional React,
+Vue and Svelte adapter packages. M1 delivers the common SDK; M2 adds adapters.
+Exact package names and entrypoints remain UNDECIDED. The logical modules are core, SGF/records, SVG rendering,
 viewer/editor, optional framework adapters, puzzles, scoring, and analysis adapters.
 
 Core owns legal state transitions. Records own metadata and branches; a cursor
-selects the active path and derives its board through the core. Renderers consume
-snapshots and emit input actions. Host applications own persistence, multiplayer
+selects the active path and derives its board through the core. A controller owns
+the active record, cursor and edit history; navigation and edit Undo/Redo are
+distinct operations. Renderers consume snapshots and emit input actions. Host
+applications own persistence, multiplayer
 authority, credentials, and remote services.
 
 ```mermaid

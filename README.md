@@ -33,6 +33,12 @@ The shared browser SDK is framework-independent. React, Vue, and Svelte are all
 official adapter targets for M2; none is required by the core or renderer. See the
 [framework support decision](docs/adr/0004-framework-independent-adapters.md).
 
+Plan one common SDK package plus three separate adapters in this repository.
+The [initial contracts](docs/adr/0005-initial-api-record-and-package-contracts.md)
+define controller ownership, SGF FF4/UTF-8 handling, edit Undo and unsaved-change
+behavior. Node 24 LTS, React 19, Vue 3 and Svelte 5 are initial compatibility
+targets; tested support has not yet been established.
+
 ## Design Documents
 
 - [Product brief](docs/product/00-product-brief.md): audience and differentiation.

@@ -10,24 +10,28 @@ commit. Exact package versions remain UNDECIDED.
 ## M1: Banora Studio and Read-Only Embedding
 
 - Headless TypeScript board and rules engine: captures, suicide policy, simple ko,
-  pass, setup positions, and undo/redo.
+  pass, setup positions and rule-relevant history.
 - SVG board with standard sizes, coordinates, themes, labels, shape markers,
   partial-board views, placement preview, and keyboard/pointer input.
-- SGF parsing and serialization, game metadata, comments, variations, and history
-  navigation; preserve unrecognized properties semantically.
+- SGF FF4 Go parsing and UTF-8 serialization, metadata, comments, variations and
+  history navigation; preserve unrecognized properties semantically.
 - Banora Studio in `examples/studio`: responsive board, move controls, variation
   tree, comments panel, SGF drag-and-drop/example loading, and SGF download.
 - Basic editing: play a continuation to create a variation, edit comments, and
   add/remove existing label and shape marker types on the selected node.
+- Edit Undo/Redo separate from navigation, grouped comment edit sessions and
+  semantic dirty/export baselines with Export / Discard / Cancel in Studio.
 - A small read-only embedding example using the same public SDK exports.
-- Framework-independent integration and ESM/type packaging. Studio and examples
+- Framework-independent integration and one common ESM/type SDK package. Studio and examples
   consume built public exports with no imports from SDK internals.
 
 **Exit evidence:** a user opens an SGF, navigates a variation, creates a continuation,
 edits comments/markers, downloads the record, and reopens it with supported edits,
 properties and branches preserved. Capture, illegal-move rejection and undo/redo
 remain consistent. Studio supports mobile and keyboard operation in the declared
-test matrix; read-only embedding and headless imports exercise the public package.
+test matrix; navigation does not enter edit history or change dirty state, and
+Undo-to-baseline and cancelled/failed export preserve the expected record state.
+Read-only embedding and headless imports exercise the public package.
 Establish the MIT license and bundled asset provenance. No account, cloud storage
 or AI integration is needed to complete this flow.
 
@@ -37,6 +41,8 @@ or AI integration is needed to complete this flow.
   arrows, and freehand annotations beyond M1's continuation/comments/markers.
 - Official optional React, Vue, and Svelte adapters/examples and browser script
   distribution after the framework-independent Studio and read-only workflows are usable.
+  Each adapter is a separate package in this repository, targeting React 19,
+  Vue 3 and Svelte 5, with support claims contingent on consumer evidence.
 - Board rotation/reflection, animation, custom stone textures, and magnified
   touch placement with optional confirmation.
 - Side-by-side variation comparison with changed intersections highlighted.

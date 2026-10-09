@@ -11,6 +11,7 @@
 - [ADR 0001](../adr/0001-initial-architecture-boundaries.md): technology and module boundaries.
 - [ADR 0003](../adr/0003-studio-first-consumer.md): Studio and the first consumer workflows.
 - [ADR 0004](../adr/0004-framework-independent-adapters.md): official React, Vue, and Svelte targets.
+- [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md): initial API, editing/export and package contracts.
 - [Validation](../../VALIDATION.md): stable validation names and reporting.
 
 ## Consumption Modes
@@ -41,7 +42,9 @@ versions, component packaging and SSR behavior require framework-specific eviden
 
 ## Release Boundary
 
-Exact public symbols, package names/exports and runtime support versions are
-UNDECIDED. No installation snippet should imply an available package until a
+Plan one common SDK package and three separate optional adapter packages in this
+repository. Initial targets are Node 24 LTS, React 19, Vue 3 and Svelte 5; tested
+support is pending. Exact public symbols, package names/exports, browser floors
+and peer/compiler minimums remain UNDECIDED. No installation snippet should imply an available package until a
 release exists. Published packages must include type declarations, license files,
 asset notices, documented exports and actual consumer validation.
