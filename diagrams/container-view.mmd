@@ -1,5 +1,12 @@
 flowchart TD
-  A["container_view: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+  Host["Host application"] --> Viewer["Viewer / editor controller"]
+  Host --> React["Optional React adapter"]
+  React --> Viewer
+  Viewer --> Records["SGF / record tree / cursor"]
+  Records --> Core["TypeScript core: authoritative rules and state"]
+  Viewer --> SVG["SVG renderer: snapshots and logical input"]
+  Core -->|"board snapshots"| SVG
+  Viewer --> Optional["Optional scoring / puzzle modules"]
+  Optional --> Core
+  Viewer --> Analysis["Optional analysis adapter"]
+  Analysis --> AI["External AI engine / service"]

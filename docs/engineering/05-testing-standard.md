@@ -1,20 +1,39 @@
 # Testing Standard
 
-- Status: Draft
+- Status: Planned evidence; test tooling and commands are not configured
+- Validation names: [VALIDATION.md](../../VALIDATION.md)
+- Required behavior: [Product specification](../product/02-spec.md)
 
-## Contract
+## Risk-Based Coverage
 
-Testing standard defines merge-blocking expectations for unit, integration, contract, migration, smoke, docs, and regression evidence.
+| Changed responsibility | Focused evidence |
+| --- | --- |
+| Rules | Captures, suicide, declared ko/repetition policy, pass, setup and undo/redo |
+| Records / SGF | Parse/edit/export/reparse with comments, unknown properties, branches and setup |
+| State authority | Same actions yield equivalent headless/browser positions; invalid moves do not mutate |
+| Renderer/input | Coordinate transforms, hit testing, keyboard/mobile interaction and disposal |
+| Packaging/adapters | Packed consumer imports, declarations, asset paths, optional dependency exclusion |
+| Scoring (M3) | Confirmed dead-stone selection and each claimed scoring-policy edge case |
+| Puzzles (M3) | Accepted/rejected authored branches, scripted response and restart |
+| Analysis (M4) | Late responses, cancelled requests, changed context, provider failure and unmount |
+| Documentation | Relative links, scope/status consistency and whitespace review |
 
-## Required Evidence
+Add tests for observable behavior and material failure modes. Avoid assertions
+that merely reproduce implementation internals. Keep real SGF regression fixtures
+and targeted rule cases; retire tests that no longer protect a supported contract.
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
+## Verification Budget
 
-## Review Blockers
+Run the narrowest applicable configured checks and stop after the acceptance
+criteria and changed-risk checks pass. Expand or repeat checks for a new change,
+failure or unresolved concern. Documentation-only work does not need runtime tests.
 
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+Validate actual packed consumers/examples before publishing compatibility claims.
+Keep CI scoped to relevant implementation/package changes and release risks, and
+batch validated pushes/releases to avoid redundant runner usage.
+
+## Current Scaffold State
+
+Runner `none` provides no executable test/lint/typecheck/build jobs. Record manual
+documentation checks as manual evidence. Report automated validation names as
+skipped until their commands are genuinely configured; do not invent passing jobs.

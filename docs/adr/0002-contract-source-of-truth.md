@@ -1,28 +1,35 @@
-# Contract Source of Truth
+# ADR 0002: Contract Source of Truth
 
-- Status: Draft
-- Owner: UNASSIGNED
-
-## Purpose
-
-This document captures the durable design contract for Contract Source of Truth.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
-
-## Source of Truth
-
-- Product decision: UNDECIDED
+- Status: Recorded design baseline
+- Date: 2026-10-10
 - Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
 
-## Required Decisions
+## Context
 
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+The repository starts as an SDK design scaffold. Product features, technical
+choices and public contracts need distinct owners so summaries and generated
+metadata do not imply shipped functionality or override actual design decisions.
 
-## Review Blockers
+## Decision
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- [Product specification](../product/02-spec.md) owns capability scope and acceptance.
+- [Roadmap](../product/01-roadmap.md) owns milestone sequencing and planned delivery.
+- ADRs own architecture decisions and rationale; architecture documents explain
+  the state model and runtime boundaries.
+- [Public API](../sdk/public-api.md) owns consumer contract direction; exact exported
+  symbols are recorded when implementation exists.
+- [Compatibility](../sdk/compatibility.md) owns packaging, supported runtimes,
+  versioning and migration, with measured consumer evidence before claims.
+- [Validation](../../VALIDATION.md) owns stable validation names and reporting.
+- [Documentation index](../README.md) routes readers to these owners.
+
+Public documentation is written in English. Label planned capabilities, unresolved
+details and unmeasured targets explicitly. README and diagrams summarize the owning
+documents; they are not separate competing specifications.
+
+## Consequences
+
+Change the owning contract and update its summaries/links together. Do not invent
+published package instructions, compatibility results, completed milestones or
+credentials. Unconfigured validation remains visibly skipped. A documentation-only
+design update does not add runtime APIs, a database schema, a task runner or a release.

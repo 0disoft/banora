@@ -1,17 +1,60 @@
 # Architecture
 
-- Status: Draft
+- Status: Planned architecture; implementation not started
+- Decision: [ADR 0001](docs/adr/0001-initial-architecture-boundaries.md)
+- Capability scope: [Product specification](docs/product/02-spec.md)
 
-## Boundary
+## Technology Direction
 
-Define what this repository owns, what it consumes, and which contracts cannot drift.
+| Surface | Initial choice | Purpose |
+| --- | --- | --- |
+| Board state and rules | Pure TypeScript | Shared browser/server behavior and typed contracts |
+| Records | TypeScript SGF parser/serializer and variation model | Record preservation and headless navigation |
+| Default rendering | SVG and CSS | Themes, annotation layers, input and vector export |
+| Framework integration | Framework-independent controller; optional React adapter | Plain web embedding and component integration |
+| Distribution | Vite library builds, ESM/types and browser script output | Selective imports and simple embedding |
+| Development | Bun package/script workflow | Convenient development on Windows and other platforms |
+| AI integration | Provider adapter; external KataGo JSON analysis candidate | Analysis display without bundling an AI engine |
 
-## Runtime Flow
+Exact versions and exported symbols remain UNDECIDED. Bun is a development choice,
+not a required runtime for SDK consumers. Make is not required for the planned
+developer workflow.
 
-UNDECIDED. Add the minimal sequence needed to explain request, state, failure, and recovery behavior.
+## Module Boundaries
 
-## Quality Attributes
+Separate responsibilities and import entrypoints without committing yet to a
+multi-package workspace. The logical modules are core, SGF/records, SVG rendering,
+viewer/editor, React, puzzles, scoring, and analysis adapters.
 
-- Maintainability: changes must preserve source-of-truth documents.
-- Security: authentication, authorization, tenant boundaries, and secrets need explicit owners.
-- Operability: logs, metrics, rollback, and incident response must be considered before release.
+Core owns legal state transitions. Records own metadata and branches; a cursor
+selects the active path and derives its board through the core. Renderers consume
+snapshots and emit input actions. Host applications own persistence, multiplayer
+authority, credentials, and remote services.
+
+```mermaid
+flowchart LR
+  Host[Host application] --> Viewer[Viewer / editor / React adapter]
+  Viewer --> Records[Record tree and cursor]
+  Records --> Core[Headless rules and board state]
+  Core --> SVG[SVG renderer]
+  SVG -->|input actions| Viewer
+  Viewer --> AI[Optional analysis adapter]
+  AI --> Provider[Host-owned external engine or service]
+  AI -->|validated results| Viewer
+```
+
+## Optimization Policy
+
+Start with TypeScript and SVG. Measure large record navigation, many thumbnail
+boards, and frequent analysis overlays on representative devices. Add a Canvas
+renderer or worker for a demonstrated limitation. Consider Rust/WASM only for a
+specific computational bottleneck after simpler options are evaluated.
+
+## Detailed Contracts
+
+- [System boundary](docs/architecture/00-system-boundary.md)
+- [Domain model](docs/architecture/01-domain-model.md)
+- [Runtime flow](docs/architecture/02-runtime-flow.md)
+- [Quality attributes](docs/architecture/03-quality-attributes.md)
+- [Public API direction](docs/sdk/public-api.md)
+- [Compatibility](docs/sdk/compatibility.md)

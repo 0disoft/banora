@@ -1,28 +1,15 @@
 # Diagrams
 
-- Status: Draft
-- Owner: UNASSIGNED
+- Status: Planned architecture views; no running system implied
+- Source of truth: [ADR 0001](../docs/adr/0001-initial-architecture-boundaries.md)
 
-## Purpose
+- [System context](system-context.mmd): SDK, host and optional external analysis.
+- [Module view](container-view.mmd): logical responsibilities, not a deployment topology.
+- [Core runtime flow](core-runtime-flow.mmd): actions, rejection and authoritative updates.
 
-This document captures the durable design contract for Diagrams.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+These Mermaid sources summarize the [system boundary](../docs/architecture/00-system-boundary.md)
+and [runtime flow](../docs/architecture/02-runtime-flow.md). Update those contracts
+first when behavior changes.
 
-## Source of Truth
-
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
-
-## Review Blockers
-
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+[Release](release-flow.mmd) and [rollback](rollback-flow.mmd) diagrams remain generic
+scaffold placeholders until executable release operations are defined.

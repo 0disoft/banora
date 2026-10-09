@@ -1,28 +1,13 @@
 # Architecture Decisions
 
-- Status: Draft
-- Owner: UNASSIGNED
+ADRs record the design baseline and its rationale. A recorded direction does not
+mean its implementation or compatibility has been validated.
 
-## Purpose
+| ADR | Status | Subject |
+| --- | --- | --- |
+| [0001](0001-initial-architecture-boundaries.md) | Design baseline | TypeScript core, SVG rendering, module/state ownership and deferred optimizations |
+| [0002](0002-contract-source-of-truth.md) | Design baseline | Contract ownership and planned-versus-implemented documentation |
 
-This document captures the durable design contract for Architecture Decisions.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
-
-## Source of Truth
-
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
-
-## Review Blockers
-
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+Update the owning ADR when a design changes and describe the consequences for
+consumers and validation. Keep unresolved choices explicit. Use the
+[ADR template](0000-template.md) for future decisions and link them here.

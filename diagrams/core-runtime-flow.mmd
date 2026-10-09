@@ -1,5 +1,8 @@
 flowchart TD
-  A["core_runtime_flow: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+  Input["Pointer / keyboard / host action"] --> Map["Map to logical action and active record path"]
+  Map --> Core["Validate and compute in authoritative core"]
+  Core --> Valid{"Action valid?"}
+  Valid -->|"no"| Reject["Structured reason; active state unchanged"]
+  Valid -->|"yes"| Commit["Apply record / cursor transition"]
+  Commit --> Snapshot["Publish authoritative snapshot and record update"]
+  Snapshot --> View["Render board, controls and comments"]

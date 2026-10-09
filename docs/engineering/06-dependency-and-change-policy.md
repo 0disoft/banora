@@ -1,20 +1,35 @@
 # Dependency and Change Policy
 
-- Status: Draft
+- Status: Planned policy; no SDK dependency graph exists yet
+- Contract: [Compatibility](../sdk/compatibility.md)
+- Technical owner: UNASSIGNED
 
-## Contract
+## Dependency Selection
 
-Dependency policy covers necessity, alternatives, license, maintenance health, vulnerabilities, runtime impact, bundle impact, major upgrade policy, and removal cost.
+Keep the headless core's runtime dependency surface small. Evaluate a dependency's
+purpose, alternatives, maintenance, license, runtime/bundle effect and replacement
+cost. UI/framework and provider dependencies belong in their optional surfaces.
+React is an adapter peer dependency; it must not become a required core import.
 
-## Required Evidence
+Use explicit compatible major-version ranges and accept stable updates within a
+supported major line. Lockfiles record exact build inputs. Promote a new major
+intentionally after the affected consumer examples and compatibility checks pass.
+Exact initial dependency versions are UNDECIDED until tooling is added.
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
+## Changes and Releases
 
-## Review Blockers
+Update the owning spec/API/ADR when consumer behavior changes. Record breaking
+changes and migration examples. Package release validation covers declarations,
+exports, assets/notices and actual browser/headless consumers.
 
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+Keep changes cohesive, commit finished tasks, and batch validated pushes and
+release work. Avoid adding a wide CI matrix or repeated full suites without a
+specific compatibility/risk need.
+
+## Licensing
+
+MIT is the intended license for original SDK code and bundled assets. Establish
+the actual license file and asset provenance before distribution. Third-party
+components and external AI models/engines retain their own terms; the SDK's license
+does not grant rights to them. Reference projects are design references, not an
+instruction to copy their implementations or assets.

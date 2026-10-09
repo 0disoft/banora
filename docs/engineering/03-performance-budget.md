@@ -1,20 +1,33 @@
 # Performance Budget
 
-- Status: Draft
+- Status: Measurement plan; no measurements or numerical guarantees yet
+- Technical owner: UNASSIGNED
+- Decision: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 
-## Contract
+## Workloads and Measurements
 
-Performance budgets must track latency, payload size, query count, cache behavior, bundle size, background jobs, and UNDECIDED project-specific thresholds.
+| Workload | Measure |
+| --- | --- |
+| Interactive 19x19 board | Input-to-visible-update latency, redraw time and allocations |
+| Viewer navigation | Move/branch navigation latency and state/history memory |
+| Large SGF imports | Parse time, memory, tree depth and defined input limits |
+| Many thumbnail boards | Mount/render cost and scrolling responsiveness |
+| Analysis overlays | Update latency with candidates/ownership data |
+| Minimal consumers | Compressed bundle size and excluded optional dependencies |
+| Mount/unmount cycles | Remaining listeners, subscriptions, objects and pending work |
 
-## Required Evidence
+Numerical budgets, fixtures and representative device/browser versions are
+UNDECIDED. Record these with the initial implementation baseline before advertising
+performance. Report workload, tool/runtime versions and measurement limitations.
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
+## Optimization Gates
 
-## Review Blockers
+Start with TypeScript and SVG. Profile first; evaluate batching, caching and a
+smaller update scope before changing technology. A measured rendering problem may
+justify Canvas; main-thread computation may justify a worker. Rust/WASM requires
+evidence of a specific computational limitation and an evaluated integration cost.
 
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+Keep existing state/coordinate contracts when adding a backend. Faster rendering
+does not justify stale analysis, divergent rules, data loss or unbounded work.
+Performance checks should target changed workloads rather than run by default on
+every documentation or unrelated code change.

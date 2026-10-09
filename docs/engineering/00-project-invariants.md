@@ -1,20 +1,28 @@
 # Project Invariants
 
-- Status: Draft
+- Status: Planned implementation invariants
+- Source: [Product specification](../product/02-spec.md) and [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
+- Technical owner: UNASSIGNED
 
 ## Contract
 
-Project invariants define what must remain true across implementation, tests, docs, configuration, and release behavior.
+1. Core transitions are authoritative; renderers and framework adapters never
+   implement a competing game state or legality engine.
+2. Core/SGF imports require no DOM, React, provider client or persistent storage.
+3. Invalid actions and failed imports preserve the previously active state/record.
+4. Logical coordinates retain their meaning across display transforms and adapters.
+5. Supported SGF workflows preserve semantic property values, comments and branches;
+   unsupported behavior is diagnosed rather than silently erased.
+6. Rule-profile claims describe implemented semantics and focused validation evidence.
+7. Score calculation with confirmed dead stones is distinct from uncertain prediction.
+8. AI results apply only to their current request/context and a live consumer session.
+9. Disposal removes owned resources and invalidates late work without deleting
+   host-owned records.
+10. Local board/rules/record operations make no implicit remote calls or telemetry.
+11. Optional module code and framework dependencies stay out of consumers that
+    do not import them.
+12. Shipped documentation/examples describe actual APIs and tested compatibility;
+    design documents clearly identify planned work.
 
-## Required Evidence
-
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
-
-## Review Blockers
-
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+Use the [testing standard](05-testing-standard.md) and [SDK checklist](../../.agents/checklists/sdk.md)
+to select evidence for the invariant affected by a change.
