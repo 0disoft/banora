@@ -43,6 +43,8 @@ guards against tailoring the API solely to this editor. See
 4. Preservation of comments, branches, and unfamiliar SGF properties.
 5. Accessible keyboard interaction and deliberate mobile move placement.
 6. Optional modules so simple consumers do not load unrelated features.
+7. Official React, Vue, and Svelte adapters over a framework-independent browser SDK;
+   consumers adopt their preferred framework without changing game or record behavior.
 
 ## Differentiation
 

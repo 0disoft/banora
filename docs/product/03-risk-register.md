@@ -16,7 +16,8 @@
 | Late AI responses | Advice shown for the wrong position | Request identity, full analysis context, cancellation and apply-time freshness checks |
 | Dead-stone prediction treated as fact | Misleading scores | Separate confirmed scoring from estimates and allow user correction |
 | SVG performance with many boards | Slow lists or frequent overlays | Measure representative devices; add Canvas/workers only for observed bottlenecks |
-| Package/framework coupling | Unusable headless imports or large bundles | Test real consumers; keep React/DOM optional and inspect selective import output |
+| Package/framework coupling | Unusable headless imports or large bundles | Keep React/Vue/Svelte and DOM out of the headless core; isolate each adapter and inspect selective import output |
+| Adapter lifecycle/compiler differences | Stale views, leaks, broken SSR or unusable component packages | Validate React, Vue, and Svelte consumers independently for updates, remount/cleanup, types/compiler packaging and client-only DOM creation |
 | Native/browser compatibility assumed | Broken SSR, input or rendering | Declare tested runtime versions; browser wrappers mount explicitly; headless imports need no DOM |
 | Unclear license or asset provenance | Distribution restrictions | Establish MIT licensing for original work; audit textures, fonts and third-party notices |
 | Remote analysis credentials/data | Exposed secrets or unexpected uploads | Host-owned server credentials and explicit submission; no automatic remote calls |
@@ -25,7 +26,8 @@
 ## Decisions Still Open
 
 - Final API identifiers, npm name availability, and exact package/export layout.
-- Browser and Node.js support floors, React peer dependency range, and SGF encodings.
+- Browser and Node.js support floors, React/Vue/Svelte peer/compiler ranges,
+  adapter package exports, SSR guarantees, and SGF encodings.
 - Numerical record limits, memory/latency/bundle budgets, and benchmark devices.
 - Exact named-rule coverage, superko algorithms, scoring corner cases, and annotation
   serialization conventions for nonstandard drawing data.

@@ -5,13 +5,14 @@
 ## Distribution Direction
 
 Use Vite library builds for ESM entrypoints, TypeScript declarations, and a browser
-script distribution. React is an optional peer dependency for its adapter and is
-not bundled into the core. Optional analysis, puzzle and renderer code must be
-excluded when the consumer does not import it.
+script distribution. React, Vue, and Svelte are optional dependencies of their
+respective adapters and are not bundled into the core or required by other adapters.
+Optional analysis, puzzle and renderer code must be excluded when the consumer
+does not import it.
 
 M1 validates the ESM/type package through Studio, a read-only browser example, and
-a headless consumer. React integration and browser script distribution follow in
-M2; they must not block the first Studio release.
+a headless consumer. React, Vue, and Svelte adapters and browser script distribution
+follow in M2; they must not block the first Studio release.
 
 Choose exact export names and whether to use subpaths or separate packages during
 M1. CommonJS support is UNDECIDED and must not be claimed without consumer evidence.
@@ -23,12 +24,21 @@ M1. CommonJS support is UNDECIDED and must not be claimed without consumer evide
 | Core and SGF | Browser and Node.js, no DOM required | Version floors UNDECIDED |
 | SVG renderer and viewer | Browsers with the required SVG/input APIs | Tested matrix UNDECIDED |
 | React adapter | Client-mounted React applications | Peer versions and SSR behavior UNDECIDED |
+| Vue adapter | Client-mounted Vue applications | Peer versions and SSR behavior UNDECIDED |
+| Svelte adapter | Client-mounted Svelte applications | Peer/compiler versions, component packaging and SSR behavior UNDECIDED |
 | Bun | Development/package scripts | Tool version UNDECIDED; consumer runtime support unclaimed |
 | AI adapter | Host-selected engine/service transport | Protocol/version matrix UNDECIDED |
 
 Headless imports must not reference browser globals at module initialization.
 Client views mount after a DOM is available. Do not advertise native mobile or
 desktop toolkit rendering based solely on browser support.
+
+Framework-independent browser use and official framework wrappers are separate
+claims. A shared DOM mount API enables integration, but each wrapper's reactivity,
+cleanup, SSR boundary and packaging must be verified before claiming support.
+React, Vue, and Svelte consumers must not load one another's framework dependencies.
+Keep native component packaging isolated from the core's TypeScript build; choose
+actual peer dependency metadata, artifact formats and compiler versions during M2.
 
 ## Record Compatibility
 
@@ -54,5 +64,8 @@ policy of permanently freezing dependencies.
 Validate the packed artifact in Studio, the read-only browser example and a headless
 consumer, check declarations, exports, asset paths and notices, and run the relevant
 examples. Reopen Studio's exported SGF to confirm the editing loop. Record the actual
-runtime versions tested. No release version or automatic bump applies while this
+framework peer/compiler versions and independently run each adapter consumer as it
+ships. Verify client-only DOM creation, update propagation, remount cleanup and package
+types/artifacts rather than inferring compatibility from the plain-browser example.
+Record the actual runtime versions tested. No release version or automatic bump applies while this
 repository contains only its design scaffold.

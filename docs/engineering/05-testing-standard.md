@@ -14,6 +14,7 @@
 | Renderer/input | Coordinate transforms, hit testing, keyboard/mobile interaction and disposal |
 | Packaging/adapters | Studio/read-only/headless packed consumer imports, declarations, asset paths, optional dependency exclusion |
 | Studio workflow (M1) | Open SGF, navigate/create variation, edit comments/markers, download/reopen; keyboard and mobile operation |
+| Framework adapters (M2) | Independent React/Vue/Svelte consumers: config/state/event updates, remount/dispose, SSR boundary and type/component packaging |
 | Scoring (M3) | Confirmed dead-stone selection and each claimed scoring-policy edge case |
 | Puzzles (M3) | Accepted/rejected authored branches, scripted response and restart |
 | Analysis (M4) | Late responses, cancelled requests, changed context, provider failure and unmount |

@@ -9,7 +9,9 @@
 Keep the headless core's runtime dependency surface small. Evaluate a dependency's
 purpose, alternatives, maintenance, license, runtime/bundle effect and replacement
 cost. UI/framework and provider dependencies belong in their optional surfaces.
-React is an adapter peer dependency; it must not become a required core import.
+React, Vue, and Svelte belong only to their respective adapters' dependency surfaces.
+No framework may become a required core/renderer import or a dependency of another
+framework's adapter. Resolve peer/compiler metadata with real consumer builds.
 
 Use explicit compatible major-version ranges and accept stable updates within a
 supported major line. Lockfiles record exact build inputs. Promote a new major

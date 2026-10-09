@@ -32,6 +32,9 @@ Extended branch management, teaching tools, React integration and browser script
 distribution follow in M2. Accounts, cloud storage and external AI are outside
 Studio's initial workflow.
 
+[ADR 0004](0004-framework-independent-adapters.md) extends M2's official framework
+targets to React, Vue, and Svelte. Studio's framework-independent M1 flow is unchanged.
+
 ## Rationale and Tradeoffs
 
 Studio provides something Go players can use and developers can inspect. Its

@@ -17,7 +17,7 @@ shared game rules, SGF records, and optional integrations through clear boundari
 - SVG board with themes, annotations, keyboard input, and mobile placement tools.
 - SGF import/export, comments, variations, and an embeddable game viewer.
 - Later milestones for scoring, puzzles, teaching tools, and external AI analysis.
-- Optional React integration, selective imports, and a browser script build.
+- Optional React, Vue, and Svelte adapters, selective imports, and a browser script build.
 
 The first release is driven by **Banora Studio**, a browser-based SGF review and
 editing example planned for `examples/studio` in this repository. Its core flow
@@ -28,6 +28,10 @@ Studio will also serve as the public demo. A small read-only embedding example
 will exercise a second consumer workflow. Both must use the SDK's public package
 exports rather than internal source imports. See the
 [roadmap](docs/product/01-roadmap.md) for sequencing. These examples do not exist yet.
+
+The shared browser SDK is framework-independent. React, Vue, and Svelte are all
+official adapter targets for M2; none is required by the core or renderer. See the
+[framework support decision](docs/adr/0004-framework-independent-adapters.md).
 
 ## Design Documents
 

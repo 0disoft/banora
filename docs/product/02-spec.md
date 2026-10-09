@@ -40,7 +40,7 @@ cloud storage and AI analysis are not part of Studio's initial workflow.
 | Viewer / Studio | Navigation controls, variation tree, comments panel, player information, local/example loading and SGF download | M1 |
 | Basic editing | Create a continuation, edit comments, add/remove labels and shape markers | M1 |
 | Integration | Framework-independent API, selective ESM imports, Studio and read-only public-package consumers | M1 |
-| Additional integrations | Optional React adapter/example and browser script build | M2 |
+| Additional integrations | Official optional React, Vue, and Svelte adapters/examples and browser script build | M2 |
 | Advanced presentation | Rotation/reflection, custom stone textures, placement animation | M2 |
 | Extended editing/teaching | Branch removal/reorganization, free setup, lines, arrows, pen annotations | M2 |
 | Mobile placement | Magnified aim, drag-and-release selection, optional confirmation | M2 |
@@ -91,15 +91,31 @@ history context. Cancellation and stale-response rejection are required.
 ## Consumer Experience
 
 - No account or remote dependency for local board, rules, or SGF functionality.
-- React is optional; no React/DOM imports in the headless core or record parser.
+- All framework adapters are optional. The headless core and record parser import
+  no DOM, React, Vue, or Svelte; the shared browser SDK requires no UI framework.
 - Optional features have explicit imports and do not enter a minimal board bundle.
 - Dispose renderers, subscriptions, adapters, and pending work explicitly.
-- Provide runnable viewer, React board, puzzle, and analysis examples as their
+- Provide runnable viewer, React/Vue/Svelte board, puzzle, and analysis examples as their
   milestones ship. Design documents must not present proposed code as usable API.
 - Studio and the read-only example consume public SDK exports from the build/packed
   artifact; internal source imports cannot substitute for consumer evidence.
 - Keyboard navigation, visible focus, accessible controls, and move announcements
   are part of the board/viewer design, alongside touch support.
+
+## Framework Support Contract
+
+Plain browser use is supported by design from M1 through public mount/update/dispose
+and state/action interfaces. React, Vue, and Svelte are official optional adapter
+targets for M2, with no framework-exclusive SDK features. Adapters connect lifecycle,
+props/configuration, subscriptions and events to the same controller and renderer;
+they must not duplicate rules, record state or board drawing.
+
+Each adapter ships a runnable public-package consumer and documented tested versions.
+Verify configuration updates, state notifications, remount/cleanup, type/component
+packaging, and the SSR/client-mount boundary for that framework. Integration is not
+considered validated merely because a DOM container can be mounted manually.
+Exact adapter exports, peer/compiler ranges and SSR guarantees remain UNDECIDED
+until implementation. See [ADR 0004](../adr/0004-framework-independent-adapters.md).
 
 ## Out of Scope
 

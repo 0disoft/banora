@@ -35,8 +35,8 @@ or AI integration is needed to complete this flow.
 
 - Extended variation editing (removal/reorganization), free stone setup, lines,
   arrows, and freehand annotations beyond M1's continuation/comments/markers.
-- Optional React adapter/example and browser script distribution after the
-  framework-independent Studio and read-only workflows are usable.
+- Official optional React, Vue, and Svelte adapters/examples and browser script
+  distribution after the framework-independent Studio and read-only workflows are usable.
 - Board rotation/reflection, animation, custom stone textures, and magnified
   touch placement with optional confirmation.
 - Side-by-side variation comparison with changed intersections highlighted.
@@ -44,6 +44,9 @@ or AI integration is needed to complete this flow.
 
 **Exit evidence:** editing preserves the original record's supported metadata and
 unknown properties; visual transforms never change logical move coordinates.
+Each framework adapter consumes public SDK exports with the same board/record
+behavior, handles updates and mount/dispose correctly, and is verified in a real
+consumer build with its documented peer/compiler versions and SSR boundary.
 
 ## M3: Scoring and Curated Puzzles
 
@@ -70,8 +73,10 @@ destroyed view; provider errors leave local play and record editing usable.
 ## Evidence-Driven Extensions
 
 Add Canvas rendering, workers, and Rust/WASM only after measurements show a
-specific limitation in rendering or computation. Vue/Svelte adapters and managed
-storage, AI, or collaborative services are candidates after the basic SDK is useful.
+specific limitation in rendering or computation. Managed storage, AI, or collaborative
+services are candidates after the basic SDK is useful. React, Vue, and Svelte adapters
+are committed M2 design targets, not speculative extensions; support is claimed only
+after their consumer validation is complete.
 
 ## Delivery Constraints
 

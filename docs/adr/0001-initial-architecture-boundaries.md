@@ -4,6 +4,7 @@
 - Date: 2026-10-10
 - Technical owner: UNASSIGNED
 - Product contract: [Specification](../product/02-spec.md)
+- Framework support extension: [ADR 0004](0004-framework-independent-adapters.md)
 
 ## Context
 

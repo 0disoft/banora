@@ -26,6 +26,7 @@ the [specification](product/02-spec.md) for the initial editing/reopen workflow.
 | State model and ownership | [Domain model](architecture/01-domain-model.md) |
 | Public API responsibilities | [Public API](sdk/public-api.md) |
 | Packaging and compatibility | [Compatibility](sdk/compatibility.md) |
+| Framework support direction | [React, Vue, and Svelte adapter decision](adr/0004-framework-independent-adapters.md) |
 | Invariants | [Project invariants](engineering/00-project-invariants.md) |
 | Validation names and reporting | [Validation](../VALIDATION.md) |
 | Testing scope | [Testing standard](engineering/05-testing-standard.md) |

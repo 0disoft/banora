@@ -1,7 +1,7 @@
 flowchart TD
   Host["Host application"] --> Viewer["Viewer / editor controller"]
-  Host --> React["Optional React adapter"]
-  React --> Viewer
+  Host --> Adapters["Optional React / Vue / Svelte adapters"]
+  Adapters --> Viewer
   Viewer --> Records["SGF / record tree / cursor"]
   Records --> Core["TypeScript core: authoritative rules and state"]
   Viewer --> SVG["SVG renderer: snapshots and logical input"]

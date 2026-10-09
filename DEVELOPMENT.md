@@ -8,6 +8,7 @@
 - [Product specification](docs/product/02-spec.md) and [roadmap](docs/product/01-roadmap.md).
 - [Architecture decision](docs/adr/0001-initial-architecture-boundaries.md).
 - [First consumer decision](docs/adr/0003-studio-first-consumer.md).
+- [Framework support decision](docs/adr/0004-framework-independent-adapters.md).
 - [Public API](docs/sdk/public-api.md) and [compatibility](docs/sdk/compatibility.md).
 - [Validation](VALIDATION.md) and [testing standard](docs/engineering/05-testing-standard.md).
 
@@ -15,7 +16,8 @@
 
 Use TypeScript for the SDK and SGF model, SVG/CSS for the initial renderer, Vite
 for library/demo builds, and Bun for dependency installation and package scripts.
-Add an optional React adapter. Exact tool versions, test runner, package layout,
+Add optional React, Vue, and Svelte adapters over the shared browser SDK. Exact
+tool versions, test runner, adapter packaging, package layout,
 and executable commands remain UNDECIDED until implementation starts.
 
 Keep the workflow usable on Windows and Unix-like environments. Provide package
@@ -34,7 +36,14 @@ Keep shared logic free of DOM/framework imports. Define ownership and failure
 semantics before publishing public signatures. Studio must use built public SDK
 exports, not internal source imports, hidden hooks or a second game-state engine.
 Exercise the same public package in a minimal read-only browser embedding example
-and a headless consumer. Add the optional React integration in M2.
+and a headless consumer. Studio must not require any framework adapter. Add the
+official React, Vue, and Svelte integrations with runnable consumers in M2.
+
+Keep adapters thin: mount/update/dispose, subscriptions, host events and configuration
+bindings use the same controller. Exercise each framework's remount/update behavior,
+client-only DOM creation and actual package/type/compiler consumption before claiming
+support. Framework component packaging must be validated separately from the plain
+TypeScript build, especially for Svelte component artifacts.
 
 The initial Studio interface is a board, move controls, variation tree and comments
 panel. Keep account management, cloud persistence, AI and broader editor tooling

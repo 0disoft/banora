@@ -12,7 +12,7 @@
 | Records / SGF | Parse/export SGF, inspect metadata/properties, edit branches, select a node/path |
 | SVG renderer | Mount a board, update snapshots, theme/crop/transform it, emit logical input, dispose resources |
 | Viewer / editor | Load records, navigate branches, bind controls/comments, select editing modes |
-| React adapter | Component lifecycle and host-controlled bindings over the same model/controller |
+| React / Vue / Svelte adapters | Framework lifecycle, configuration, events and read-only state bindings over the same model/controller |
 | Scoring | Dead-stone selection and score calculation with explicit rules |
 | Puzzles | Authored answers, scripted responses, hints, restart and feedback |
 | Analysis | Provider requests/results, cancellation, freshness and overlay normalization |
@@ -37,6 +37,11 @@ signatures here before publication.
 - Separate scoring input/output from uncertain AI evaluations. Document score
   perspective, win-probability units and ownership conventions for each adapter.
 - Never require a remote provider for local board, record or viewer operations.
+- Keep mount/update/dispose and subscription interfaces framework-independent. Optional
+  adapters must not create their own rules engine, SVG renderer or mutable record copy.
+- Define the renderer-owned DOM subtree so frameworks mount a container without
+  concurrently managing its internal SVG elements. Cleanup releases listeners and
+  subscriptions while retaining host-owned records/controllers as documented.
 
 ## API Validation Priorities
 
@@ -46,7 +51,10 @@ SDK exports. Studio may compose lower-level public modules, but may not bypass t
 contract through internal source imports or demo-only hooks.
 
 Verify headless imports, browser mounting, SGF download/reopen and selective imports
-in M1. Exercise React lifecycle as the adapter ships in M2.
+in M1. In M2, exercise React, Vue, and Svelte configuration updates, state/event
+bindings, remount/dispose, type/component packaging and SSR/client-mount behavior
+in separate consumer examples. No shared smoke check establishes all three frameworks'
+compatibility. Exact exported components/hooks and peer/compiler ranges remain open.
 Once analysis ships, include delayed responses,
 context changes and cancellation. Migration examples must accompany breaking
 changes to actions, coordinates, events, serialization or ownership semantics.

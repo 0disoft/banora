@@ -8,7 +8,7 @@
 
 1. Core transitions are authoritative; renderers and framework adapters never
    implement a competing game state or legality engine.
-2. Core/SGF imports require no DOM, React, provider client or persistent storage.
+2. Core/SGF imports require no DOM, React, Vue, Svelte, provider client or persistent storage.
 3. Invalid actions and failed imports preserve the previously active state/record.
 4. Logical coordinates retain their meaning across display transforms and adapters.
 5. Supported SGF workflows preserve semantic property values, comments and branches;
@@ -23,6 +23,9 @@
     do not import them.
 12. Shipped documentation/examples describe actual APIs and tested compatibility;
     design documents clearly identify planned work.
+13. React, Vue, and Svelte adapters use the same public model/controller/renderer.
+    Their lifecycle/reactivity code cannot introduce framework-specific game behavior
+    or require consumers to install an unrelated framework.
 
 Use the [testing standard](05-testing-standard.md) and [SDK checklist](../../.agents/checklists/sdk.md)
 to select evidence for the invariant affected by a change.
