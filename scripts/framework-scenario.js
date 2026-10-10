@@ -15,6 +15,11 @@ async page => {
     await page.locator('#theme').click();
     verify(await page.locator('#owned-board [data-stone]').count() === 1, `${framework}: prop update reset owned record`);
     verify((await page.locator('#board-host svg rect').first().getAttribute('fill')).includes('#e8e1ce'), `${framework}: theme did not update`);
+    await page.locator('#rotate').click(); await page.locator('#reflect').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('svg')].every(svg => svg.dataset.rotation === '90' && svg.dataset.flipX === 'true'));
+    verify(await page.locator('#owned-board [data-stone]').count() === 1, `${framework}: transform reset owned state`);
+    for (let turn = 0; turn < 3; turn++) await page.locator('#rotate').click();
+    await page.locator('#reflect').click();
     await page.locator('#advance').click();
     await page.waitForFunction(() => document.querySelector('#state').textContent.includes('Move 1'));
     verify(await page.locator('#board-host [data-stone]').count() === 1 && await viewer.locator('[data-stone]').count() === 1, `${framework}: shared state diverged`);

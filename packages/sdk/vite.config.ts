@@ -9,6 +9,7 @@ export default defineConfig({
       entry: {
         index: resolve(import.meta.dirname, 'src/index.ts'),
         core: resolve(import.meta.dirname, 'src/core.ts'),
+        geometry: resolve(import.meta.dirname, 'src/geometry.ts'),
         sgf: resolve(import.meta.dirname, 'src/sgf.ts'),
         controller: resolve(import.meta.dirname, 'src/controller.ts'),
         board: resolve(import.meta.dirname, 'src/board.ts'),

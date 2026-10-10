@@ -82,6 +82,10 @@ classic-script example verifies actual client mounting without `type="module"`
 scripts. Vite emits the example's local script asset unchanged rather than converting
 it to ESM. CommonJS support remains unclaimed.
 
+Headless `@banora/sdk/geometry` is checked without DOM type libraries. Rotation and
+reflection preserve logical coordinates and crop bounds on rectangular boards;
+production checks cover all eight combinations and framework configuration updates.
+
 ## Record Compatibility
 
 Initially target SGF FF4 for Go, using the [preservation contract](../product/02-spec.md#sgf-preservation).

@@ -85,7 +85,7 @@ direction. SGF AR/LN are validated under the
 `@banora/sdk/board` and the root export expose `mountBoard(container, options?)`.
 The returned `BoardView` exposes `controller`, `update(options)` and idempotent
 `dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
-`coordinates`, `moveNumbers`, integer `crop` and `onPoint(point)`.
+`coordinates`, `moveNumbers`, integer `crop`, `transform` and `onPoint(point)`.
 
 An externally supplied controller survives view disposal. If omitted, the view
 creates and disposes its own controller. The SDK owns only its appended SVG and
@@ -106,6 +106,20 @@ variables `--banora-board`, `--banora-grid`, `--banora-black`, `--banora-white` 
 host container. Node-local lines/arrows render over stones with contrasting outlines.
 Coordinates skip I for standard Go columns, falling back
 to numeric columns beyond the available single-letter alphabet.
+
+`transform: { rotation?: 0 | 90 | 180 | 270, flipX?: boolean }` reflects across the
+logical vertical axis first and then rotates clockwise. It transforms drawing/crop
+bounds only. Pointer input is inverted to logical coordinates; arrow keys move along
+screen axes. Labels and move numbers stay upright. Invalid configurations throw
+without changing the previous presentation or controller; `transform: undefined`
+explicitly restores defaults. Rotating does not create edits or change dirty state.
+All three optional framework wrappers forward these same options.
+
+`@banora/sdk/geometry` and root exports provide headless `toDisplayPoint`,
+`toLogicalPoint`, `displayBoardSize`, `displayCrop` and `normalizeBoardTransform`,
+plus `BoardRotation`, `BoardTransform`, `BoardSize` and `BoardCrop` types. Point
+conversion accepts finite fractional/outside points for annotations/margins; callers
+still validate legal moves against their logical board. Dimensions remain 2 to 52.
 
 ## Complete Viewer
 

@@ -1,9 +1,9 @@
 <script lang="ts">
   import Mount from './Mount.svelte';
   import type { BoardProps } from './types.js';
-  let { controller, readOnly, theme, coordinates, moveNumbers, crop, onPoint, onStateChange,
+  let { controller, readOnly, theme, coordinates, moveNumbers, crop, transform, onPoint, onStateChange,
     class: className, style, ariaLabel = 'Banora board' }: BoardProps = $props();
 </script>
 
-<Mount kind="board" {controller} options={{ readOnly, theme, coordinates, moveNumbers, crop, onPoint }}
+<Mount kind="board" {controller} options={{ readOnly, theme, coordinates, moveNumbers, crop, transform, onPoint }}
   {onStateChange} class={className} {style} {ariaLabel} />

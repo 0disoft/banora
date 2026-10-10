@@ -38,10 +38,15 @@ An implemented slice does not complete its milestone or establish untested compa
   unknown properties, keyboard/touch emulation, crop, owned/external disposal and
   no implicit external requests/uploads. Screenshots are generated locally under
   `output/playwright/`, not shipped assets or evidence of real-device testing.
-- Thirty focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Thirty-two focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.
+  Headless geometry has a public selective entrypoint; all eight rotation/reflection
+  combinations invert every intersection on rectangular boards. SVG rendering handles
+  transformed crops, upright labels/numbers and logical pointer input, with keyboard
+  movement along screen axes. Studio and all three adapter consumers expose transform
+  updates without resetting owned/shared records or changing dirty state.
   Immutable snapshot identity is stable between state changes for framework stores.
 - Separate optional `@banora/react`, `@banora/vue` and `@banora/svelte` packages
   expose Board/Viewer and native state bindings. Public-artifact examples independently
@@ -71,7 +76,8 @@ An implemented slice does not complete its milestone or establish untested compa
    Branch removal/reordering, free setup and lines/arrows also have local evidence.
    The classic browser distribution also has package/client evidence.
    Freehand annotations, remaining teaching/presentation tools,
-   transforms, diagrams and sharing remain to be delivered.
+   diagrams and sharing remain to be delivered. Rotation/reflection is implemented;
+   animation/textures, magnified touch and variation comparison are still pending.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 

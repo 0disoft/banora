@@ -45,6 +45,9 @@ try {
   await cli('snapshot');
   await cli('run-code', await readFile(resolve(root, 'scripts/global-scenario.js'), 'utf8'));
   console.log('Classic browser distribution passed: navigation, editing/Undo and external-controller remount without modules/frameworks.');
+  await cli('snapshot');
+  await cli('run-code', await readFile(resolve(root, 'scripts/presentation-scenario.js'), 'utf8'));
+  console.log('Presentation smoke passed: eight rectangular/cropped transforms, logical mouse input, screen keyboard axes, upright labels and atomic configuration.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

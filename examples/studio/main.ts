@@ -1,5 +1,5 @@
 import { RecordController, decodeSgf, mountBoard, parseSgf } from '@banora/sdk';
-import type { CommandResult, ControllerState, MarkerKind, Point, SgfNode } from '@banora/sdk';
+import type { BoardRotation, CommandResult, ControllerState, MarkerKind, Point, SgfNode } from '@banora/sdk';
 import sample from '../fixtures/study.sgf?raw';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -189,6 +189,10 @@ comment.addEventListener('blur', () => controller.endEditGroup());
 tool.addEventListener('change', () => { connectionStart = undefined; find('label-control').hidden = tool.value !== 'label'; });
 find<HTMLSelectElement>('theme').addEventListener('change', event => view.update({ theme: (event.target as HTMLSelectElement).value as 'wood' | 'flat' }));
 find<HTMLInputElement>('numbers').addEventListener('change', event => view.update({ moveNumbers: (event.target as HTMLInputElement).checked }));
+const transformView = () => view.update({transform:{rotation:Number(find<HTMLSelectElement>('rotation').value) as BoardRotation,
+  flipX:find<HTMLInputElement>('flip-x').checked}});
+find('rotation').addEventListener('change', transformView);
+find('flip-x').addEventListener('change', transformView);
 games.addEventListener('change', () => report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id)));
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && connectionStart) { connectionStart = undefined; status.textContent = 'Connection cancelled.'; }

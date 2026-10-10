@@ -52,10 +52,14 @@ await writeFile(resolve(directory, 'tsconfig.json'), JSON.stringify({
 }));
 run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'tsconfig.json')], root);
 await writeFile(resolve(directory, 'headless.ts'), `import {createPosition, play} from '@banora/sdk/core';
+import {toDisplayPoint, toLogicalPoint} from '@banora/sdk/geometry';
 import {parseSgf} from '@banora/sdk/sgf';
 import {RecordController} from '@banora/sdk/controller';
 if (!play(createPosition(), {x:0,y:0}).ok || !parseSgf('(;SZ[9])').ok) throw Error('Headless imports failed');
 const controller = new RecordController(); controller.dispose();
+const size = {width:5,height:9}, transform = {rotation:90 as const, flipX:true};
+const shown = toDisplayPoint({x:1,y:2},size,transform);
+if (toLogicalPoint(shown,size,transform).x !== 1) throw Error('Headless geometry subpath failed');
 `);
 await writeFile(resolve(directory, 'headless-tsconfig.json'), JSON.stringify({
   extends: resolve(root, 'tsconfig.json'), compilerOptions: { types: [], lib: ['ES2022'] }, include: ['headless.ts'],

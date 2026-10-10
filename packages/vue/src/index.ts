@@ -1,7 +1,7 @@
 import { defineComponent, h, onBeforeUnmount, onMounted, readonly, shallowRef, toRaw, toValue, watch } from 'vue';
 import type { MaybeRefOrGetter, PropType, UnwrapRef } from 'vue';
 import { mountBoard, mountViewer } from '@banora/sdk';
-import type { BoardCrop, BoardOptions, BoardView, ControllerState, Point, RecordController, ViewerOptions, ViewerView } from '@banora/sdk';
+import type { BoardCrop, BoardOptions, BoardTransform, BoardView, ControllerState, Point, RecordController, ViewerOptions, ViewerView } from '@banora/sdk';
 
 export type ControllerHandle = RecordController | UnwrapRef<RecordController>;
 const rawController = (value: ControllerHandle) => toRaw(value) as RecordController;
@@ -10,6 +10,7 @@ const boardProps = {
   ...common, readOnly: Boolean, theme: { type: String as PropType<'wood' | 'flat'>, default: 'wood' },
   coordinates: { type: Boolean, default: true }, moveNumbers: Boolean,
   crop: Object as PropType<BoardCrop | null>, onPoint: Function as PropType<(point: Point) => void>,
+  transform: Object as PropType<BoardTransform>,
 };
 const viewerProps = { ...common, editable: Boolean, comments: { type: Boolean, default: true },
   variations: { type: Boolean, default: true }, board: Object as PropType<ViewerOptions['board']> };
@@ -22,7 +23,7 @@ export const Board = defineComponent({
     let view: BoardView | undefined;
     let unsubscribe: (() => void) | undefined;
     const options = (): Omit<BoardOptions, 'controller'> => ({ readOnly: props.readOnly, theme: props.theme,
-      coordinates: props.coordinates, moveNumbers: props.moveNumbers, crop: props.crop, onPoint: props.onPoint });
+      coordinates: props.coordinates, moveNumbers: props.moveNumbers, crop: props.crop, transform: props.transform, onPoint: props.onPoint });
     const mount = () => {
       unsubscribe?.(); view?.dispose();
       if (!container.value) return;
@@ -32,7 +33,7 @@ export const Board = defineComponent({
     onMounted(mount);
     watch(() => toRaw(props.controller), mount, { flush: 'post' });
     watch(() => [props.readOnly, props.theme, props.coordinates, props.moveNumbers,
-      props.crop?.x, props.crop?.y, props.crop?.width, props.crop?.height, props.onPoint],
+      props.crop?.x, props.crop?.y, props.crop?.width, props.crop?.height, props.transform?.rotation, props.transform?.flipX, props.onPoint],
     () => view?.update(options()), { flush: 'post' });
     onBeforeUnmount(() => { unsubscribe?.(); view?.dispose(); });
     return () => h('div', { ...attrs, ref: container, 'aria-label': attrs['aria-label'] ?? 'Banora board' });
@@ -56,7 +57,7 @@ export const Viewer = defineComponent({
     watch(() => toRaw(props.controller), mount, { flush: 'post' });
     watch(() => [props.editable, props.comments, props.variations, props.board?.coordinates,
       props.board?.theme, props.board?.moveNumbers, props.board?.crop?.x, props.board?.crop?.y,
-      props.board?.crop?.width, props.board?.crop?.height, props.board?.onPoint],
+      props.board?.crop?.width, props.board?.crop?.height, props.board?.transform?.rotation, props.board?.transform?.flipX, props.board?.onPoint],
     () => view?.update(options()), { flush: 'post' });
     onBeforeUnmount(() => { unsubscribe?.(); view?.dispose(); });
     return () => h('div', { ...attrs, ref: container, 'aria-label': attrs['aria-label'] ?? 'Banora viewer' });
