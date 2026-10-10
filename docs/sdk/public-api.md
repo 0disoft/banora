@@ -68,6 +68,19 @@ See [compatibility](compatibility.md#record-compatibility) for the supported sub
 
 `@banora/sdk/controller` exports `RecordController` and related state/command types.
 Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
+`rules` accepts the same explicit superko policies as the core. History follows
+only the selected game's ancestor path; inspecting another node, visiting a sibling,
+cache eviction or editing comments does not add positions to that path's membership.
+New legal play validates repetition before reusing a matching recorded continuation.
+Navigation may still show repeated recorded moves. Successful import establishes a
+fresh epoch under the controller's original host policy; failed/guarded import retains
+the current state. SGF `RU` does not automatically override the host's rules.
+
+Committed AB/AW/AE/PL setup nodes start new epochs and survive SGF export/reopen.
+`setSetup([])` without a turn and other semantically unchanged controller edits are
+no-ops, so they do not create an epoch. After a move, an explicit
+`setSetup([], state.position.toPlay)` creates a setup/PL child and resets repetition.
+This differs from the lower-level `setup`, which always returns a new epoch.
 
 | Operation | Behavior |
 | --- | --- |

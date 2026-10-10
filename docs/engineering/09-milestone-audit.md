@@ -80,8 +80,10 @@ placement and score calculation are not claimed by that probe.
    latency/frame-rate/memory budgets open. These are not implied by the declared
    Chrome matrix or structural resource bounds. Use the
    [performance plan](03-performance-budget.md) before advertising speed.
-3. M3 remains unimplemented: explicit superko/named profiles, manual dead-stone
-   scoring with rule adjustments, and authored puzzles with responses/hints/events.
+3. M3 repetition policies now have core/controller and installed/browser evidence,
+   documented in [ADR 0006](../adr/0006-explicit-repetition-and-rule-profile-boundaries.md).
+   Named profiles, manual dead-stone scoring with rule adjustments and authored
+   puzzles with responses/hints/events remain unimplemented.
 4. M4 remains unimplemented: provider-neutral/KataGo integration, display overlays,
    cancellation and complete position-context freshness checks.
 5. Registry ownership, intentional version promotion, third-party distribution

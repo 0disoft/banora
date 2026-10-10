@@ -1,6 +1,6 @@
 # Roadmap
 
-- Status: M1/M2 local acceptance verified in the declared matrix; see the [audit](../engineering/09-milestone-audit.md). M3/M4 planned; no published release
+- Status: M1/M2 local acceptance verified in the declared matrix; see the [audit](../engineering/09-milestone-audit.md). M3 repetition implemented; remaining M3/M4 planned; no published release
 - Source of truth for capabilities: [Product specification](02-spec.md)
 
 Milestones establish delivery order, not release dates or completed functionality.

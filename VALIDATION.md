@@ -45,6 +45,10 @@ are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
+After building, `bun scripts/browser-smoke.ts --rules-only` selects the mounted
+simple/none/positional/situational repetition fixture, actual keyboard play,
+rejection announcements, immutable state/events, setup epochs, recorded navigation
+and borrowed-controller disposal. It also runs in the complete browser suite.
 Every browser scenario must return its exact completion string in the CLI's actual
 JSON `Result` section. Echoed code, console messages, missing/partial output and a
 successful command exit alone cannot establish completion. Both full and focused

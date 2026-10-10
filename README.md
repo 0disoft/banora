@@ -43,6 +43,19 @@ preferences; diagrams export final stone geometry. See the
 
 ## Direction
 
+Legal play can opt into positional or situational superko through the core or
+controller's `rules` option; simple ko remains the default. For example:
+
+```ts
+import {RecordController} from '@banora/sdk';
+const controller = new RecordController({size:9, rules:{ko:'situational-superko'}});
+```
+
+Passes retain superko history, committed setup/PL starts a new epoch, and recorded
+SGF moves remain browsable even when legal play would reject them. See the
+[repetition contract](docs/sdk/public-api.md#repetition-policies) for exact semantics
+and the pending named-profile/scoring boundaries.
+
 Banora should make a simple game viewer easy to embed and let developers extend
 the same model into a complete Go application. It combines a customizable board,
 shared game rules, SGF records, and optional integrations through clear boundaries.

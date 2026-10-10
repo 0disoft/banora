@@ -140,6 +140,14 @@ retain their unedited escaping on export. Edits are revalidated before commit so
 limit failures preserve state. Collections retain every game during editing/export.
 Recorded moves execute SGF playback semantics; new user moves use the selected
 rule policy. Named `RU` values are metadata, not automatic implemented rule profiles.
+Positional/situational superko uses only the selected path's observed situations;
+recorded repetitions remain navigable and committed setup/PL starts a new epoch.
+Headless fixtures cover siblings, game changes, cache eviction, Undo/Redo and import
+atomicity. The installed headless package checks the new policy/type/history and
+setup reset. Chrome 154 checks actual keyboard recapture/rejection, announcements,
+immutable state/events, recorded navigation and borrowed-controller disposal.
+This does not establish full named tournament rules or persist custom host policy
+implicitly in exported SGF; choose the policy explicitly on reopen.
 Exact bytes and formatting are not guaranteed. No drop-in compatibility
 with WGo.js, Goban, Shudan or jGoBoard APIs is assumed.
 

@@ -13,8 +13,13 @@ An implemented slice does not complete its milestone or establish untested compa
   situation membership, legal passes without history clearing and setup epochs.
   Headless fixtures cover longer triple-ko cycles, a different-turn double-ko
   return, self-capture, recorded repetition/replacement, exact hash collisions and
-  bounded duplicate-pass history. Controller/installed/browser integration and
-  named profile coverage are tracked as the next increment; scoring/puzzles remain pending.
+  bounded duplicate-pass history. Controller fixtures cover immutable rejection,
+  branch/game inspection isolation, existing-child validation, recorded repetition,
+  cache eviction, comments, setup/PL Undo/Redo and atomic imports. Installed headless
+  types/runtime check policy/history and setup reset. Chrome 154 verifies real
+  keyboard legality/rejection and announcements, unchanged state/events/diagrams,
+  setup reset, recorded navigation and borrowed-controller disposal. Named profiles,
+  scoring and puzzles remain pending; no full tournament-rules support is claimed.
 - SGF FF4 Go: collections, ordered branches, setup/compressed points, comments,
   metadata, labels/shape marks, unknown properties and unedited escaping preservation.
   Text and declared-encoding file input; UTF-8 export; bounded iterative parsing.
@@ -174,8 +179,8 @@ An implemented slice does not complete its milestone or establish untested compa
    All listed M2 feature slices and exit conditions have local evidence in the
    aggregate acceptance audit. Broader compatibility and an actual release remain
    separate; this evidence does not establish untested runtime compatibility.
-3. M3: Superko core policies are implemented. Controller/consumer integration,
-   named profiles, scoring and authored puzzles remain.
+3. M3: Superko core policies and controller/consumer integration are implemented.
+   Named profiles, scoring and authored puzzles remain.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 
 Publishing, hosting and external provider credentials remain separate operational

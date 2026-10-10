@@ -66,7 +66,10 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--drop-only')) {
+  if (process.argv.includes('--rules-only')) {
+    await scenario('rules', 'banora-rules-complete');
+    console.log('Focused repetition rules smoke passed.');
+  } else if (process.argv.includes('--drop-only')) {
     await dropSmoke();
     console.log('Focused file-drop smoke passed.');
   } else if (process.argv.includes('--animation-only')) {
@@ -90,6 +93,8 @@ try {
   await scenario('browser', 'banora-browser-complete');
   await dropSmoke();
   console.log('File-drop smoke passed: metadata/setup, branch selection, guards, encoding failures and actual export/reopen.');
+  await scenario('rules', 'banora-rules-complete');
+  console.log('Repetition rules smoke passed: mounted legal/rejected moves, announcements, setup epochs, recorded navigation and controller disposal.');
   await cli('snapshot');
   await scenario('framework', 'banora-frameworks-complete');
   console.log('Framework browser smoke passed: React Strict Mode, Vue refs, Svelte updates, callbacks, owned/shared controllers and unmount/remount.');

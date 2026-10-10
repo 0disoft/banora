@@ -17,6 +17,8 @@
 3. Successful setup/explicit turn editing starts a new repetition epoch, even for
    an unchanged layout. Preserve existing move/capture counters. Invalid setup
    leaves the entire position and its history unchanged.
+   Controller commands that commit no semantic record change remain no-ops; they
+   cannot create an SGF setup epoch. An explicit PL/setup child after a move can.
 4. Store an immutable, structurally shared set of exact encoded board/next-player
    situations in superko positions. A compact hash trie indexes keys, but collisions
    are resolved by exact equality. Hash equality alone never rejects a move.

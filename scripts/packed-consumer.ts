@@ -74,6 +74,7 @@ await writeFile(resolve(directory, 'tsconfig.json'), JSON.stringify({
 }));
 run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'tsconfig.json')], root);
 await writeFile(resolve(directory, 'headless.ts'), `import {createPosition, play} from '@banora/sdk/core';
+import type {RepetitionHistory, RulePolicy} from '@banora/sdk/core';
 import {toDisplayPoint, toLogicalPoint} from '@banora/sdk/geometry';
 import {parseSgf} from '@banora/sdk/sgf';
 import {RecordController} from '@banora/sdk/controller';
@@ -86,6 +87,15 @@ const link = createShareLink(controller.getState(),'https://example.test/board/'
 if (!link.ok || !decodeShareLink(link.value).ok) throw Error('Headless share subpath failed');
 controller.dispose();
 const size = {width:5,height:9}, transform = {rotation:90 as const, flipX:true};
+const ko:RulePolicy['ko']='situational-superko';
+const repetition=new RecordController({sgf:'(;SZ[5]AW[bb][ac][cc][bd]AB[ab][ba][cb];B[bc];W[];B[])',rules:{ko}});
+for (let i=0;i<3;i++) repetition.next();
+const before=repetition.getState(),history:RepetitionHistory|null=before.position.repetitionHistory;
+const rejected=repetition.play({x:1,y:1});
+if (rejected.ok || rejected.reason!=='superko' || repetition.getState()!==before || history?.size!==3) throw Error('Packed superko history/rejection failed');
+repetition.setSetup([],'white');
+if (!repetition.play({x:1,y:1}).ok) throw Error('Packed superko setup epoch failed');
+repetition.dispose();
 const shown = toDisplayPoint({x:1,y:2},size,transform);
 if (toLogicalPoint(shown,size,transform).x !== 1) throw Error('Headless geometry subpath failed');
 `);
