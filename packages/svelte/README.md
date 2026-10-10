@@ -4,6 +4,11 @@ Optional native Svelte 5 adapter for the common Banora SDK. This development pac
 is not published. Build it with `bun run build:adapters` from the repository root.
 A Svelte-aware compiler/bundler consumes the packaged `.svelte` components.
 
+`ControlledBoard` accepts a required plain `state` and optional `onIntent`, with
+common display/input props and borrowed `onView` bindings. It never creates a
+record controller; the host supplies accepted snapshots and owns rules/records.
+See the [host-controlled guide](https://github.com/0disoft/banora/blob/main/docs/sdk/controlled-board.md).
+
 ```svelte
 <script lang="ts">
 import {RecordController} from '@banora/sdk';

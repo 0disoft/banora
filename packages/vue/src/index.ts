@@ -10,6 +10,8 @@ import {
   watch,
 } from 'vue';
 import type { MaybeRefOrGetter, PropType, UnwrapRef } from 'vue';
+export { ControlledBoard } from './ControlledBoard.js';
+export type { ControlledBoardProps } from './ControlledBoard.js';
 import { mountBoard, mountViewer } from '@banora/sdk';
 import type {
   BoardCrop,

@@ -70,11 +70,19 @@ for (const framework of ['react', 'vue', 'svelte'] as const) {
   const installed = resolve(consumer, 'node_modules/@banora', framework);
   for (const file of ['LICENSE', 'README.md', 'dist/index.d.ts'])
     await readFile(resolve(installed, file));
+  if (framework !== 'svelte') {
+    const module = await readFile(resolve(installed, 'dist/index.js'), 'utf8');
+    if (!module.includes('@banora/sdk/controlled-board'))
+      throw new Error('Adapter bundled its own SDK surface instead of using its peer');
+  }
   const metadata = JSON.parse(await readFile(resolve(installed, 'package.json'), 'utf8'));
   if (metadata.dependencies && Object.keys(metadata.dependencies).length)
     throw new Error('Adapters must use peers, not bundled framework dependencies');
   const prelude = `import { RecordController, createStoneTexture } from '@banora/sdk';
-import type {BoardView, ViewerView} from '@banora/sdk';
+import type {BoardView, ViewerView, BoardSnapshot, BoardIntent, ControlledBoardView} from '@banora/sdk';
+const hostSnapshot:BoardSnapshot={key:'host/ssr/node/1',width:5,height:3,stones:Array(15).fill(null)};
+const onIntent=(_intent:BoardIntent)=>{throw Error('SSR emitted a host intention');};
+const onControlledView=(_view:ControlledBoardView|null)=>{bindings++;};
 const stoneTextures={black:createStoneTexture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a0ioAAAAASUVORK5CYII=')};
 const placementAnimation={durationMs:160};
 const controller = new RecordController({sgf:'(;SZ[9];B[aa])'}); controller.next();
@@ -86,12 +94,13 @@ const onView = (view: BoardView | ViewerView | null) => { bindings++; view?.expo
       ? `${prelude}
 import {createElement} from 'react';
 import {renderToString} from 'react-dom/server';
-import {Board, Viewer, useRecordState} from '@banora/react';
+import {Board, Viewer, ControlledBoard, useRecordState} from '@banora/react';
 function App() {
   const state = useRecordState(controller);
   return createElement('main', null, createElement('p', null, 'Move ' + state.position.moveNumber),
     createElement(Board, {controller, nodeId:controller.getState().path[0],compareTo:controller.getState().node.id,referenceGeneration:controller.getState().recordGeneration, transform:{rotation:90}, drawing:{color:'#cc5522',width:0.12}, touch:{mode:'confirm',magnifier:true},stoneTextures,placementAnimation, onView, theme:'flat', onStateChange: state => void state.strokes}),
-    createElement(Viewer, {controller, onView, editable:false,board:{touch:{mode:'release'},stoneTextures,placementAnimation}}));
+    createElement(Viewer, {controller, onView, editable:false,board:{touch:{mode:'release'},stoneTextures,placementAnimation}}),
+    createElement(ControlledBoard,{state:hostSnapshot,onIntent,onView:onControlledView,contextMenu:true,labels:{board:'Host board'},touch:{mode:'confirm'}}));
 }
 const html = renderToString(createElement(App));
 `
@@ -99,23 +108,24 @@ const html = renderToString(createElement(App));
         ? `${prelude}
 import {createSSRApp, defineComponent, h, ref} from 'vue';
 import {renderToString} from 'vue/server-renderer';
-import {Board, Viewer, useRecordState} from '@banora/vue';
+import {Board, Viewer, ControlledBoard, useRecordState} from '@banora/vue';
 const App = defineComponent({setup() {
   const selected = ref(controller);
   const state = useRecordState(selected);
   return () => h('main', [h('p', 'Move ' + state.value.position.moveNumber),
     h(Board, {controller:selected.value, nodeId:controller.getState().path[0],compareTo:controller.getState().node.id,referenceGeneration:controller.getState().recordGeneration, transform:{rotation:90}, drawing:{color:'#cc5522',width:0.12}, touch:{mode:'confirm',magnifier:true},stoneTextures,placementAnimation, onView, theme:'flat', onStateChange: state => void state.strokes}),
-    h(Viewer, {controller:selected.value, onView, editable:false,board:{touch:{mode:'release'},stoneTextures,placementAnimation}})]);
+    h(Viewer, {controller:selected.value, onView, editable:false,board:{touch:{mode:'release'},stoneTextures,placementAnimation}}),
+    h(ControlledBoard,{state:hostSnapshot,onIntent,onView:onControlledView,contextMenu:true,labels:{board:'Host board'},touch:{mode:'confirm'}})]);
 }});
 const html = await renderToString(createSSRApp(App));
 `
         : `${prelude}
 import {render} from 'svelte/server';
 import App from './App.svelte';
-const html = render(App, {props:{controller,onView,stoneTextures,placementAnimation}}).body;
+const html = render(App, {props:{controller,onView,stoneTextures,placementAnimation,hostSnapshot,onIntent,onControlledView}}).body;
 `;
   const checks = `
-if (!html.includes('Move 1') || !html.includes('Banora board') || !html.includes('Banora viewer') || html.includes('<svg')) throw Error('SSR/client mount boundary failed: ' + html);
+if (!html.includes('Move 1') || !html.includes('Banora board') || !html.includes('Banora viewer') || !html.includes('Banora controlled board') || html.includes('<svg')) throw Error('SSR/client mount boundary failed: ' + html);
 if (bindings !== 0) throw Error('SSR invoked a browser view binding');
 controller.dispose(); console.log('${framework} packed types and SSR host rendering passed');
 `;
@@ -133,14 +143,15 @@ controller.dispose(); console.log('${framework} packed types and SSR host render
     await writeFile(
       resolve(consumer, 'App.svelte'),
       `<script lang="ts">
-import {Board, Viewer, createRecordStore} from '@banora/svelte';
-import type {BoardView, PlacementAnimationOptions, RecordController, StoneTextures, ViewerView} from '@banora/sdk';
-let {controller,onView,stoneTextures,placementAnimation}: {controller:RecordController,stoneTextures:StoneTextures,placementAnimation:PlacementAnimationOptions, onView:(view:BoardView | ViewerView | null) => void} = $props();
+import {Board, Viewer, ControlledBoard, createRecordStore} from '@banora/svelte';
+import type {BoardView, PlacementAnimationOptions, RecordController, StoneTextures, ViewerView, BoardSnapshot, BoardIntent, ControlledBoardView} from '@banora/sdk';
+let {controller,onView,stoneTextures,placementAnimation,hostSnapshot,onIntent,onControlledView}: {controller:RecordController,stoneTextures:StoneTextures,placementAnimation:PlacementAnimationOptions, onView:(view:BoardView | ViewerView | null) => void,hostSnapshot:BoardSnapshot,onIntent:(intent:BoardIntent)=>void,onControlledView:(view:ControlledBoardView|null)=>void} = $props();
 const record = $derived(createRecordStore(controller));
 </script>
 <main><p>Move {$record.position.moveNumber}</p>
 <Board {controller} {onView} {stoneTextures} {placementAnimation} nodeId={controller.getState().path[0]} compareTo={controller.getState().node.id} referenceGeneration={controller.getState().recordGeneration} transform={{rotation:90}} drawing={{color:'#cc5522',width:0.12}} touch={{mode:'confirm',magnifier:true}} theme="flat" ariaLabel="Banora board" onStateChange={state => void state.strokes}/>
-<Viewer {controller} {onView} editable={false} board={{touch:{mode:'release'},stoneTextures,placementAnimation}} ariaLabel="Banora viewer"/></main>
+<Viewer {controller} {onView} editable={false} board={{touch:{mode:'release'},stoneTextures,placementAnimation}} ariaLabel="Banora viewer"/>
+<ControlledBoard state={hostSnapshot} {onIntent} onView={onControlledView} contextMenu={true} touch={{mode:"confirm"}} labels={{board:"Host board"}}/></main>
 `,
     );
     for (const file of [
@@ -148,6 +159,8 @@ const record = $derived(createRecordStore(controller));
       'dist/Viewer.svelte',
       'dist/Board.svelte.d.ts',
       'dist/Viewer.svelte.d.ts',
+      'dist/ControlledBoard.svelte',
+      'dist/ControlledBoard.svelte.d.ts',
     ])
       await readFile(resolve(installed, file));
     run(

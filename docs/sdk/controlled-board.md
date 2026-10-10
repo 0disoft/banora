@@ -1,6 +1,6 @@
 # Host-Controlled Boards
 
-- Status: Headless snapshot and common SVG surface implemented; native integrations follow
+- Status: Headless/common SVG and native adapters implemented; installed types/SSR checked, native client examples follow
 - Decision: [ADR 0012](../adr/0012-host-controlled-board-and-presentation-boundary.md)
 
 Use this boundary when another engine, server or application owns the game state.
@@ -80,3 +80,56 @@ touch previews. Export never writes a record. `dispose()` is idempotent, aborts
 pending image work and removes view listeners, DOM and lens UI; it never releases
 host state/engines. Other operations reject a disposed view. Record adjacency
 animation, SGF navigation/comparison and complete Viewer UI remain record APIs.
+
+## Native Components
+
+React, Vue and Svelte expose an additive `ControlledBoard` and
+`ControlledBoardProps` in their existing optional packages. They accept the same
+required state and presentation options. They never create a record controller;
+state/options/callback updates reuse the mounted surface. Outer class/style/
+accessibility attributes remain framework-owned. SSR renders only the host
+container, without invoking intentions or browser view callbacks.
+
+React uses `className`, React style, `ariaLabel` and `onView(viewOrNull)`.
+Svelte uses `class`, CSS-text style, `ariaLabel` and `onView(viewOrNull)`.
+Their view callback receives null on cleanup/replacement. Keep it stable and
+borrow the view only for snapshot inspection, announcements or diagram export;
+configure through props and let the component dispose it. Vue forwards attributes
+and emits `intent`/`view`, including a null view on unmount. Vue also accepts an
+`onIntent` callback prop; it is the same listener as `@intent`, not a second action.
+Views never unsubscribe/dispose an externally managed store or native engine.
+
+```ts
+import {createElement} from 'react';
+import {ControlledBoard} from '@banora/react';
+import type {BoardSnapshot, BoardIntent} from '@banora/sdk/board-state';
+export function HostBoard(props: {snapshot:BoardSnapshot; send:(intent:BoardIntent)=>void}) {
+  return createElement(ControlledBoard, {state:props.snapshot, onIntent:props.send});
+}
+```
+
+```vue
+<script setup lang="ts">
+import {ControlledBoard} from '@banora/vue';
+import type {BoardSnapshot, BoardIntent} from '@banora/sdk/board-state';
+defineProps<{snapshot:BoardSnapshot}>();
+const emit = defineEmits<{intent:[BoardIntent]}>();
+</script>
+<template><ControlledBoard :state="snapshot" @intent="intent => emit('intent', intent)" /></template>
+```
+
+```svelte
+<script lang="ts">
+import {ControlledBoard} from '@banora/svelte';
+import type {BoardSnapshot, BoardIntent} from '@banora/sdk/board-state';
+let {snapshot, send}:{snapshot:BoardSnapshot; send:(intent:BoardIntent)=>void} = $props();
+</script>
+<ControlledBoard state={snapshot} onIntent={send} />
+```
+
+Use a host subscription/effect/store to replace the snapshot; no particular
+transport, state-store package or framework cross-dependency is required. The
+React/Vue artifacts keep every SDK subpath external and Svelte preserves native
+component sources. Independently installed tarballs check those types, peers,
+native sources and real server host rendering. Native browser lifecycle/input
+evidence is recorded separately from SSR evidence.

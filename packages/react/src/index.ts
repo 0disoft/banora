@@ -7,6 +7,8 @@ import {
   useSyncExternalStore,
 } from 'react';
 import type { CSSProperties, RefObject } from 'react';
+export { ControlledBoard } from './ControlledBoard.js';
+export type { ControlledBoardProps } from './ControlledBoard.js';
 import { mountBoard, mountViewer } from '@banora/sdk';
 import type {
   BoardOptions,

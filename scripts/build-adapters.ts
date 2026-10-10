@@ -18,7 +18,10 @@ for (const name of ['react', 'vue']) {
         formats: ['es'],
         fileName: () => 'index.js',
       },
-      rolldownOptions: { external: ['@banora/sdk', 'react', 'vue'] },
+      rolldownOptions: {
+        external: (id) =>
+          id === 'react' || id === 'vue' || id === '@banora/sdk' || id.startsWith('@banora/sdk/'),
+      },
     },
   });
   const typecheck = Bun.spawn(

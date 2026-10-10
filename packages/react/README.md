@@ -3,6 +3,12 @@
 Optional React 19 adapter for the common Banora SDK. This development package is
 not published. Build it with `bun run build:adapters` from the repository root.
 
+`ControlledBoard` accepts a required plain `state` snapshot and optional `onIntent`
+instead of a record controller. The host owns rules/records and supplies accepted
+updates; placement never changes the snapshot locally. It supports common display/
+input options and borrowed `onView` bindings. See the
+[host-controlled guide](https://github.com/0disoft/banora/blob/main/docs/sdk/controlled-board.md).
+
 ```ts
 import {createElement} from 'react';
 import {RecordController} from '@banora/sdk';

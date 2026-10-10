@@ -15,3 +15,9 @@ export interface ContainerProps {
 }
 export type BoardProps = BoardOptions & ContainerProps;
 export type ViewerProps = Omit<ViewerOptions, 'sgf'> & ContainerProps;
+export type ControlledBoardProps = import('@banora/sdk/controlled-board').ControlledBoardOptions &
+  Omit<ContainerProps, 'onStateChange' | 'onView'> & {
+    readonly onView?: (
+      view: import('@banora/sdk/controlled-board').ControlledBoardView | null,
+    ) => void;
+  };

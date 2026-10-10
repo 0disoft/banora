@@ -3,6 +3,12 @@
 Optional Vue 3 adapter for the common Banora SDK. This development package is not
 published. Build it with `bun run build:adapters` from the repository root.
 
+`ControlledBoard` accepts a required plain `state` and `@intent` (`onIntent`)
+instead of a record controller. The host owns rules/records and supplies accepted
+snapshots. Common display/input props update the surface; `@view` borrows it and
+receives null on unmount. See the
+[host-controlled guide](https://github.com/0disoft/banora/blob/main/docs/sdk/controlled-board.md).
+
 ```vue
 <script setup lang="ts">
 import {shallowRef} from 'vue';
