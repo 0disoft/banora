@@ -87,6 +87,8 @@ import {PuzzleSession} from '@banora/sdk/puzzle';
 import type {PuzzleDefinition,PuzzleEvent} from '@banora/sdk/puzzle';
 import {AnalysisSession} from '@banora/sdk/analysis';
 import type {AnalysisProvider,AnalysisCancellation} from '@banora/sdk/analysis';
+import {KataGoProvider,createKataGoQuery} from '@banora/sdk/katago';
+import type {KataGoTransport} from '@banora/sdk/katago';
 import {toDisplayPoint, toLogicalPoint} from '@banora/sdk/geometry';
 import {parseSgf} from '@banora/sdk/sgf';
 import {RecordController} from '@banora/sdk/controller';
@@ -121,6 +123,17 @@ const analysisProvider:AnalysisProvider={id:'installed',async analyze(request,ca
 const analysis=new AnalysisSession(analysisRecord,analysisProvider,{profile:'japanese-territory'});
 if (analysis.getState().status!=='idle' || !(await analysis.request()).ok || analysis.getState().result?.candidates[0]?.move!==null) throw Error('Packed headless analysis failed');
 analysis.dispose();if (!analysisRecord.play({x:0,y:0}).ok) throw Error('Analysis disposed its borrowed record');analysisRecord.dispose();
+const kataRecord=new RecordController({size:5});
+let kataLine='';const kataTransport:KataGoTransport={sendLine(line){kataLine=line;}};
+const kataProvider=new KataGoProvider(kataTransport,{perspective:'black'});
+const kataSession=new AnalysisSession(kataRecord,kataProvider,{profile:'japanese-territory'});
+const kataPending=kataSession.request();const kataQuery=JSON.parse(kataLine);
+if (kataQuery.boardXSize!==5 || typeof createKataGoQuery!=='function') throw Error('Packed KataGo query failed');
+kataProvider.receiveLine(JSON.stringify({id:kataQuery.id,turnNumber:0,isDuringSearch:false,
+  rootInfo:{currentPlayer:'B',winrate:0.7,scoreLead:2,visits:100},
+  moveInfos:[{move:'C3',order:0,winrate:0.8,scoreLead:3,visits:90,pv:['C3']}]}));
+if (!(await kataPending).ok || kataSession.getState().result?.candidates[0]?.move?.x!==2) throw Error('Packed KataGo JSON integration failed');
+kataSession.dispose();kataProvider.dispose();if (!kataRecord.play({x:0,y:0}).ok) throw Error('KataGo disposed its borrowed record');kataRecord.dispose();
 const repetition=new RecordController({sgf:'(;SZ[5]AW[bb][ac][cc][bd]AB[ab][ba][cb];B[bc];W[];B[])',rules:{ko}});
 for (let i=0;i<3;i++) repetition.next();
 const before=repetition.getState(),history:RepetitionHistory|null=before.position.repetitionHistory;

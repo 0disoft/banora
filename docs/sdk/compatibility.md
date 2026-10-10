@@ -121,7 +121,11 @@ covered separately from successful downloads; image export never saves an SGF.
 types or bundled engine/transport dependencies. Requests need explicit profile or
 custom scoring settings and preserve real setup-epoch history/counts. Illegal
 recorded epochs cannot be silently rewritten for analysis; local SGF browsing/editing
-still work. KataGo and browser compatibility require separate adapter/consumer evidence.
+still work. The selective headless `@banora/sdk/katago` module has original protocol
+fixtures and installed Node 24/ES2022-only type/runtime evidence. It has no automatic
+process/network transport, rejects unsupported contexts and requires declared engine
+perspective/capability. No actual engine/model/version or browser overlay was run.
+See [KataGo integration](katago.md) before selecting an external backend.
 
 `@banora/sdk/puzzle` is a selective headless authored-session entrypoint. Its
 definitions use `banora.puzzle/v1` plus SGF initial context and explicit logical

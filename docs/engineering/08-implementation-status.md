@@ -56,8 +56,17 @@ An implemented slice does not complete its milestone or establish untested compa
   reentrant source edits, listener isolation and borrowed-source retention. No
   DOM types/globals are needed by the installed Node 24 analysis consumer, which
   completes a public request and preserves its borrowed record on disposal. No
-  engine/remote endpoint is configured. KataGo adapter and browser overlays/example
-  remain unimplemented.
+  engine/remote endpoint is configured.
+- Headless KataGo adapter: host-owned asynchronous JSON lines, exact ID/epoch turn/
+  current player, declared perspective conversion, actual setup/history/rule flags,
+  prior capture/explicit handicap komi and scoped termination. Original protocol
+  fixtures verify out-of-order/partial/action replies, warning/error/no-results,
+  unsupported contexts, bounds, failed writes, disconnect, cancellation/late results,
+  reentrant disposal and subscription cleanup. Installed Node 24/ES2022-only types
+  complete the public JSON request/result. No engine binary/model/remote service
+  was executed; this is protocol evidence, not model/version compatibility.
+  Browser overlays/example remain unimplemented. See the exact
+  [supported contexts](../sdk/katago.md#wire-conversion-and-supported-contexts).
 - SGF FF4 Go: collections, ordered branches, setup/compressed points, comments,
   metadata, labels/shape marks, unknown properties and unedited escaping preservation.
   Text and declared-encoding file input; UTF-8 export; bounded iterative parsing.
@@ -223,7 +232,8 @@ An implemented slice does not complete its milestone or establish untested compa
    are implemented with the exit evidence recorded in the milestone audit. Broader
    browser/device and tournament/automatic objective-grading claims remain excluded.
 4. M4: Provider-neutral headless context/result/session and cancellation/freshness
-   are implemented. KataGo adapter, display overlays and runnable consumer remain.
+   and a checked KataGo JSON adapter are implemented. Display overlays and runnable
+   consumer remain; no live-engine compatibility is claimed.
 
 Publishing, hosting and external provider credentials remain separate operational
 actions. Runtime support claims require actual consumer evidence; local tests do not

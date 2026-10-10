@@ -1,7 +1,7 @@
 # Analysis API
 
-This document owns the implemented headless analysis contract. KataGo and display
-contracts are separate increments and are not claimed by the coordinator alone.
+This document owns the implemented headless analysis contract. The
+[KataGo adapter](katago.md) owns wire conversion; browser display remains pending.
 
 ## Provider-Neutral Analysis Sessions
 
@@ -99,5 +99,6 @@ failed.` rather than leaking exception text. Providers can deliberately throw
 `AnalysisError(reason,message)` for a public message bounded to 4,096 characters.
 Errors remain confined to analysis; they do not disable play/edit/Undo/export.
 See [ADR 0009](../adr/0009-analysis-context-and-external-provider-contract.md). The
-KataGo adapter, display overlays and runnable analysis consumer remain subsequent
-increments; their compatibility is not established by the headless coordinator.
+KataGo adapter has separate protocol evidence. Display overlays and the runnable
+analysis consumer remain subsequent increments; their compatibility is not
+established by the headless coordinator.

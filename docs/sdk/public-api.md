@@ -247,6 +247,8 @@ The selective headless `@banora/sdk/analysis` entrypoint provides explicit exter
 requests, exact context matching, validated Black-perspective metrics and advisory
 cancellation that rejects stale work. See the [analysis API contract](analysis.md)
 for settings, provider DTOs, limits, errors and lifecycle.
+The selective headless `@banora/sdk/katago` entrypoint supplies host-owned JSON-line
+integration; see [KataGo integration](katago.md) for transport and supported contexts.
 
 ### Repetition Policies
 

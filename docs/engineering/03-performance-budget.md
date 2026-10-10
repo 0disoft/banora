@@ -68,3 +68,10 @@ PV moves and exact-size ownership. At most one request lease is active per sessi
 Cancelling detaches the session/source from late provider callbacks and settles the
 caller without waiting for a provider deadline. Cold-path latency/memory profiling
 remains pending; these structural bounds are not device performance guarantees.
+
+KataGo JSON lines are capped at 1,048,576 UTF-16 code units before parsing/sending.
+At most eight queries are pending by default (explicitly 1..64). Finals/cancellation/
+disconnect/disposal remove leases and cancellation subscriptions; action replies
+and unrelated IDs retain no state. The host owns writer backpressure, deadlines,
+stdout framing and actual engine resources. No transport latency benchmark or
+model-memory guarantee is implied by local protocol fixtures.

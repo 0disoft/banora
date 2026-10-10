@@ -22,6 +22,7 @@ export default defineConfig({
         puzzle: resolve(import.meta.dirname, 'src/puzzle.ts'),
         'puzzle-view': resolve(import.meta.dirname, 'src/puzzle-view.ts'),
         analysis: resolve(import.meta.dirname, 'src/analysis.ts'),
+        katago: resolve(import.meta.dirname, 'src/katago.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,
