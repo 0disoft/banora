@@ -11,7 +11,8 @@
     "./core": {"types": "./dist/core.d.ts", "import": "./dist/core.js"},
     "./sgf": {"types": "./dist/sgf.d.ts", "import": "./dist/sgf.js"},
     "./controller": {"types": "./dist/controller.d.ts", "import": "./dist/controller.js"},
-    "./board": {"types": "./dist/board.d.ts", "import": "./dist/board.js"}
+    "./board": {"types": "./dist/board.d.ts", "import": "./dist/board.js"},
+    "./viewer": {"types": "./dist/viewer.d.ts", "import": "./dist/viewer.js"}
   },
   "engines": {"node": ">=24 <25"},
   "repository": {"type": "git", "url": "https://github.com/0disoft/banora.git", "directory": "packages/sdk"}

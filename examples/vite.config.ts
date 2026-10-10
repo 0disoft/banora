@@ -15,6 +15,7 @@ export default defineConfig({
       index: resolve(import.meta.dirname, 'index.html'),
       studio: resolve(import.meta.dirname, 'studio/index.html'),
       readonly: resolve(import.meta.dirname, 'readonly/index.html'),
+      viewer: resolve(import.meta.dirname, 'viewer/index.html'),
     } },
   },
 });

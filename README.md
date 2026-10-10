@@ -4,7 +4,7 @@ A modular TypeScript SDK for building Go (Baduk/Weiqi) boards, game viewers,
 editors, puzzles, and analysis interfaces.
 
 **Status: early implementation.** Headless rules, SGF loading/export and the record
-editing controller, SVG rendering and Studio are implemented. Official framework
+editing controller, SVG rendering, complete embeddable viewer and Studio are implemented. Official framework
 adapters and later milestones remain in progress. Nothing is published yet.
 The capabilities below describe the complete direction, not shipped support claims.
 See [implementation status](docs/engineering/08-implementation-status.md).
@@ -15,7 +15,9 @@ Use Bun 1.x and Node 24.x. Run `bun install`, then `bun run check` for strict
 typechecking, behavior tests, documentation checks and an ESM/declaration build.
 Run `bun run dev` and open [Banora Studio](http://127.0.0.1:4317/studio/) or the
 [read-only embed](http://127.0.0.1:4317/readonly/). `bun run build:examples` creates
-static production examples. `bun run smoke:browser` checks production browser flows
+static production examples. The [complete viewer](http://127.0.0.1:4317/viewer/)
+demonstrates the convenience mount and optional editing. `bun run smoke:browser`
+checks production browser flows
 using Playwright CLI; a compatible browser installation is required.
 The common SDK lives at `packages/sdk`; current exports are documented in the
 [public API](docs/sdk/public-api.md). No framework or remote service is required.

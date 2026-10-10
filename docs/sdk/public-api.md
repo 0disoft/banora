@@ -1,6 +1,6 @@
 # SDK Public API
 
-- Status: Core, SGF, record controller and SVG board implemented; adapters remain planned
+- Status: Core, SGF, controller, board and complete viewer implemented; adapters remain planned
 - Product contract: [Specification](../product/02-spec.md)
 - Architecture: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 - Initial contracts: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
@@ -55,6 +55,9 @@ tickets. Keep at most eight outstanding tickets, 100 edit history entries and 12
 cached positions. Parsed node IDs remain stable through editing, not across
 serialization. Subscriber reentrancy delivers snapshots in order; notification errors
 are logged without rolling back committed commands. Root exports include all these APIs.
+`getState()` retains the same immutable snapshot identity until a committed state
+change. Failed commands, export preparation and selecting the already active node
+leave it unchanged. This contract supports external-store framework bindings.
 
 ## Implemented Board Mounting
 
@@ -81,6 +84,38 @@ variables `--banora-board`, `--banora-grid`, `--banora-black` and `--banora-whit
 customize presentation. Coordinates skip I for standard Go columns, falling back
 to numeric columns beyond the available single-letter alphabet.
 
+## Complete Viewer
+
+`@banora/sdk/viewer` and the root export expose `mountViewer(container, options?)`.
+`ViewerOptions` accepts either a shared `controller` or initial `sgf` text/bytes,
+`editable` (default false), `comments`, `variations` and nested `board` options.
+Supplying both controller and SGF throws. The viewer includes game selection,
+move controls, branch selection, player information/captures and comments.
+
+The returned `ViewerView` exposes `controller`, `update(options)` and idempotent
+`dispose()`. Updating presentation/editability retains the same controller and
+record. Enable editing for legal board moves/pass, grouped comments and Undo/Redo.
+Hosts can supply `board.onPoint` for other editing/inspection modes. Hosts still
+own unsaved-change confirmation and file export transport.
+
+Viewer disposal removes only its own DOM/listeners and preserves an external
+controller. An internally created controller is disposed with the viewer. The
+variation tree has the same 500-node display bound as Studio; all nodes remain
+accessible through controller navigation. Comments and metadata are rendered as
+text. Mounting requires a DOM; importing the package on the server is safe.
+
+This local-workspace example assumes an existing `#record` container and built SDK:
+
+```ts
+import { mountViewer } from '@banora/sdk/viewer';
+
+const view = mountViewer(document.querySelector<HTMLElement>('#record')!, {
+  sgf: '(;FF[4]GM[1]SZ[9];B[gc];W[cg])',
+});
+view.update({ board: { theme: 'flat' }, comments: true });
+// Call view.dispose() when the host unmounts the container.
+```
+
 ## Logical API Surfaces and Remaining Work
 
 | Surface | Responsibility |
@@ -94,7 +129,7 @@ to numeric columns beyond the available single-letter alphabet.
 | Puzzles | Authored answers, scripted responses, hints, restart and feedback |
 | Analysis | Provider requests/results, cancellation, freshness and overlay normalization |
 
-Except for the implemented core/records/controller/board above, these are responsibilities, not finalized
+Except for the implemented core/records/controller/board/viewer above, these are responsibilities, not finalized
 npm subpaths or exported type names.
 Resolve names while implementing the first consumer example, then document actual
 signatures here before publication.
@@ -129,7 +164,7 @@ One controller owns the current record, selected node/cursor and edit history.
 Consumers send commands and subscribe to read-only state/change events. Views
 release their own renderer, listeners and subscriptions on disposal; an externally
 supplied controller remains available. Implemented names and acknowledgment semantics
-are listed above; framework components and a complete viewer convenience mount remain pending.
+are listed above; framework components remain pending.
 
 Previous/next and branch selection are navigation operations, separate from edit
 Undo/Redo. Variation creation, comments and marker changes are undoable edits.

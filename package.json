@@ -12,7 +12,7 @@
     "docs": "bun scripts/check-docs.ts",
     "smoke": "bun run build && bun scripts/packed-consumer.ts",
     "smoke:browser": "bun run build:examples && bun scripts/browser-smoke.ts",
-    "check": "bun run typecheck && bun run test && bun run docs && bun run smoke"
+    "check": "bun run build && bun run typecheck && bun run test && bun run docs && bun scripts/packed-consumer.ts"
   },
   "devDependencies": {
     "@banora/sdk": "workspace:*",

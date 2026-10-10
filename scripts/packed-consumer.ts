@@ -19,6 +19,8 @@ const consumer = `import { RecordController, createPosition, play, stoneAt } fro
 import { parseSgf } from '@banora/sdk/sgf';
 import { opposite } from '@banora/sdk/core';
 import type { ControllerState } from '@banora/sdk/controller';
+import { mountViewer } from '@banora/sdk/viewer';
+if (typeof mountViewer !== 'function') throw Error('Viewer artifact export failed');
 const result = play(createPosition({ width: 9 }), { x: 4, y: 4 });
 if (!result.ok || stoneAt(result.position, { x: 4, y: 4 }) !== 'black') throw Error('Core artifact failed');
 if (opposite('black') !== 'white') throw Error('Core subpath failed');
@@ -41,6 +43,17 @@ await writeFile(resolve(directory, 'tsconfig.json'), JSON.stringify({
   extends: resolve(root, 'tsconfig.json'), compilerOptions: { types: [] }, include: ['consumer.ts'],
 }));
 run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'tsconfig.json')], root);
+await writeFile(resolve(directory, 'headless.ts'), `import {createPosition, play} from '@banora/sdk/core';
+import {parseSgf} from '@banora/sdk/sgf';
+import {RecordController} from '@banora/sdk/controller';
+if (!play(createPosition(), {x:0,y:0}).ok || !parseSgf('(;SZ[9])').ok) throw Error('Headless imports failed');
+const controller = new RecordController(); controller.dispose();
+`);
+await writeFile(resolve(directory, 'headless-tsconfig.json'), JSON.stringify({
+  extends: resolve(root, 'tsconfig.json'), compilerOptions: { types: [], lib: ['ES2022'] }, include: ['headless.ts'],
+}));
+run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'headless-tsconfig.json')], root);
+run(['node', resolve(directory, 'headless.ts')], directory);
 // Node 24 can strip erasable types, so the exact typed consumer runs against the
 // installed tarball rather than source files or workspace symlinks.
 console.log(run(['node', resolve(directory, 'consumer.ts')], directory).trim());

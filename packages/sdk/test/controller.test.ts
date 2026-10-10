@@ -3,6 +3,21 @@ import { RecordController } from '../src/controller.js';
 import { stoneAt } from '../src/core.js';
 
 describe('authoritative record editing', () => {
+  test('snapshots are stable for unchanged state and change only after committed commands', () => {
+    const controller = new RecordController();
+    const before = controller.getState();
+    expect(controller.getState()).toBe(before);
+    controller.goTo(before.node.id);
+    controller.prepareExport();
+    expect(controller.getState()).toBe(before);
+    controller.play({ x: -1, y: 0 });
+    expect(controller.getState()).toBe(before);
+    controller.setComment('changed');
+    const after = controller.getState();
+    expect(after).not.toBe(before);
+    expect(controller.getState()).toBe(after);
+    expect(before.node.properties.C).toBeUndefined();
+  });
   test('navigation is clean; branching is undoable without destroying the original branch', () => {
     const controller = new RecordController({ sgf: '(;SZ[9];B[aa];W[bb])' });
     controller.next();

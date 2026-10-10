@@ -1,6 +1,6 @@
 # Banora SDK
 
-- Status: Core, SGF, controller and board implemented; later contracts planned; unpublished
+- Status: Core, SGF, controller, board and complete viewer implemented; unpublished
 - Technical owner: UNASSIGNED
 
 ## Sources of Truth
@@ -32,6 +32,8 @@ not acceptable consumer validation.
 
 The read-only example at `examples/readonly` and an isolated tarball/headless consumer
 are implemented. Browser flows have production-build evidence on Chrome 154.
+`examples/viewer` demonstrates the complete viewer, optional editing and ownership
+preservation across unmount/remount.
 Add official React, Vue, and Svelte adapter examples in M2, with each
 consuming its actual public package/component artifacts. Add puzzle/AI examples as their milestones
 ship. This second browser workflow prevents the SDK API from becoming editor-specific.

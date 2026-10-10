@@ -12,6 +12,7 @@ export default defineConfig({
         sgf: resolve(import.meta.dirname, 'src/sgf.ts'),
         controller: resolve(import.meta.dirname, 'src/controller.ts'),
         board: resolve(import.meta.dirname, 'src/board.ts'),
+        viewer: resolve(import.meta.dirname, 'src/viewer.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,

@@ -93,6 +93,26 @@ async page => {
     if (!disposed) throw Error('Owned controller leaked');
     controller.dispose(); container.remove();
   });
+  await page.goto(`${origin}/viewer/`);
+  const viewer = page.getByRole('region', { name: 'Go record viewer' });
+  await viewer.getByRole('button', { name: 'Next move', exact: true }).click();
+  await viewer.getByRole('button', { name: 'Next move', exact: true }).click();
+  verify((await page.locator('#state').innerText()).includes('move 2, clean'), 'Viewer navigation failed');
+  await viewer.getByRole('application').focus();
+  await page.keyboard.press('Enter');
+  verify((await page.locator('#state').innerText()).includes('move 2, clean'), 'Viewer default was editable');
+  await viewer.locator('summary').click();
+  await viewer.getByRole('button', { name: 'Select Black C5', exact: true }).click();
+  verify((await page.locator('#state').innerText()).includes('move 5, clean'), 'Viewer branch selection failed');
+  await page.getByRole('button', { name: 'Enable editing', exact: true }).click();
+  await viewer.getByRole('textbox', { name: 'Position comments' }).fill('Viewer editing');
+  verify((await page.locator('#state').innerText()).includes('changed'), 'Viewer comment binding failed');
+  await viewer.getByRole('button', { name: 'Undo', exact: true }).click();
+  verify((await page.locator('#state').innerText()).includes('clean'), 'Viewer grouped Undo failed');
+  await page.getByRole('button', { name: 'Unmount viewer', exact: true }).click();
+  verify(await viewer.count() === 0, 'Viewer disposal left DOM');
+  await page.getByRole('button', { name: 'Mount viewer', exact: true }).click();
+  verify((await page.locator('#state').innerText()).includes('move 5, clean'), 'Viewer disposal lost controller');
   const mobileContext = await page.context().browser().newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   try {
     const mobile = await mobileContext.newPage();

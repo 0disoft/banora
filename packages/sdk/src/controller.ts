@@ -49,6 +49,7 @@ export class RecordController {
   #groupRecorded = false;
   #listeners = new Set<(state: ControllerState) => void>();
   #notifications: ControllerState[] = [];
+  #snapshot: ControllerState | undefined;
   #notifying = false;
   #disposed = false;
   #nodeSequence = 0;
@@ -94,6 +95,7 @@ export class RecordController {
   }
   getState(): ControllerState {
     this.#assertLive();
+    if (this.#snapshot) return this.#snapshot;
     const node = this.#index.nodes.get(this.#selected)!;
     const position = this.#position();
     const markers: Marker[] = [];
@@ -105,7 +107,7 @@ export class RecordController {
         }
       }
     }
-    return Object.freeze({ record: this.#record, node, position, path: Object.freeze(this.#path()),
+    return this.#snapshot = Object.freeze({ record: this.#record, node, position, path: Object.freeze(this.#path()),
       gameIndex: this.#index.games.get(this.#selected)!, dirty: this.#dirty,
       canUndo: this.#undo.length > 0, canRedo: this.#redo.length > 0, markers: Object.freeze(markers) });
   }
@@ -116,6 +118,7 @@ export class RecordController {
     return () => { this.#listeners.delete(listener); };
   }
   #notify(): void {
+    this.#snapshot = undefined;
     this.#notifications.push(this.getState());
     if (this.#notifying) return;
     this.#notifying = true;
@@ -164,6 +167,7 @@ export class RecordController {
     this.#assertLive();
     if (!this.#index.nodes.has(id)) return { ok: false, reason: 'node-not-found' };
     this.endEditGroup();
+    if (this.#selected === id) return { ok: true };
     this.#selected = id;
     this.#notify();
     return { ok: true };
@@ -281,6 +285,7 @@ export class RecordController {
   cancelExport(id: number): void { this.#assertLive(); this.#tickets.delete(id); }
   dispose(): void {
     this.#disposed = true;
+    this.#snapshot = undefined;
     this.#listeners.clear(); this.#notifications = []; this.#tickets.clear(); this.#positionCache.clear();
   }
 }

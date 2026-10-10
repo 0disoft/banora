@@ -17,6 +17,10 @@ An implemented slice does not complete its milestone or establish untested compa
   comparison and explicit export tickets. Dirty replacement requires explicit discard.
 - SVG board: themes/CSS tokens, coordinates, setup/capture display, move numbers,
   shapes/labels, crop, keyboard cursor, pointer/touch and ownership-aware disposal.
+- Complete `mountViewer`: built-in navigation, game/branch selection, comments,
+  player information and optional editing/Undo/Redo. `examples/viewer` consumes it
+  through public exports; browser checks cover navigation, branch selection,
+  default read-only behavior, comment editing and remount with a shared controller.
 - Studio and read-only examples consume built public exports. The bundled original
   SGF supports local open/drop, navigation/branch creation, comments/markers,
   Undo/Redo, UTF-8 download/reopen and Export/Discard/Cancel record replacement.
@@ -25,17 +29,19 @@ An implemented slice does not complete its milestone or establish untested compa
   unknown properties, keyboard/touch emulation, crop, owned/external disposal and
   no implicit external requests/uploads. Screenshots are generated locally under
   `output/playwright/`, not shipped assets or evidence of real-device testing.
-- Twenty-two focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Twenty-three focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
+  The headless subpaths also typecheck with only ES2022 libraries and no DOM types.
+  Immutable snapshot identity is stable between state changes for framework stores.
 - Tooling uses Bun 1.x, TypeScript 7.x and Vite 8.x, with the lockfile capturing
   resolved versions. Core has zero runtime dependencies. No hosted CI is configured.
 - Root and package MIT license files cover original code/documentation.
 
 ## Remaining Delivery
 
-1. M1: The initial end-to-end workflow has local evidence. A complete embeddable
-   viewer convenience mount and final release audit remain; no package is published.
+1. M1: The initial end-to-end workflow and complete viewer have local evidence.
+   The final release audit remains; no package is published.
    Additional encoding/browser/screen-reader fixtures and performance baselines
    remain outside the current narrow compatibility evidence.
 2. M2: Separate official React/Vue/Svelte packages, browser script, extended editing,

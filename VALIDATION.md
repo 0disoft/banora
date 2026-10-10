@@ -40,6 +40,10 @@ are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 
 Browser smoke is an explicit oneshot check, separate from the fast default `check`.
+`check` builds the SDK first because consumers resolve its public built declarations;
+it works from a fresh checkout after installing dependencies. Headless packed subpaths
+are checked without DOM type libraries; the root/renderer/viewer exports are also
+verified to import without runtime browser globals.
 It uses a temporary localhost server and its own Playwright CLI session, both closed
 on completion/failure. Screenshots/downloads are ignored under `output/playwright/`;
 packed-consumer installations are ignored under `.tmp/`. Install Chrome or use
