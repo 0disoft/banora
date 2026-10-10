@@ -75,6 +75,7 @@ await writeFile(resolve(directory, 'tsconfig.json'), JSON.stringify({
 run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'tsconfig.json')], root);
 await writeFile(resolve(directory, 'headless.ts'), `import {createPosition, play} from '@banora/sdk/core';
 import type {RepetitionHistory, RulePolicy} from '@banora/sdk/core';
+import {getRuleProfile} from '@banora/sdk/rules';
 import {toDisplayPoint, toLogicalPoint} from '@banora/sdk/geometry';
 import {parseSgf} from '@banora/sdk/sgf';
 import {RecordController} from '@banora/sdk/controller';
@@ -88,6 +89,8 @@ if (!link.ok || !decodeShareLink(link.value).ok) throw Error('Headless share sub
 controller.dispose();
 const size = {width:5,height:9}, transform = {rotation:90 as const, flipX:true};
 const ko:RulePolicy['ko']='situational-superko';
+const passing=createPosition({rules:getRuleProfile('aga-area').play});
+if (!passing.rules.passStones || passing.passPrisoners.white!==0 || passing.consecutivePasses!==0) throw Error('Packed rule preset failed');
 const repetition=new RecordController({sgf:'(;SZ[5]AW[bb][ac][cc][bd]AB[ab][ba][cb];B[bc];W[];B[])',rules:{ko}});
 for (let i=0;i<3;i++) repetition.next();
 const before=repetition.getState(),history:RepetitionHistory|null=before.position.repetitionHistory;

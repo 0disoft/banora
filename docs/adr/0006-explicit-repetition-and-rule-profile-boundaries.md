@@ -13,7 +13,9 @@
    next player. The epoch's initial position is included.
 2. Pass is always exempt from repetition rejection. Its resulting board/next-player
    situation is remembered, without clearing superko history. Only simple ko is
-   released by passing. No automatic game-end or pass-prisoner rule is introduced.
+   released by passing. The repetition slice introduces no automatic game-end or
+   pass-prisoner rule; [ADR 0007](0007-manual-scoring-and-named-profile-coverage.md)
+   later adds explicit opt-in pass accounting while retaining the default behavior.
 3. Successful setup/explicit turn editing starts a new repetition epoch, even for
    an unchanged layout. Preserve existing move/capture counters. Invalid setup
    leaves the entire position and its history unchanged.

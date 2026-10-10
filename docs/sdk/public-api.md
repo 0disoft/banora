@@ -28,9 +28,38 @@ After `bun run build`, `@banora/sdk/core` and the root export expose:
 
 Rules expose `suicide: 'forbid' | 'allow'` and
 `ko: 'simple' | 'none' | 'positional-superko' | 'situational-superko'`.
-The defaults forbid suicide and enforce simple ko. Named profiles and scoring
-remain pending. Snapshots freeze their board, captures, rule policy and history.
+`passStones:boolean` additionally opts into a separate pass-prisoner ledger; default
+false. A pass credits one prisoner to the opponent when enabled. Position snapshots
+expose frozen `passPrisoners` and a `consecutivePasses` count of alternating-color
+passes. Play/setup resets the streak; setup preserves prisoner counts. Recorded
+out-of-turn passes restart the alternating streak without losing their credited
+prisoners. No automatic game ending is implied.
+The defaults forbid suicide and enforce simple ko, with no pass prisoners. Snapshots
+freeze their board, captures, pass ledger, rule policy and history.
 Move color defaults to the current turn; a mismatched color is rejected.
+
+### Named Rule Presets
+
+`@banora/sdk/rules` and root exports provide `RULE_PROFILES`, `getRuleProfile(id)`,
+`RuleProfileId`, `RuleProfile` and `ScoringPolicy`. Unknown IDs throw `TypeError`;
+presets and their nested policies are frozen. Explicitly supply a preset's `play`
+to `createPosition` or `RecordController.rules`; existing SGF RU metadata is preserved
+without automatic policy selection. Scoring policies are implemented in the next
+increment; profile values currently describe the selected calculation contract.
+
+| ID | Legal play | Planned scoring policy |
+| --- | --- | --- |
+| `japanese-territory` | Simple ko, no suicide/pass stones | Territory/prisoners; manual seki exclusion |
+| `aga-territory` | Situational superko, no suicide, pass stones | Territory/prisoners; White last pass |
+| `aga-area` | Same AGA play policy | Area; White handicap count minus one; White last pass |
+| `tromp-taylor` | Positional superko, suicide allowed, no pass stones | Area, no handicap score adjustment |
+
+Coverage is `agreed-position`. Automatic life/death, seki detection, Japanese
+post-stop hypothetical/special-ko rulings, no-result adjudication, forced final
+passes, automatic handicap placement and player agreement are not supplied by a
+preset. Komi is host-selected. See
+[ADR 0007](../adr/0007-manual-scoring-and-named-profile-coverage.md) for source
+basis and exact boundaries. Full tournament conformity is not claimed.
 
 ### Repetition Policies
 

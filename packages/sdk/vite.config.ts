@@ -17,6 +17,7 @@ export default defineConfig({
         comparison: resolve(import.meta.dirname, 'src/comparison.ts'),
         share: resolve(import.meta.dirname, 'src/share.ts'),
         textures: resolve(import.meta.dirname, 'src/textures.ts'),
+        rules: resolve(import.meta.dirname, 'src/rules.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,

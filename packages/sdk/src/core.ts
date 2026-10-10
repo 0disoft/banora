@@ -7,6 +7,7 @@ export interface Point { readonly x: number; readonly y: number }
 export interface RulePolicy {
   readonly suicide: 'forbid' | 'allow';
   readonly ko: 'simple' | 'none' | 'positional-superko' | 'situational-superko';
+  readonly passStones: boolean;
 }
 export interface Position {
   readonly width: number;
@@ -14,6 +15,8 @@ export interface Position {
   readonly board: readonly (Color | null)[];
   readonly toPlay: Color;
   readonly captures: Readonly<Record<Color, number>>;
+  readonly passPrisoners: Readonly<Record<Color, number>>;
+  readonly consecutivePasses: number;
   readonly moveNumber: number;
   readonly previousBoard: readonly (Color | null)[] | null;
   readonly repetitionHistory: RepetitionHistory | null;
@@ -42,6 +45,7 @@ function seal(position: Position): Position {
     ...position,
     board: Object.freeze([...position.board]),
     captures: Object.freeze({ ...position.captures }),
+    passPrisoners: Object.freeze({ ...position.passPrisoners }),
     rules: Object.freeze({ ...position.rules }),
     previousBoard: position.previousBoard ? Object.freeze([...position.previousBoard]) : null,
   });
@@ -53,8 +57,8 @@ export function createPosition(options: PositionOptions = {}): Position {
   if (![width, height].every(value => Number.isInteger(value) && value >= 2 && value <= 52)) {
     throw new RangeError('Board dimensions must be integers from 2 to 52');
   }
-  const rules: RulePolicy = { suicide: options.rules?.suicide ?? 'forbid', ko: options.rules?.ko ?? 'simple' };
-  if (!['forbid', 'allow'].includes(rules.suicide) || !['simple', 'none', 'positional-superko', 'situational-superko'].includes(rules.ko)) {
+  const rules: RulePolicy = { suicide: options.rules?.suicide ?? 'forbid', ko: options.rules?.ko ?? 'simple',passStones:options.rules?.passStones ?? false };
+  if (!['forbid', 'allow'].includes(rules.suicide) || !['simple', 'none', 'positional-superko', 'situational-superko'].includes(rules.ko) || typeof rules.passStones!=='boolean') {
     throw new TypeError('Unsupported rule policy');
   }
   const toPlay = options.toPlay ?? 'black';
@@ -62,6 +66,7 @@ export function createPosition(options: PositionOptions = {}): Position {
   const board=Array<Color|null>(width*height).fill(null);
   return seal({ width, height, board, toPlay,
     captures: { black: 0, white: 0 }, moveNumber: 0, previousBoard: null, rules,
+    passPrisoners:{black:0,white:0},consecutivePasses:0,
     repetitionHistory:superko(rules) ? rememberSituation(null,boardKey(board),toPlay) : null });
 }
 
@@ -136,14 +141,17 @@ export function play(position: Position, point: Point, color: Color = position.t
   if (repetitionKey!==null && hasSituation(position.repetitionHistory,repetitionKey,
     position.rules.ko==='situational-superko' ? toPlay : undefined)) return {ok:false,reason:'superko'};
   return { ok: true, position: seal({ ...position, board, captures,
-    toPlay, moveNumber: position.moveNumber + 1, previousBoard: position.board,
+    toPlay, moveNumber: position.moveNumber + 1, previousBoard: position.board,consecutivePasses:0,
     repetitionHistory:repetitionKey===null ? null : rememberSituation(position.repetitionHistory,repetitionKey,toPlay) }),
     captured: Object.freeze(captured.map(point => Object.freeze(point))) };
 }
 
 export function pass(position: Position, color: Color = position.toPlay): MoveResult {
   if (color !== position.toPlay) return { ok: false, reason: 'wrong-turn' };
+  const recipient=opposite(color),passPrisoners={...position.passPrisoners};
+  if (position.rules.passStones) passPrisoners[recipient]++;
   return { ok: true, position: seal({ ...position, toPlay: opposite(color),
+    passPrisoners,consecutivePasses:position.consecutivePasses+1,
     moveNumber: position.moveNumber + 1, previousBoard: null,
     repetitionHistory:nextHistory(position,position.board,opposite(color)) }), captured: Object.freeze([]) };
 }
@@ -161,19 +169,20 @@ export function setup(position: Position, stones: readonly SetupStone[], toPlay:
     seen.add(index);
     board[index] = stone.color;
   }
-  return { ok: true, position: seal({ ...position, board, toPlay, previousBoard: null,
+  return { ok: true, position: seal({ ...position, board, toPlay, previousBoard: null,consecutivePasses:0,
     repetitionHistory:superko(position.rules) ? rememberSituation(null,boardKey(board),toPlay) : null }), captured: Object.freeze([]) };
 }
 
 /** SGF playback executes recorded moves even when normal play would reject them. */
 export function replayMove(position: Position, point: Point | null, color: Color): MoveResult {
   if (!['black', 'white'].includes(color)) return { ok: false, reason: 'wrong-turn' };
-  if (point === null) return pass(seal({ ...position, toPlay: color }), color);
+  if (point === null) return pass(seal({ ...position, toPlay: color,
+    consecutivePasses:position.toPlay===color ? position.consecutivePasses : 0 }), color);
   if (!isOnBoard(position, point)) return { ok: false, reason: 'out-of-bounds' };
   const board = [...position.board];
   board[point.y * position.width + point.x] = null;
   const result = play(seal({ ...position, board, toPlay: color,
-    rules: { suicide: 'allow', ko: 'none' } }), point, color);
+    rules: { suicide: 'allow', ko: 'none',passStones:position.rules.passStones } }), point, color);
   if (!result.ok) return result;
   return { ...result, position: seal({ ...result.position, rules: position.rules,
     previousBoard: position.board,
