@@ -136,7 +136,7 @@ and reopen retain the annotations; this is an extension, not universal SGF marku
 The returned `BoardView` exposes `controller`, `update(options)`, `exportSvg`,
 `exportPng` and idempotent `dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
 `coordinates`, `moveNumbers`, integer `crop`, `transform`, `drawing`, `touch`,
-`stoneTextures` and `onPoint(point)`.
+`stoneTextures`, `placementAnimation` and `onPoint(point)`.
 
 An externally supplied controller survives view disposal. If omitted, the view
 creates and disposes its own controller. The SDK owns its appended SVG, live
@@ -251,6 +251,42 @@ Native hosts store presentation values independently of controller selection, so
 accepted textures survive controller swaps and widget remounts. Colors use the
 same settings across shared/owned boards, viewers and comparison panes. These
 client-only file controls are consumer examples, not mandatory adapter APIs.
+
+### Placement Animation
+
+`BoardOptions.placementAnimation` is opt-in: undefined/null/false disables motion,
+true or `{}` uses 160 ms, and `{ durationMs }` accepts integers 1 through 1000.
+Invalid values fail before mounting or updating the view. `PlacementAnimationOptions`
+is exported from the board/root entrypoints. Existing callers remain static.
+
+One new stone receives a small scale/vertical-settling effect when the displayed
+state advances to a direct child move, the move number increases by one, and its
+point was empty. Captures may remove other stones. This covers legal new play,
+single-step recorded playback and a single-placement Redo. Initial display, imports
+(including target imports), pass, setup, occupied-point recorded replacement,
+backward navigation, sibling/multi-step jumps and pinned comparison boards stay
+static. It follows the authoritative replay, without delaying commands or rewriting
+state, dirty flags, history, SGF or shared links.
+
+The view owns at most one native
+[Web Animations](https://www.w3.org/TR/web-animations-1/) effect; there is no SDK
+timer/frame loop. It animates transforms around the stone's own
+[fill box](https://www.w3.org/TR/css-transforms-1/#transform-box), without changing
+opacity/colors. Hover/focus and comment/marker redraws continue from elapsed time,
+not a fresh duration. A newer placement replaces the previous effect. Navigation,
+record replacement, changed presentation/input settings, disabling motion and
+disposal cancel obsolete effects. Semantically unchanged option updates keep motion.
+Completion releases the effect and its transient DOM marker. Borrowed controllers
+remain alive. Missing/failed animation APIs fall back to ordinary immediate drawing.
+
+`prefers-reduced-motion: reduce` disables effects and cancels an active effect when
+the preference changes. Returning to normal motion allows future placements; it
+does not replay a previously suppressed animation. SVG/PNG exports always contain
+the final stone geometry, even while the visible effect is running or paused; export
+does not cancel live motion. The magnifier shows a stable final-position patch.
+Physical-device/frame-rate guarantees and additional browser evidence remain pending.
+Studio/native animation controls and adapter forwarding are tracked separately in
+implementation status.
 
 ### Touch Aim and Confirmation
 

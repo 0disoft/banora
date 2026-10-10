@@ -48,7 +48,11 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--texture-only')) {
+  if (process.argv.includes('--animation-only')) {
+    const result=await cli('run-code',await readFile(resolve(root,'scripts/animation-scenario.js'),'utf8'));
+    if (!result.includes('banora-animation-sdk-complete')) throw new Error('Animation scenario did not complete');
+    console.log('Focused animation smoke passed.');
+  } else if (process.argv.includes('--texture-only')) {
     const result=await cli('run-code',await readFile(resolve(root,'scripts/texture-scenario.js'),'utf8'));
     if (!result.includes('banora-textures-complete: SDK')) throw new Error('Texture scenario did not complete');
     await textureConsumers();
@@ -106,6 +110,10 @@ try {
   if (!textures.includes('banora-textures-complete: SDK')) throw new Error('Texture scenario did not complete');
   await textureConsumers();
   console.log('Texture smoke passed: normalized files, reusable SVG paints, PNG pixels, bounds, cancellation and local-only resources.');
+  await cli('snapshot');
+  const animations=await cli('run-code',await readFile(resolve(root,'scripts/animation-scenario.js'),'utf8'));
+  if (!animations.includes('banora-animation-sdk-complete')) throw new Error('Animation scenario did not complete');
+  console.log('Animation smoke passed: adjacent placement, cancellation, reduced motion, stable redraws and final diagrams.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

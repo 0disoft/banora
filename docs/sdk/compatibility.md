@@ -157,6 +157,16 @@ properties retain preservation. Version 1 keeps fractional logical points, stabl
 node-local IDs and drawing order through Undo/export/reopen. Input and style limits
 bound SVG rendering and disallow URL paints. Pressure/smoothing are deferred.
 
+## Placement Motion Compatibility
+
+The opt-in [placement contract](public-api.md#placement-animation) preserves static
+behavior for existing callers. It uses one bounded native transform effect per
+mounted board, respects live reduced-motion preferences and has a static fallback.
+Chrome 154 checks step eligibility, own-stone transform origin, redraw continuation,
+atomic invalid options, navigation/import/setup/pass/Undo cancellation, re-enabling,
+final SVG/PNG geometry, missing-API fallback and borrowed-controller disposal.
+This is browser behavior evidence, not a frame-rate or physical-device guarantee.
+
 ## Texture Compatibility
 
 Custom tiles use the bounded static-PNG contract in the
@@ -169,7 +179,7 @@ Studio and React/Vue/Svelte file-selection/reset controls pass real production
 checks, including native prop forwarding, controller swaps, remounts and late-result
 rejection. Independent adapter tarballs check those props with strict types and SSR.
 Other browsers/devices and arbitrary image corpus coverage remain unclaimed.
-Animation is separate work; setting textures does not imply animated placement.
+Setting textures alone does not enable placement motion; it remains separately opt-in.
 
 ## Share Compatibility
 

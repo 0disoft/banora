@@ -13,12 +13,15 @@ import { mountTouchUI, normalizeTouchOptions } from './touch-aim.js';
 import type { TouchOptions } from './touch-aim.js';
 import {normalizeStoneTextures} from './stone-textures.js';
 import type {StoneTextures} from './stone-textures.js';
+import {mountPlacementAnimation,normalizePlacementAnimation} from './placement-animation.js';
+import type {PlacementAnimationOptions} from './placement-animation.js';
 
 export type { BoardCrop, BoardTransform } from './geometry.js';
 export type { DiagramOptions } from './diagram-export.js';
 export type { TouchOptions } from './touch-aim.js';
 export {prepareStoneTexture} from './texture-loader.js';
 export type {TexturePreparationOptions} from './texture-loader.js';
+export type {PlacementAnimationOptions} from './placement-animation.js';
 export interface BoardOptions {
   readonly controller?: RecordController;
   readonly readOnly?: boolean;
@@ -31,6 +34,7 @@ export interface BoardOptions {
   readonly drawing?: StrokeStyle | null;
   readonly touch?: TouchOptions | null;
   readonly stoneTextures?:StoneTextures|null;
+  readonly placementAnimation?:boolean|PlacementAnimationOptions|null;
   /** Pin a read-only board to a node in the current record generation. */
   readonly nodeId?: string | null;
   readonly compareTo?: string | null;
@@ -58,6 +62,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   let options = { ...initial, transform: normalizeBoardTransform(initial.transform),
     drawing: initial.drawing ? normalizeStrokeStyle(initial.drawing) : null, touch: normalizeTouchOptions(initial.touch),
     stoneTextures:normalizeStoneTextures(initial.stoneTextures) };
+  let animationOptions=normalizePlacementAnimation(initial.placementAnimation);
   const owned = !initial.controller;
   const controller = initial.controller ?? new RecordController();
   let disposed = false;
@@ -81,6 +86,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   try {validateGeneration(initial.referenceGeneration);validateReferences(initial);if (options.nodeId) current=controller.inspectNode(options.nodeId)!;cropFor(current);}
   catch (error) {if (owned) controller.dispose();throw error;}
   container.append(svg, live);
+  const placement=mountPlacementAnimation(svg,abort.signal);
   const touchUI = mountTouchUI(container,svg,confirmTouch,() => {cancelTouch();render(current);svg.focus({preventScroll:true});live.textContent='Placement cancelled.';},abort.signal);
   document.defaultView?.addEventListener('resize',() => {
     if (touchAim) {cancelTouch();render(current);live.textContent='Placement cancelled: viewport changed.';}
@@ -123,6 +129,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     if (options.nodeId) {
       const pinned=nodeGeneration===state.recordGeneration ? controller.inspectNode(options.nodeId) : null;
       if (!pinned) {
+        placement.cancel();
         available=false;current=state;cancelInk();cancelTouch();hover=null;
         svg.setAttribute('viewBox','0 0 12 3');svg.setAttribute('data-node-status','unavailable');
         svg.setAttribute('data-comparison-status','unavailable');svg.setAttribute('data-difference-count','0');
@@ -301,6 +308,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
         fill:'none', stroke:'#12674e', 'stroke-width':0.07, 'data-cursor':`${focus.x},${focus.y}`});
     }
     svg.replaceChildren(fragment);
+    placement.sync(state,options,animationOptions);
     touchUI.render(touchAim?.point ? displayPoint(touchAim.point) : null,touchAim?.screen ?? null,
       touchAim?.point ? coordinate(touchAim.point) : '',touchAim?.pointer === null,options.touch.magnifier);
   }
@@ -486,6 +494,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       if (disposed) throw new Error('Board view is disposed');
       validateReferences(next,true);
       validateGeneration(next.referenceGeneration);
+      const nextAnimation=Object.hasOwn(next,'placementAnimation') ? normalizePlacementAnimation(next.placementAnimation) : animationOptions;
       const previous = options;
       options = { ...options, ...next, transform: normalizeBoardTransform(Object.hasOwn(next, 'transform') ? next.transform : options.transform),
         drawing: Object.hasOwn(next, 'drawing') ? next.drawing ? normalizeStrokeStyle(next.drawing) : null : options.drawing,
@@ -493,6 +502,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
         stoneTextures:Object.hasOwn(next,'stoneTextures') ? normalizeStoneTextures(next.stoneTextures) : options.stoneTextures };
       try {cropFor(options.nodeId ? controller.inspectNode(options.nodeId) ?? controller.getState() : controller.getState());}
       catch (error) {options=previous;throw error;}
+      animationOptions=nextAnimation;
       if (next.referenceGeneration!==undefined || (Object.hasOwn(next,'nodeId') && next.nodeId!==previous.nodeId)) nodeGeneration=next.referenceGeneration ?? controller.getState().recordGeneration;
       if (next.referenceGeneration!==undefined || (Object.hasOwn(next,'compareTo') && next.compareTo!==previous.compareTo)) compareGeneration=next.referenceGeneration ?? controller.getState().recordGeneration;
       cancelInk(); cancelTouch(); render(controller.getState());

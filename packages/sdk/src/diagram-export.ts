@@ -41,6 +41,7 @@ export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOption
     const original = originals[index]!, cloned = copies[index]!;
     if (!allowed.has(original.tagName) || original.hasAttribute('data-cursor') || original.hasAttribute('data-preview')) { cloned.remove(); continue; }
     cloned.removeAttribute('style'); cloned.removeAttribute('class');
+    cloned.removeAttribute('data-placement-animation');
     for (const child of cloned.childNodes) if (child.nodeType === 3) child.nodeValue = xmlText(child.nodeValue ?? '');
     for (const attribute of [...cloned.attributes]) {
       if (/^on/i.test(attribute.name)) cloned.removeAttribute(attribute.name);

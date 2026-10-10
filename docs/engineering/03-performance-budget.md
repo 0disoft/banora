@@ -22,6 +22,12 @@ performance. Report workload, tool/runtime versions and measurement limitations.
 
 ## Optimization Gates
 
+Placement motion has a structural resource bound: at most one effect per mounted
+board, configured duration 1 through 1000 ms (default 160), no SDK frame/timer loop,
+and cancellation on superseding context/disposal. Chrome 154 browser fixtures check
+bounded effects and cleanup. These limits are not measured input-latency/frame-rate
+guarantees; the representative-device performance baseline remains pending.
+
 Start with TypeScript and SVG. Profile first; evaluate batching, caching and a
 smaller update scope before changing technology. A measured rendering problem may
 justify Canvas; main-thread computation may justify a worker. Rust/WASM requires

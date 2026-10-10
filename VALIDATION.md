@@ -58,6 +58,9 @@ React/Vue/Svelte file selection/reset, native props, diagrams and cancelled late
 preparation. It verifies explicit completion markers and actual download assets
 instead of assuming a returned CLI command finished the complete scenarios.
 All texture fixtures are locally authored raster data.
+`--animation-only` checks public SDK placement eligibility, real Web Animations,
+redraw continuation, cancellation, live reduced-motion changes and final SVG/PNG
+geometry. Its explicit completion marker is required before reporting success.
 Use them for adapter/common-renderer changes; documentation-only edits need docs
 and whitespace review. Adapter packed checks require npm (supplied by Node 24),
 install with lifecycle scripts disabled and do not use workspace source aliases.
