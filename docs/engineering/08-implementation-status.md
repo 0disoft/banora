@@ -43,8 +43,12 @@ An implemented slice does not complete its milestone or establish untested compa
   patch, logical target preview and keyboard refinement. Pending selections never
   edit/export records; context/configuration/disposal cancels them. Focused Chrome
   154 touch emulation covers eight cropped rectangular transforms, inherited colors,
-  Confirm/Cancel, callbacks, Undo and cancellation/disposal. Studio and native
-  framework controls are the next consumer increment; physical devices are untested.
+  Confirm/Cancel, callbacks, Undo and cancellation/disposal. Studio defaults to
+  release mode and exposes direct/confirm choices and magnification. All three
+  native consumers pass real-touch input emulation for configuration updates,
+  shared Viewer rendering, read-only transitions, unmount and controller replacement.
+  Touch options also pass independent packed component types/SSR. Physical devices
+  are untested; these are browser-emulation checks, not native-platform support.
 - Studio and read-only examples consume built public exports. The bundled original
   SGF supports local open/drop, navigation/branch creation, comments/markers,
   Undo/Redo, UTF-8 download/reopen and Export/Discard/Cancel record replacement.
@@ -99,7 +103,8 @@ An implemented slice does not complete its milestone or establish untested compa
    The classic browser distribution also has package/client evidence.
    Freehand storage/input, rotation/reflection and SVG/PNG static diagrams are implemented.
    Remaining teaching/presentation tools and sharing remain to be delivered;
-   animation/textures, magnified touch and variation comparison are still pending.
+   Magnified touch placement is implemented; animation/textures and variation
+   comparison are still pending.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 

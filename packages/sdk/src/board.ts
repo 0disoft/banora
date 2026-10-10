@@ -65,7 +65,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   live.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;';
   try { cropFor(current); } catch (error) { if (owned) controller.dispose(); throw error; }
   container.append(svg, live);
-  const touchUI = mountTouchUI(container,svg,confirmTouch,() => {cancelTouch();render(current);live.textContent='Placement cancelled.';},abort.signal);
+  const touchUI = mountTouchUI(container,svg,confirmTouch,() => {cancelTouch();render(current);svg.focus({preventScroll:true});live.textContent='Placement cancelled.';},abort.signal);
   document.defaultView?.addEventListener('resize',() => {
     if (touchAim) {cancelTouch();render(current);live.textContent='Placement cancelled: viewport changed.';}
   },{signal:abort.signal});
@@ -248,8 +248,8 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   function confirmTouch(): void {
     const point = touchAim?.pointer === null ? touchAim.point : null;
     cancelTouch();
-    if (point && !options.readOnly && !options.drawing) {focus=point;activate(point);}
-    if (!disposed) {render(current);svg.focus({preventScroll:true});}
+    try {if (point && !options.readOnly && !options.drawing) {focus=point;activate(point);}}
+    finally {if (!disposed) {render(current);svg.focus({preventScroll:true});}}
   }
   function announce(state: ControllerState): void {
     live.textContent = `Move ${state.position.moveNumber}. ${state.position.toPlay} to play. Black captures ${state.position.captures.black}, white captures ${state.position.captures.white}.`;
@@ -341,12 +341,14 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     if (event.button !== 0) return;
     if (touchAim?.pointer === event.pointerId) {
       event.preventDefault(); const point = pointerPoint(event);cancelTouch();
-      if (point) {
-        focus=point;
-        if (options.touch.mode === 'confirm') {touchAim={pointer:null,point,screen:null};live.textContent=`${coordinate(point)} selected. Confirm placement or cancel. Enter confirms; Escape cancels.`;}
-        else activate(point);
-      } else live.textContent='Placement cancelled: release inside the board.';
-      render(current);return;
+      try {
+        if (point) {
+          focus=point;
+          if (options.touch.mode === 'confirm') {touchAim={pointer:null,point,screen:null};live.textContent=`${coordinate(point)} selected. Confirm placement or cancel. Enter confirms; Escape cancels.`;}
+          else activate(point);
+        } else live.textContent='Placement cancelled: release inside the board.';
+      } finally {if (!disposed) render(current);}
+      return;
     }
     // A cancelled/non-primary touch may not fall through into immediate placement.
     if (event.pointerType === 'touch' && options.touch.mode !== 'direct' && !options.readOnly && !options.drawing) return;

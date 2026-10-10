@@ -1,5 +1,5 @@
 import { RecordController, decodeSgf, mountBoard, parseSgf } from '@banora/sdk';
-import type { BoardRotation, CommandResult, ControllerState, MarkerKind, Point, SgfNode } from '@banora/sdk';
+import type { BoardRotation, CommandResult, ControllerState, MarkerKind, Point, SgfNode, TouchOptions } from '@banora/sdk';
 import sample from '../fixtures/study.sgf?raw';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -20,7 +20,7 @@ let connectionStart: { point: Point; node: string } | undefined;
 function report(result: CommandResult): void {
   if (!result.ok) status.textContent = result.diagnostics?.map(item => item.message).join('; ') ?? `Action rejected: ${result.reason.replaceAll('-', ' ')}.`;
 }
-const view = mountBoard(find('board'), { controller, onPoint(point) {
+const view = mountBoard(find('board'), { controller, touch:{mode:'release'}, onPoint(point) {
   const mode = tool.value;
   if (mode === 'play') report(controller.play(point));
   else if (mode === 'setup-black' || mode === 'setup-white' || mode === 'setup-empty') {
@@ -202,6 +202,12 @@ tool.addEventListener('change', () => {
 find('ink-color').addEventListener('input', updateInk);
 find('ink-width').addEventListener('change', updateInk);
 find('clear-ink').addEventListener('click', () => report(controller.clearStrokes()));
+function updateTouch() {
+  view.update({touch:{mode:find<HTMLSelectElement>('touch-mode').value as TouchOptions['mode'],
+    magnifier:find<HTMLInputElement>('touch-magnifier').checked}});
+}
+find('touch-mode').addEventListener('change',updateTouch);
+find('touch-magnifier').addEventListener('change',updateTouch);
 find<HTMLSelectElement>('theme').addEventListener('change', event => view.update({ theme: (event.target as HTMLSelectElement).value as 'wood' | 'flat' }));
 find<HTMLInputElement>('numbers').addEventListener('change', event => view.update({ moveNumbers: (event.target as HTMLInputElement).checked }));
 const transformView = () => view.update({transform:{rotation:Number(find<HTMLSelectElement>('rotation').value) as BoardRotation,

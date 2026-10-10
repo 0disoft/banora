@@ -14,6 +14,8 @@
   let rotation = $state<BoardRotation>(0), flipX = $state(false);
   let ink = $state(false);
   const drawing = $derived(ink ? {color:'#cc5522',width:0.12} : null);
+  let confirmTouch=$state(false),magnifier=$state(true);
+  const touch=$derived({mode:confirmTouch ? 'confirm' as const : 'release' as const,magnifier});
   const transform = $derived({rotation,flipX});
   let boardView = $state.raw<BoardView | ViewerView | null>(null), viewerView = $state.raw<BoardView | ViewerView | null>(null);
   let error = $state('');
@@ -46,6 +48,8 @@
     <button id="ink" onclick={() => ink = !ink}>{ink ? 'Use placement tool' : 'Use ink tool'}</button>
     <button id="clear-ink" onclick={() => controller.clearStrokes()}>Clear ink</button>
     <button id="undo-edit" onclick={() => controller.undo()}>Undo record edit</button>
+    <button id="touch-confirm" onclick={() => confirmTouch=!confirmTouch}>{confirmTouch ? 'Place on touch release' : 'Require touch confirmation'}</button>
+    <button id="magnify" onclick={() => magnifier=!magnifier}>{magnifier ? 'Hide touch magnifier' : 'Show touch magnifier'}</button>
     <button id="callback" onclick={() => callbackB = !callbackB}>Change callback</button>
     <button id="swap" onclick={() => controller = controller === records[0] ? records[1]! : records[0]!}>Switch controller</button>
   </div>
@@ -55,9 +59,9 @@
   </div>
   {#if mounted}
     <div class="boards">
-      <section id="board-host"><Board {controller} {readOnly} {transform} {drawing} theme={flat ? 'flat' : 'wood'} onStateChange={callbackB ? reportB : reportA} onView={bindBoard}/></section>
-      <section id="viewer-host"><Viewer {controller} editable={!readOnly} onView={bindViewer} board={{ transform, drawing, theme: flat ? 'flat' : 'wood' }}/></section>
+      <section id="board-host"><Board {controller} {readOnly} {transform} {drawing} {touch} theme={flat ? 'flat' : 'wood'} onStateChange={callbackB ? reportB : reportA} onView={bindBoard}/></section>
+      <section id="viewer-host"><Viewer {controller} editable={!readOnly} onView={bindViewer} board={{ transform, drawing, touch, theme: flat ? 'flat' : 'wood' }}/></section>
     </div>
-    <section id="owned-board" style="max-width:350px"><h2>Optional owned controller</h2><Board {readOnly} {transform} {drawing} theme={flat ? 'flat' : 'wood'}/></section>
+    <section id="owned-board" style="max-width:350px"><h2>Optional owned controller</h2><Board {readOnly} {transform} {drawing} {touch} theme={flat ? 'flat' : 'wood'}/></section>
   {:else}<p>Widgets unmounted. The controller remains active.</p>{/if}
 </main>

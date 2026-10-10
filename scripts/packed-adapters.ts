@@ -50,8 +50,8 @@ import {Board, Viewer, useRecordState} from '@banora/react';
 function App() {
   const state = useRecordState(controller);
   return createElement('main', null, createElement('p', null, 'Move ' + state.position.moveNumber),
-    createElement(Board, {controller, transform:{rotation:90}, drawing:{color:'#cc5522',width:0.12}, onView, theme:'flat', onStateChange: state => void state.strokes}),
-    createElement(Viewer, {controller, onView, editable:false}));
+    createElement(Board, {controller, transform:{rotation:90}, drawing:{color:'#cc5522',width:0.12}, touch:{mode:'confirm',magnifier:true}, onView, theme:'flat', onStateChange: state => void state.strokes}),
+    createElement(Viewer, {controller, onView, editable:false,board:{touch:{mode:'release'}}}));
 }
 const html = renderToString(createElement(App));
 ` : framework === 'vue' ? `${prelude}
@@ -62,8 +62,8 @@ const App = defineComponent({setup() {
   const selected = ref(controller);
   const state = useRecordState(selected);
   return () => h('main', [h('p', 'Move ' + state.value.position.moveNumber),
-    h(Board, {controller:selected.value, transform:{rotation:90}, drawing:{color:'#cc5522',width:0.12}, onView, theme:'flat', onStateChange: state => void state.strokes}),
-    h(Viewer, {controller:selected.value, onView, editable:false})]);
+    h(Board, {controller:selected.value, transform:{rotation:90}, drawing:{color:'#cc5522',width:0.12}, touch:{mode:'confirm',magnifier:true}, onView, theme:'flat', onStateChange: state => void state.strokes}),
+    h(Viewer, {controller:selected.value, onView, editable:false,board:{touch:{mode:'release'}}})]);
 }});
 const html = await renderToString(createSSRApp(App));
 ` : `${prelude}
@@ -89,8 +89,8 @@ let {controller,onView}: {controller:RecordController, onView:(view:BoardView | 
 const record = $derived(createRecordStore(controller));
 </script>
 <main><p>Move {$record.position.moveNumber}</p>
-<Board {controller} {onView} transform={{rotation:90}} drawing={{color:'#cc5522',width:0.12}} theme="flat" ariaLabel="Banora board" onStateChange={state => void state.strokes}/>
-<Viewer {controller} {onView} editable={false} ariaLabel="Banora viewer"/></main>
+<Board {controller} {onView} transform={{rotation:90}} drawing={{color:'#cc5522',width:0.12}} touch={{mode:'confirm',magnifier:true}} theme="flat" ariaLabel="Banora board" onStateChange={state => void state.strokes}/>
+<Viewer {controller} {onView} editable={false} board={{touch:{mode:'release'}}} ariaLabel="Banora viewer"/></main>
 `);
     for (const file of ['dist/Board.svelte', 'dist/Viewer.svelte', 'dist/Board.svelte.d.ts', 'dist/Viewer.svelte.d.ts']) await readFile(resolve(installed, file));
     run([process.execPath, 'run', '--cwd', resolve(root, 'packages/svelte'), 'svelte-check', '--tsconfig', resolve(consumer, 'tsconfig.json')], root);

@@ -46,3 +46,9 @@ use nested `board` options on Viewer. Null disables it. Immutable store snapshot
 include `strokes`; the controller owns add/remove/clear, Undo and SGF export/reopen.
 Read-only views display saved ink, and diagrams include it. SGF uses Banora's
 private BPN extension, which other viewers may not display.
+
+`touch={{mode:'confirm',magnifier:true}}` enables magnified touch aiming with
+confirmation on Board; use nested `board.touch` on Viewer. Release mode places on
+lift; null restores direct activation. Pending targets stay in the view, support
+keyboard refinement and cancel on configuration/context changes or unmount. They
+never enter SGF/diagrams. Ink takes priority; read-only views do not enter touch aiming.

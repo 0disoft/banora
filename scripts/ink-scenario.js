@@ -159,7 +159,7 @@ async page => {
       await widget.waitFor();
       verify(await widget.locator('[data-stroke]').count() === 1,`${framework}: remount lost ink`);
       await page.locator('#ink').click();
-      verify(await widget.evaluate(svg => svg.style.touchAction) === 'manipulation',`${framework}: disabling ink left touch blocked`);
+      verify(await widget.evaluate(svg => svg.style.touchAction === 'none' && !svg.getAttribute('aria-label').includes('ink tool')),`${framework}: disabling ink failed to restore configured touch placement`);
     }
     const mobileContext = await page.context().browser().newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
     try {

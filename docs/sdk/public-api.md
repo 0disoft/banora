@@ -117,11 +117,12 @@ and reopen retain the annotations; this is an extension, not universal SGF marku
 `@banora/sdk/board` and the root export expose `mountBoard(container, options?)`.
 The returned `BoardView` exposes `controller`, `update(options)`, `exportSvg`,
 `exportPng` and idempotent `dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
-`coordinates`, `moveNumbers`, integer `crop`, `transform`, `drawing` and `onPoint(point)`.
+`coordinates`, `moveNumbers`, integer `crop`, `transform`, `drawing`, `touch` and `onPoint(point)`.
 
 An externally supplied controller survives view disposal. If omitted, the view
-creates and disposes its own controller. The SDK owns only its appended SVG and
-live-announcement elements, leaving other host children intact. Importing the board
+creates and disposes its own controller. The SDK owns its appended SVG, live
+announcements and confirmation controls plus its document-body lens portal,
+leaving other host children intact. Importing the board
 module does not access browser globals; mounting requires a real DOM container.
 Update cannot replace the controller; dispose/remount for a different controller.
 

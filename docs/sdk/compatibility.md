@@ -31,6 +31,7 @@ UNDECIDED and must not be claimed without consumer evidence.
 | SVG renderer and Studio | Browsers with the required SVG/input APIs | Production flows checked on Windows Headless Chrome 154; broader matrix pending |
 | Classic browser script | Modern browser, global `Banora` namespace | Chrome 154 standalone viewer/edit/remount flows and packed global declarations checked |
 | SVG/PNG diagrams | Mounted browser board/viewer | Chrome 154 standalone XML, real PNG dimensions/pixels, errors and cancellation checked |
+| Magnified touch placement | Browser Pointer Events/SVG; optional confirmation | Chrome 154 mobile touch emulation in Studio and React/Vue/Svelte; physical devices untested |
 | React adapter | React 19, client effects and server host rendering | React/react-dom 19.3.0; production lifecycle/Strict Mode and packed types/SSR checked |
 | Vue adapter | Vue 3, client mount and server host rendering | Vue 3.5.43; production refs/lifecycle and packed types/SSR checked |
 | Svelte adapter | Svelte 5, native components and server host rendering | Svelte 5.57.2; production lifecycle and native tarball types/SSR checked |
@@ -43,6 +44,16 @@ DOM is available on the client. Server-rendered board HTML and hydration are def
 Verify safe imports and this boundary in each adapter before claiming SSR compatibility.
 Do not advertise native mobile or
 desktop toolkit rendering based solely on browser support.
+
+Touch release/confirm modes are opt-in SDK options; Studio and adapter examples
+enable release mode. Emulated primary touch streams verify magnification, logical
+coordinates under eight rectangular/cropped transforms, confirmation, keyboard
+refinement, read-only behavior, callbacks and cancellation. Native adapters also
+verify configuration updates, shared Viewer placement, unmount and controller
+replacement. Direct input remains the SDK default. Pending view state and the
+document-body lens portal are disposed with the view and excluded from records
+and images. Real iOS/Android, physical pen/touch devices and screen-reader behavior
+remain outside the current evidence.
 
 Framework-independent browser use and official framework wrappers are separate
 claims. A shared DOM mount API enables integration, but each wrapper's reactivity,

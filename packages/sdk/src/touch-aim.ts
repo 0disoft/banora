@@ -5,7 +5,9 @@ export interface TouchOptions {
   readonly magnifier?: boolean;
 }
 export function normalizeTouchOptions(input?: TouchOptions | null): Readonly<Required<TouchOptions>> {
-  const mode = input?.mode ?? (input ? 'release' : 'direct'), magnifier = input?.magnifier ?? true;
+  if (input != null && (typeof input !== 'object' || Array.isArray(input))) throw new TypeError('Touch options must be an object or null');
+  const mode = input?.mode === undefined ? input ? 'release' : 'direct' : input.mode;
+  const magnifier = input?.magnifier === undefined ? true : input.magnifier;
   if (!['direct','release','confirm'].includes(mode) || typeof magnifier !== 'boolean') throw new RangeError('Touch mode must be direct, release or confirm, with a boolean magnifier');
   return Object.freeze({mode,magnifier});
 }
@@ -33,6 +35,7 @@ export function mountTouchUI(container: HTMLElement, svg: SVGSVGElement, confirm
       if (!point || !screen || awaiting || !magnifier) {lens.style.display='none';lens.replaceChildren();return;}
       const window = document.defaultView!;
       const inherited = window.getComputedStyle(svg);
+      if (svg.firstElementChild) lens.style.background=window.getComputedStyle(svg.firstElementChild).fill;
       for (const name of ['board','grid','black','white','annotation']) {
         const key = `--banora-${name}`, value = inherited.getPropertyValue(key);
         if (value) lens.style.setProperty(key,value); else lens.style.removeProperty(key);

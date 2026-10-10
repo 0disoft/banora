@@ -42,6 +42,12 @@ state includes immutable `strokes`; add/remove/clear and Undo/export/reopen use 
 same controller. Read-only views display saved ink, and diagrams include it.
 SGF uses Banora's private BPN extension, which other viewers may not display.
 
+`touch={{mode:'confirm',magnifier:true}}` enables magnified touch aiming and explicit
+confirmation; release mode places on lift. Pass nested `board.touch` to Viewer.
+Null restores direct activation. Pending targets are view-only, keyboard-refinable,
+and cancelled by configuration/context changes or unmount; they never enter SGF
+or diagrams. Ink takes priority, and read-only views do not enter touch aiming.
+
 The framework owns the empty container; the SDK owns its descendants. SSR emits
 only containers; board DOM mounts in client effects. Supply matching record content
 on server/client for state hydration. Rendered board HTML hydration is deferred.

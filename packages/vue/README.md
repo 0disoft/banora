@@ -46,3 +46,9 @@ to enable the shared freehand tool; null disables it. Immutable state includes
 `strokes`, with controller add/remove/clear, Undo and SGF export/reopen. Read-only
 views display saved ink, and diagrams include it. SGF uses the private BPN
 extension, which other viewers may not display.
+
+Pass `touch: {mode:'confirm',magnifier:true}` to Board or nested `board.touch` to
+Viewer for magnified touch aiming and confirmation. Release mode places on lift;
+null restores direct activation. Pending targets stay in the view, can be refined
+with keyboard arrows, and are cancelled by configuration/context changes or
+unmount. Ink takes priority; read-only views do not enter touch aiming.

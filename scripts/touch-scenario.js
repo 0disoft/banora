@@ -13,12 +13,12 @@ async page => {
       const view=sdk.mountBoard(host,{controller,touch:{mode:'confirm'},coordinates:false});
       window.banoraTouchCheck={sdk,host,controller,view,before:controller.getState(),hits:[]};
     });
-    const board=mobile.locator('#touch-fixture svg[role="application"]');
+    let board=mobile.locator('#touch-fixture svg[role="application"]');
     const cdp=await context.newCDPSession(mobile);
     async function screen(points) {
       await board.scrollIntoViewIfNeeded();
-      return board.evaluate((svg,points) => {
-        const {sdk}=window.banoraTouchCheck;
+      return board.evaluate(async (svg,points) => {
+        const sdk=await import('/sdk/index.js');
         return points.map(point => {
           const shown=sdk.toDisplayPoint(point,{width:Number(svg.dataset.boardWidth),height:Number(svg.dataset.boardHeight)},
             {rotation:Number(svg.dataset.rotation),flipX:svg.dataset.flipX==='true'});
@@ -39,7 +39,7 @@ async page => {
       await start([{x:2,y:3},{x:3,y:4}]);
       verify(await unchanged(),'Aiming changed the record');
       verify(await board.locator('[data-preview="touch"]').getAttribute('data-target')==='3,4','Drag chose wrong logical target');
-      const lens=mobile.locator('[data-touch-lens]');
+      const lens=mobile.locator('[data-touch-lens]').last();
       verify(await lens.isVisible(),'Magnified touch lens missing');
       verify(await lens.evaluate(lens => {
         const rectangle=lens.getBoundingClientRect();return rectangle.x>=7 && rectangle.y>=7 && rectangle.right<=innerWidth-7 && rectangle.bottom<=innerHeight-7;
@@ -81,12 +81,14 @@ async page => {
         await touch('touchEnd');
       }
       verify(await board.locator('[data-preview="touch"]').count()===0 && !await mobile.locator('[data-touch-confirm]').last().isVisible(),`${action} retained pending touch`);
+      if (action==='update') verify(await board.evaluate(svg => svg.style.touchAction)==='manipulation','Restoring direct mode did not restore browser touch handling');
       verify(await mobile.evaluate(action => {
         const f=window.banoraTouchCheck;return !f.controller.getState().dirty && (action==='node' || f.controller.getState()===f.before);
       },action),`${action} committed cancelled touch`);
     }
     await mobile.evaluate(() => {const f=window.banoraTouchCheck;f.controller.previous();f.view.update({touch:{mode:'confirm',magnifier:false}});f.before=f.controller.getState();});
     await start([{x:2,y:3}]);verify(!await mobile.locator('[data-touch-lens]').last().isVisible(),'Disabled magnifier was visible');await touch('touchEnd');
+    verify(await mobile.getByRole('button',{name:'Cancel placement',exact:true}).isVisible(),'Common fixture: confirmation missing after release');
     await mobile.getByRole('button',{name:'Cancel placement',exact:true}).click();verify(await unchanged(),'Cancel button edited record');
     await start([{x:2,y:3}]);await touch('touchEnd');
     await board.focus();await mobile.keyboard.press('ArrowRight');await mobile.keyboard.press('Enter');
@@ -96,9 +98,10 @@ async page => {
     verify(!await mobile.locator('[data-touch-confirm]').last().isVisible(),'Escape did not cancel confirmation');
     await start([{x:2,y:3}]);await touch('touchEnd');
     await mobile.evaluate(() => {const f=window.banoraTouchCheck;const before=document.querySelector('#touch-fixture').innerHTML;let rejected=0;
-      for (const touch of [{mode:'invalid'},{magnifier:'yes'}]) try {f.view.update({touch});} catch {rejected++;}
-      if (rejected!==2 || before!==f.host.innerHTML) throw Error('Invalid touch configuration changed pending selection');
+      for (const touch of [{mode:'invalid'},{magnifier:'yes'},{mode:null},{magnifier:null},false,[]]) try {f.view.update({touch});} catch {rejected++;}
+      if (rejected!==6 || before!==f.host.innerHTML) throw Error('Invalid touch configuration changed pending selection');
     });
+    verify(await mobile.getByRole('button',{name:'Cancel placement',exact:true}).isVisible(),'Common fixture: invalid options removed confirmation');
     await mobile.getByRole('button',{name:'Cancel placement',exact:true}).click();
     await mobile.evaluate(() => window.banoraTouchCheck.view.update({readOnly:true,touch:{mode:'confirm'}}));
     await start([{x:2,y:3},{x:3,y:5}]);await touch('touchEnd');
@@ -112,6 +115,57 @@ async page => {
     await start([{x:2,y:3}]);await touch('touchEnd');
     await mobile.screenshot({path:'output/playwright/touch-confirm.png',fullPage:true});
     await mobile.evaluate(() => {const f=window.banoraTouchCheck,portals=document.querySelectorAll('[data-touch-lens]').length;f.view.dispose();if (f.controller.getState()!==f.before || f.host.children.length || document.querySelectorAll('[data-touch-lens]').length!==portals-1) throw Error('Touch disposal leaked DOM or edited/destroyed external controller');f.controller.dispose();f.host.remove();delete window.banoraTouchCheck;});
+    await mobile.goto(`${origin}/studio/`);board=mobile.locator('#board svg[role="application"]');await board.waitFor();
+    await start([{x:4,y:4},{x:6,y:5}]);
+    verify(await mobile.locator('#move').innerText()==='Move 0','Studio touch edited during aiming');
+    await mobile.screenshot({path:'output/playwright/studio-touch-lens.png'});
+    await touch('touchEnd');
+    verify(await board.locator('[data-stone="6,5"]').count()===1,'Studio release aiming did not place');
+    await mobile.locator('#undo').click();
+    await mobile.locator('#touch-mode').selectOption('confirm');await mobile.locator('#rotation').selectOption('90');await mobile.locator('#flip-x').check();
+    await start([{x:3,y:4},{x:4,y:5}]);await touch('touchEnd');
+    verify(await mobile.locator('#dirty').innerText()==='No changes','Studio pending confirmation marked record dirty');
+    verify(await mobile.getByRole('button',{name:'Cancel placement',exact:true}).isVisible(),'Studio: confirmation missing before screenshot');
+    await mobile.screenshot({path:'output/playwright/studio-touch-confirm.png'});
+    await mobile.getByRole('button',{name:'Cancel placement',exact:true}).click();
+    await start([{x:3,y:4},{x:4,y:5}]);await touch('touchEnd');
+    await mobile.getByRole('button',{name:'Confirm placement at E4',exact:true}).click();
+    verify(await board.locator('[data-stone="4,5"]').count()===1,'Studio transformed confirmation failed');await mobile.locator('#undo').click();
+    await start([{x:3,y:4}]);await mobile.locator('#touch-mode').selectOption('direct');await touch('touchEnd');
+    verify(await mobile.locator('#dirty').innerText()==='No changes','Studio tool update saved cancelled touch');
+
+    for (const framework of ['react','vue','svelte']) {
+      await mobile.goto(`${origin}/${framework}/`);board=mobile.locator('#board-host svg[role="application"]');await board.waitFor();
+      await start([{x:3,y:3},{x:5,y:5}]);
+      verify((await mobile.locator('#state').innerText()).includes('clean'),`${framework}: aiming edited record`);
+      await touch('touchEnd');verify(await board.locator('[data-stone="5,5"]').count()===1,`${framework}: touch release placement missing`);
+      await mobile.locator('#undo-edit').click();await mobile.locator('#touch-confirm').click();await mobile.locator('#rotate').click();await mobile.locator('#reflect').click();
+      await start([{x:2,y:2},{x:3,y:3}]);await touch('touchEnd');
+      const panel=mobile.locator('#board-host [data-touch-confirm]');
+      verify(await panel.isVisible() && (await mobile.locator('#state').innerText()).includes('clean'),`${framework}: confirm props did not update`);
+      await mobile.locator('#magnify').click();verify(!await panel.isVisible(),`${framework}: option update retained stale confirmation`);
+      await start([{x:2,y:2},{x:3,y:3}]);
+      verify(await mobile.locator('[data-touch-lens]:visible').count()===0,`${framework}: magnifier flag update missing`);
+      await touch('touchEnd');await panel.getByRole('button',{name:'Confirm placement at D6',exact:true}).click();
+      verify(await board.locator('[data-stone="3,3"]').count()===1,`${framework}: confirmation lost logical target`);await mobile.locator('#undo-edit').click();
+      await start([{x:2,y:2},{x:4,y:3}]);await mobile.locator('#readonly').click();await touch('touchEnd');
+      verify((await mobile.locator('#state').innerText()).includes('clean') && await board.locator('[data-preview="touch"]').count()===0,`${framework}: read-only update saved pending touch`);
+      await start([{x:2,y:2},{x:3,y:3}]);await touch('touchEnd');
+      verify((await mobile.locator('#state').innerText()).includes('clean'),`${framework}: read-only touch mutated record`);await mobile.locator('#readonly').click();
+      board=mobile.locator('#viewer-host svg[role="application"]');
+      await start([{x:2,y:2},{x:4,y:3}]);await touch('touchEnd');
+      await mobile.locator('#viewer-host [data-touch-confirm]').getByRole('button',{name:'Confirm placement at E6',exact:true}).click();
+      verify(await mobile.locator('#board-host [data-stone="4,3"]').count()===1,`${framework}: nested viewer touch did not share controller`);await mobile.locator('#undo-edit').click();
+      board=mobile.locator('#board-host svg[role="application"]');
+      await start([{x:2,y:2}]);await touch('touchEnd');await mobile.locator('#toggle').click();
+      verify(await mobile.locator('[data-touch-lens],[data-touch-confirm]').count()===0,`${framework}: unmount leaked touch UI`);
+      verify((await mobile.locator('#state').innerText()).includes('clean'),`${framework}: unmount committed confirmation`);await mobile.locator('#toggle').click();await board.waitFor();
+      await start([{x:2,y:2}]);await touch('touchEnd');await mobile.locator('#swap').click();
+      verify(!await mobile.locator('#board-host [data-touch-confirm]').isVisible() && (await mobile.locator('#state').innerText()).includes('13 × 13'),`${framework}: controller switch retained stale confirmation`);
+      await mobile.locator('#swap').click();
+      verify((await mobile.locator('#state').innerText()).includes('clean'),`${framework}: switching back lost clean record`);
+      await mobile.screenshot({path:`output/playwright/${framework}-touch.png`,fullPage:true});
+    }
     await cdp.detach();verify(errors.length===0,`Touch errors: ${errors.join('; ')}`);
     return 'Magnified real touch drag, eight cropped transforms, confirmation, callbacks, cancellation, keyboard and disposal passed';
   } finally {await context.close();}

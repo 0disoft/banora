@@ -16,6 +16,8 @@ function App() {
   const [flipX, setFlipX] = useState(false);
   const [ink, setInk] = useState(false);
   const drawing = ink ? {color:'#cc5522',width:0.12} : null;
+  const [confirmTouch,setConfirmTouch] = useState(false), [magnifier,setMagnifier] = useState(true);
+  const touch = {mode:confirmTouch ? 'confirm' as const : 'release' as const,magnifier};
   const [boardView, setBoardView] = useState<BoardView | ViewerView | null>(null);
   const [viewerView, setViewerView] = useState<BoardView | ViewerView | null>(null);
   const [error, setError] = useState('');
@@ -44,17 +46,19 @@ function App() {
       button('ink', ink ? 'Use placement tool' : 'Use ink tool', () => setInk(value => !value)),
       button('clear-ink', 'Clear ink', () => controller.clearStrokes()),
       button('undo-edit', 'Undo record edit', () => controller.undo()),
+      button('touch-confirm', confirmTouch ? 'Place on touch release' : 'Require touch confirmation', () => setConfirmTouch(value => !value)),
+      button('magnify', magnifier ? 'Hide touch magnifier' : 'Show touch magnifier', () => setMagnifier(value => !value)),
       button('callback', 'Change callback', () => setCallbackB(value => !value)),
       button('swap', 'Switch controller', () => setSecond(value => !value))),
     h('div', {className:'controls'},
       h('button', {id:'png', disabled:!mounted || !boardView, onClick:() => { void downloadDiagram(boardView,'png','react-board.png').catch(error => setError(String(error))); }}, 'Save board PNG'),
       h('button', {id:'svg', disabled:!mounted || !viewerView, onClick:() => { void downloadDiagram(viewerView,'svg','react-viewer.svg').catch(error => setError(String(error))); }}, 'Save viewer SVG')),
     mounted ? h('div', { className: 'boards' }, h('section', { id: 'board-host' },
-      h(Board, { controller, readOnly, transform, drawing, theme: flat ? 'flat' : 'wood', onStateChange, onView:setBoardView })),
-    h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, onView:setViewerView, board: { transform, drawing, theme: flat ? 'flat' : 'wood' } }))) :
+      h(Board, { controller, readOnly, transform, drawing, touch, theme: flat ? 'flat' : 'wood', onStateChange, onView:setBoardView })),
+    h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, onView:setViewerView, board: { transform, drawing, touch, theme: flat ? 'flat' : 'wood' } }))) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
     mounted ? h('section', { id: 'owned-board', style: { maxWidth: 350 } }, h('h2', null, 'Optional owned controller'),
-      h(Board, { readOnly, transform, drawing, theme: flat ? 'flat' : 'wood' })) : null);
+      h(Board, { readOnly, transform, drawing, touch, theme: flat ? 'flat' : 'wood' })) : null);
 }
 createRoot(document.getElementById('app')!).render(h(StrictMode, null, h(App)));
 window.addEventListener('pagehide', event => { if (!event.persisted) records.forEach(controller => controller.dispose()); });
