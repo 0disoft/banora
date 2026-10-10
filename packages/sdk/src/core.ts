@@ -160,3 +160,19 @@ export function replayMove(position: Position, point: Point | null, color: Color
   return { ...result, position: seal({ ...result.position, rules: position.rules,
     previousBoard: position.board }) };
 }
+
+export interface PositionDifference {
+  readonly point: Point;
+  readonly before: Color | null;
+  readonly after: Color | null;
+}
+/** Compare visible stones only, not turn, history, annotations or rule equivalence. */
+export function comparePositions(before: Position, after: Position): readonly PositionDifference[] {
+  if (before.width !== after.width || before.height !== after.height) throw new RangeError('Position comparison requires matching board dimensions');
+  const changes: PositionDifference[] = [];
+  for (let index = 0; index < before.board.length; index++) if (before.board[index] !== after.board[index]) {
+    changes.push(Object.freeze({point:Object.freeze({x:index%before.width,y:Math.floor(index/before.width)}),
+      before:before.board[index]!,after:after.board[index]!}));
+  }
+  return Object.freeze(changes);
+}

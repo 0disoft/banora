@@ -24,6 +24,8 @@ export interface ControllerState {
   readonly markers: readonly Marker[];
   readonly connections: readonly Connection[];
   readonly strokes: readonly Stroke[];
+  /** Increases only when a successful import replaces this controller's record. */
+  readonly recordGeneration: number;
 }
 export type ControllerFailure = MoveFailure | 'unsaved-changes' | 'node-not-found' |
   'no-history' | 'invalid-annotation' | 'invalid-edit' | 'import' | 'invalid-export' | 'limit';
@@ -43,6 +45,7 @@ const markerProperties: Readonly<Record<MarkerKind, string>> = {
 
 export class RecordController {
   #record: SgfRecord;
+  #recordGeneration = 0;
   #selected: string;
   #index: RecordIndex;
   #positionCache = new Map<string, Position>();
@@ -86,8 +89,8 @@ export class RecordController {
     while (current !== null) { path.push(current); current = this.#index.parents.get(current) ?? null; }
     return path.reverse();
   }
-  #position(): Position {
-    const path = this.#path();
+  #position(id = this.#selected): Position {
+    const path = this.#path(id);
     const root = this.#index.nodes.get(path[0]!)!;
     let position = initialRecordPosition(root, this.#rules);
     let start = 0;
@@ -105,8 +108,17 @@ export class RecordController {
   getState(): ControllerState {
     this.#assertLive();
     if (this.#snapshot) return this.#snapshot;
-    const node = this.#index.nodes.get(this.#selected)!;
-    const position = this.#position();
+    return this.#snapshot = this.#state(this.#selected);
+  }
+  /** Inspect another node without navigation, editing or subscriber notifications. */
+  inspectNode(id: string): ControllerState | null {
+    this.#assertLive();
+    if (!this.#index.nodes.has(id)) return null;
+    return id === this.#selected ? this.getState() : this.#state(id);
+  }
+  #state(id: string): ControllerState {
+    const node = this.#index.nodes.get(id)!;
+    const position = this.#position(id);
     const markers: Marker[] = [];
     for (const [kind, key] of Object.entries(markerProperties) as [MarkerKind, string][]) {
       for (const value of node.properties[key] ?? []) {
@@ -122,8 +134,8 @@ export class RecordController {
         from: pointFromSgf(value.slice(0, 2), position.width, position.height),
         to: pointFromSgf(value.slice(3), position.width, position.height) }));
     }
-    return this.#snapshot = Object.freeze({ record: this.#record, node, position, path: Object.freeze(this.#path()),
-      gameIndex: this.#index.games.get(this.#selected)!, dirty: this.#dirty,
+    return Object.freeze({ record: this.#record, node, position, path: Object.freeze(this.#path(id)),
+      gameIndex: this.#index.games.get(id)!, dirty: this.#dirty,recordGeneration:this.#recordGeneration,
       canUndo: this.#undo.length > 0, canRedo: this.#redo.length > 0,
       markers: Object.freeze(markers), connections: Object.freeze(connections), strokes: decodeStrokes(node.properties.BPN, position) });
   }
@@ -386,6 +398,7 @@ export class RecordController {
     if (this.#dirty && !options.discardChanges) return { ok: false, reason: 'unsaved-changes' };
     this.endEditGroup();
     this.#record = result.record;
+    this.#recordGeneration++;
     this.#selected = result.record.games[0]!.id;
     this.#undo = []; this.#redo = []; this.#tickets.clear();
     this.#baseline = semanticRecord(this.#record); this.#dirty = false;

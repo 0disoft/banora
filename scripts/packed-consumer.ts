@@ -17,7 +17,7 @@ await writeFile(resolve(directory, 'package.json'), JSON.stringify({
 run([process.execPath, 'install', '--ignore-scripts'], directory);
 const consumer = `import { RecordController, createPosition, play, stoneAt } from '@banora/sdk';
 import { parseSgf } from '@banora/sdk/sgf';
-import { opposite } from '@banora/sdk/core';
+import { opposite, comparePositions } from '@banora/sdk/core';
 import type { ControllerState } from '@banora/sdk/controller';
 import { mountViewer } from '@banora/sdk/viewer';
 if (typeof mountViewer !== 'function') throw Error('Viewer artifact export failed');
@@ -28,6 +28,8 @@ const controller = new RecordController({ sgf: '(;SZ[9]XX[preserve];B[aa])' });
 controller.next(); controller.setComment('public artifact');
 controller.setMarker({ x: 3, y: 3 }, 'label', 'A:B');
 const state: ControllerState = controller.getState();
+const rootState = controller.inspectNode(state.path[0]!)!;
+if (comparePositions(rootState.position,state.position).length !== 1 || controller.getState() !== state || rootState.recordGeneration !== 0) throw Error('Packed comparison/inspection failed');
 if (!state.dirty) throw Error('Editing failed');
 const exported = controller.prepareExport();
 if (!parseSgf(exported.text).ok) throw Error('SGF subpath failed');

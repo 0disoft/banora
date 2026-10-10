@@ -15,6 +15,10 @@ After `bun run build`, `@banora/sdk/core` and the root export expose:
   `setup(position, stones, toPlay?)`: structured `MoveResult`, with a new immutable
   position on success and a typed reason on failure. Setup is atomic and clears ko.
 - `stoneAt(position, point)`, `isOnBoard(position, point)` and `opposite(color)`.
+- `comparePositions(before, after)`: frozen row-major `PositionDifference[]` with
+  logical `point` and `before`/`after` colors or null. Matching dimensions are
+  required; mismatch throws `RangeError`. This compares visible stones only,
+  not turn, captures, rules, repetition history or annotations.
 - `replayMove(position, pointOrNull, color)` executes recorded Go moves without
   ordinary turn/ko/suicide rejection, including occupied-point replacement. Use
   `play` for legal user moves; record playback follows SGF semantics.
@@ -39,6 +43,7 @@ Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
 | Operation | Behavior |
 | --- | --- |
 | `getState()` / `subscribe(listener)` | Immutable current state; subscription immediately delivers a snapshot and returns cleanup |
+| `inspectNode(id)` | Read an immutable snapshot at another node without navigation, history changes or notifications; missing IDs return null |
 | `goTo(id)` / `previous()` / `next(variation?)` | Select an existing node/path without creating an edit |
 | `play(pointOrNull)` | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch |
 | `setComment(text)` / `setMarker(point, kindOrNull, label?)` | Undoable comments and triangle/square/circle/cross/label edits |
@@ -63,6 +68,16 @@ are logged without rolling back committed commands. Root exports include all the
 `getState()` retains the same immutable snapshot identity until a committed state
 change. Failed commands, export preparation and selecting the already active node
 leave it unchanged. This contract supports external-store framework bindings.
+
+`inspectNode` uses the same record replay and bounded position cache as ordinary
+navigation; it never creates a separate rules engine. Its snapshot's path/game/node
+refer to the inspected node while dirty/Undo flags describe the owning controller.
+Non-selected inspection snapshots need not retain identity between calls; inspecting
+the selected node returns `getState()`. All snapshots include `recordGeneration`,
+starting at zero and increasing only on successful record replacement. Edits,
+Undo/Redo, navigation and failed/guarded imports keep the generation. Node IDs are
+record-local; hosts can pair an ID with this generation to reject reused IDs after
+an import. The generation is controller-local metadata and is not stored in SGF.
 
 Keep the cleanup returned by `beginEditGroup()` when a view owns a comment session.
 It cannot end a newer group started by another editor. `endEditGroup()` remains an

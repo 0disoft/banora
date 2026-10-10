@@ -26,6 +26,11 @@ An implemented slice does not complete its milestone or establish untested compa
   grid/stone colors are verified in computed styles.
 - SVG board: themes/CSS tokens, coordinates, setup/capture display, move numbers,
   shapes/labels, crop, keyboard cursor, pointer/touch and ownership-aware disposal.
+- Comparison primitives: `inspectNode` reads the authoritative branch replay without
+  moving the cursor or notifying subscribers; `comparePositions` returns immutable
+  visible-stone differences. Controller-local import generations distinguish reused
+  SGF IDs. Headless and installed-artifact checks cover collections, markup, snapshot
+  identity and import/Undo behavior. The comparison UI is the next increment.
 - Freehand record model: node-local, immutable fractional strokes use the bounded
   version-1 BPN extension, with add/remove/clear, independent Undo units and SGF
   export/reopen. Headless checks cover unsafe/malformed imports, per-node limits,
@@ -57,7 +62,7 @@ An implemented slice does not complete its milestone or establish untested compa
   unknown properties, keyboard/touch emulation, crop, owned/external disposal and
   no implicit external requests/uploads. Screenshots are generated locally under
   `output/playwright/`, not shipped assets or evidence of real-device testing.
-- Thirty-seven focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Forty focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.
