@@ -1,5 +1,5 @@
 import { RecordController, decodeSgf, mountBoard, parseSgf } from '@banora/sdk';
-import type { CommandResult, ControllerState, MarkerKind, SgfNode } from '@banora/sdk';
+import type { CommandResult, ControllerState, MarkerKind, Point, SgfNode } from '@banora/sdk';
 import sample from '../fixtures/study.sgf?raw';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -13,6 +13,7 @@ const games = find<HTMLSelectElement>('games');
 let filename = 'opening-study.sgf';
 let opening = false;
 let lastTreeState: { record: ControllerState['record']; id: string } | undefined;
+let connectionStart: { point: Point; node: string } | undefined;
 
 function report(result: CommandResult): void {
   if (!result.ok) status.textContent = result.diagnostics?.map(item => item.message).join('; ') ?? `Action rejected: ${result.reason.replaceAll('-', ' ')}.`;
@@ -20,6 +21,24 @@ function report(result: CommandResult): void {
 const view = mountBoard(find('board'), { controller, onPoint(point) {
   const mode = tool.value;
   if (mode === 'play') report(controller.play(point));
+  else if (mode === 'setup-black' || mode === 'setup-white' || mode === 'setup-empty') {
+    report(controller.setSetup([{ ...point, color: mode === 'setup-empty' ? null : mode === 'setup-black' ? 'black' : 'white' }]));
+  } else if (mode === 'line' || mode === 'arrow') {
+    const state = controller.getState();
+    if (!connectionStart || connectionStart.node !== state.node.id) {
+      connectionStart = { point, node: state.node.id };
+      status.textContent = `Choose the second point for this ${mode}. Escape cancels.`;
+    } else {
+      const start = connectionStart.point; connectionStart = undefined;
+      const same = (a: Point, b: Point) => a.x === b.x && a.y === b.y;
+      const existing = state.connections.some(connection => connection.kind === mode &&
+        ((same(connection.from, start) && same(connection.to, point)) ||
+          (mode === 'line' && same(connection.to, start) && same(connection.from, point))));
+      const result = controller.setConnection(start, point, mode, !existing);
+      if (result.ok) status.textContent = `${mode === 'arrow' ? 'Arrow' : 'Line'} ${existing ? 'removed' : 'added'}. Choose two points to draw another.`;
+      else report(result);
+    }
+  }
   else {
     const existing = controller.getState().markers.find(marker => marker.point.x === point.x && marker.point.y === point.y);
     const kind = mode === 'erase' || existing?.kind === mode ? null : mode as MarkerKind;
@@ -63,6 +82,7 @@ function renderTree(state: ControllerState): void {
   find('tree-note').textContent = pending.length ? 'First 500 nodes shown. Move controls can navigate the whole record.' : '';
 }
 const unsubscribe = controller.subscribe(state => {
+  if (connectionStart?.node !== state.node.id) connectionStart = undefined;
   const root = state.record.games[state.gameIndex]!;
   find('game-name').textContent = root.properties.GN?.[0] ?? filename.replace(/\.sgf$/i, '');
   find('black-name').textContent = root.properties.PB?.[0] ?? 'Black';
@@ -79,6 +99,10 @@ const unsubscribe = controller.subscribe(state => {
   find<HTMLButtonElement>('first').disabled = state.path.length <= 1;
   find<HTMLButtonElement>('next').disabled = state.node.children.length === 0;
   find<HTMLButtonElement>('last').disabled = state.node.children.length === 0;
+  find<HTMLButtonElement>('remove-branch').disabled = state.path.length <= 1;
+  const parent = state.path.length > 1 ? findNode(state.record.games[state.gameIndex]!, state.path.at(-2)!) : undefined;
+  find<HTMLButtonElement>('promote-branch').disabled = !parent || parent.children[0]?.id === state.node.id;
+  find<HTMLSelectElement>('next-player').value = state.position.toPlay;
   const text = state.node.properties.C?.[0] ?? '';
   if (comment.value !== text) comment.value = text;
   if (games.options.length !== state.record.games.length || games.dataset.record !== state.record.games.map(root => root.id + (root.properties.GN?.[0] ?? '')).join('|')) {
@@ -90,6 +114,11 @@ const unsubscribe = controller.subscribe(state => {
   games.value = String(state.gameIndex);
   renderTree(state);
 });
+
+function findNode(root: SgfNode, id: string): SgfNode | undefined {
+  const pending = [root];
+  while (pending.length) { const node = pending.pop()!; if (node.id === id) return node; pending.push(...node.children); }
+}
 
 function exportRecord(): boolean {
   const ticket = controller.prepareExport();
@@ -148,14 +177,21 @@ find('last').addEventListener('click', () => { let node = controller.getState().
 find('pass').addEventListener('click', () => report(controller.play(null)));
 find('undo').addEventListener('click', () => report(controller.undo()));
 find('redo').addEventListener('click', () => report(controller.redo()));
+find('promote-branch').addEventListener('click', () => report(controller.reorderBranch(controller.getState().node.id, 0)));
+find<HTMLSelectElement>('next-player').addEventListener('change', event => report(controller.setSetup([], (event.target as HTMLSelectElement).value as 'black' | 'white')));
+const removal = find<HTMLDialogElement>('remove-dialog');
+let removalTarget: string | undefined;
+find('remove-branch').addEventListener('click', () => { removalTarget = controller.getState().node.id; removal.returnValue = 'cancel'; removal.showModal(); });
+removal.addEventListener('close', () => { if (removal.returnValue === 'remove' && removalTarget) report(controller.removeBranch(removalTarget)); removalTarget = undefined; });
 comment.addEventListener('focus', () => controller.beginEditGroup());
 comment.addEventListener('input', () => report(controller.setComment(comment.value)));
 comment.addEventListener('blur', () => controller.endEditGroup());
-tool.addEventListener('change', () => { find('label-control').hidden = tool.value !== 'label'; });
+tool.addEventListener('change', () => { connectionStart = undefined; find('label-control').hidden = tool.value !== 'label'; });
 find<HTMLSelectElement>('theme').addEventListener('change', event => view.update({ theme: (event.target as HTMLSelectElement).value as 'wood' | 'flat' }));
 find<HTMLInputElement>('numbers').addEventListener('change', event => view.update({ moveNumbers: (event.target as HTMLInputElement).checked }));
 games.addEventListener('change', () => report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id)));
 document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && connectionStart) { connectionStart = undefined; status.textContent = 'Connection cancelled.'; }
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); report(event.shiftKey ? controller.redo() : controller.undo()); }
 });

@@ -1,5 +1,5 @@
-import { isOnBoard, pass, play } from './core.js';
-import type { MoveFailure, Point, Position, RulePolicy } from './core.js';
+import { isOnBoard, pass, play, setup } from './core.js';
+import type { Color, MoveFailure, Point, Position, RulePolicy, SetupStone } from './core.js';
 import { createSgfNode, decodeSgf, expandSgfPoints, parseSgf, pointFromSgf, pointToSgf, serializeSgf } from './sgf.js';
 import type { SgfDiagnostic, SgfLimits, SgfNode, SgfRecord } from './sgf.js';
 import { applyRecordNode, indexRecord, initialRecordPosition, semanticRecord, sgfColor } from './record-runtime.js';
@@ -7,6 +7,8 @@ import type { RecordIndex } from './record-runtime.js';
 
 export type MarkerKind = 'triangle' | 'square' | 'circle' | 'cross' | 'label';
 export interface Marker { readonly point: Point; readonly kind: MarkerKind; readonly label?: string }
+export type ConnectionKind = 'line' | 'arrow';
+export interface Connection { readonly kind: ConnectionKind; readonly from: Point; readonly to: Point }
 export interface ControllerState {
   readonly record: SgfRecord;
   readonly node: SgfNode;
@@ -17,9 +19,10 @@ export interface ControllerState {
   readonly canUndo: boolean;
   readonly canRedo: boolean;
   readonly markers: readonly Marker[];
+  readonly connections: readonly Connection[];
 }
 export type ControllerFailure = MoveFailure | 'unsaved-changes' | 'node-not-found' |
-  'no-history' | 'invalid-annotation' | 'import' | 'invalid-export' | 'limit';
+  'no-history' | 'invalid-annotation' | 'invalid-edit' | 'import' | 'invalid-export' | 'limit';
 export type CommandResult = { readonly ok: true } |
   { readonly ok: false; readonly reason: ControllerFailure; readonly diagnostics?: readonly SgfDiagnostic[] };
 export interface ControllerOptions {
@@ -107,9 +110,16 @@ export class RecordController {
         }
       }
     }
+    const connections: Connection[] = [];
+    for (const [kind, key] of [['line', 'LN'], ['arrow', 'AR']] as const) {
+      for (const value of node.properties[key] ?? []) connections.push(Object.freeze({ kind,
+        from: pointFromSgf(value.slice(0, 2), position.width, position.height),
+        to: pointFromSgf(value.slice(3), position.width, position.height) }));
+    }
     return this.#snapshot = Object.freeze({ record: this.#record, node, position, path: Object.freeze(this.#path()),
       gameIndex: this.#index.games.get(this.#selected)!, dirty: this.#dirty,
-      canUndo: this.#undo.length > 0, canRedo: this.#redo.length > 0, markers: Object.freeze(markers) });
+      canUndo: this.#undo.length > 0, canRedo: this.#redo.length > 0,
+      markers: Object.freeze(markers), connections: Object.freeze(connections) });
   }
   subscribe(listener: (state: ControllerState) => void): () => void {
     this.#assertLive();
@@ -137,15 +147,20 @@ export class RecordController {
   beginEditGroup(): void { this.#assertLive(); this.endEditGroup(); this.#group = true; }
   endEditGroup(): void { this.#group = false; this.#groupRecorded = false; }
 
-  #edit(replacement: SgfNode, selected = this.#selected): CommandResult {
-    const path = this.#path();
+  #newNodeId(): string {
+    let id: string;
+    do { id = `e${++this.#nodeSequence}`; } while (this.#index.nodes.has(id));
+    return id;
+  }
+  #edit(replacement: SgfNode, selected = this.#selected, target = this.#selected): CommandResult {
+    const path = this.#path(target);
     let updated = replacement;
     for (let i = path.length - 2; i >= 0; i--) {
       const parent = this.#index.nodes.get(path[i]!)!;
       updated = createSgfNode(parent.id, parent.properties,
         parent.children.map(child => child.id === path[i + 1] ? updated : child), parent.rawProperties);
     }
-    const game = this.#index.games.get(this.#selected)!;
+    const game = this.#index.games.get(target)!;
     const candidate = Object.freeze({ games: Object.freeze(this.#record.games.map((root, index) => index === game ? updated : root)) });
     const validation = parseSgf(serializeSgf(candidate), this.#limits);
     if (!validation.ok) return { ok: false, reason: 'limit', diagnostics: validation.diagnostics };
@@ -188,13 +203,12 @@ export class RecordController {
     const state = this.getState();
     const result = point ? play(state.position, point) : pass(state.position);
     if (!result.ok) return result;
-    if (this.#index.nodes.size >= (this.#limits.maxNodes ?? 50_000)) return { ok: false, reason: 'limit' };
     const key = sgfColor(state.position.toPlay);
     const value = point ? pointToSgf(point) : '';
     const existing = state.node.children.find(child => child.properties[key]?.[0] === value);
     if (existing) return this.goTo(existing.id);
-    let id: string;
-    do { id = `e${++this.#nodeSequence}`; } while (this.#index.nodes.has(id));
+    if (this.#index.nodes.size >= (this.#limits.maxNodes ?? 50_000)) return { ok: false, reason: 'limit' };
+    const id = this.#newNodeId();
     const child = createSgfNode(id, { [key]: [value] });
     return this.#edit(createSgfNode(state.node.id, state.node.properties, [...state.node.children, child], state.node.rawProperties), id);
   }
@@ -207,6 +221,73 @@ export class RecordController {
     const properties = { ...node.properties };
     if (comment) properties.C = [comment]; else delete properties.C;
     return this.#edit(createSgfNode(node.id, properties, node.children, node.rawProperties));
+  }
+  removeBranch(id = this.#selected): CommandResult {
+    this.#assertLive();
+    if (!this.#index.nodes.has(id)) return { ok: false, reason: 'node-not-found' };
+    const parentId = this.#index.parents.get(id);
+    if (!parentId) return { ok: false, reason: 'invalid-edit' };
+    const parent = this.#index.nodes.get(parentId)!;
+    const selected = this.#path().includes(id) ? parentId : this.#selected;
+    this.endEditGroup();
+    return this.#edit(createSgfNode(parent.id, parent.properties,
+      parent.children.filter(child => child.id !== id), parent.rawProperties), selected, parentId);
+  }
+  reorderBranch(id: string, index: number): CommandResult {
+    this.#assertLive();
+    const node = this.#index.nodes.get(id);
+    if (!node) return { ok: false, reason: 'node-not-found' };
+    const parentId = this.#index.parents.get(id);
+    if (!parentId) return { ok: false, reason: 'invalid-edit' };
+    const parent = this.#index.nodes.get(parentId)!;
+    if (!Number.isInteger(index) || index < 0 || index >= parent.children.length) return { ok: false, reason: 'invalid-edit' };
+    if (parent.children[index]!.id === id) return { ok: true };
+    const children = parent.children.filter(child => child.id !== id);
+    children.splice(index, 0, node);
+    this.endEditGroup();
+    return this.#edit(createSgfNode(parent.id, parent.properties, children, parent.rawProperties), this.#selected, parentId);
+  }
+  setSetup(stones: readonly SetupStone[], toPlay?: Color): CommandResult {
+    this.#assertLive();
+    const state = this.getState();
+    const validated = setup(state.position, stones, toPlay);
+    if (!validated.ok) return validated;
+    if (!stones.length && toPlay === undefined) return { ok: true };
+    const append = !!(state.node.properties.B || state.node.properties.W);
+    const properties = append ? {} as Record<string, readonly string[]> : { ...state.node.properties };
+    const points = new Map<string, Color | null>();
+    for (const [key, color] of [['AB', 'black'], ['AW', 'white'], ['AE', null]] as const) {
+      for (const value of properties[key] ?? []) for (const point of expandSgfPoints(value, state.position.width, state.position.height)) points.set(pointToSgf(point), color);
+      delete properties[key];
+    }
+    for (const stone of stones) points.set(pointToSgf(stone), stone.color);
+    for (const [key, color] of [['AB', 'black'], ['AW', 'white'], ['AE', null]] as const) {
+      const values = [...points].filter(([, placed]) => placed === color).map(([point]) => point).sort();
+      if (values.length) properties[key] = values;
+    }
+    if (toPlay !== undefined) properties.PL = [sgfColor(toPlay)];
+    if (!append && JSON.stringify(properties) === JSON.stringify(state.node.properties)) return { ok: true };
+    this.endEditGroup();
+    if (!append) return this.#edit(createSgfNode(state.node.id, properties, state.node.children, state.node.rawProperties));
+    const child = createSgfNode(this.#newNodeId(), properties);
+    return this.#edit(createSgfNode(state.node.id, state.node.properties, [...state.node.children, child], state.node.rawProperties), child.id);
+  }
+  setConnection(from: Point, to: Point, kind: ConnectionKind, present = true): CommandResult {
+    this.#assertLive();
+    const state = this.getState();
+    if (!isOnBoard(state.position, from) || !isOnBoard(state.position, to) ||
+      (from.x === to.x && from.y === to.y) || !['line', 'arrow'].includes(kind)) return { ok: false, reason: 'invalid-annotation' };
+    const key = kind === 'line' ? 'LN' : 'AR';
+    const canonical = (value: string) => kind === 'line' ? value.split(':').sort().join(':') : value;
+    const target = canonical(`${pointToSgf(from)}:${pointToSgf(to)}`);
+    const existing = state.node.properties[key] ?? [];
+    const contained = existing.some(value => canonical(value) === target);
+    if (contained === present) return { ok: true };
+    const values = present ? [...existing, target] : existing.filter(value => canonical(value) !== target);
+    const properties = { ...state.node.properties };
+    if (values.length) properties[key] = values; else delete properties[key];
+    this.endEditGroup();
+    return this.#edit(createSgfNode(state.node.id, properties, state.node.children, state.node.rawProperties));
   }
   setMarker(point: Point, kind: MarkerKind | null, label = 'A'): CommandResult {
     this.#assertLive();

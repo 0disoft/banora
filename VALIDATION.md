@@ -34,7 +34,7 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | docs | `bun run docs` | English documentation, LF endings and relative links |
 | smoke | `bun run smoke` | SDK build, isolated tarball install, strict consumer typecheck and Node public-export execution |
 | smoke (adapters) | `bun run smoke:adapters` | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR |
-| smoke (browser) | `bun run smoke:browser` | Production Studio/viewer plus three framework consumers; SGF round-trip, guards, keyboard/touch, lifecycle and local-only requests |
+| smoke (browser) | `bun run smoke:browser` | Production Studio/viewer plus framework consumers; basic/extended editing round-trips, guards, branch/setup/line/arrow Undo, CSS tokens, keyboard/touch and lifecycle |
 | check | `bun run check` | SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
 
 `bun run build` builds the common SDK; `bun run build:adapters` also builds the

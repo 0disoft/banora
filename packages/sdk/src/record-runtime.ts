@@ -69,6 +69,8 @@ export function semanticRecord(record: SgfRecord): string {
       const values = properties[key]!;
       if (pointLists.has(key)) return [key, values.flatMap(value => value === '' ? [''] :
         expandSgfPoints(value, entry.width, entry.height).map(pointToSgf)).sort()];
+      if (key === 'LN') return [key, values.map(value => value.split(':').sort().join(':')).sort()];
+      if (key === 'AR') return [key, [...values].sort()];
       return [key, key === 'LB' ? [...values].sort() : values];
     })));
     pending.push(']');

@@ -42,6 +42,10 @@ Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
 | `goTo(id)` / `previous()` / `next(variation?)` | Select an existing node/path without creating an edit |
 | `play(pointOrNull)` | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch |
 | `setComment(text)` / `setMarker(point, kindOrNull, label?)` | Undoable comments and triangle/square/circle/cross/label edits |
+| `setConnection(from, to, 'line' \| 'arrow', present?)` | Add/remove a node-local SGF line or directed arrow; endpoints must differ |
+| `setSetup(stones, toPlay?)` | Patch free black/white/empty setup points and optional turn; after a move append a setup child rather than mixing move/setup properties |
+| `removeBranch(nodeId?)` | Remove a non-root node and descendants; a deleted selection moves to its surviving parent |
+| `reorderBranch(nodeId, index)` | Move a non-root node to a zero-based sibling slot without moving the current cursor |
 | `beginEditGroup()` / `endEditGroup()` | Group a comment session into one undo unit; navigation ends the group |
 | `undo()` / `redo()` | Restore record edits and the cursor captured for that history entry |
 | `loadSgf(textOrBytes, { discardChanges? })` | Validate first; reject dirty replacement unless explicitly permitted; successful import resets editing history |
@@ -58,6 +62,16 @@ are logged without rolling back committed commands. Root exports include all the
 `getState()` retains the same immutable snapshot identity until a committed state
 change. Failed commands, export preparation and selecting the already active node
 leave it unchanged. This contract supports external-store framework bindings.
+
+Branch/setup/connection commands use the same edit Undo/Redo and dirty baseline.
+Root removal/reordering and invalid sibling indices return `invalid-edit`; unknown
+nodes return `node-not-found`. Setup points must be unique and on-board; placement
+does not capture or increment the move number. Existing setup properties are patched,
+not discarded. Undo restores removed subtrees, node IDs and the prior cursor.
+Sibling index zero defines the default continuation. `ControllerState.connections`
+contains immutable `{ kind, from, to }` values. Lines are undirected; arrows preserve
+direction. SGF AR/LN are validated under the
+[FF4 markup definitions](https://www.red-bean.com/sgf/properties.html#AR).
 
 ## Implemented Board Mounting
 
@@ -80,8 +94,10 @@ mutation policy. A read-only board without a callback never places stones.
 
 Crop changes presentation only. Invalid crop configuration throws without replacing
 the previous options; record-size changes reset a crop that no longer fits. CSS
-variables `--banora-board`, `--banora-grid`, `--banora-black` and `--banora-white`
-customize presentation. Coordinates skip I for standard Go columns, falling back
+variables `--banora-board`, `--banora-grid`, `--banora-black`, `--banora-white` and
+`--banora-annotation` customize presentation, including values inherited from the
+host container. Node-local lines/arrows render over stones with contrasting outlines.
+Coordinates skip I for standard Go columns, falling back
 to numeric columns beyond the available single-letter alphabet.
 
 ## Complete Viewer

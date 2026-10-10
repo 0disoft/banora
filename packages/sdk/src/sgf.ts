@@ -136,6 +136,18 @@ function validateGame(root: SgfNode): void {
         if (value[2] !== ':') fail('property', 'Labels require point:text');
         pointFromSgf(value.slice(0, 2), width, height);
       }
+      if (key === 'LN' || key === 'AR') {
+        const seen = new Set<string>();
+        for (const value of values) {
+          if (value.length !== 5 || value[2] !== ':') fail('property', `${key} requires point:point`);
+          pointFromSgf(value.slice(0, 2), width, height);
+          pointFromSgf(value.slice(3), width, height);
+          if (value.slice(0, 2) === value.slice(3)) fail('property', `${key} endpoints must differ`);
+          const canonical = key === 'LN' ? value.split(':').sort().join(':') : value;
+          if (seen.has(canonical)) fail('property', `Duplicate ${key} connection`);
+          seen.add(canonical);
+        }
+      }
       if (key === 'PL' && !['B', 'W'].includes(values[0]!)) fail('property', 'Invalid player to move');
       if (key === 'MN' && (!/^\d+$/.test(values[0]!) || !Number.isSafeInteger(Number(values[0])))) fail('property', 'Invalid move number');
     }

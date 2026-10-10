@@ -78,7 +78,8 @@ Safari or additional framework-major support is claimed by these checks.
 
 Initially target SGF FF4 for Go, using the [preservation contract](../product/02-spec.md#sgf-preservation).
 Prioritize moves/pass, setup, branches, comments, player/game metadata, labels and
-shape markers. File bytes follow declared encoding; string input is already decoded.
+shape markers, plus implemented AR/LN lines and arrows. File bytes follow declared
+encoding; string input is already decoded.
 Export UTF-8 and preserve unknown properties semantically through supported edits.
 Supported byte-input encodings are UTF-8, ISO-8859-1 (true Latin-1), Windows-1252,
 Shift_JIS, GB18030 and EUC-KR, including common aliases in the decoder. Absent CA
@@ -100,6 +101,12 @@ Recorded moves execute SGF playback semantics; new user moves use the selected
 rule policy. Named `RU` values are metadata, not automatic implemented rule profiles.
 Exact bytes and formatting are not guaranteed. No drop-in compatibility
 with WGo.js, Goban, Shudan or jGoBoard APIs is assumed.
+
+AR/LN now validate distinct on-board endpoint pairs and prohibit duplicate entries
+(including reversed duplicates for undirected lines). Previously opaque malformed
+AR/LN values are rejected instead of being accepted as unknown properties. Valid
+unknown properties remain preserved. Setup editing uses AB/AW/AE/PL and creates a
+separate setup child after a move; it never rewrites a move into a setup position.
 
 ## Versioning and Migration
 

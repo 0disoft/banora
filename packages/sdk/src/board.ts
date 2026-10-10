@@ -39,7 +39,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   svg.setAttribute('role', 'application');
   svg.setAttribute('tabindex', '0');
   svg.setAttribute('aria-label', 'Go board. Arrow keys move the cursor; Enter places a stone or marker; Page Up and Page Down navigate moves.');
-  svg.style.cssText = 'display:block;width:100%;height:auto;touch-action:manipulation;outline-offset:4px;border-radius:12px;--banora-grid:#53472e;--banora-black:#20272a;--banora-white:#fbfaf4;';
+  svg.style.cssText = 'display:block;width:100%;height:auto;touch-action:manipulation;outline-offset:4px;border-radius:12px;';
   const live = document.createElement('span');
   live.setAttribute('aria-live', 'polite');
   live.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;';
@@ -83,25 +83,25 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     };
     add('rect', { x: crop.x, y: crop.y, width: crop.width - 1 + padding * 2, height: crop.height - 1 + padding * 2,
       fill: `var(--banora-board,${options.theme === 'flat' ? '#e8e1ce' : '#d9b677'})` });
-    for (let x = 0; x < width; x++) add('line', { x1: x + padding, x2: x + padding, y1: padding, y2: height - 1 + padding, stroke: 'var(--banora-grid)', 'stroke-width': 0.027 });
-    for (let y = 0; y < height; y++) add('line', { x1: padding, x2: width - 1 + padding, y1: y + padding, y2: y + padding, stroke: 'var(--banora-grid)', 'stroke-width': 0.027 });
+    for (let x = 0; x < width; x++) add('line', { x1: x + padding, x2: x + padding, y1: padding, y2: height - 1 + padding, stroke: 'var(--banora-grid,#53472e)', 'stroke-width': 0.027 });
+    for (let y = 0; y < height; y++) add('line', { x1: padding, x2: width - 1 + padding, y1: y + padding, y2: y + padding, stroke: 'var(--banora-grid,#53472e)', 'stroke-width': 0.027 });
     if (width === height && [9, 13, 19].includes(width)) {
       const edge = width === 9 ? 2 : 3;
       const points = [edge, Math.floor(width / 2), width - 1 - edge];
       for (const x of points) for (const y of points) {
         if (width !== 19 && ((x === points[1]) !== (y === points[1]))) continue;
-        add('circle', { cx: x + padding, cy: y + padding, r: 0.075, fill: 'var(--banora-grid)' });
+        add('circle', { cx: x + padding, cy: y + padding, r: 0.075, fill: 'var(--banora-grid,#53472e)' });
       }
     }
     if (options.coordinates !== false) {
       for (let x = crop.x; x < crop.x + crop.width; x++) {
         for (const y of [crop.y + 0.5, crop.y + crop.height - 1 + padding * 2 - 0.38]) add('text', {
-          x: x + padding, y, 'text-anchor': 'middle', 'font-size': 0.27, fill: 'var(--banora-grid)', 'font-family': 'system-ui',
+          x: x + padding, y, 'text-anchor': 'middle', 'font-size': 0.27, fill: 'var(--banora-grid,#53472e)', 'font-family': 'system-ui',
         }, columnLabel(x));
       }
       for (let y = crop.y; y < crop.y + crop.height; y++) {
         for (const x of [crop.x + 0.38, crop.x + crop.width - 1 + padding * 2 - 0.38]) add('text', {
-          x, y: y + padding + 0.09, 'text-anchor': 'middle', 'font-size': 0.27, fill: 'var(--banora-grid)', 'font-family': 'system-ui',
+          x, y: y + padding + 0.09, 'text-anchor': 'middle', 'font-size': 0.27, fill: 'var(--banora-grid,#53472e)', 'font-family': 'system-ui',
         }, String(height - y));
       }
     }
@@ -127,7 +127,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     for (let y = crop.y; y < crop.y + crop.height; y++) for (let x = crop.x; x < crop.x + crop.width; x++) {
       const color = board[y * width + x];
       if (!color) continue;
-      add('circle', { cx: x + padding, cy: y + padding, r: 0.46, fill: `var(--banora-${color})`, stroke: color === 'black' ? '#101618' : '#716957', 'stroke-width': 0.023, 'data-stone': `${x},${y}` });
+      add('circle', { cx: x + padding, cy: y + padding, r: 0.46, fill: `var(--banora-${color},${color === 'black' ? '#20272a' : '#fbfaf4'})`, stroke: color === 'black' ? '#101618' : '#716957', 'stroke-width': 0.023, 'data-stone': `${x},${y}` });
       if (numbers.has(y * width + x)) add('text', { x: x + padding, y: y + padding + 0.13,
         'text-anchor': 'middle', 'font-size': 0.34, fill: color === 'black' ? '#fff' : '#20272a', 'font-family': 'system-ui', 'data-move-number': numbers.get(y * width + x)! }, String(numbers.get(y * width + x)));
     }
@@ -138,6 +138,21 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
         if (board[point.y * width + point.x]) add('circle', { cx: point.x + padding, cy: point.y + padding, r: 0.12,
           fill: board[point.y * width + point.x] === 'black' ? '#f9e7a6' : '#275c4b' });
       }
+    }
+    for (const connection of state.connections) {
+      const from = { x: connection.from.x + padding, y: connection.from.y + padding };
+      const to = { x: connection.to.x + padding, y: connection.to.y + padding };
+      const distance = Math.hypot(to.x - from.x, to.y - from.y);
+      const ux = (to.x - from.x) / distance, uy = (to.y - from.y) / distance;
+      const end = connection.kind === 'arrow' ? { x: to.x - ux * 0.25, y: to.y - uy * 0.25 } : to;
+      const points = { x1: from.x, y1: from.y, x2: end.x, y2: end.y, 'stroke-linecap': 'round' };
+      add('line', { ...points, stroke: '#fffcf0', 'stroke-width': 0.17 });
+      add('line', { ...points, stroke: 'var(--banora-annotation,#206650)', 'stroke-width': 0.09,
+        'data-connection': connection.kind, 'data-from': `${connection.from.x},${connection.from.y}`, 'data-to': `${connection.to.x},${connection.to.y}` });
+      if (connection.kind === 'arrow') add('polygon', {
+        points: `${to.x},${to.y} ${to.x - ux * 0.4 - uy * 0.2},${to.y - uy * 0.4 + ux * 0.2} ${to.x - ux * 0.4 + uy * 0.2},${to.y - uy * 0.4 - ux * 0.2}`,
+        fill: 'var(--banora-annotation,#206650)', stroke: '#fffcf0', 'stroke-width': 0.03,
+      });
     }
     for (const marker of state.markers) {
       if (!visible(marker.point)) continue;

@@ -15,6 +15,13 @@ An implemented slice does not complete its milestone or establish untested compa
 - RecordController: shared immutable snapshots, path navigation, legal new moves,
   recorded-move playback, comments/markers, grouped edit Undo/Redo, semantic dirty
   comparison and explicit export tickets. Dirty replacement requires explicit discard.
+- Extended editing: undoable subtree removal and sibling reordering, free setup/turn
+  with separate setup nodes after moves, and node-local SGF lines/directed arrows.
+  Studio exposes these tools and confirms continuation removal. Headless checks
+  cover cursor/ID restoration, collection retention and atomic limits/failures;
+  production browser checks cover placement, direction, toggle, download/reopen,
+  cancelled removal and Undo returning to the export baseline. Host-inherited CSS
+  grid/stone colors are verified in computed styles.
 - SVG board: themes/CSS tokens, coordinates, setup/capture display, move numbers,
   shapes/labels, crop, keyboard cursor, pointer/touch and ownership-aware disposal.
 - Complete `mountViewer`: built-in navigation, game/branch selection, comments,
@@ -29,7 +36,7 @@ An implemented slice does not complete its milestone or establish untested compa
   unknown properties, keyboard/touch emulation, crop, owned/external disposal and
   no implicit external requests/uploads. Screenshots are generated locally under
   `output/playwright/`, not shipped assets or evidence of real-device testing.
-- Twenty-three focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Twenty-nine focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.
@@ -54,8 +61,9 @@ An implemented slice does not complete its milestone or establish untested compa
    Additional encoding/browser/screen-reader fixtures and performance baselines
    remain outside the current narrow compatibility evidence.
 2. M2: The three framework adapters and their consumer evidence are implemented.
-   Browser script, extended editing, teaching, transforms, diagrams and sharing
-   remain to be delivered.
+   Branch removal/reordering, free setup and lines/arrows also have local evidence.
+   Browser script, freehand annotations, remaining teaching/presentation tools,
+   transforms, diagrams and sharing remain to be delivered.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 
