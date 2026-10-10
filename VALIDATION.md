@@ -45,6 +45,8 @@ are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
+After building examples/SDK, `bun scripts/browser-smoke.ts --touch-only` runs the
+focused real-touch scenario using the same oneshot server/session cleanup.
 Use them for adapter/common-renderer changes; documentation-only edits need docs
 and whitespace review. Adapter packed checks require npm (supplied by Node 24),
 install with lifecycle scripts disabled and do not use workspace source aliases.

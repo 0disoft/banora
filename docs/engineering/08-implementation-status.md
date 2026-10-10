@@ -39,6 +39,12 @@ An implemented slice does not complete its milestone or establish untested compa
   player information and optional editing/Undo/Redo. `examples/viewer` consumes it
   through public exports; browser checks cover navigation, branch selection,
   default read-only behavior, comment editing and remount with a shared controller.
+- Common touch placement: opt-in release/confirmation modes with a magnified SVG
+  patch, logical target preview and keyboard refinement. Pending selections never
+  edit/export records; context/configuration/disposal cancels them. Focused Chrome
+  154 touch emulation covers eight cropped rectangular transforms, inherited colors,
+  Confirm/Cancel, callbacks, Undo and cancellation/disposal. Studio and native
+  framework controls are the next consumer increment; physical devices are untested.
 - Studio and read-only examples consume built public exports. The bundled original
   SGF supports local open/drop, navigation/branch creation, comments/markers,
   Undo/Redo, UTF-8 download/reopen and Export/Discard/Cancel record replacement.

@@ -174,6 +174,40 @@ plus `BoardRotation`, `BoardTransform`, `BoardSize` and `BoardCrop` types. Point
 conversion accepts finite fractional/outside points for annotations/margins; callers
 still validate legal moves against their logical board. Dimensions remain 2 to 52.
 
+### Touch Aim and Confirmation
+
+`touch: {mode?: 'direct' | 'release' | 'confirm', magnifier?: boolean}` configures
+touch-only placement. `TouchOptions` is exported from the board and root entrypoints.
+Omitted/null/explicitly undefined touch options keep the existing direct activation;
+an explicit empty object opts into release mode. Magnification defaults to true.
+Invalid modes or non-boolean magnifier values throw atomically on mount/update.
+Mouse/pen and ordinary keyboard activation keep their existing behavior; freehand
+drawing takes priority. Read-only views do not enter touch aim/confirmation; the
+existing host-owned `onPoint` inspection callback keeps its own mutation policy.
+
+Release/confirm modes capture a primary touch, show the rounded logical target and
+optionally a magnified local SVG patch offset from the finger. Dragging updates the
+aim without editing the record. Release inside the visible board activates the
+last intersection in release mode. Confirm mode instead presents explicit Confirm
+and Cancel buttons; Enter/Space confirms and Escape cancels. Arrow keys can refine
+the pending target along screen axes. `onPoint` receives only the final logical
+coordinate, using the same activation path as ordinary input. Default activation
+still uses controller legality checks, Undo and dirty tracking.
+
+Releasing outside the board, pointer cancellation/capture loss, viewport resizing, active-drag focus
+loss, record/node changes, successful configuration updates and disposal cancel the
+selection. Confirmation survives focus moving to its buttons. Invalid configuration
+preserves an existing gesture. Cancelled pointer releases cannot become ordinary
+placements. A new touch replaces an old pending confirmation. Pending targets,
+magnifiers and confirmation controls are view state, excluded from SGF and SVG/PNG
+diagrams, and do not notify controller subscribers or create Undo entries. Touch
+panning is disabled on editable boards only while a release/confirm mode or ink
+tool is enabled; choose direct mode for the previous browser touch behavior.
+The lens uses the shared rendered board, including colors, marks, crop and transforms,
+and owns no rules/state engine. Its fixed viewport portal belongs to the view and is
+removed from the document body on disposal; confirmation controls belong to the
+view's container. Real-device support remains subject to device evidence.
+
 ## Position Diagrams
 
 Both `BoardView` and `ViewerView` provide `exportSvg(options?): string` and

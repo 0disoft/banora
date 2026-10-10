@@ -31,3 +31,10 @@ are excluded. SGF stores them in Banora's bounded, versioned private BPN extensi
 other SGF programs may not display them. Read-only views display ink without
 allowing drawing. Styles accept six-digit hex colors and widths from 0.02 to 0.5
 intersection spacing; each stroke has 2 through 512 fractional logical points.
+
+`touch:{mode:'release'}` enables drag-and-release touch aiming with a magnified
+local board patch. Use `mode:'confirm'` for explicit Confirm/Cancel after release,
+and `magnifier:false` to hide the lens. Null restores direct activation. Pending
+targets are transient, excluded from records/diagrams, and cancelled by context
+changes or disposal. Keyboard arrows refine a released target, Enter confirms,
+and Escape cancels. Mouse/pen keep ordinary activation; ink takes priority.
