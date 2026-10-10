@@ -9,6 +9,12 @@ An implemented slice does not complete its milestone or establish untested compa
   Names are development identifiers, not a claim of npm ownership/publication.
 - Immutable headless board transitions: dimensions 2 through 52, rectangular boards,
   play, captures, pass, explicit suicide policy, simple ko and atomic setup.
+- M3 repetition core: explicit positional/situational superko with immutable exact
+  situation membership, legal passes without history clearing and setup epochs.
+  Headless fixtures cover longer triple-ko cycles, a different-turn double-ko
+  return, self-capture, recorded repetition/replacement, exact hash collisions and
+  bounded duplicate-pass history. Controller/installed/browser integration and
+  named profile coverage are tracked as the next increment; scoring/puzzles remain pending.
 - SGF FF4 Go: collections, ordered branches, setup/compressed points, comments,
   metadata, labels/shape marks, unknown properties and unedited escaping preservation.
   Text and declared-encoding file input; UTF-8 export; bounded iterative parsing.
@@ -114,7 +120,7 @@ An implemented slice does not complete its milestone or establish untested compa
   unmount/remount and repeated playback with bounded effects. Comparison stays
   static. Packed adapter declarations/SSR include the new option; no frame-rate
   or physical-device guarantee is claimed.
-- Fifty SDK behavior tests and three CLI completion-result tests pass with Bun
+- Focused SDK behavior tests and CLI completion-result tests pass with Bun
   1.4.2; all browser scenarios require an exact return in the actual CLI JSON Result,
   excluding echoed source/logs and partial execution. Strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
@@ -168,7 +174,8 @@ An implemented slice does not complete its milestone or establish untested compa
    All listed M2 feature slices and exit conditions have local evidence in the
    aggregate acceptance audit. Broader compatibility and an actual release remain
    separate; this evidence does not establish untested runtime compatibility.
-3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
+3. M3: Superko core policies are implemented. Controller/consumer integration,
+   named profiles, scoring and authored puzzles remain.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 
 Publishing, hosting and external provider credentials remain separate operational

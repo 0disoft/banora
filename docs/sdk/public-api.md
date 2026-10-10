@@ -13,7 +13,8 @@ After `bun run build`, `@banora/sdk/core` and the root export expose:
   dimensions are integers from 2 to 52, defaulting to 19 square. Invalid options throw.
 - `play(position, { x, y }, color?)`, `pass(position, color?)` and
   `setup(position, stones, toPlay?)`: structured `MoveResult`, with a new immutable
-  position on success and a typed reason on failure. Setup is atomic and clears ko.
+  position on success and a typed reason on failure. Setup is atomic and starts a
+  new repetition epoch, clearing simple ko and prior superko membership.
 - `stoneAt(position, point)`, `isOnBoard(position, point)` and `opposite(color)`.
 - `comparePositions(before, after)`: frozen row-major `PositionDifference[]` with
   logical `point` and `before`/`after` colors or null. Matching dimensions are
@@ -23,12 +24,37 @@ After `bun run build`, `@banora/sdk/core` and the root export expose:
   ordinary turn/ko/suicide rejection, including occupied-point replacement. Use
   `play` for legal user moves; record playback follows SGF semantics.
 - `Color`, `Point`, `RulePolicy`, `Position`, `PositionOptions`, `SetupStone`,
-  `MoveResult` and `MoveFailure` types, with declarations included in the build.
+  `MoveResult`, `MoveFailure` and `RepetitionHistory` types, with declarations included in the build.
 
-Rules currently expose `suicide: 'forbid' | 'allow'` and `ko: 'simple' | 'none'`.
-The defaults forbid suicide and enforce simple ko. Named profiles, superko and
-scoring are not implemented. Snapshots freeze their board, captures and rule policy.
+Rules expose `suicide: 'forbid' | 'allow'` and
+`ko: 'simple' | 'none' | 'positional-superko' | 'situational-superko'`.
+The defaults forbid suicide and enforce simple ko. Named profiles and scoring
+remain pending. Snapshots freeze their board, captures, rule policy and history.
 Move color defaults to the current turn; a mismatched color is rejected.
+
+### Repetition Policies
+
+Positional superko rejects a placement restoring any previously observed stone
+layout in the current setup epoch. Situational superko additionally matches the
+next player. Captures, move numbers, annotations and komi do not distinguish a
+repetition. The initial position is included; a rejected repetition returns
+`{ok:false, reason:'superko'}` without changing the position/history.
+
+Pass is exempt from repetition rejection and retains superko history, remembering
+its resulting board/next-player situation. Simple ko alone is released by a pass.
+No automatic end after passes or pass-prisoner accounting is implied. Successful
+`setup`, including an unchanged layout or explicit turn edit, starts a new epoch
+while preserving move/capture counters. Failed setup preserves the entire position.
+
+`Position.repetitionHistory` is null for simple/no ko; superko positions contain a
+deeply immutable `RepetitionHistory` with `size` distinct board/turn situations and
+an SDK-owned persistent `root` index. Treat its representation as an implementation
+detail, not a move log or edit history. The index checks exact keys after hashing;
+hash collisions cannot cause a false rejection. Use core-produced positions rather
+than recreating history from visible stones. Replaying a recorded move bypasses
+normal rejection but remembers the resulting situation under the original policy.
+The setup/playback choices and profile boundaries are recorded in
+[ADR 0006](../adr/0006-explicit-repetition-and-rule-profile-boundaries.md).
 
 ## Implemented Records and Controller
 

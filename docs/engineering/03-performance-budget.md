@@ -28,6 +28,15 @@ and cancellation on superseding context/disposal. Chrome 154 browser fixtures ch
 bounded effects and cleanup. These limits are not measured input-latency/frame-rate
 guarantees; the representative-device performance baseline remains pending.
 
+Superko uses a persistent exact-key situation set rather than copying all previous
+positions per move or scanning an ever-growing chronological history. The hash
+trie shares unchanged branches; equal hashes still require exact equality and a
+collision bucket may require a linear scan. Repeated passes reuse existing entries.
+Default simple/no-ko positions allocate no full-history index. Unique situations
+remain part of the required superko context and must not be truncated for speed.
+Record limits bound controller imports/edits; measured long-record memory/latency
+budgets, especially for superko, remain pending.
+
 Start with TypeScript and SVG. Profile first; evaluate batching, caching and a
 smaller update scope before changing technology. A measured rendering problem may
 justify Canvas; main-thread computation may justify a worker. Rust/WASM requires

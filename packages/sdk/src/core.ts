@@ -1,8 +1,12 @@
+import {boardKey, hasSituation, rememberSituation} from './repetition-history.js';
+import type {RepetitionHistory} from './repetition-history.js';
+export type {RepetitionHistory} from './repetition-history.js';
+
 export type Color = 'black' | 'white';
 export interface Point { readonly x: number; readonly y: number }
 export interface RulePolicy {
   readonly suicide: 'forbid' | 'allow';
-  readonly ko: 'simple' | 'none';
+  readonly ko: 'simple' | 'none' | 'positional-superko' | 'situational-superko';
 }
 export interface Position {
   readonly width: number;
@@ -12,9 +16,10 @@ export interface Position {
   readonly captures: Readonly<Record<Color, number>>;
   readonly moveNumber: number;
   readonly previousBoard: readonly (Color | null)[] | null;
+  readonly repetitionHistory: RepetitionHistory | null;
   readonly rules: RulePolicy;
 }
-export type MoveFailure = 'out-of-bounds' | 'occupied' | 'wrong-turn' | 'suicide' | 'ko' | 'invalid-setup';
+export type MoveFailure = 'out-of-bounds' | 'occupied' | 'wrong-turn' | 'suicide' | 'ko' | 'superko' | 'invalid-setup';
 export type MoveResult =
   | { readonly ok: true; readonly position: Position; readonly captured: readonly Point[] }
   | { readonly ok: false; readonly reason: MoveFailure };
@@ -27,6 +32,10 @@ export interface PositionOptions {
 export interface SetupStone extends Point { readonly color: Color | null }
 
 export function opposite(color: Color): Color { return color === 'black' ? 'white' : 'black'; }
+function superko(rules:RulePolicy): boolean {return rules.ko==='positional-superko' || rules.ko==='situational-superko';}
+function nextHistory(position:Position,board:readonly (Color|null)[],toPlay:Color): RepetitionHistory|null {
+  return superko(position.rules) ? rememberSituation(position.repetitionHistory,boardKey(board),toPlay) : null;
+}
 
 function seal(position: Position): Position {
   return Object.freeze({
@@ -45,13 +54,15 @@ export function createPosition(options: PositionOptions = {}): Position {
     throw new RangeError('Board dimensions must be integers from 2 to 52');
   }
   const rules: RulePolicy = { suicide: options.rules?.suicide ?? 'forbid', ko: options.rules?.ko ?? 'simple' };
-  if (!['forbid', 'allow'].includes(rules.suicide) || !['simple', 'none'].includes(rules.ko)) {
+  if (!['forbid', 'allow'].includes(rules.suicide) || !['simple', 'none', 'positional-superko', 'situational-superko'].includes(rules.ko)) {
     throw new TypeError('Unsupported rule policy');
   }
   const toPlay = options.toPlay ?? 'black';
   if (!['black', 'white'].includes(toPlay)) throw new TypeError('Invalid stone color');
-  return seal({ width, height, board: Array(width * height).fill(null), toPlay,
-    captures: { black: 0, white: 0 }, moveNumber: 0, previousBoard: null, rules });
+  const board=Array<Color|null>(width*height).fill(null);
+  return seal({ width, height, board, toPlay,
+    captures: { black: 0, white: 0 }, moveNumber: 0, previousBoard: null, rules,
+    repetitionHistory:superko(rules) ? rememberSituation(null,boardKey(board),toPlay) : null });
 }
 
 export function isOnBoard(position: Pick<Position, 'width' | 'height'>, point: Point): boolean {
@@ -120,15 +131,21 @@ export function play(position: Position, point: Point, color: Color = position.t
       board.every((stone, offset) => stone === position.previousBoard![offset])) {
     return { ok: false, reason: 'ko' };
   }
+  const toPlay=opposite(color);
+  const repetitionKey=superko(position.rules) ? boardKey(board) : null;
+  if (repetitionKey!==null && hasSituation(position.repetitionHistory,repetitionKey,
+    position.rules.ko==='situational-superko' ? toPlay : undefined)) return {ok:false,reason:'superko'};
   return { ok: true, position: seal({ ...position, board, captures,
-    toPlay: opposite(color), moveNumber: position.moveNumber + 1, previousBoard: position.board }),
+    toPlay, moveNumber: position.moveNumber + 1, previousBoard: position.board,
+    repetitionHistory:repetitionKey===null ? null : rememberSituation(position.repetitionHistory,repetitionKey,toPlay) }),
     captured: Object.freeze(captured.map(point => Object.freeze(point))) };
 }
 
 export function pass(position: Position, color: Color = position.toPlay): MoveResult {
   if (color !== position.toPlay) return { ok: false, reason: 'wrong-turn' };
   return { ok: true, position: seal({ ...position, toPlay: opposite(color),
-    moveNumber: position.moveNumber + 1, previousBoard: null }), captured: Object.freeze([]) };
+    moveNumber: position.moveNumber + 1, previousBoard: null,
+    repetitionHistory:nextHistory(position,position.board,opposite(color)) }), captured: Object.freeze([]) };
 }
 
 export function setup(position: Position, stones: readonly SetupStone[], toPlay: Color = position.toPlay): MoveResult {
@@ -144,7 +161,8 @@ export function setup(position: Position, stones: readonly SetupStone[], toPlay:
     seen.add(index);
     board[index] = stone.color;
   }
-  return { ok: true, position: seal({ ...position, board, toPlay, previousBoard: null }), captured: Object.freeze([]) };
+  return { ok: true, position: seal({ ...position, board, toPlay, previousBoard: null,
+    repetitionHistory:superko(position.rules) ? rememberSituation(null,boardKey(board),toPlay) : null }), captured: Object.freeze([]) };
 }
 
 /** SGF playback executes recorded moves even when normal play would reject them. */
@@ -158,7 +176,8 @@ export function replayMove(position: Position, point: Point | null, color: Color
     rules: { suicide: 'allow', ko: 'none' } }), point, color);
   if (!result.ok) return result;
   return { ...result, position: seal({ ...result.position, rules: position.rules,
-    previousBoard: position.board }) };
+    previousBoard: position.board,
+    repetitionHistory:nextHistory(position,result.position.board,result.position.toPlay) }) };
 }
 
 export interface PositionDifference {
