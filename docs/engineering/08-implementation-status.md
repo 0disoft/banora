@@ -69,7 +69,14 @@ An implemented slice does not complete its milestone or establish untested compa
   unknown properties, keyboard/touch emulation, crop, owned/external disposal and
   no implicit external requests/uploads. Screenshots are generated locally under
   `output/playwright/`, not shipped assets or evidence of real-device testing.
-- Forty focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Embedded sharing model: record/node links carry the complete collection with a
+  versioned game/child-index target; position links carry visible setup/turn/markup,
+  omitting history, metadata and comments unless the current comment is opted in.
+  Headless checks cover Unicode/BPN/unknown properties, atomic target import,
+  dirty guards, generations and malformed/oversized input without truncation.
+  Public selective imports are checked in the installed Node consumer; browser
+  opening/copying controls remain in progress. Nothing is uploaded or hosted.
+- Forty-five focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.
@@ -116,7 +123,7 @@ An implemented slice does not complete its milestone or establish untested compa
    Freehand storage/input, rotation/reflection and SVG/PNG static diagrams are implemented.
    Remaining teaching/presentation tools and sharing remain to be delivered;
    Magnified touch placement and position comparison are implemented;
-   animation/textures and node/record sharing are still pending.
+   animation/textures and browser share controls are still pending.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 

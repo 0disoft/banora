@@ -157,6 +157,20 @@ properties retain preservation. Version 1 keeps fractional logical points, stabl
 node-local IDs and drawing order through Undo/export/reopen. Input and style limits
 bound SVG rendering and disallow URL paints. Pressure/smoothing are deferred.
 
+## Share Compatibility
+
+The versioned embedded-SGF fragment protocol is documented in the
+[public API](public-api.md#embedded-share-links). It has no server dependency,
+requires a compatible destination page, and imposes a 16,384-character maximum
+(callers may lower it). It is unrelated to WGo.js/Goban share URLs. Node paths use
+game/child indices, not serialized IDs. Existing `loadSgf` callers remain compatible;
+the optional locator selects a validated target in the same atomic import.
+Headless tests and the installed Node consumer verify Unicode, collections,
+branch targets, position redaction, malformed inputs, bounds and dirty guards.
+Browser opening/copying evidence is tracked separately in implementation status.
+No public hosting, storage, encrypted links or cross-browser URL-length guarantee
+is claimed. Position links deliberately omit capture/repetition/rule history.
+
 ## Versioning and Migration
 
 Use semantic versioning and document breaking consumer changes, including during

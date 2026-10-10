@@ -1,7 +1,7 @@
 import { isOnBoard, pass, play, setup } from './core.js';
 import type { Color, MoveFailure, Point, Position, RulePolicy, SetupStone } from './core.js';
-import { createSgfNode, decodeSgf, expandSgfPoints, parseSgf, pointFromSgf, pointToSgf, serializeSgf } from './sgf.js';
-import type { SgfDiagnostic, SgfLimits, SgfNode, SgfRecord } from './sgf.js';
+import { createSgfNode, decodeSgf, expandSgfPoints, parseSgf, pointFromSgf, pointToSgf, recordNodeAt, serializeSgf } from './sgf.js';
+import type { RecordLocator, SgfDiagnostic, SgfLimits, SgfNode, SgfRecord } from './sgf.js';
 import { applyRecordNode, indexRecord, initialRecordPosition, semanticRecord, sgfColor } from './record-runtime.js';
 import type { RecordIndex } from './record-runtime.js';
 import { createStroke, decodeStrokes, encodeStroke, strokeLimits } from './annotations.js';
@@ -391,15 +391,17 @@ export class RecordController {
     this.#reindex(); this.#refreshDirty(); this.#notify();
     return { ok: true };
   }
-  loadSgf(input: string | Uint8Array, options: { discardChanges?: boolean } = {}): CommandResult {
+  loadSgf(input: string | Uint8Array, options: { discardChanges?: boolean; locator?: RecordLocator } = {}): CommandResult {
     this.#assertLive();
     const result = typeof input === 'string' ? parseSgf(input, this.#limits) : decodeSgf(input, this.#limits);
     if (!result.ok) return { ok: false, reason: 'import', diagnostics: result.diagnostics };
+    const target=options.locator===undefined ? result.record.games[0]! : recordNodeAt(result.record,options.locator);
+    if (!target) return {ok:false,reason:'node-not-found'};
     if (this.#dirty && !options.discardChanges) return { ok: false, reason: 'unsaved-changes' };
     this.endEditGroup();
     this.#record = result.record;
     this.#recordGeneration++;
-    this.#selected = result.record.games[0]!.id;
+    this.#selected = target.id;
     this.#undo = []; this.#redo = []; this.#tickets.clear();
     this.#baseline = semanticRecord(this.#record); this.#dirty = false;
     this.#reindex(); this.#notify();

@@ -10,6 +10,15 @@ export interface SgfNode {
   readonly rawProperties: Readonly<Record<string, readonly string[]>>;
 }
 export interface SgfRecord { readonly games: readonly SgfNode[] }
+/** Stable locator within a serialized collection; path contains child indices. */
+export interface RecordLocator { readonly gameIndex: number; readonly path: readonly number[] }
+export function recordNodeAt(record: SgfRecord, locator: RecordLocator): SgfNode | null {
+  if (!locator || !Number.isSafeInteger(locator.gameIndex) || locator.gameIndex<0 ||
+    !Array.isArray(locator.path) || locator.path.length>50_000 || locator.path.some(index => !Number.isSafeInteger(index) || index<0)) return null;
+  let node=record.games[locator.gameIndex];
+  for (const index of locator.path) {node=node?.children[index];if (!node) return null;}
+  return node ?? null;
+}
 export interface SgfLimits {
   readonly maxBytes: number;
   readonly maxNodes: number;

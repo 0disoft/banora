@@ -15,6 +15,7 @@ export default defineConfig({
         board: resolve(import.meta.dirname, 'src/board.ts'),
         viewer: resolve(import.meta.dirname, 'src/viewer.ts'),
         comparison: resolve(import.meta.dirname, 'src/comparison.ts'),
+        share: resolve(import.meta.dirname, 'src/share.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,

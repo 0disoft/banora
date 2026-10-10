@@ -34,7 +34,10 @@ Move color defaults to the current turn; a mismatched color is rejected.
 
 `@banora/sdk/sgf` exports `parseSgf(text, limits?)`, `decodeSgf(bytes, limits?)`,
 `serializeSgf(record)`, `createSgfNode`, point helpers, immutable record types and
-`DEFAULT_SGF_LIMITS`. Parsing returns a structured success/diagnostic result.
+`DEFAULT_SGF_LIMITS`. `RecordLocator` is `{ gameIndex, path }`, where path is a
+readonly array of zero-based child indices from that game's root; `recordNodeAt`
+returns the matching node or null. This differs from snapshot `path`, which holds
+record-local string IDs. Parsing returns a structured success/diagnostic result.
 See [compatibility](compatibility.md#record-compatibility) for the supported subset.
 
 `@banora/sdk/controller` exports `RecordController` and related state/command types.
@@ -54,7 +57,7 @@ Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
 | `reorderBranch(nodeId, index)` | Move a non-root node to a zero-based sibling slot without moving the current cursor |
 | `beginEditGroup()` / `endEditGroup()` | Group comments into one undo unit; begin returns an idempotent cleanup scoped to that group; navigation/global end closes it |
 | `undo()` / `redo()` | Restore record edits and the cursor captured for that history entry |
-| `loadSgf(textOrBytes, { discardChanges? })` | Validate first; reject dirty replacement unless explicitly permitted; successful import resets editing history |
+| `loadSgf(textOrBytes, { discardChanges?, locator? })` | Validate record and target first; reject dirty replacement unless explicitly permitted; select the target atomically and reset editing history on success |
 | `prepareExport()` | Return an immutable `{ id, text }` ticket without changing dirty state |
 | `acknowledgeExport(id)` / `cancelExport(id)` | Acknowledge host export success or cancel; only acknowledgment advances the exact exported semantic baseline |
 | `dispose()` | Release controller subscriptions/cache/tickets; subsequent state/mutation use is rejected |
@@ -263,6 +266,61 @@ The returned `ComparisonView` exposes `controller`, `update({left?,right?,board?
 and owned comparison DOM while preserving the borrowed controller/other host children.
 Node selectors show the first 500 nodes plus each chosen node; the API can address
 the entire record. Server imports are safe; mounting requires a browser DOM.
+
+## Embedded Share Links
+
+Root exports and `@banora/sdk/share` expose headless `createShareLink(state,
+baseUrl, { kind?, includeComment?, maxLength? })`, `decodeShareLink(urlOrFragment,
+{ maxLength? })`, `MAX_SHARE_URL_LENGTH`, and their readonly result/types.
+Creation defaults to `kind: 'node'`; both functions return `{ ok, value }` on
+success or `{ ok: false, reason, message }`. Invalid configured length bounds throw
+`RangeError`. The limit defaults to 16,384 characters and may only be lowered.
+
+| Kind | Embedded content and initial selection |
+| --- | --- |
+| `record` | Entire SGF collection, including all metadata/comments/branches; opens the current game's root |
+| `node` | Entire SGF collection; opens the exact selected game/child-index path |
+| `position` | One root with visible AB/AW stones, dimensions, PL/MN and current-node shapes/labels/lines/arrows/BPN ink; no history or game metadata; optional current comment |
+
+Position creation omits comments by default, unknown properties, player names,
+other nodes, captures, repetition history, rules and komi. It is a static position,
+not a complete resumable/scorable game. Labels and ink are still shared content.
+It does not change dirty state or acknowledge an SGF export. Receiving a link does
+not certify authorship or privacy; treat all decoded comments/metadata as untrusted.
+
+The v1 wire format is `#banora=v1.<base64url>`, using canonical unpadded base64url
+of UTF-8 JSON with exactly `{ kind, sgf, game, path }`. `game` is a zero-based
+collection index and `path` is an array of child indices, independent of parsed
+node IDs. The format is versioned; unsupported versions and malformed schema,
+encoding, SGF or targets fail explicitly. Position input must be a single unmoved
+root, and record input must target a game root. Default SGF parser limits apply.
+Size checks happen before decoding and never silently truncate a record.
+
+The destination must be an absolute HTTP/HTTPS page without URL credentials.
+Creation preserves origin/path and removes the old query/fragment before embedding
+the record. Hosts must choose a page that implements this protocol. Decoder accepts
+a complete URL or fragment and never fetches either. URL fragments are encoded,
+not encrypted: anyone with the link can read the data; page scripts and browser
+history can access it. Long records require an SGF file instead. No hosting,
+upload, clipboard access, navigation or automatic persistence is part of this API.
+
+```ts
+const link = createShareLink(controller.getState(), 'https://example.test/studio/');
+if (link.ok) {
+  const decoded = decodeShareLink(link.value);
+  if (decoded.ok) controller.loadSgf(decoded.value.sgf, {
+    locator: decoded.value.locator,
+    // Set discardChanges only after the host's Export/Discard/Cancel guard.
+  });
+}
+```
+
+Target resolution occurs before any controller mutation. Invalid targets return
+`node-not-found`; dirty replacement returns `unsaved-changes`. An accepted import
+selects its target and notifies once, increments the record generation and clears
+history/tickets, without an intermediate root selection. Locators refer to the
+embedded immutable SGF; sibling reordering in a later different record changes
+their meaning, so never apply a shared path to an unrelated live record.
 
 ## Position Diagrams
 
