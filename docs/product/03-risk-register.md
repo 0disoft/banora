@@ -39,7 +39,9 @@
 - Additional tournament-rule/scoring coverage beyond the explicit agreed-position
   policies. Implemented exact superko, preset/scoring boundaries and version-1 BPN
   freehand encoding are owned by the public API and ADRs 0006/0007.
-- AI provider transport, authentication, deployment, pricing, and engine version.
+- AI provider authentication, deployment and pricing; additional engine/model/
+  backend versions beyond the [selected local CPU evidence](../engineering/11-live-katago-evidence.md).
+  Host-owned stdio is demonstrated; broader service transports remain host choices.
 - Hosted collaboration/storage design and any commercial service commitment.
 
 Resolve each item in the owning document before its milestone claims support.

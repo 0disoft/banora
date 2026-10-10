@@ -1,6 +1,6 @@
 # ADR 0010: KataGo JSON Lines and Supported Contexts
 
-- Status: Accepted; local protocol fixtures, no engine/model execution
+- Status: Accepted; protocol fixtures and selected local-engine/model evidence
 - Scope: M4 external analysis integration
 
 ## Decision
@@ -71,6 +71,9 @@ encoding/decoding/cancellation behavior against those fields, not compatibility
 with an executed model, arbitrary engine builds or remote services. Future engine
 validation must record its actual version/config/model and preserve these failure
 boundaries. A transport timeout must not silently trigger retries.
+The subsequent [live-engine audit](../engineering/11-live-katago-evidence.md) records
+actual KataGo 1.18.1 CPU/model/config execution on Bun and Node, without changing
+these supported-context or host-ownership decisions.
 
 ## Consequences and Validation
 

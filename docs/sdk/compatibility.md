@@ -242,6 +242,15 @@ Browser opening/copying evidence is tracked separately in implementation status.
 No public hosting, storage, encrypted links or cross-browser URL-length guarantee
 is claimed. Position links deliberately omit capture/repetition/rule history.
 
+## Local Engine Compatibility
+
+The host-owned CLI has [actual KataGo evidence](../engineering/11-live-katago-evidence.md)
+for version 1.18.1 Eigen CPU/Windows x64 and the specified small model/config on
+Bun 1.4.2 and Node 24.14.0. All three reporting perspectives and scoped query/
+termination/host-failure checks pass. This is headless stdio integration evidence;
+other engines/models/backends, prediction quality and automatic browser connections
+remain unclaimed. The common SDK still bundles no engine/model/process transport.
+
 ## Versioning and Migration
 
 Use semantic versioning and document breaking consumer changes, including during

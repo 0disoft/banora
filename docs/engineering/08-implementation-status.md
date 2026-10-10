@@ -58,15 +58,19 @@ local exit evidence; the implementation scope is complete within that coverage.
   reentrant source edits, listener isolation and borrowed-source retention. No
   DOM types/globals are needed by the installed Node 24 analysis consumer, which
   completes a public request and preserves its borrowed record on disposal. No
-  engine/remote endpoint is configured.
+  implicit engine/remote endpoint is configured by the SDK.
 - Headless KataGo adapter: host-owned asynchronous JSON lines, exact ID/epoch turn/
   current player, declared perspective conversion, actual setup/history/rule flags,
   prior capture/explicit handicap komi and scoped termination. Original protocol
   fixtures verify out-of-order/partial/action replies, warning/error/no-results,
   unsupported contexts, bounds, failed writes, disconnect, cancellation/late results,
   reentrant disposal and subscription cleanup. Installed Node 24/ES2022-only types
-  complete the public JSON request/result. No engine binary/model/remote service
-  was executed; this is protocol evidence, not model/version compatibility.
+  complete the public JSON request/result. A separate host-owned CLI now has
+  [live-engine evidence](11-live-katago-evidence.md): 35 actual local-process checks
+  on Bun 1.4.2 and Node 24.14.0 with KataGo 1.18.1 Eigen CPU and one specified model.
+  All reporting perspectives, history/setup/capture/pass/profiles, effective komi,
+  scoped termination/late data, stop and spawn/model failures pass. This does not
+  imply other versions/backends/model quality or a browser engine connection.
   See the exact
   [supported contexts](../sdk/katago.md#wire-conversion-and-supported-contexts).
 - Common analysis view and consumer: ranked candidate/root Black metrics, current-
@@ -247,8 +251,9 @@ local exit evidence; the implementation scope is complete within that coverage.
    browser/device and tournament/automatic objective-grading claims remain excluded.
 4. M4: Provider-neutral headless context/result/session and cancellation/freshness
    and a checked KataGo JSON adapter, isolated display overlays/PVs and runnable
-   consumer are implemented with the recorded local evidence. No live-engine or
-   broader browser/device compatibility is claimed. The final aggregate audit is
+   consumer are implemented with the recorded local evidence. The selected local
+   KataGo engine/model/config also have their separate headless audit; broader
+   engine/browser/device compatibility is unclaimed. The final aggregate audit is
    complete; remaining release/measurement actions are separate.
 
 Publishing, hosting and external provider credentials remain separate operational
@@ -265,7 +270,8 @@ comments/Undo, download/reopen, read-only mode, Cancel/Save/Discard guards and
 invalid SGF/encoding/size retention. Keyboard and emulated mobile touch/layout pass,
 with inspected screenshots and downloaded content. `smoke:starter` requires the
 exact completed CLI Result and closes its own server/session. Actual physical
-devices, live KataGo and package publication remain separate.
+devices and package publication remain separate; the selected local KataGo
+engine/model now have their own headless evidence above.
 
 Studio's custom Export/Discard/Cancel dialog applies to its record replacement
 actions. Tab closing/reloading uses the browser's native unsaved-change warning;

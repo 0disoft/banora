@@ -15,6 +15,8 @@
     "smoke:adapters": "bun run build:adapters && bun scripts/packed-adapters.ts",
     "smoke:starter": "bun run build && bun scripts/packed-starter.ts --browser",
     "example:katago": "bun run build && bun examples/katago-cli/main.ts",
+    "smoke:katago": "bun run build && bun scripts/live-katago.ts",
+    "smoke:katago:node": "bun run build && bun build scripts/live-katago.ts --target=node --packages=external --outfile .tmp/live-katago-runner.mjs && node .tmp/live-katago-runner.mjs",
     "smoke:browser": "bun run build:examples && bun scripts/browser-smoke.ts",
     "typecheck:svelte": "bun run --cwd packages/svelte typecheck",
     "check": "bun run build:adapters && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts"

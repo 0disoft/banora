@@ -35,6 +35,8 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | smoke | `bun run smoke` | SDK build, isolated tarball install, strict ESM/headless/global declarations and Node public-export/classic VM execution |
 | smoke (adapters) | `bun run smoke:adapters` | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR |
 | smoke (starter) | `bun run smoke:starter` | Copyable standalone app, isolated npm SDK/tools installation, independent strict types/build, actual browser editing/download/reopen, guards and keyboard/emulated touch |
+| smoke (KataGo) | `bun run smoke:katago <binary> <model>` | 35 actual local-engine/process checks across all reporting perspectives; explicitly supplied assets required |
+| smoke (KataGo, Node) | `bun run smoke:katago:node <binary> <model>` | Same checks on the actual Node runtime with external public SDK imports |
 | smoke (browser) | `bun run smoke:browser` | Studio/viewer and framework consumers; editing/ink round-trips, touch, comparisons, embedded sharing/guards/clipboard, transforms/input, diagrams, encoding/cancellation and lifecycle |
 | check | `bun run check` | SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
 
@@ -45,6 +47,11 @@ and its global declaration; example build copies that exact script into its outp
 CPU analysis example, requiring explicitly supplied engine/model files. It owns
 stdin/stdout/stderr, cancellation/deadline and process shutdown; it is not part of
 the default `check` or a hosted-service/browser check.
+The two optional KataGo smoke routes record version/hashes, protocol transcripts
+and case results under `.tmp`; they assert actual metrics/coordinates/PVs/ownership,
+source preservation and termination/failure/exit behavior. They neither download
+assets nor substitute protocol fixtures for engine output. See the
+[live evidence](docs/engineering/11-live-katago-evidence.md) for the exact tested matrix.
 `lint`, `format`, `contract`, `migration-check`
 are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.

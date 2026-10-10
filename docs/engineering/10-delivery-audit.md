@@ -133,11 +133,13 @@ does not rerun already-passing unchanged core/browser source unnecessarily; fres
 packed adapters close the remaining current-artifact SSR evidence question.
 
 Additional browser floors, physical devices, screen readers, FF4/encoding corpora,
-large-record/device performance measurements and live KataGo version/config/model
-validation remain unclaimed follow-up evidence. Named scoring covers agreed status,
+large-record/device performance measurements and broader KataGo version/config/model
+validation remain follow-up evidence beyond the selected local-engine audit. Named scoring covers agreed status,
 not complete tournament adjudication. Offline analysis numbers are authored
 illustrations; manual JSON uses explicitly supplied engine output and opens no
-connection. Native Puzzle/Analysis components and server-rendered board HTML are
+connection. The subsequent [live-engine audit](11-live-katago-evidence.md) establishes
+one actual local KataGo CPU/model/config on Bun and Node; broader engine evidence
+remains unclaimed. Native Puzzle/Analysis components and server-rendered board HTML are
 not promised by the implemented adapter contract. Canvas/workers/Rust/WASM require
 a measured bottleneck; autosave/recovery and managed collaboration/storage are deferred.
 
@@ -151,3 +153,19 @@ invariant and consumer artifact has evidence above and in the linked detailed
 contracts. No required SDK/example implementation item remains open in the delegated
 scope. This closes implementation delivery without broadening compatibility claims
 or treating future operational/measurement work as already achieved.
+
+## Post-Delivery Consumer Evidence
+
+The copyable standalone record editor now passes its independent npm tarball/tool
+installation, strict types, production build and actual browser open/edit/download/
+reopen/guard/invalid-input workflow, including keyboard and emulated touch. Its
+own MIT notice travels with the template. The host-owned local KataGo CLI and
+[35-case actual engine audit](11-live-katago-evidence.md) add selected CPU/model
+stdio evidence on Bun 1.4.2 and Node 24.14.0. SDK/native runtime source remains
+unchanged; these increments extend consumer evidence, not implicit SDK transport
+or publication/deployment scope.
+The post-delivery `check` again passes 114 tests/1,439 assertions, root/Svelte types,
+package builds, docs and the installed SDK/headless/classic consumers. Existing
+production browser and independently installed native/SSR evidence remain valid:
+their SDK/adapter source and locked dependencies are unchanged. The new standalone
+app and both actual-engine runtime routes have their own completed checks above.

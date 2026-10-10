@@ -121,10 +121,13 @@ bounds remain those of the common analysis contract, with no silent truncation.
 
 Original local protocol fixtures cover all conversions and asynchronous/cancellation
 failure boundaries, plus isolated installed Node 24/ES2022-only types and a completed
-JSON request/result. No engine binary, neural model, remote endpoint or credentials
-were run/configured. These checks establish the adapter contract, not actual model
-quality/version compatibility. Record an engine version/config/model when adding
-live-engine evidence. The separate [analysis view](analysis-view.md) and runnable
+JSON request/result. A separate [live-engine audit](../engineering/11-live-katago-evidence.md)
+now records 35 actual local-process checks on Bun 1.4.2 and Node 24.14.0 with
+KataGo 1.18.1 Eigen CPU and one specified small model/config. It covers all three
+perspectives, supported history/setup/profile contexts, scoped termination, late
+data, process shutdown and real spawn/model failures. No remote endpoint or
+credentials are used; other versions/models/backends and prediction quality remain
+unclaimed. The separate [analysis view](analysis-view.md) and runnable
 [consumer](../../examples/analysis/README.md) have their own display/lifecycle scope.
 See [ADR 0010](../adr/0010-katago-json-lines-and-supported-contexts.md) for the upstream
 source basis and exact coverage decisions.

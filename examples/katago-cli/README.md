@@ -54,3 +54,14 @@ The original SGF, local legal-play policy and session/provider lifetimes are exp
 Dispose the analysis session before stopping the host engine, then dispose the
 controller when the application no longer needs it. Engine stderr may include
 local paths; review it before sharing a diagnostic transcript.
+
+## Live verification
+
+`bun run smoke:katago <binary> <model>` runs 35 actual engine/process checks.
+`bun run smoke:katago:node <binary> <model>` runs the same checks on Node after
+bundling only the host runner/helper with SDK imports external. They cover Black,
+White and side-to-move reporting, rectangular/setup/history/capture/pass contexts,
+handicap/prisoner komi, cancellation/staleness/disposal, host stop and spawn/model
+failures. No fixed neural evaluation is expected. See the
+[live evidence](../../docs/engineering/11-live-katago-evidence.md) for tested assets,
+hashes/config, licenses, assertions and remaining compatibility boundaries.
