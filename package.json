@@ -9,6 +9,10 @@
     "build:examples": "bun run build:adapters && vite build --config examples/vite.config.ts",
     "dev": "bun run build:adapters && vite --config examples/vite.config.ts",
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint . --deny-warnings --report-unused-disable-directives",
+    "lint:fix": "oxlint . --fix --deny-warnings --report-unused-disable-directives",
+    "format": "oxfmt . --check",
+    "format:write": "oxfmt .",
     "test": "bun test packages scripts/scenario-result.test.ts",
     "docs": "bun scripts/check-docs.ts",
     "smoke": "bun run build && bun scripts/packed-consumer.ts",
@@ -19,24 +23,28 @@
     "smoke:katago:node": "bun run build && bun build scripts/live-katago.ts --target=node --packages=external --outfile .tmp/live-katago-runner.mjs && node .tmp/live-katago-runner.mjs",
     "smoke:browser": "bun run build:examples && bun scripts/browser-smoke.ts",
     "typecheck:svelte": "bun run --cwd packages/svelte typecheck",
-    "check": "bun run build:adapters && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts"
+    "check": "bun run lint && bun run build:adapters && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts"
   },
   "devDependencies": {
-    "@banora/sdk": "workspace:*",
     "@banora/react": "workspace:*",
-    "@banora/vue": "workspace:*",
+    "@banora/sdk": "workspace:*",
     "@banora/svelte": "workspace:*",
+    "@banora/vue": "workspace:*",
+    "@playwright/cli": "0.x",
     "@sveltejs/vite-plugin-svelte": "7.x",
-    "react": "19.x",
-    "react-dom": "19.x",
+    "@types/bun": "1.x",
     "@types/react": "19.x",
     "@types/react-dom": "19.x",
-    "vue": "3.x",
+    "oxfmt": "0.x",
+    "oxlint": "1.x",
+    "react": "19.x",
+    "react-dom": "19.x",
     "svelte": "5.x",
-    "@playwright/cli": "0.x",
-    "@types/bun": "1.x",
     "typescript": "7.x",
-    "vite": "8.x"
+    "vite": "8.x",
+    "vue": "3.x"
   },
-  "engines": {"node": ">=24 <25"}
+  "engines": {
+    "node": ">=24 <25"
+  }
 }

@@ -1,7 +1,8 @@
+// oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
 async page => {
   const origin=new URL(page.url()).origin;
   await page.goto(`${origin}/studio/`);
-  const result=await page.evaluate(async () => {
+  await page.evaluate(async () => {
     const sdk=await import('/sdk/index.js');
     const host=document.createElement('div');host.id='comparison-fixture';host.style.cssText='width:100%;max-width:960px;margin:30px auto;padding:16px;';
     const sentinel=document.createElement('p');sentinel.textContent='Host content';host.append(sentinel);document.body.append(host);

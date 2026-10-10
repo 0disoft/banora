@@ -6,6 +6,7 @@ export interface DiagramOptions {
 interface Diagram { readonly text: string; readonly width: number; readonly height: number }
 const allowed = new Set(['svg','g','defs','pattern','clipPath','circle','ellipse','line','rect','text','tspan','path','polygon','polyline','image','title']);
 const styles = ['fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','font-family','font-size','font-weight','font-style','text-anchor','dominant-baseline','opacity'];
+// oxlint-disable-next-line eslint/no-control-regex -- Replace characters forbidden in XML 1.0.
 const xmlText = (text: string) => text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF\p{Cs}]/gu,'\uFFFD');
 
 function paintFor(value:string, svg:SVGSVGElement): string {

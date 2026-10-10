@@ -12,14 +12,17 @@ import {mountTextureControls} from '../texture-controls.js';
 
 function Textures({textures,onChange}:{textures:StoneTextures|null;onChange:(color:Color,texture:StoneTexture|null)=>void}) {
   const host=useRef<HTMLDivElement>(null),callback=useRef(onChange);
+  const initialTextures=useRef(textures);
   useEffect(() => {callback.current=onChange;},[onChange]);
-  useEffect(() => host.current ? mountTextureControls(host.current,{initial:textures,onChange:(color,texture) => callback.current(color,texture)}) : undefined,[]);
+  useEffect(() => host.current ? mountTextureControls(host.current,{initial:initialTextures.current,onChange:(color,texture) => callback.current(color,texture)}) : undefined,[]);
+  // oxlint-disable-next-line react/refs -- createElement forwards the ref object; render never reads current.
   return h('div',{ref:host});
 }
 
 function Sharing({controller}:{controller:RecordController}) {
   const host=useRef<HTMLDivElement>(null);
   useEffect(() => host.current ? mountSharing(host.current,controller) : undefined,[controller]);
+  // oxlint-disable-next-line react/refs -- createElement forwards the ref object; render never reads current.
   return h('div',{ref:host});
 }
 

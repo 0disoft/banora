@@ -1,3 +1,4 @@
+// oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
 async page => {
   const origin = new URL(page.url()).origin;
   const context = await page.context().browser().newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2});
@@ -67,7 +68,7 @@ async page => {
 
     for (const action of ['pointercancel','outside','node','update','resize','blur']) {
       await mobile.evaluate(() => {const f=window.banoraTouchCheck;f.controller.goTo(f.controller.getState().record.games[0].id);f.view.update({touch:{mode:'confirm'}});f.before=f.controller.getState();});
-      const targets=await start([{x:2,y:3},{x:3,y:5}]);
+      await start([{x:2,y:3},{x:3,y:5}]);
       if (action==='pointercancel') await touch('touchCancel');
       else if (action==='outside') {await touch('touchMove',{x:1,y:1});await touch('touchEnd');}
       else {

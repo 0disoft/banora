@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "oxc", "react", "vue"],
+  "categories": {"correctness": "error"},
+  "env": {"browser": true, "node": true},
+  "globals": {"Bun": "readonly", "Banora": "readonly"},
+  "ignorePatterns": [
+    "**/node_modules/**", "**/dist/**", "**/build/**", "**/.svelte-kit/**",
+    ".tmp/**", "tmp/**", ".cache/**", ".ssealed/**", "output/**"
+  ]
+}

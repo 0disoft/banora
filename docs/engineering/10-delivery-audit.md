@@ -127,8 +127,10 @@ numbers; broad fuzzing, arbitrary corpus coverage and device benchmarks are not 
 
 ## Explicit Boundaries, Skips and Completion
 
-`lint`, `format`, `contract` and `migration-check` are unconfigured and skipped,
-not reported green. Whitespace evidence is `git diff --check`. The final audit
+At this audit, `lint`, `format`, `contract` and `migration-check` were unconfigured
+and skipped, not reported green. Oxlint and Oxfmt have since been configured; see
+[current validation](../../VALIDATION.md#code-quality-tooling). Whitespace evidence
+for the original audit is `git diff --check`. The final audit
 does not rerun already-passing unchanged core/browser source unnecessarily; fresh
 packed adapters close the remaining current-artifact SSR evidence question.
 

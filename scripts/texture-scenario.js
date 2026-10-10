@@ -1,3 +1,4 @@
+// oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
 async page => {
   const origin=new URL(page.url()).origin,requests=[];
   page.on('request',request => {if (/^https?:/.test(request.url()) && new URL(request.url()).origin!==origin) requests.push(request.url());});

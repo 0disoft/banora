@@ -1,3 +1,4 @@
+// oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
 async page => {
   const origin=new URL(page.url()).origin,errors=[];
   const onError=error => errors.push(String(error));page.on('pageerror',onError);

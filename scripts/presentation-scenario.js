@@ -1,3 +1,4 @@
+// oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
 async page => {
   const origin = new URL(page.url()).origin;
   await page.goto(`${origin}/studio/`);
@@ -19,7 +20,7 @@ async page => {
   if (await page.locator('[data-stone="3,4"]').count() !== 1) throw Error('Studio transformed keyboard placement failed');
   await page.locator('#undo').click();
   if (await page.locator('#dirty').innerText() !== 'No changes') throw Error('Studio transformed Undo did not return to baseline');
-  const result = await page.evaluate(async () => {
+  await page.evaluate(async () => {
     const sdk = await import('/sdk/index.js');
     const host = document.createElement('div'); host.style.width = '520px'; document.body.append(host);
     const hits = [];

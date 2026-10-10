@@ -102,6 +102,7 @@ async function open(input: string | File, name: string): Promise<void> {
       return;
     }
     const oldName = filename;
+    // oxlint-disable-next-line eslint/no-control-regex -- Remove control characters from download filenames.
     filename = name.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').slice(0, 100) || 'record.sgf';
     if (!/\.sgf$/i.test(filename)) filename += '.sgf';
     if (!report(controller.loadSgf(bytes, {discardChanges: true}))) {

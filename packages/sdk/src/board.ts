@@ -474,7 +474,13 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
         render(current);
       } else activate(focus);
     }
-    else if (event.key === 'PageUp' || event.key === 'PageDown') { event.preventDefault(); if (!options.nodeId) event.key === 'PageUp' ? controller.previous() : controller.next(); }
+    else if (event.key === 'PageUp' || event.key === 'PageDown') {
+      event.preventDefault();
+      if (!options.nodeId) {
+        if (event.key === 'PageUp') controller.previous();
+        else controller.next();
+      }
+    }
   }, { signal: abort.signal });
   cropFor(current);
   const unsubscribe = controller.subscribe(state => {

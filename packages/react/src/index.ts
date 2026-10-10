@@ -18,9 +18,13 @@ function useMount(kind: 'board' | 'viewer', container: RefObject<HTMLDivElement 
   callback: ContainerProps['onStateChange'], onView: ContainerProps['onView']) {
   const view = useRef<BoardView | ViewerView | null>(null);
   const onStateChange = useRef(callback);
+  const mountOptions = useRef(options);
+  // Commit the latest configuration before mounting, without remounting on updates.
+  useEffect(() => { mountOptions.current = options; }, [options]);
   useEffect(() => { onStateChange.current = callback; }, [callback]);
   useEffect(() => {
     if (!container.current) return;
+    const options = mountOptions.current;
     const mounted = kind === 'board' ? mountBoard(container.current, { ...options as BoardOptions, controller }) :
       mountViewer(container.current, { ...options as ViewerOptions, controller });
     view.current = mounted;
@@ -39,6 +43,7 @@ export function Board(props: BoardProps) {
   [props.readOnly, props.theme, props.coordinates, props.moveNumbers, props.crop, props.transform, props.drawing, props.touch,props.stoneTextures,props.placementAnimation,
     props.nodeId,props.compareTo,props.referenceGeneration,props.onPoint]);
   useMount('board', container, props.controller, options, props.onStateChange, props.onView);
+  // oxlint-disable-next-line react/refs -- createElement forwards the ref object; render never reads current.
   return createElement('div', { ref: container, className: props.className, style: props.style, 'aria-label': props.ariaLabel ?? 'Banora board' });
 }
 export function Viewer(props: ViewerProps) {
@@ -46,6 +51,7 @@ export function Viewer(props: ViewerProps) {
   const options = useMemo(() => ({ editable: props.editable, comments: props.comments,
     variations: props.variations, board: props.board }), [props.editable, props.comments, props.variations, props.board]);
   useMount('viewer', container, props.controller, options, props.onStateChange, props.onView);
+  // oxlint-disable-next-line react/refs -- createElement forwards the ref object; render never reads current.
   return createElement('div', { ref: container, className: props.className, style: props.style, 'aria-label': props.ariaLabel ?? 'Banora viewer' });
 }
 

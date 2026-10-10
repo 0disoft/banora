@@ -1,9 +1,10 @@
+// oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
 async page => {
   const origin=new URL(page.url()).origin;await page.goto(`${origin}/studio/`);await page.emulateMedia({reducedMotion:'no-preference'});
   const result=await page.evaluate(async () => {
     const sdk=await import('/sdk/index.js'),verify=(value,message) => {if (!value) throw Error(message);};
     const host=document.createElement('div');host.id='animation-fixture';host.style.cssText='width:480px;margin:30px auto;';document.body.append(host);
-    const controller=new sdk.RecordController({sgf:'(;SZ[5:9];B[bc];W[de];B[ei])'}),initial=controller.getState();
+    const controller=new sdk.RecordController({sgf:'(;SZ[5:9];B[bc];W[de];B[ei])'});
     const view=sdk.mountBoard(host,{controller,placementAnimation:{durationMs:1000}}),svg=host.querySelector('svg');
     const effects=() => svg.getAnimations({subtree:true});
     verify(effects().length===0,'Initial rendering animated');controller.next();

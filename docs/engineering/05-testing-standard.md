@@ -42,5 +42,6 @@ Root Bun scripts configure `test`, `typecheck`, `docs` and `check`, including th
 SDK build, plus packed headless `smoke`. Explicit `smoke:browser` checks production
 Studio/read-only, all three framework, puzzle and analysis workflows with Playwright
 CLI. Independent adapter smoke checks installed types and real host SSR. See
-VALIDATION.md for commands. `lint`, `format`, `contract` and `migration-check` remain
-unconfigured. Report only observed checks and explicit coverage boundaries.
+VALIDATION.md for commands and the configured Oxlint/Oxfmt checks. `contract` and
+`migration-check` remain unconfigured. Report only observed checks and explicit
+coverage boundaries.

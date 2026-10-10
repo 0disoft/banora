@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "endOfLine": "lf",
+  "proseWrap": "preserve",
+  "htmlWhitespaceSensitivity": "strict",
+  "sortImports": false,
+  "sortPackageJson": false,
+  "sortTailwindcss": false,
+  "svelte": {"sortOrder": "none"},
+  "ignorePatterns": [
+    "**/node_modules/**", "**/dist/**", "**/build/**", "**/.svelte-kit/**",
+    ".tmp/**", "tmp/**", ".cache/**", ".ssealed/**", "output/**",
+    "**/bun.lock", "**/package-lock.json", "**/pnpm-lock.yaml", "**/yarn.lock"
+  ],
+  "overrides": [{"files": ["**/*.md"], "options": {"embeddedLanguageFormatting": "off"}}]
+}

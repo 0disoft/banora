@@ -28,6 +28,8 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 
 | Name | Command | Evidence |
 | --- | --- | --- |
+| lint | `bun run lint` | Oxlint correctness rules, React hooks/compiler and Vue rules; warnings and unused suppressions fail |
+| format | `bun run format` | Read-only Oxfmt check for supported source, styles, components and documentation |
 | typecheck | `bun run typecheck` | Strict TypeScript checks for implementation, tests and scripts |
 | typecheck (Svelte) | `bun run typecheck:svelte` | Native components and example checked with Svelte's supported isolated TypeScript toolchain |
 | test | `bun run test` | Focused SDK behavior and CLI completion-result tests using Bun's test runner |
@@ -38,7 +40,7 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | smoke (KataGo) | `bun run smoke:katago <binary> <model>` | 35 actual local-engine/process checks across all reporting perspectives; explicitly supplied assets required |
 | smoke (KataGo, Node) | `bun run smoke:katago:node <binary> <model>` | Same checks on the actual Node runtime with external public SDK imports |
 | smoke (browser) | `bun run smoke:browser` | Studio/viewer and framework consumers; editing/ink round-trips, touch, comparisons, embedded sharing/guards/clipboard, transforms/input, diagrams, encoding/cancellation and lifecycle |
-| check | `bun run check` | SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
+| check | `bun run check` | Lint, SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
 
 `bun run build` builds the common SDK; `bun run build:adapters` also builds the
 three adapters. SDK build emits selective ESM/declarations plus a standalone IIFE
@@ -52,9 +54,31 @@ and case results under `.tmp`; they assert actual metrics/coordinates/PVs/owners
 source preservation and termination/failure/exit behavior. They neither download
 assets nor substitute protocol fixtures for engine output. See the
 [live evidence](docs/engineering/11-live-katago-evidence.md) for the exact tested matrix.
-`lint`, `format`, `contract`, `migration-check`
-are not yet configured; report them as skipped when relevant. Manual
+`contract` and `migration-check` are not configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
+
+## Code Quality Tooling
+
+Oxlint 1.x and Oxfmt 0.x are root development dependencies, with resolved versions
+in `bun.lock`. Use `bun install --frozen-lockfile` to reproduce a reviewed graph.
+Review formatter changes when updating its lock entry: a pre-1.0 minor release
+can change formatting or configuration behavior.
+
+Oxlint enables correctness rules from the ESLint, TypeScript, Oxc, React and Vue
+plugins. Vue/Svelte script linting does not establish full template or framework
+compatibility; root/Svelte typechecks and framework browser/packed consumers remain
+required for relevant changes. Type-aware linting is not enabled in this baseline.
+Intentional Playwright callback expressions, control-character sanitizers and
+`createElement` object-ref false positives have narrow, explained suppressions.
+Unused suppression comments fail the lint check.
+
+Oxfmt uses two spaces, LF, semicolons, single quotes and a 100-column print width.
+It preserves import/package-key order, Svelte section order, significant HTML
+whitespace, Markdown prose wrapping and fenced examples. Build output, dependency
+trees, caches, local evidence, scaffold state and generated lockfiles are excluded.
+`bun run lint:fix` and `bun run format:write` explicitly modify source files; review
+their diff before committing. Validation commands never apply automatic fixes.
+The formatting baseline is established separately from the tooling/lint changes.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
 Standalone smoke is also separate: it copies `examples/standalone`, installs the

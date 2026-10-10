@@ -1,7 +1,7 @@
 import { comparePositions } from './core.js';
 import { mountBoard } from './board.js';
 import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
-import type { ControllerState, RecordController } from './controller.js';
+import type { RecordController } from './controller.js';
 import { displayCrop, normalizeBoardTransform } from './geometry.js';
 import {normalizeStoneTextures} from './stone-textures.js';
 

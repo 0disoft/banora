@@ -11,7 +11,7 @@ function demoBlob(color:Color): Promise<Blob> {
   context.fillStyle=fill;context.fillRect(0,0,96,96);
   context.strokeStyle=color==='black' ? '#d7c18d35' : '#98784835';context.lineWidth=0.8;
   for (let y=8;y<96;y+=8) {context.beginPath();context.moveTo(0,y);context.bezierCurveTo(24,y-8,60,y+8,96,y-2);context.stroke();}
-  return new Promise((resolve,reject) => canvas.toBlob(blob => {canvas.width=canvas.height=0;blob ? resolve(blob) : reject(new Error('Could not create the demo tile'));},'image/png'));
+  return new Promise((resolve,reject) => canvas.toBlob(blob => {canvas.width=canvas.height=0;if (blob) resolve(blob);else reject(new Error('Could not create the demo tile'));},'image/png'));
 }
 
 /** Example file UI; native hosts forward the prepared values as adapter props. */

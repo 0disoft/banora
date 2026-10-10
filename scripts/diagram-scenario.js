@@ -1,3 +1,4 @@
+// oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
 async page => {
   await page.locator('#comment').fill('Record edits remain unsaved after image export');
   for (const format of ['svg','png']) {
@@ -8,7 +9,7 @@ async page => {
     if (await page.locator('#dirty').innerText() !== 'Unsaved changes') throw Error('Image export incorrectly acknowledged SGF baseline');
   }
   await page.locator('#undo').click();
-  const result = await page.evaluate(async () => {
+  await page.evaluate(async () => {
     const sdk = await import('/sdk/index.js');
     const host = document.createElement('div'); host.style.width='520px'; host.style.setProperty('--banora-black','#123456'); document.body.append(host);
     const controller = new sdk.RecordController({sgf:'(;SZ[5:9]AB[bc][de]LB[bc:A<&B][aa:Bad\u0000\ud800💠]AR[bc:de])'});
