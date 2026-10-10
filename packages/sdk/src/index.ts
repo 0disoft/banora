@@ -4,3 +4,4 @@ export * from './sgf.js';
 export * from './controller.js';
 export * from './board.js';
 export * from './viewer.js';
+export * from './comparison.js';

@@ -38,3 +38,13 @@ and `magnifier:false` to hide the lens. Null restores direct activation. Pending
 targets are transient, excluded from records/diagrams, and cancelled by context
 changes or disposal. Keyboard arrows refine a released target, Enter confirms,
 and Escape cancels. Mouse/pen keep ordinary activation; ink takes priority.
+
+Read another branch with `controller.inspectNode(id)` without moving the cursor.
+`comparePositions(before.position, after.position)` reports visible-stone changes.
+Use `mountComparison(container,{controller,left:leftId,right:rightId})` for two
+read-only boards, node selectors, comments and highlighted differences; it is also
+available from `@banora/sdk/comparison`. The view exports either side as SVG/PNG
+and borrows the controller, preserving it on disposal. Different board sizes are
+displayed without diffing. Imported records reset the comparison to their new root.
+For custom layouts, Board accepts `nodeId`, `compareTo` and `referenceGeneration`
+(the snapshot's `recordGeneration`). Stale or removed pins become unavailable.

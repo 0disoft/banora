@@ -34,6 +34,9 @@ try {
   if (process.argv.includes('--touch-only')) {
     await cli('run-code',await readFile(resolve(root,'scripts/touch-scenario.js'),'utf8'));
     console.log('Focused touch smoke passed.');
+  } else if (process.argv.includes('--comparison-only')) {
+    await cli('run-code',await readFile(resolve(root,'scripts/comparison-scenario.js'),'utf8'));
+    console.log('Focused comparison smoke passed.');
   } else {
   const scenario = await readFile(resolve(root, 'scripts/browser-scenario.js'), 'utf8');
   await cli('run-code', scenario);
@@ -67,6 +70,9 @@ try {
   await cli('snapshot');
   await cli('run-code',await readFile(resolve(root,'scripts/touch-scenario.js'),'utf8'));
   console.log('Touch smoke passed: magnification, release/confirmation, logical transforms, callbacks, cancellation and keyboard.');
+  await cli('snapshot');
+  await cli('run-code',await readFile(resolve(root,'scripts/comparison-scenario.js'),'utf8'));
+  console.log('Comparison smoke passed: pinned branches, highlighted differences, exports, generation/deletion handling and lifecycle.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

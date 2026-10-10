@@ -11,7 +11,7 @@ export interface ViewerOptions {
   readonly editable?: boolean;
   readonly comments?: boolean;
   readonly variations?: boolean;
-  readonly board?: Omit<BoardOptions, 'controller' | 'readOnly'>;
+  readonly board?: Omit<BoardOptions, 'controller' | 'readOnly' | 'nodeId'>;
 }
 export interface ViewerView {
   readonly controller: RecordController;
@@ -81,7 +81,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   root.append(style, header, boardContainer, nav, summary, variations, notes, status);
   container.append(root);
   let board: BoardView;
-  try { board = mountBoard(boardContainer, { ...options.board, controller, readOnly: !options.editable }); }
+  try { board = mountBoard(boardContainer, { ...options.board, controller, readOnly: !options.editable,nodeId:null }); }
   catch (error) { root.remove(); abort.abort(); if (owned) controller.dispose(); throw error; }
   let lastTree: { record: ControllerState['record']; selected: string } | undefined;
 
@@ -162,7 +162,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       if (disposed) throw new Error('Viewer is disposed');
       const previous = options;
       const merged = { ...options, ...next, board: { ...options.board, ...next.board } };
-      board.update({ ...merged.board, readOnly: !merged.editable });
+      board.update({ ...merged.board, readOnly: !merged.editable,nodeId:null });
       options = merged;
       if ((previous.editable && !options.editable) || next.comments === false) endCommentGroup();
       render(controller.getState());

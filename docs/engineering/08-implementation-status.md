@@ -30,7 +30,11 @@ An implemented slice does not complete its milestone or establish untested compa
   moving the cursor or notifying subscribers; `comparePositions` returns immutable
   visible-stone differences. Controller-local import generations distinguish reused
   SGF IDs. Headless and installed-artifact checks cover collections, markup, snapshot
-  identity and import/Undo behavior. The comparison UI is the next increment.
+  identity and import/Undo behavior. Common `mountComparison` composes two pinned
+  boards with selectors/comments and added/removed/replaced highlights. Chrome 154
+  checks eight crops/transforms, SVG/PNG pixels, atomic updates, missing-node recovery,
+  import generations, deep selection beyond 500 nodes and borrowed-controller cleanup.
+  Studio and native adapter comparison controls are the next consumer increment.
 - Freehand record model: node-local, immutable fractional strokes use the bounded
   version-1 BPN extension, with add/remove/clear, independent Undo units and SGF
   export/reopen. Headless checks cover unsafe/malformed imports, per-node limits,

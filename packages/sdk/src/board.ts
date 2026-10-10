@@ -1,4 +1,4 @@
-import { isOnBoard } from './core.js';
+import { comparePositions, isOnBoard } from './core.js';
 import type { Point } from './core.js';
 import { RecordController } from './controller.js';
 import type { ControllerState } from './controller.js';
@@ -26,6 +26,11 @@ export interface BoardOptions {
   /** Opt-in freehand mode; null/undefined restores ordinary point activation. */
   readonly drawing?: StrokeStyle | null;
   readonly touch?: TouchOptions | null;
+  /** Pin a read-only board to a node in the current record generation. */
+  readonly nodeId?: string | null;
+  readonly compareTo?: string | null;
+  /** Scope nodeId/compareTo to an import generation; defaults to their mount/change generation. */
+  readonly referenceGeneration?: number;
   readonly onPoint?: (point: Point) => void;
 }
 export interface BoardView {
@@ -49,6 +54,8 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   const controller = initial.controller ?? new RecordController();
   let disposed = false;
   let current = controller.getState();
+  let nodeGeneration=options.referenceGeneration ?? current.recordGeneration,compareGeneration=nodeGeneration;
+  let available=true;
   let focus: Point = { x: 0, y: 0 };
   let hover: Point | null = null;
   let pendingStroke: { pointer: number | null; points: Point[] } | null = null;
@@ -63,7 +70,8 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   const live = document.createElement('span');
   live.setAttribute('aria-live', 'polite');
   live.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;';
-  try { cropFor(current); } catch (error) { if (owned) controller.dispose(); throw error; }
+  try {validateGeneration(initial.referenceGeneration);validateReferences(initial);if (options.nodeId) current=controller.inspectNode(options.nodeId)!;cropFor(current);}
+  catch (error) {if (owned) controller.dispose();throw error;}
   container.append(svg, live);
   const touchUI = mountTouchUI(container,svg,confirmTouch,() => {cancelTouch();render(current);svg.focus({preventScroll:true});live.textContent='Placement cancelled.';},abort.signal);
   document.defaultView?.addEventListener('resize',() => {
@@ -76,6 +84,17 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     if (text !== undefined) node.textContent = text;
     return node;
   }
+  function validateReferences(config: Pick<BoardOptions,'nodeId'|'compareTo'>, changing=false): void {
+    for (const key of ['nodeId','compareTo'] as const) {
+      const id=config[key];
+      if (changing && id===options[key]) continue;
+      if (id != null && (typeof id !== 'string' || !id || !controller.inspectNode(id))) throw new RangeError('Board node reference does not exist');
+    }
+  }
+  function validateGeneration(generation: number | undefined): void {
+    if (generation!==undefined && (!Number.isSafeInteger(generation) || generation<0)) throw new RangeError('Reference generation must be a nonnegative integer');
+  }
+  function readOnly(): boolean {return !!options.readOnly || options.nodeId != null;}
   function cropFor(state: ControllerState): BoardCrop {
     const crop = options.crop ?? { x: 0, y: 0, width: state.position.width, height: state.position.height };
     if (![crop.x, crop.y, crop.width, crop.height].every(Number.isInteger) || crop.width < 1 || crop.height < 1 ||
@@ -93,6 +112,19 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     return {x:displayed.x + padding, y:displayed.y + padding};
   }
   function render(state: ControllerState): void {
+    if (options.nodeId) {
+      const pinned=nodeGeneration===state.recordGeneration ? controller.inspectNode(options.nodeId) : null;
+      if (!pinned) {
+        available=false;current=state;cancelInk();cancelTouch();hover=null;
+        svg.setAttribute('viewBox','0 0 12 3');svg.setAttribute('data-node-status','unavailable');
+        svg.setAttribute('data-comparison-status','unavailable');svg.setAttribute('data-difference-count','0');
+        svg.setAttribute('data-node-id',options.nodeId);svg.setAttribute('aria-label','Pinned node is unavailable. Choose another node or restore the branch.');
+        svg.replaceChildren(element('text',{x:6,y:1.6,'text-anchor':'middle','font-size':0.4,'font-family':'system-ui',fill:'#687b69'},'Node unavailable'));
+        touchUI.render(null,null,'',false,false);live.textContent='Pinned node is unavailable.';return;
+      }
+      state=pinned;
+    }
+    available=true;
     current = state;
     const { width, height, board } = state.position;
     // A host record replacement can invalidate an old crop. Reset it on size changes.
@@ -105,10 +137,12 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     svg.setAttribute('data-board-height', String(height));
     svg.setAttribute('data-rotation', String(options.transform.rotation));
     svg.setAttribute('data-flip-x', String(options.transform.flipX));
+    svg.setAttribute('data-node-id',state.node.id);svg.setAttribute('data-node-status','ready');
     svg.setAttribute('aria-roledescription', `${width} by ${height} Go board`);
-    svg.style.touchAction = (options.drawing || options.touch.mode !== 'direct') && !options.readOnly ? 'none' : 'manipulation';
-    if (options.drawing && !options.readOnly) svg.setAttribute('aria-label', 'Go board ink tool. Drag to draw. Arrow keys move the cursor; Space adds a point; Enter finishes the stroke; Escape cancels.');
-    else if (options.readOnly && !options.onPoint) svg.setAttribute('aria-label', 'Read-only Go board. Arrow keys move the cursor; Page Up and Page Down navigate moves.');
+    svg.style.touchAction = (options.drawing || options.touch.mode !== 'direct') && !readOnly() ? 'none' : 'manipulation';
+    if (options.drawing && !readOnly()) svg.setAttribute('aria-label', 'Go board ink tool. Drag to draw. Arrow keys move the cursor; Space adds a point; Enter finishes the stroke; Escape cancels.');
+    else if (options.nodeId) svg.setAttribute('aria-label','Pinned read-only Go board. Arrow keys move the cursor; record navigation is controlled by the host.');
+    else if (readOnly() && !options.onPoint) svg.setAttribute('aria-label', 'Read-only Go board. Arrow keys move the cursor; Page Up and Page Down navigate moves.');
     else svg.setAttribute('aria-label', 'Go board. Arrow keys move the cursor; Enter places a stone or marker; Page Up and Page Down navigate moves.');
     const fragment = document.createDocumentFragment();
     const add = (name: string, attrs: Record<string, string | number>, text?: string) => {
@@ -224,7 +258,24 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       add('circle',{cx:point.x,cy:point.y,r:0.46,fill:occupied ? 'none' : state.position.toPlay === 'black' ? '#20272a' : '#fff',
         opacity:0.65,stroke:'#12674e','stroke-width':0.07,'data-preview':'touch','data-target':`${touchAim.point.x},${touchAim.point.y}`});
     }
-    if (hover && visible(hover) && !board[hover.y * width + hover.x] && !options.readOnly && !options.drawing) {
+    const reference=options.compareTo && compareGeneration===state.recordGeneration ? controller.inspectNode(options.compareTo) : null;
+    const compatible=reference && reference.position.width===width && reference.position.height===height;
+    const differences=compatible ? comparePositions(reference.position,state.position) : [];
+    svg.setAttribute('data-comparison-status',!options.compareTo ? 'none' : !reference ? 'unavailable' : compatible ? 'ready' : 'different-size');
+    svg.setAttribute('data-difference-count',String(differences.length));
+    for (const difference of differences) if (visible(difference.point)) {
+      const point=displayPoint(difference.point);
+      const kind=difference.before===null ? 'added' : difference.after===null ? 'removed' : 'replaced';
+      const color=kind==='added' ? '#0f766e' : kind==='removed' ? '#b34343' : '#a66e13';
+      const attributes={x:point.x-0.49,y:point.y-0.49,width:0.98,height:0.98,rx:0.12,fill:'none'};
+      add('rect',{...attributes,stroke:'#fffdf4','stroke-width':0.18});
+      add('rect',{...attributes,stroke:color,'stroke-width':0.08,'stroke-dasharray':kind==='removed' ? '0.12 0.08' : 'none',
+        'data-difference':kind,'data-point':`${difference.point.x},${difference.point.y}`,
+        'aria-label':`${coordinate(difference.point)}: ${difference.before ?? 'empty'} to ${difference.after ?? 'empty'}`});
+      add('text',{x:point.x+0.32,y:point.y-0.31,'font-size':0.28,'font-weight':700,'font-family':'system-ui',
+        'text-anchor':'middle',fill:color,stroke:'#fffdf4','stroke-width':0.035,'paint-order':'stroke'},kind==='added' ? '+' : kind==='removed' ? '−' : '↔');
+    }
+    if (hover && visible(hover) && !board[hover.y * width + hover.x] && !readOnly() && !options.drawing) {
       const point = displayPoint(hover);
       add('circle', {cx:point.x, cy:point.y, r:0.44, fill:state.position.toPlay === 'black' ? '#20272a' : '#fff', opacity:0.4, 'data-preview':''});
     }
@@ -248,20 +299,23 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   function confirmTouch(): void {
     const point = touchAim?.pointer === null ? touchAim.point : null;
     cancelTouch();
-    try {if (point && !options.readOnly && !options.drawing) {focus=point;activate(point);}}
+    try {if (point && !readOnly() && !options.drawing) {focus=point;activate(point);}}
     finally {if (!disposed) {render(current);svg.focus({preventScroll:true});}}
   }
   function announce(state: ControllerState): void {
+    if (!available) return;
     live.textContent = `Move ${state.position.moveNumber}. ${state.position.toPlay} to play. Black captures ${state.position.captures.black}, white captures ${state.position.captures.white}.`;
   }
   function activate(point: Point): void {
+    if (!available) return;
     if (options.onPoint) options.onPoint(Object.freeze({ ...point }));
-    else if (!options.readOnly) {
+    else if (!readOnly()) {
       const result = controller.play(point);
       if (!result.ok) live.textContent = `Move rejected: ${result.reason}.`;
     }
   }
   function logicalPointer(event: PointerEvent): Point | null {
+    if (!available) return null;
     const matrix = svg.getScreenCTM();
     if (!matrix) return null;
     const screen = svg.createSVGPoint(); screen.x = event.clientX; screen.y = event.clientY;
@@ -297,14 +351,14 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   function finishInk(): void {
     const points = pendingStroke?.points;
     cancelInk();
-    if (!points || points.length < 2 || !options.drawing || options.readOnly) { render(current); return; }
+    if (!points || points.length < 2 || !options.drawing || readOnly()) { render(current); return; }
     const result = controller.addStroke(points, options.drawing);
     live.textContent = result.ok ? 'Ink stroke added. Undo removes it.' : `Ink rejected: ${result.reason}.`;
     render(current);
   }
   svg.addEventListener('pointerdown', event => {
     if (cancelledPointer === event.pointerId) cancelledPointer = null;
-    if (!options.drawing && event.pointerType === 'touch' && options.touch.mode !== 'direct' && !options.readOnly &&
+    if (!options.drawing && event.pointerType === 'touch' && options.touch.mode !== 'direct' && !readOnly() &&
       event.button === 0 && event.isPrimary && touchAim?.pointer == null) {
       const point = pointerPoint(event);
       if (!point) {cancelTouch();render(current);return;}
@@ -315,7 +369,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       render(current); if (touchAim) live.textContent=`${coordinate(point)} selected. Drag to aim; release ${options.touch.mode === 'confirm' ? 'then confirm' : 'to place'}.`;
       return;
     }
-    if (!options.drawing || options.readOnly || event.button !== 0 || !event.isPrimary || pendingStroke) return;
+    if (!options.drawing || readOnly() || event.button !== 0 || !event.isPrimary || pendingStroke) return;
     const point = inkPoint(event);
     if (!point) return;
     event.preventDefault(); svg.focus({preventScroll:true}); hover = null;
@@ -351,7 +405,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       return;
     }
     // A cancelled/non-primary touch may not fall through into immediate placement.
-    if (event.pointerType === 'touch' && options.touch.mode !== 'direct' && !options.readOnly && !options.drawing) return;
+    if (event.pointerType === 'touch' && options.touch.mode !== 'direct' && !readOnly() && !options.drawing) return;
     if (touchAim) cancelTouch();
     if (options.drawing) {
       if (pendingStroke?.pointer !== event.pointerId) return;
@@ -370,6 +424,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   svg.addEventListener('focus', () => render(current), { signal: abort.signal });
   svg.addEventListener('blur', () => { cancelInk(); if (touchAim?.pointer !== null) cancelTouch(); render(current); }, { signal: abort.signal });
   svg.addEventListener('keydown', event => {
+    if (!available) return;
     const crop = cropFor(current);
     const shifts: Record<string, Point> = { ArrowLeft: { x: -1, y: 0 }, ArrowRight: { x: 1, y: 0 }, ArrowUp: { x: 0, y: -1 }, ArrowDown: { x: 0, y: 1 } };
     if (shifts[event.key]) {
@@ -387,36 +442,43 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       if (touchAim?.pointer === null) {confirmTouch();return;}
       if (touchAim) return;
       if (options.drawing) {
-        if (options.readOnly || (pendingStroke && pendingStroke.pointer !== null)) return;
+        if (readOnly() || (pendingStroke && pendingStroke.pointer !== null)) return;
         if (!pendingStroke) { pendingStroke = {pointer:null, points:[{...focus}]}; live.textContent = 'Ink started. Move the cursor and add points with Space; Enter finishes.'; }
         else { appendInk({...focus}); if (event.key === 'Enter') finishInk(); }
         render(current);
       } else activate(focus);
     }
-    else if (event.key === 'PageUp' || event.key === 'PageDown') { event.preventDefault(); event.key === 'PageUp' ? controller.previous() : controller.next(); }
+    else if (event.key === 'PageUp' || event.key === 'PageDown') { event.preventDefault(); if (!options.nodeId) event.key === 'PageUp' ? controller.previous() : controller.next(); }
   }, { signal: abort.signal });
   cropFor(current);
   const unsubscribe = controller.subscribe(state => {
     if (state.record !== current.record || state.node.id !== current.node.id) {cancelInk();cancelTouch();}
-    render(state); announce(state);
+    render(state); announce(current);
   });
   return Object.freeze({ controller,
     exportSvg(config: DiagramOptions = {}) {
       if (disposed) throw new Error('Board view is disposed');
+      if (!available) throw new Error('Pinned node is unavailable');
       return serializeBoardDiagram(svg,config).text;
     },
     async exportPng(config: DiagramOptions = {}) {
       if (disposed) throw new Error('Board view is disposed');
+      if (!available) throw new Error('Pinned node is unavailable');
       return rasterizeBoardDiagram(document,serializeBoardDiagram(svg,config),abort.signal);
     },
     update(next: Omit<BoardOptions, 'controller'>) {
       if (disposed) throw new Error('Board view is disposed');
+      validateReferences(next,true);
+      validateGeneration(next.referenceGeneration);
       const previous = options;
       options = { ...options, ...next, transform: normalizeBoardTransform(Object.hasOwn(next, 'transform') ? next.transform : options.transform),
         drawing: Object.hasOwn(next, 'drawing') ? next.drawing ? normalizeStrokeStyle(next.drawing) : null : options.drawing,
         touch: Object.hasOwn(next,'touch') ? normalizeTouchOptions(next.touch) : options.touch };
-      try { cropFor(current); } catch (error) { options = previous; throw error; }
-      cancelInk(); cancelTouch(); render(current);
+      try {cropFor(options.nodeId ? controller.inspectNode(options.nodeId) ?? controller.getState() : controller.getState());}
+      catch (error) {options=previous;throw error;}
+      if (next.referenceGeneration!==undefined || (Object.hasOwn(next,'nodeId') && next.nodeId!==previous.nodeId)) nodeGeneration=next.referenceGeneration ?? controller.getState().recordGeneration;
+      if (next.referenceGeneration!==undefined || (Object.hasOwn(next,'compareTo') && next.compareTo!==previous.compareTo)) compareGeneration=next.referenceGeneration ?? controller.getState().recordGeneration;
+      cancelInk(); cancelTouch(); render(controller.getState());
     },
     dispose() {
       if (disposed) return;

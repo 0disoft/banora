@@ -224,6 +224,46 @@ and owns no rules/state engine. Its fixed viewport portal belongs to the view an
 removed from the document body on disposal; confirmation controls belong to the
 view's container. Real-device support remains subject to device evidence.
 
+## Position Comparison
+
+`BoardOptions.nodeId` pins a read-only board to a node without navigating its
+controller. `compareTo` references another node and highlights added (+), removed
+(dashed −) and color-replaced (↔) intersections relative to that reference. These
+are visible-stone differences, not evaluation, scoring or complete state equivalence.
+Logical highlights follow crop/transforms and are included in SVG/PNG diagrams;
+annotations/comments and move numbers come from the pinned node's actual path.
+Pinned boards never issue their own play/ink/touch-aim commands or Page Up/Down
+navigation; optional `onPoint` remains a host-owned inspection callback.
+
+References capture the controller's import generation when mounted or when an ID
+changes. `referenceGeneration` explicitly scopes/rebinds both IDs; use the snapshot's
+`recordGeneration` when rebinding reused IDs after import. Repeating an unchanged
+ID during unrelated configuration updates never silently rebinds it to a new
+record. Unknown new IDs/invalid generations throw before changing presentation.
+Removed/stale pinned nodes display an unavailable state, disable activation/export,
+and become visible again on edit Undo. A missing/stale reference removes highlights;
+different dimensions report `different-size` with no intersections compared.
+`nodeId:null` restores the selected-node board. The complete Viewer always follows
+its controller's cursor and accepts `board.compareTo`, but does not accept `nodeId`.
+
+`mountComparison(container, {controller, left?, right?, board?})` is exported from
+the root and `@banora/sdk/comparison`. It borrows one controller, composes two pinned
+boards, shows node selectors/comments and a left-to-right change count. Omitted
+nodes default to the current node. `board` accepts only theme, coordinates, move
+numbers, crop and transform, applied to both panes. Updates validate before changing
+the pair/configuration; selecting nodes never changes the main cursor, dirty state
+or edit history. Missing/deleted selections remain unavailable until restored or
+reselected. Successful record replacement explicitly resets both panes to the new
+cursor and clears the old crop, avoiding recycled-ID confusion. Different-sized
+games can be shown side by side but are not diffed.
+
+The returned `ComparisonView` exposes `controller`, `update({left?,right?,board?})`,
+`exportSvg('left'|'right', options?)`, `exportPng(side, options?)` and idempotent
+`dispose()`. Disposal releases both boards, subscriptions, listeners, lens portals
+and owned comparison DOM while preserving the borrowed controller/other host children.
+Node selectors show the first 500 nodes plus each chosen node; the API can address
+the entire record. Server imports are safe; mounting requires a browser DOM.
+
 ## Position Diagrams
 
 Both `BoardView` and `ViewerView` provide `exportSvg(options?): string` and
