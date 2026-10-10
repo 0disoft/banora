@@ -74,8 +74,15 @@ An implemented slice does not complete its milestone or establish untested compa
   omitting history, metadata and comments unless the current comment is opted in.
   Headless checks cover Unicode/BPN/unknown properties, atomic target import,
   dirty guards, generations and malformed/oversized input without truncation.
-  Public selective imports are checked in the installed Node consumer; browser
-  opening/copying controls remain in progress. Nothing is uploaded or hosted.
+  Public selective imports are checked in the installed Node consumer. Studio and
+  all three native examples create/open links, including initial fragments and
+  hash changes, with explicit whole-record/position content notices. Chrome 154
+  checks exact collection/branch targets, Unicode/ink/unknown properties, escaped
+  comment rendering, static-position redaction and opt-in comments, length errors,
+  clipboard success/fallback and unchanged SGF dirty state. Clipboard is stubbed
+  to avoid changing the machine's clipboard. Export/Discard/Cancel, replacement
+  download retention and abort on controller swap/unmount are checked; remount
+  does not reopen the initial address. Nothing is uploaded or hosted.
 - Forty-five focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
@@ -121,9 +128,8 @@ An implemented slice does not complete its milestone or establish untested compa
    Branch removal/reordering, free setup and lines/arrows also have local evidence.
    The classic browser distribution also has package/client evidence.
    Freehand storage/input, rotation/reflection and SVG/PNG static diagrams are implemented.
-   Remaining teaching/presentation tools and sharing remain to be delivered;
-   Magnified touch placement and position comparison are implemented;
-   animation/textures and browser share controls are still pending.
+   Magnified touch placement, position comparison and embedded sharing are implemented.
+   Animation and custom stone textures remain to be delivered.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 

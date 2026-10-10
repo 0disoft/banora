@@ -25,13 +25,24 @@ async function cli(...args: string[]): Promise<string> {
   if (code !== 0 || stdout.includes('### Error')) throw new Error(`Browser command failed:\n${stdout}\n${stderr}`);
   return stdout;
 }
+async function shareSmoke(): Promise<void> {
+  const result=await cli('run-code',await readFile(resolve(root,'scripts/share-scenario.js'),'utf8'));
+  if (!result.includes('banora-sharing-complete: studio react vue svelte')) throw new Error(`Sharing scenario did not reach completion:\n${result}`);
+  for (const name of ['studio','react','vue','svelte']) {
+    const saved=await readFile(resolve(output,`${name}-share-before-open.sgf`),'utf8');
+    if (!saved.includes('unsaved sharing note') || !saved.includes('XX[keep]') || !saved.includes('BPN[')) throw new Error(`${name} share guard export lost record content`);
+  }
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--touch-only')) {
+  if (process.argv.includes('--share-only')) {
+    await shareSmoke();
+    console.log('Focused share smoke passed.');
+  } else if (process.argv.includes('--touch-only')) {
     await cli('run-code',await readFile(resolve(root,'scripts/touch-scenario.js'),'utf8'));
     console.log('Focused touch smoke passed.');
   } else if (process.argv.includes('--comparison-only')) {
@@ -73,6 +84,9 @@ try {
   await cli('snapshot');
   await cli('run-code',await readFile(resolve(root,'scripts/comparison-scenario.js'),'utf8'));
   console.log('Comparison smoke passed: pinned branches, highlighted differences, exports, generation/deletion handling and lifecycle.');
+  await cli('snapshot');
+  await shareSmoke();
+  console.log('Sharing smoke passed: exact targets, position privacy, clipboard fallback, Export/Discard/Cancel, bounds and native lifecycle.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

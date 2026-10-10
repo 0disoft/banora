@@ -27,6 +27,11 @@ using Playwright CLI; a compatible browser installation is required.
 The common SDK lives at `packages/sdk`; current exports are documented in the
 [public API](docs/sdk/public-api.md). No framework or remote service is required.
 The build also creates `packages/sdk/dist/banora.global.js` for direct script use.
+Studio and the React/Vue/Svelte examples can create/open embedded record, node and
+static-position share links without a server. Record/node links include all games,
+metadata, comments and branches; position links omit history and game metadata.
+Links contain readable encoded data and have a length limit; use SGF export for
+larger records. See the [share contract](docs/sdk/public-api.md#embedded-share-links).
 
 ## Direction
 

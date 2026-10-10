@@ -322,6 +322,23 @@ history/tickets, without an intermediate root selection. Locators refer to the
 embedded immutable SGF; sibling reordering in a later different record changes
 their meaning, so never apply a shared path to an unrelated live record.
 
+Studio and the React/Vue/Svelte examples mount `examples/sharing-controls.ts`
+through client lifecycle hooks. This is a host example, not a mandatory SDK UI.
+They open an initial Banora fragment and handle later hash changes using the same
+guard as pasted links. Generating/copying never changes the address or acknowledges
+SGF edits. Export/Discard/Cancel protects replacement; export initiates a file
+download without proving disk persistence. A failed/blocked clipboard keeps the
+readonly link selectable for manual copying. Links are fixed snapshots of creation
+time; later editing does not update a previously displayed link.
+
+Only one replacement dialog is active per host. If the address changes while an
+import is pending, finish/cancel it and open the displayed new address manually.
+Widget disposal/controller replacement aborts pending approval and removes only
+its own panel/dialog/listeners, leaving the borrowed controller alive. Remounting
+or swapping controllers does not reopen the initial URL and erase later edits.
+The first completed initial-address attempt is tracked per document; explicit
+hash changes and pasted links remain available afterward.
+
 ## Position Diagrams
 
 Both `BoardView` and `ViewerView` provide `exportSvg(options?): string` and

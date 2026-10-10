@@ -1,0 +1,11 @@
+.sharing-controls{margin:24px 0;padding:20px;border:1px solid #cad4ca;border-radius:12px;background:#fff;color:#294738}
+.sharing-controls h2{margin:0 0 16px;font-size:1.15rem}
+.sharing-controls label{display:block;font-size:14px}
+.sharing-controls textarea{display:block;box-sizing:border-box;width:100%;margin:8px 0 12px;padding:10px;font:13px system-ui;border:1px solid #bac9bf;border-radius:6px;resize:vertical;color:inherit;background:#fff}
+.sharing-controls select,.sharing-controls button{font:inherit;padding:8px 12px;border:1px solid #bac9bf;border-radius:6px;background:#fff;color:inherit;cursor:pointer}
+.sharing-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:12px 0}
+.sharing-controls p,.sharing-row span{font-size:14px;line-height:1.5}
+.sharing-controls [hidden]{display:none!important}
+.sharing-controls :focus-visible{outline:3px solid #589474;outline-offset:3px}
+.sharing-controls dialog{max-width:440px;border:1px solid #bac9bf;border-radius:12px;color:inherit}
+.sharing-controls dialog::backdrop{background:#153b3266}

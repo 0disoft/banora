@@ -1,4 +1,4 @@
-import { createElement as h, StrictMode, useCallback, useState } from 'react';
+import { createElement as h, StrictMode, useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Board, Viewer, useRecordState } from '@banora/react';
 import { RecordController } from '@banora/sdk';
@@ -7,6 +7,13 @@ import { downloadDiagram } from '../diagram-download.js';
 import sample from '../fixtures/study.sgf?raw';
 import { describeComparison,pinComparison,startComparison } from '../comparison-pair.js';
 import type { ComparisonPair } from '../comparison-pair.js';
+import {mountSharing} from '../sharing-controls.js';
+
+function Sharing({controller}:{controller:RecordController}) {
+  const host=useRef<HTMLDivElement>(null);
+  useEffect(() => host.current ? mountSharing(host.current,controller) : undefined,[controller]);
+  return h('div',{ref:host});
+}
 
 const records = [new RecordController({ sgf: sample }), new RecordController({ sgf: '(;SZ[13]GN[Second record];B[dd];W[jj])' })];
 function App() {
@@ -64,6 +71,7 @@ function App() {
       h(Board, { controller, readOnly, transform, drawing, touch, theme: flat ? 'flat' : 'wood', onStateChange, onView:setBoardView })),
     h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, onView:setViewerView, board: { transform, drawing, touch, theme: flat ? 'flat' : 'wood' } }))) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
+    mounted ? h(Sharing,{controller}) : null,
     mounted ? h('section', { id: 'owned-board', style: { maxWidth: 350 } }, h('h2', null, 'Optional owned controller'),
       h(Board, { readOnly, transform, drawing, touch, theme: flat ? 'flat' : 'wood' })) : null,
     mounted && pair ? h('section',{id:'comparison-host'},h('h2',null,'Position comparison'),

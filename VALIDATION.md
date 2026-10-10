@@ -34,7 +34,7 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | docs | `bun run docs` | English documentation, LF endings and relative links |
 | smoke | `bun run smoke` | SDK build, isolated tarball install, strict ESM/headless/global declarations and Node public-export/classic VM execution |
 | smoke (adapters) | `bun run smoke:adapters` | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR |
-| smoke (browser) | `bun run smoke:browser` | Studio/viewer and framework consumers; editing/ink round-trips, magnified touch, pinned comparisons, guards, transforms/crops/input, view bindings, standalone SVG/PNG pixels, encoding/cancellation and lifecycle |
+| smoke (browser) | `bun run smoke:browser` | Studio/viewer and framework consumers; editing/ink round-trips, touch, comparisons, embedded sharing/guards/clipboard, transforms/input, diagrams, encoding/cancellation and lifecycle |
 | check | `bun run check` | SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
 
 `bun run build` builds the common SDK; `bun run build:adapters` also builds the
@@ -49,6 +49,9 @@ After building examples/SDK, `bun scripts/browser-smoke.ts --touch-only` runs th
 focused real-touch scenario using the same oneshot server/session cleanup.
 `--comparison-only` similarly selects the comparison scenario without rerunning
 unrelated browser flows during implementation.
+`--share-only` selects production link opening/creation, clipboard fallback,
+position privacy, Export/Discard/Cancel and framework cleanup. Clipboard writes
+are stubbed in this check to avoid modifying the machine's clipboard.
 Use them for adapter/common-renderer changes; documentation-only edits need docs
 and whitespace review. Adapter packed checks require npm (supplied by Node 24),
 install with lifecycle scripts disabled and do not use workspace source aliases.

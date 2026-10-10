@@ -1,4 +1,5 @@
-import { createApp, defineComponent, h, ref, shallowRef, toRaw } from 'vue';
+import { createApp, defineComponent, h, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, watch } from 'vue';
+import type {PropType} from 'vue';
 import { Board, Viewer, useRecordState } from '@banora/vue';
 import { RecordController } from '@banora/sdk';
 import type { BoardRotation, BoardView, ControllerState, ViewerView } from '@banora/sdk';
@@ -6,6 +7,16 @@ import { downloadDiagram } from '../diagram-download.js';
 import sample from '../fixtures/study.sgf?raw';
 import { describeComparison,pinComparison,startComparison } from '../comparison-pair.js';
 import type { ComparisonPair } from '../comparison-pair.js';
+import {mountSharing} from '../sharing-controls.js';
+
+const Sharing=defineComponent({props:{controller:{type:Object as PropType<RecordController>,required:true}},setup(props) {
+  const host=ref<HTMLDivElement>();let dispose:(() => void)|undefined,stop:(() => void)|undefined;
+  onMounted(() => {stop=watch(() => props.controller,controller => {
+    dispose?.();if (host.value) dispose=mountSharing(host.value,toRaw(controller) as RecordController);
+  },{immediate:true});});
+  onBeforeUnmount(() => {stop?.();dispose?.();});
+  return () => h('div',{ref:host});
+}});
 
 const records = [new RecordController({ sgf: sample }), new RecordController({ sgf: '(;SZ[13]GN[Second record];B[dd];W[jj])' })];
 const App = defineComponent({ setup() {
@@ -59,6 +70,7 @@ const App = defineComponent({ setup() {
       controller: controller.value, readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(), theme: flat.value ? 'flat' : 'wood', onStateChange, onView:bindBoard,
     })), h('section', { id: 'viewer-host' }, h(Viewer, { controller: controller.value, editable: !readOnly.value, onView:bindViewer, board: { transform:transform(), drawing:drawing(), touch:touch(), theme: flat.value ? 'flat' : 'wood' } }))]) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
+    mounted.value ? h(Sharing,{controller:controller.value as RecordController}) : null,
     mounted.value ? h('section', { id: 'owned-board', style: { maxWidth: '350px' } }, [h('h2', null, 'Optional owned controller'),
       h(Board, { readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(), theme: flat.value ? 'flat' : 'wood' })]) : null,
     mounted.value && pair() ? h('section',{id:'comparison-host'},[h('h2','Position comparison'),

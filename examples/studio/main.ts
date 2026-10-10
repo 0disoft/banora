@@ -1,6 +1,7 @@
 import { RecordController, decodeSgf, mountBoard, mountComparison, parseSgf } from '@banora/sdk';
-import type { BoardRotation, CommandResult, ComparisonView, ControllerState, MarkerKind, Point, SgfNode, TouchOptions } from '@banora/sdk';
+import type { BoardRotation, CommandResult, ComparisonView, ControllerState, MarkerKind, Point, RecordLocator, SgfNode, SgfRecord, TouchOptions } from '@banora/sdk';
 import sample from '../fixtures/study.sgf?raw';
+import {mountSharing} from '../sharing-controls.js';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const controller = new RecordController({ sgf: sample });
@@ -141,27 +142,36 @@ function exportRecord(): boolean {
     return false;
   } finally { if (url) setTimeout(() => URL.revokeObjectURL(url!), 30_000); }
 }
-async function mayReplace(): Promise<boolean> {
-  if (!controller.getState().dirty) return true;
+async function mayReplace(signal?:AbortSignal): Promise<SgfRecord|null> {
+  if (signal?.aborted || dialog.open) return null;
+  if (!controller.getState().dirty) return controller.getState().record;
   return new Promise(resolve => {
     dialog.returnValue = 'cancel';
-    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'discard' ||
-      (dialog.returnValue === 'export' && exportRecord())), { once: true });
+    const cancel=() => {dialog.removeEventListener('close',closed);if (dialog.open) dialog.close('cancel');resolve(null);};
+    const closed=() => {
+      signal?.removeEventListener('abort',cancel);
+      const allowed=dialog.returnValue === 'discard' || (dialog.returnValue === 'export' && exportRecord() && !controller.getState().dirty);
+      resolve(allowed ? controller.getState().record : null);
+    };
+    dialog.addEventListener('close',closed,{once:true});signal?.addEventListener('abort',cancel,{once:true});
     dialog.showModal();
   });
 }
-async function openRecord(input: string | Uint8Array, name: string): Promise<void> {
-  if (opening) return;
+async function openRecord(input: string | Uint8Array, name: string, locator?:RecordLocator, signal?:AbortSignal): Promise<boolean> {
+  if (opening || signal?.aborted) return false;
   opening = true;
   try {
     const parsed = typeof input === 'string' ? parseSgf(input) : decodeSgf(input);
-    if (!parsed.ok) { status.textContent = parsed.diagnostics.map(item => item.message).join('; '); return; }
-    if (!await mayReplace()) return;
+    if (!parsed.ok) { status.textContent = parsed.diagnostics.map(item => item.message).join('; '); return false; }
+    const approved=await mayReplace(signal);
+    if (!approved || signal?.aborted) return false;
+    if (controller.getState().record!==approved) {status.textContent='Record changed during approval. Open it again.';return false;}
     const previousName = filename;
     filename = name.replace(/[\\/:*?"<>|]/g, '-').slice(0, 100);
-    const result = controller.loadSgf(input, { discardChanges: true });
-    if (!result.ok) { filename = previousName; report(result); return; }
+    const result = controller.loadSgf(input, { discardChanges: true, locator });
+    if (!result.ok) { filename = previousName; report(result); return false; }
     status.textContent = `Opened ${filename}. Everything stays local.`;
+    return true;
   } finally { opening = false; }
 }
 async function openFile(selected?: File): Promise<void> {
@@ -247,9 +257,12 @@ document.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); report(event.shiftKey ? controller.redo() : controller.undo()); }
 });
 window.addEventListener('beforeunload', event => { if (controller.getState().dirty) { event.preventDefault(); event.returnValue = ''; } });
-window.addEventListener('pagehide', event => { if (!event.persisted) { comparison?.dispose();view.dispose(); unsubscribe(); controller.dispose(); } });
+window.addEventListener('pagehide', event => { if (!event.persisted) { disposeSharing();comparison?.dispose();view.dispose(); unsubscribe(); controller.dispose(); } });
 let dragDepth = 0;
 document.addEventListener('dragover', event => { if (event.dataTransfer?.types.includes('Files')) event.preventDefault(); });
 document.addEventListener('dragenter', event => { if (event.dataTransfer?.types.includes('Files')) { dragDepth++; document.body.classList.add('dragging'); } });
 document.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragging'); } });
 document.addEventListener('drop', event => { event.preventDefault(); dragDepth = 0; document.body.classList.remove('dragging'); void openFile(event.dataTransfer?.files[0]); });
+const disposeSharing=mountSharing(find('sharing-host'),controller,{
+  replace:(shared,signal) => openRecord(shared.sgf,shared.kind==='position' ? 'shared-position.sgf' : 'shared-record.sgf',shared.locator,signal),
+});

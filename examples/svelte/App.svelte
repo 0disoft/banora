@@ -7,6 +7,7 @@
   import sample from '../fixtures/study.sgf?raw';
   import { describeComparison,pinComparison,startComparison } from '../comparison-pair.js';
   import type { ComparisonPair } from '../comparison-pair.js';
+  import Sharing from './Sharing.svelte';
 
   const records = [new RecordController({ sgf: sample }), new RecordController({ sgf: '(;SZ[13]GN[Second record];B[dd];W[jj])' })];
   let controller = $state.raw(records[0]!);
@@ -71,6 +72,7 @@
       <section id="board-host"><Board {controller} {readOnly} {transform} {drawing} {touch} theme={flat ? 'flat' : 'wood'} onStateChange={callbackB ? reportB : reportA} onView={bindBoard}/></section>
       <section id="viewer-host"><Viewer {controller} editable={!readOnly} onView={bindViewer} board={{ transform, drawing, touch, theme: flat ? 'flat' : 'wood' }}/></section>
     </div>
+    <Sharing {controller}/>
     <section id="owned-board" style="max-width:350px"><h2>Optional owned controller</h2><Board {readOnly} {transform} {drawing} {touch} theme={flat ? 'flat' : 'wood'}/></section>
     {#if pair}
       <section id="comparison-host"><h2>Position comparison</h2><p id="comparison-summary">{describeComparison(pair,$recordStore)}</p>
