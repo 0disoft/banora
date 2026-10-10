@@ -83,8 +83,8 @@ direction. SGF AR/LN are validated under the
 ## Implemented Board Mounting
 
 `@banora/sdk/board` and the root export expose `mountBoard(container, options?)`.
-The returned `BoardView` exposes `controller`, `update(options)` and idempotent
-`dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
+The returned `BoardView` exposes `controller`, `update(options)`, `exportSvg`,
+`exportPng` and idempotent `dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
 `coordinates`, `moveNumbers`, integer `crop`, `transform` and `onPoint(point)`.
 
 An externally supplied controller survives view disposal. If omitted, the view
@@ -121,6 +121,29 @@ plus `BoardRotation`, `BoardTransform`, `BoardSize` and `BoardCrop` types. Point
 conversion accepts finite fractional/outside points for annotations/margins; callers
 still validate legal moves against their logical board. Dimensions remain 2 to 52.
 
+## Position Diagrams
+
+Both `BoardView` and `ViewerView` provide `exportSvg(options?): string` and
+`exportPng(options?): Promise<Blob>`. `DiagramOptions` accepts pixel `width`,
+`height` and a plain-text `title` (at most 1024 characters). A missing dimension
+follows the current viewBox aspect ratio; default width is 1024. Dimensions must
+be integers from 1 to 8192, totaling at most 16 megapixels. Invalid size/options
+throw or reject without modifying the record. Returned PNG blobs use `image/png`.
+
+Diagrams capture the drawing at invocation, including the current theme, crop,
+transform, marks, arrows and move numbers. Computed colors/fonts are copied into
+the standalone SVG; hover previews/cursors/interaction and scripts are excluded.
+Inherited or external paint references are rejected rather than exporting a broken
+reference. Text uses the browser's installed fonts; font files are not embedded.
+PNG uses a temporary SVG image and 2D canvas for encoding, not a second live board
+renderer. Encoding/decode errors reject; pending PNG exports reject with `AbortError`
+when the view is disposed, and release temporary URLs/canvas resources. Decoding
+has a ten-second timeout. Export after disposal is rejected.
+
+Hosts own download/storage. Image export does not acknowledge an SGF export ticket
+or clear dirty state; an image cannot preserve the complete record/variation tree.
+Studio's Save SVG/PNG actions and all three framework examples exercise this contract.
+
 ## Complete Viewer
 
 `@banora/sdk/viewer` and the root export expose `mountViewer(container, options?)`.
@@ -129,8 +152,8 @@ still validate legal moves against their logical board. Dimensions remain 2 to 5
 Supplying both controller and SGF throws. The viewer includes game selection,
 move controls, branch selection, player information/captures and comments.
 
-The returned `ViewerView` exposes `controller`, `update(options)` and idempotent
-`dispose()`. Updating presentation/editability retains the same controller and
+The returned `ViewerView` exposes `controller`, `update(options)`, board-only diagram
+exports and idempotent `dispose()`. Updating presentation/editability retains the same controller and
 record. Enable editing for legal board moves/pass, grouped comments and Undo/Redo.
 Hosts can supply `board.onPoint` for other editing/inspection modes. Hosts still
 own unsaved-change confirmation and file export transport.
@@ -163,9 +186,9 @@ plain mount's initial `sgf` option. All other rendering/editability options are 
 
 | Package | State binding | Container and events |
 | --- | --- | --- |
-| React | `useRecordState(controller): ControllerState` via `useSyncExternalStore` | `className`, React `style`, `ariaLabel`, `onStateChange(state)` |
-| Vue | `useRecordState(controllerOrRefOrGetter)` in setup, returning a read-only snapshot ref | Forwarded attributes and `stateChange(state)` emission |
-| Svelte | `createRecordStore(controller)` returning a readable snapshot store | `class`, CSS text `style`, `ariaLabel`, `onStateChange(state)` |
+| React | `useRecordState(controller): ControllerState` via `useSyncExternalStore` | `className`, React `style`, `ariaLabel`, `onStateChange(state)`, `onView(viewOrNull)` |
+| Vue | `useRecordState(controllerOrRefOrGetter)` in setup, returning a read-only snapshot ref | Forwarded attributes, `stateChange(state)` and `view(viewOrNull)` emissions |
+| Svelte | `createRecordStore(controller)` returning a readable snapshot store | `class`, CSS text `style`, `ariaLabel`, `onStateChange(state)`, `onView(viewOrNull)` |
 
 Configuration updates preserve record state. Replacing the controller remounts the
 view; unmounting removes its listeners/subscriptions and retains a host controller.
@@ -173,6 +196,13 @@ Without a controller each component owns a separate record, disposed on unmount.
 Subscriptions immediately report the current snapshot, including on remount;
 React development Strict Mode may mount/clean up/mount effects before normal use.
 The framework owns the empty container and the SDK its descendants.
+
+View bindings expose `BoardView | ViewerView | null` for imperative diagram export.
+Mount supplies the handle; cleanup clears it with null. React/Svelte callback changes
+also clear the old binding and connect the new callback; memoize React callbacks to
+avoid unnecessary rebinding. Vue's event listener follows native event semantics.
+Treat a received handle as borrowed: use component props for configuration and let
+the framework adapter own its disposal. No view binding runs during SSR.
 
 Vue adapters accept deep refs by unwrapping their controller handle; prefer
 `shallowRef` and use `toRaw` before directly calling a controller stored in a deep

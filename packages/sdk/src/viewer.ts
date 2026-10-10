@@ -1,5 +1,5 @@
 import { mountBoard } from './board.js';
-import type { BoardOptions, BoardView } from './board.js';
+import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
 import { RecordController } from './controller.js';
 import type { CommandResult, ControllerState } from './controller.js';
 import { pointFromSgf } from './sgf.js';
@@ -16,6 +16,8 @@ export interface ViewerOptions {
 export interface ViewerView {
   readonly controller: RecordController;
   update(options: Omit<ViewerOptions, 'controller' | 'sgf'>): void;
+  exportSvg(options?: DiagramOptions): string;
+  exportPng(options?: DiagramOptions): Promise<Blob>;
   dispose(): void;
 }
 
@@ -154,6 +156,8 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     if (!result.ok) comment.value = controller.getState().node.properties.C?.[0] ?? '';
   }, { signal: abort.signal });
   return Object.freeze({ controller,
+    exportSvg: (config?: DiagramOptions) => board.exportSvg(config),
+    exportPng: (config?: DiagramOptions) => board.exportPng(config),
     update(next: Omit<ViewerOptions, 'controller' | 'sgf'>) {
       if (disposed) throw new Error('Viewer is disposed');
       const previous = options;

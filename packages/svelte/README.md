@@ -34,3 +34,9 @@ Native components and declarations are packaged with `@sveltejs/package` 3.x and
 checked by `svelte-check` 4.x using isolated TypeScript 6.x. This does not downgrade
 the SDK/root TypeScript 7.x toolchain. See the repository's SDK API, compatibility
 document and Svelte consumer example for tested versions and limitations.
+
+`onView(viewOrNull)` supplies a borrowed BoardView/ViewerView handle for
+`exportSvg(options)` or asynchronous `exportPng(options)`. Cleanup clears it with
+null, including callback replacement. Keep handles raw, configure through props
+and leave disposal to the component. Image export does not save the SGF record or
+clear dirty state.

@@ -62,6 +62,13 @@ An implemented slice does not complete its milestone or establish untested compa
   tarball verifies execution without DOM globals; `examples/browser` verifies a
   production script-only viewer, editing/Undo and external-controller remount in
   Chrome 154. The bundle needs no framework, ESM loader or implicit remote assets.
+- Position diagrams: BoardView/ViewerView export standalone SVG and real PNG blobs
+  with bounded dimensions, current colors/crop/transforms and no interaction overlays.
+  Studio and each framework consumer download both formats through public view
+  bindings. Chrome 154 checks XML/text escaping, PNG dimensions/pixels/signatures,
+  snapshot timing across later edits, encoding failure and disposal cancellation.
+  Images leave the SGF dirty/export baseline untouched. Packed adapter SSR checks
+  confirm that browser view bindings do not run on the server.
 - Tooling uses Bun 1.x, TypeScript 7.x and Vite 8.x, with the lockfile capturing
   resolved versions. Core has zero runtime dependencies. No hosted CI is configured.
 - Root and package MIT license files cover original code/documentation.
@@ -76,7 +83,7 @@ An implemented slice does not complete its milestone or establish untested compa
    Branch removal/reordering, free setup and lines/arrows also have local evidence.
    The classic browser distribution also has package/client evidence.
    Freehand annotations, remaining teaching/presentation tools,
-   diagrams and sharing remain to be delivered. Rotation/reflection is implemented;
+   sharing remains to be delivered. Rotation/reflection and SVG/PNG static diagrams are implemented;
    animation/textures, magnified touch and variation comparison are still pending.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.

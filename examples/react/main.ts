@@ -2,7 +2,8 @@ import { createElement as h, StrictMode, useCallback, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Board, Viewer, useRecordState } from '@banora/react';
 import { RecordController } from '@banora/sdk';
-import type { BoardRotation, ControllerState } from '@banora/sdk';
+import type { BoardRotation, BoardView, ControllerState, ViewerView } from '@banora/sdk';
+import { downloadDiagram } from '../diagram-download.js';
 import sample from '../fixtures/study.sgf?raw';
 
 const records = [new RecordController({ sgf: sample }), new RecordController({ sgf: '(;SZ[13]GN[Second record];B[dd];W[jj])' })];
@@ -13,6 +14,9 @@ function App() {
   const [flat, setFlat] = useState(false);
   const [rotation, setRotation] = useState<BoardRotation>(0);
   const [flipX, setFlipX] = useState(false);
+  const [boardView, setBoardView] = useState<BoardView | ViewerView | null>(null);
+  const [viewerView, setViewerView] = useState<BoardView | ViewerView | null>(null);
+  const [error, setError] = useState('');
   const transform = {rotation,flipX};
   const [callbackB, setCallbackB] = useState(false);
   const [events, setEvents] = useState(0);
@@ -26,6 +30,8 @@ function App() {
     h('p', null, 'Board and Viewer share one controller. React Strict Mode is enabled.'),
     h('p', { id: 'state', role: 'status' }, `Move ${state.position.moveNumber} · ${state.position.width} × ${state.position.height} · ${state.dirty ? 'changed' : 'clean'}`),
     h('p', { id: 'events' }, `Events ${events} · ${last}`),
+    h('p', {id:'diagram-error',role:'status'},error),
+    h('p', {id:'view-handles'},`View handles ${Number(!!boardView) + Number(!!viewerView)}`),
     h('div', { className: 'controls' }, button('advance', 'Advance controller', () => controller.next()),
       button('toggle', mounted ? 'Unmount widgets' : 'Mount widgets', () => setMounted(value => !value)),
       button('readonly', readOnly ? 'Enable placement' : 'Read only', () => setReadOnly(value => !value)),
@@ -34,9 +40,12 @@ function App() {
       button('reflect', 'Reflect board', () => setFlipX(value => !value)),
       button('callback', 'Change callback', () => setCallbackB(value => !value)),
       button('swap', 'Switch controller', () => setSecond(value => !value))),
+    h('div', {className:'controls'},
+      h('button', {id:'png', disabled:!mounted || !boardView, onClick:() => { void downloadDiagram(boardView,'png','react-board.png').catch(error => setError(String(error))); }}, 'Save board PNG'),
+      h('button', {id:'svg', disabled:!mounted || !viewerView, onClick:() => { void downloadDiagram(viewerView,'svg','react-viewer.svg').catch(error => setError(String(error))); }}, 'Save viewer SVG')),
     mounted ? h('div', { className: 'boards' }, h('section', { id: 'board-host' },
-      h(Board, { controller, readOnly, transform, theme: flat ? 'flat' : 'wood', onStateChange })),
-    h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, board: { transform, theme: flat ? 'flat' : 'wood' } }))) :
+      h(Board, { controller, readOnly, transform, theme: flat ? 'flat' : 'wood', onStateChange, onView:setBoardView })),
+    h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, onView:setViewerView, board: { transform, theme: flat ? 'flat' : 'wood' } }))) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
     mounted ? h('section', { id: 'owned-board', style: { maxWidth: 350 } }, h('h2', null, 'Optional owned controller'),
       h(Board, { readOnly, transform, theme: flat ? 'flat' : 'wood' })) : null);

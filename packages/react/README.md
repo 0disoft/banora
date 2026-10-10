@@ -29,6 +29,13 @@ record and disposes it on unmount. Configuration changes preserve its state;
 controller replacement disposes/remounts the view. Host controllers must outlive
 their views and be disposed by the host when no longer needed.
 
+`onView(viewOrNull)` supplies a borrowed BoardView/ViewerView handle for
+`exportSvg(options)` or asynchronous `exportPng(options)`. Cleanup clears the binding
+with null. Use a stable callback (for example a state setter or `useCallback`);
+callback replacement clears the old binding and connects the new one. Configure
+through props and leave view disposal to the component. Image export does not save
+the SGF record or clear dirty state.
+
 The framework owns the empty container; the SDK owns its descendants. SSR emits
 only containers; board DOM mounts in client effects. Supply matching record content
 on server/client for state hydration. Rendered board HTML hydration is deferred.

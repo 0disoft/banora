@@ -18,6 +18,13 @@ async page => {
     await page.locator('#rotate').click(); await page.locator('#reflect').click();
     await page.waitForFunction(() => [...document.querySelectorAll('svg')].every(svg => svg.dataset.rotation === '90' && svg.dataset.flipX === 'true'));
     verify(await page.locator('#owned-board [data-stone]').count() === 1, `${framework}: transform reset owned state`);
+    for (const format of ['png','svg']) {
+      const downloadPromise = page.waitForEvent('download');
+      await page.locator(`#${format}`).click();
+      const download = await downloadPromise;
+      await download.saveAs(`output/playwright/${framework}-diagram.${format}`);
+    }
+    verify(await page.locator('#diagram-error').innerText() === '', `${framework}: diagram callback failed`);
     for (let turn = 0; turn < 3; turn++) await page.locator('#rotate').click();
     await page.locator('#reflect').click();
     await page.locator('#advance').click();
@@ -34,12 +41,15 @@ async page => {
     verify(after === before + 1, `${framework}: duplicate or stale state callback`);
     await page.locator('#toggle').click();
     verify(await page.locator('svg').count() === 0, `${framework}: unmount leaked renderer`);
+    verify(await page.locator('#png').isDisabled() && await page.locator('#svg').isDisabled(), `${framework}: disposed view handle retained`);
+    await page.waitForFunction(() => document.querySelector('#view-handles').textContent === 'View handles 0');
     const unmountedEvents = await page.locator('#events').innerText();
     await page.locator('#advance').click();
     await page.waitForFunction(() => document.querySelector('#state').textContent.includes('Move 3'));
     verify(await page.locator('#events').innerText() === unmountedEvents, `${framework}: unmounted callback still subscribed`);
     await page.locator('#toggle').click();
     await page.waitForFunction(() => document.querySelectorAll('svg').length === 3);
+    await page.waitForFunction(() => document.querySelector('#view-handles').textContent === 'View handles 2');
     verify(await page.locator('#board-host [data-stone]').count() === 3, `${framework}: remount lost shared controller`);
     await page.locator('#swap').click();
     await page.waitForFunction(() => document.querySelector('#state').textContent.includes('13 × 13'));

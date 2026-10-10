@@ -8,13 +8,14 @@ interface ContainerProps {
   readonly style?: CSSProperties;
   readonly ariaLabel?: string;
   readonly onStateChange?: (state: ControllerState) => void;
+  readonly onView?: (view: BoardView | ViewerView | null) => void;
 }
 export type BoardProps = BoardOptions & ContainerProps;
 export type ViewerProps = Omit<ViewerOptions, 'sgf'> & ContainerProps;
 
 function useMount(kind: 'board' | 'viewer', container: RefObject<HTMLDivElement | null>,
   controller: RecordController | undefined, options: BoardOptions | ViewerOptions,
-  callback: ContainerProps['onStateChange']) {
+  callback: ContainerProps['onStateChange'], onView: ContainerProps['onView']) {
   const view = useRef<BoardView | ViewerView | null>(null);
   const onStateChange = useRef(callback);
   useEffect(() => { onStateChange.current = callback; }, [callback]);
@@ -27,6 +28,7 @@ function useMount(kind: 'board' | 'viewer', container: RefObject<HTMLDivElement 
     return () => { unsubscribe(); mounted.dispose(); if (view.current === mounted) view.current = null; };
   }, [kind, controller, container]);
   useEffect(() => { view.current?.update(options); }, [options]);
+  useEffect(() => { onView?.(view.current); return () => onView?.(null); }, [kind,controller,onView]);
 }
 
 export function Board(props: BoardProps) {
@@ -34,14 +36,14 @@ export function Board(props: BoardProps) {
   const options = useMemo(() => ({ readOnly: props.readOnly, theme: props.theme, coordinates: props.coordinates,
     moveNumbers: props.moveNumbers, crop: props.crop, transform: props.transform, onPoint: props.onPoint }),
   [props.readOnly, props.theme, props.coordinates, props.moveNumbers, props.crop, props.transform, props.onPoint]);
-  useMount('board', container, props.controller, options, props.onStateChange);
+  useMount('board', container, props.controller, options, props.onStateChange, props.onView);
   return createElement('div', { ref: container, className: props.className, style: props.style, 'aria-label': props.ariaLabel ?? 'Banora board' });
 }
 export function Viewer(props: ViewerProps) {
   const container = useRef<HTMLDivElement>(null);
   const options = useMemo(() => ({ editable: props.editable, comments: props.comments,
     variations: props.variations, board: props.board }), [props.editable, props.comments, props.variations, props.board]);
-  useMount('viewer', container, props.controller, options, props.onStateChange);
+  useMount('viewer', container, props.controller, options, props.onStateChange, props.onView);
   return createElement('div', { ref: container, className: props.className, style: props.style, 'aria-label': props.ariaLabel ?? 'Banora viewer' });
 }
 

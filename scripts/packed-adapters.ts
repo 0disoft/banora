@@ -38,7 +38,10 @@ for (const framework of ['react', 'vue', 'svelte'] as const) {
   const metadata = JSON.parse(await readFile(resolve(installed, 'package.json'), 'utf8'));
   if (metadata.dependencies && Object.keys(metadata.dependencies).length) throw new Error('Adapters must use peers, not bundled framework dependencies');
   const prelude = `import { RecordController } from '@banora/sdk';
+import type {BoardView, ViewerView} from '@banora/sdk';
 const controller = new RecordController({sgf:'(;SZ[9];B[aa])'}); controller.next();
+let bindings = 0;
+const onView = (view: BoardView | ViewerView | null) => { bindings++; view?.exportSvg({width:128}); };
 `;
   const source = framework === 'react' ? `${prelude}
 import {createElement} from 'react';
@@ -47,8 +50,8 @@ import {Board, Viewer, useRecordState} from '@banora/react';
 function App() {
   const state = useRecordState(controller);
   return createElement('main', null, createElement('p', null, 'Move ' + state.position.moveNumber),
-    createElement(Board, {controller, theme:'flat', onStateChange: state => void state.dirty}),
-    createElement(Viewer, {controller, editable:false}));
+    createElement(Board, {controller, transform:{rotation:90}, onView, theme:'flat', onStateChange: state => void state.dirty}),
+    createElement(Viewer, {controller, onView, editable:false}));
 }
 const html = renderToString(createElement(App));
 ` : framework === 'vue' ? `${prelude}
@@ -59,17 +62,18 @@ const App = defineComponent({setup() {
   const selected = ref(controller);
   const state = useRecordState(selected);
   return () => h('main', [h('p', 'Move ' + state.value.position.moveNumber),
-    h(Board, {controller:selected.value, theme:'flat', onStateChange: state => void state.dirty}),
-    h(Viewer, {controller:selected.value, editable:false})]);
+    h(Board, {controller:selected.value, transform:{rotation:90}, onView, theme:'flat', onStateChange: state => void state.dirty}),
+    h(Viewer, {controller:selected.value, onView, editable:false})]);
 }});
 const html = await renderToString(createSSRApp(App));
 ` : `${prelude}
 import {render} from 'svelte/server';
 import App from './App.svelte';
-const html = render(App, {props:{controller}}).body;
+const html = render(App, {props:{controller,onView}}).body;
 `;
   const checks = `
 if (!html.includes('Move 1') || !html.includes('Banora board') || !html.includes('Banora viewer') || html.includes('<svg')) throw Error('SSR/client mount boundary failed: ' + html);
+if (bindings !== 0) throw Error('SSR invoked a browser view binding');
 controller.dispose(); console.log('${framework} packed types and SSR host rendering passed');
 `;
   await writeFile(resolve(consumer, 'consumer.ts'), source + checks);
@@ -80,13 +84,13 @@ controller.dispose(); console.log('${framework} packed types and SSR host render
   if (framework === 'svelte') {
     await writeFile(resolve(consumer, 'App.svelte'), `<script lang="ts">
 import {Board, Viewer, createRecordStore} from '@banora/svelte';
-import type {RecordController} from '@banora/sdk';
-let {controller}: {controller:RecordController} = $props();
+import type {BoardView, RecordController, ViewerView} from '@banora/sdk';
+let {controller,onView}: {controller:RecordController, onView:(view:BoardView | ViewerView | null) => void} = $props();
 const record = $derived(createRecordStore(controller));
 </script>
 <main><p>Move {$record.position.moveNumber}</p>
-<Board {controller} theme="flat" ariaLabel="Banora board" onStateChange={state => void state.dirty}/>
-<Viewer {controller} editable={false} ariaLabel="Banora viewer"/></main>
+<Board {controller} {onView} transform={{rotation:90}} theme="flat" ariaLabel="Banora board" onStateChange={state => void state.dirty}/>
+<Viewer {controller} {onView} editable={false} ariaLabel="Banora viewer"/></main>
 `);
     for (const file of ['dist/Board.svelte', 'dist/Viewer.svelte', 'dist/Board.svelte.d.ts', 'dist/Viewer.svelte.d.ts']) await readFile(resolve(installed, file));
     run([process.execPath, 'run', '--cwd', resolve(root, 'packages/svelte'), 'svelte-check', '--tsconfig', resolve(consumer, 'tsconfig.json')], root);

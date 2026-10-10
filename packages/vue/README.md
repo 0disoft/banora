@@ -34,3 +34,9 @@ The framework owns the container, the SDK its descendants. SSR emits only contai
 and state text, with no browser globals or board DOM; client mount creates the SVG.
 Supply matching record content for hydration. Board HTML hydration is deferred.
 See the repository's SDK API, compatibility document and Vue consumer example.
+
+The `view(viewOrNull)` event supplies a borrowed BoardView/ViewerView for
+`exportSvg(options)` or asynchronous `exportPng(options)`. Keep it in a shallow ref;
+null clears the handle on unmount/controller replacement. Use component props for
+configuration and let the component dispose its view. Images do not save the SGF
+record or clear dirty state.

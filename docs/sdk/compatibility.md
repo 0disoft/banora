@@ -30,6 +30,7 @@ UNDECIDED and must not be claimed without consumer evidence.
 | Core and SGF | Browser and Node.js, no DOM required | Node 24.14.0 packed consumer and Chrome 154 browser flows; broader floors pending |
 | SVG renderer and Studio | Browsers with the required SVG/input APIs | Production flows checked on Windows Headless Chrome 154; broader matrix pending |
 | Classic browser script | Modern browser, global `Banora` namespace | Chrome 154 standalone viewer/edit/remount flows and packed global declarations checked |
+| SVG/PNG diagrams | Mounted browser board/viewer | Chrome 154 standalone XML, real PNG dimensions/pixels, errors and cancellation checked |
 | React adapter | React 19, client effects and server host rendering | React/react-dom 19.3.0; production lifecycle/Strict Mode and packed types/SSR checked |
 | Vue adapter | Vue 3, client mount and server host rendering | Vue 3.5.43; production refs/lifecycle and packed types/SSR checked |
 | Svelte adapter | Svelte 5, native components and server host rendering | Svelte 5.57.2; production lifecycle and native tarball types/SSR checked |
@@ -85,6 +86,13 @@ it to ESM. CommonJS support remains unclaimed.
 Headless `@banora/sdk/geometry` is checked without DOM type libraries. Rotation and
 reflection preserve logical coordinates and crop bounds on rectangular boards;
 production checks cover all eight combinations and framework configuration updates.
+
+Diagram exports include computed presentation and captured drawing state without
+cursor/preview overlays. PNG requires browser image decoding and a 2D canvas;
+SVG/PNG generation is not a server rendering claim. Browser fonts are used without
+font-file embedding. View bindings support export from all three native adapters and
+are not called during SSR. Async encoding failure/disposal and later edits are
+covered separately from successful downloads; image export never saves an SGF.
 
 ## Record Compatibility
 

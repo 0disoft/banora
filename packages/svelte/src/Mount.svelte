@@ -9,7 +9,7 @@
     controller?: RecordController;
     options: BoardOptions | ViewerOptions;
   }
-  let { kind, controller, options, onStateChange, class: className, style, ariaLabel }: Props = $props();
+  let { kind, controller, options, onStateChange, onView, class: className, style, ariaLabel }: Props = $props();
   let container = $state<HTMLElement>();
   let view = $state.raw<BoardView | ViewerView | null>(null);
   $effect(() => {
@@ -24,6 +24,11 @@
     return () => { unsubscribe(); mounted.dispose(); view = null; };
   });
   $effect(() => { view?.update(options); });
+  $effect(() => {
+    const callback = onView, mounted = view;
+    if (mounted) untrack(() => callback?.(mounted));
+    return () => untrack(() => callback?.(null));
+  });
 </script>
 
 <div bind:this={container} class={className} {style} aria-label={ariaLabel}></div>

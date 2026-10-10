@@ -5,8 +5,11 @@ import type { ControllerState } from './controller.js';
 import { expandSgfPoints, pointFromSgf } from './sgf.js';
 import { displayCrop, normalizeBoardTransform, toDisplayPoint, toLogicalPoint } from './geometry.js';
 import type { BoardCrop, BoardTransform } from './geometry.js';
+import { rasterizeBoardDiagram, serializeBoardDiagram } from './diagram-export.js';
+import type { DiagramOptions } from './diagram-export.js';
 
 export type { BoardCrop, BoardTransform } from './geometry.js';
+export type { DiagramOptions } from './diagram-export.js';
 export interface BoardOptions {
   readonly controller?: RecordController;
   readonly readOnly?: boolean;
@@ -20,6 +23,8 @@ export interface BoardOptions {
 export interface BoardView {
   readonly controller: RecordController;
   update(options: Omit<BoardOptions, 'controller'>): void;
+  exportSvg(options?: DiagramOptions): string;
+  exportPng(options?: DiagramOptions): Promise<Blob>;
   dispose(): void;
 }
 const namespace = 'http://www.w3.org/2000/svg';
@@ -243,6 +248,14 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
   cropFor(current);
   const unsubscribe = controller.subscribe(state => { render(state); announce(state); });
   return Object.freeze({ controller,
+    exportSvg(config: DiagramOptions = {}) {
+      if (disposed) throw new Error('Board view is disposed');
+      return serializeBoardDiagram(svg,config).text;
+    },
+    async exportPng(config: DiagramOptions = {}) {
+      if (disposed) throw new Error('Board view is disposed');
+      return rasterizeBoardDiagram(document,serializeBoardDiagram(svg,config),abort.signal);
+    },
     update(next: Omit<BoardOptions, 'controller'>) {
       if (disposed) throw new Error('Board view is disposed');
       const previous = options;

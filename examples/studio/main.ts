@@ -193,6 +193,18 @@ const transformView = () => view.update({transform:{rotation:Number(find<HTMLSel
   flipX:find<HTMLInputElement>('flip-x').checked}});
 find('rotation').addEventListener('change', transformView);
 find('flip-x').addEventListener('change', transformView);
+async function exportDiagram(format: 'svg' | 'png') {
+  const name = `${filename.replace(/\.sgf$/i,'')}-move-${controller.getState().position.moveNumber}.${format}`;
+  try {
+    const blob = format === 'svg' ? new Blob([view.exportSvg()], {type:'image/svg+xml;charset=utf-8'}) : await view.exportPng();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a'); link.href = url; link.download = name; link.click();
+    setTimeout(() => URL.revokeObjectURL(url),30_000);
+    status.textContent = 'Diagram download started. Export SGF separately to save your record edits.';
+  } catch (error) { status.textContent = `Diagram export failed: ${String(error)}`; }
+}
+find('svg-export').addEventListener('click', () => { void exportDiagram('svg'); });
+find('png-export').addEventListener('click', () => { void exportDiagram('png'); });
 games.addEventListener('change', () => report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id)));
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && connectionStart) { connectionStart = undefined; status.textContent = 'Connection cancelled.'; }
