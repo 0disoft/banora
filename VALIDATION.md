@@ -41,6 +41,10 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 `bun run build` builds the common SDK; `bun run build:adapters` also builds the
 three adapters. SDK build emits selective ESM/declarations plus a standalone IIFE
 and its global declaration; example build copies that exact script into its output.
+`bun run example:katago <binary> <model>` builds the SDK and runs a bounded local
+CPU analysis example, requiring explicitly supplied engine/model files. It owns
+stdin/stdout/stderr, cancellation/deadline and process shutdown; it is not part of
+the default `check` or a hosted-service/browser check.
 `lint`, `format`, `contract`, `migration-check`
 are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.

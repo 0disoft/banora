@@ -30,6 +30,10 @@ unsubscribe();
 ```
 
 `hostEngine` is deliberately a host contract, not an exported Banora process API.
+A runnable [local CLI example](../../examples/katago-cli/README.md) now provides
+host-owned stdio framing, ordered writes, EOF handling, deadline and shutdown using
+an explicitly selected CPU engine/model. It starts no process merely by importing
+the helper and adds no process or network dependency to the SDK package.
 A WebSocket/service bridge uses the same fields but owns authentication, explicit
 connection consent and server-side engine lifecycle. Feed only stdout protocol
 messages; never engine stderr logs. SDK `sendLine` strings contain no newline.

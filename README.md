@@ -63,6 +63,8 @@ ownership and isolated legal PVs without changing source SGF. Offline mode uses
 explicitly authored illustrative data; manual KataGo JSON mode accepts your engine's
 responses without opening an automatic connection. See the
 [consumer guide](examples/analysis/README.md) and [view contract](docs/sdk/analysis-view.md).
+For an actual local CPU engine, the [KataGo CLI example](examples/katago-cli/README.md)
+bridges ordered stdio and performs one explicit analysis with a selected binary/model.
 
 ## Direction
 
