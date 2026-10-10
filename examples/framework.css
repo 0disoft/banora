@@ -1,1 +1,45 @@
-body{font:16px system-ui;max-width:1100px;margin:30px auto;padding:0 20px;color:#294738;background:#f3f3eb}a{color:#225b49}button{font:inherit;border:1px solid #cbd8c7;background:#fff;color:#294738;padding:8px 12px;border-radius:7px;cursor:pointer}.controls{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.boards{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:25px;align-items:start}#board-host,#viewer-host{min-width:0}button:focus-visible{outline:3px solid #589474;outline-offset:3px}@media(max-width:700px){.boards{grid-template-columns:1fr}}
+body {
+  font: 16px system-ui;
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
+  color: #294738;
+  background: #f3f3eb;
+}
+a {
+  color: #225b49;
+}
+button {
+  font: inherit;
+  border: 1px solid #cbd8c7;
+  background: #fff;
+  color: #294738;
+  padding: 8px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.boards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 25px;
+  align-items: start;
+}
+#board-host,
+#viewer-host {
+  min-width: 0;
+}
+button:focus-visible {
+  outline: 3px solid #589474;
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .boards {
+    grid-template-columns: 1fr;
+  }
+}

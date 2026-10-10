@@ -6,25 +6,25 @@
 
 ## Core Concepts
 
-| Concept | Meaning |
-| --- | --- |
-| Intersection | Zero-based `{ x, y }` from the top-left, independent of display rotation/reflection |
-| Board position | Immutable dimensions/stones/turn, capture/pass ledgers, pass streak, move number and rule-relevant history |
-| Rule policy | Explicit play policy (suicide, ko, pass stones) and separate named/custom scoring descriptors |
-| Action | Play, pass, setup/edit, undo/redo or record navigation |
-| Action result | Success with changes, or a structured failure without state mutation |
-| Position history | State required for navigation and repetition detection |
-| Record | Game metadata, SGF properties and a rooted variation tree |
-| Record node | Stable in-memory identity, ordered children, move/setup, comments and properties |
-| Cursor | Selected record path and the board derived by replaying that path |
-| Controller | Authority for the current record, selected node, edit history and subscriptions |
-| Edit history | Undoable record changes, separate from cursor navigation and repetition history |
-| Export baseline | Semantic record content used for dirty comparison; initialized on import and advanced on successful export |
-| Annotation | Marker, label, line, arrow or drawing associated with a node/position |
-| Dead-stone selection | User-confirmable scoring input; separate from a prediction |
-| Analysis context | Source node/import generation, current/epoch-initial positions, actual colored moves, scoring/komi/handicap and exact local identity |
-| Analysis result | Provider output tied to a request/context: candidates, scores, variations and ownership |
-| Puzzle | Initial position plus authored accepted/rejected continuations and feedback |
+| Concept              | Meaning                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Intersection         | Zero-based `{ x, y }` from the top-left, independent of display rotation/reflection                                                  |
+| Board position       | Immutable dimensions/stones/turn, capture/pass ledgers, pass streak, move number and rule-relevant history                           |
+| Rule policy          | Explicit play policy (suicide, ko, pass stones) and separate named/custom scoring descriptors                                        |
+| Action               | Play, pass, setup/edit, undo/redo or record navigation                                                                               |
+| Action result        | Success with changes, or a structured failure without state mutation                                                                 |
+| Position history     | State required for navigation and repetition detection                                                                               |
+| Record               | Game metadata, SGF properties and a rooted variation tree                                                                            |
+| Record node          | Stable in-memory identity, ordered children, move/setup, comments and properties                                                     |
+| Cursor               | Selected record path and the board derived by replaying that path                                                                    |
+| Controller           | Authority for the current record, selected node, edit history and subscriptions                                                      |
+| Edit history         | Undoable record changes, separate from cursor navigation and repetition history                                                      |
+| Export baseline      | Semantic record content used for dirty comparison; initialized on import and advanced on successful export                           |
+| Annotation           | Marker, label, line, arrow or drawing associated with a node/position                                                                |
+| Dead-stone selection | User-confirmable scoring input; separate from a prediction                                                                           |
+| Analysis context     | Source node/import generation, current/epoch-initial positions, actual colored moves, scoring/komi/handicap and exact local identity |
+| Analysis result      | Provider output tied to a request/context: candidates, scores, variations and ownership                                              |
+| Puzzle               | Initial position plus authored accepted/rejected continuations and feedback                                                          |
 
 ## State Authority
 

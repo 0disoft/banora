@@ -31,27 +31,27 @@ cloud storage and AI analysis are not part of Studio's initial workflow.
 
 ## Capability Scope
 
-| Area | Capability | First milestone |
-| --- | --- | --- |
-| Board | 9x9, 13x13, 19x19 and configurable dimensions; coordinates and cropped views | M1 |
-| Presentation | SVG, flat/wood themes, CSS variables, letters, shapes, move numbers | M1 |
-| Input | Pointer/touch/keyboard input, placement preview, responsive layout | M1 |
-| Rules | Captures, suicide policy, simple ko, pass, komi/handicap configuration, history | M1 |
-| Records | SGF import/export, metadata, comments, setup stones, branches and navigation | M1 |
-| Viewer / Studio | Navigation controls, variation tree, comments panel, player information, local/example loading and SGF download | M1 |
-| Basic editing | Create a continuation, edit comments, add/remove labels and shape markers | M1 |
-| Integration | Framework-independent API, selective ESM imports, Studio and read-only public-package consumers | M1 |
-| Additional integrations | Official optional React, Vue, and Svelte adapters/examples and browser script build | M2 |
-| Advanced presentation | Rotation/reflection, custom stone textures, placement animation | M2 |
-| Extended editing/teaching | Branch removal/reorganization, free setup, lines, arrows, pen annotations | M2 |
-| Mobile placement | Magnified aim, drag-and-release selection, optional confirmation | M2 |
-| Comparison | Side-by-side variations and changed-stone highlighting | M2 |
-| Sharing/export | Position/node links, static diagrams, PNG and SVG output | M2 |
-| Rule profiles | Explicit superko semantics and documented named profiles | M3 |
-| Scoring | Manual dead stones; territory/area, prisoners, komi and relevant rule adjustments | M3 |
-| Puzzles | Authored answer branches, scripted responses, hints, restart and answer events | M3 |
-| Analysis display | Candidate moves, win probability, score/move loss, principal variations and ownership | M4 |
-| Analysis integration | External provider adapters, including a KataGo JSON integration | M4 |
+| Area                      | Capability                                                                                                      | First milestone |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------- |
+| Board                     | 9x9, 13x13, 19x19 and configurable dimensions; coordinates and cropped views                                    | M1              |
+| Presentation              | SVG, flat/wood themes, CSS variables, letters, shapes, move numbers                                             | M1              |
+| Input                     | Pointer/touch/keyboard input, placement preview, responsive layout                                              | M1              |
+| Rules                     | Captures, suicide policy, simple ko, pass, komi/handicap configuration, history                                 | M1              |
+| Records                   | SGF import/export, metadata, comments, setup stones, branches and navigation                                    | M1              |
+| Viewer / Studio           | Navigation controls, variation tree, comments panel, player information, local/example loading and SGF download | M1              |
+| Basic editing             | Create a continuation, edit comments, add/remove labels and shape markers                                       | M1              |
+| Integration               | Framework-independent API, selective ESM imports, Studio and read-only public-package consumers                 | M1              |
+| Additional integrations   | Official optional React, Vue, and Svelte adapters/examples and browser script build                             | M2              |
+| Advanced presentation     | Rotation/reflection, custom stone textures, placement animation                                                 | M2              |
+| Extended editing/teaching | Branch removal/reorganization, free setup, lines, arrows, pen annotations                                       | M2              |
+| Mobile placement          | Magnified aim, drag-and-release selection, optional confirmation                                                | M2              |
+| Comparison                | Side-by-side variations and changed-stone highlighting                                                          | M2              |
+| Sharing/export            | Position/node links, static diagrams, PNG and SVG output                                                        | M2              |
+| Rule profiles             | Explicit superko semantics and documented named profiles                                                        | M3              |
+| Scoring                   | Manual dead stones; territory/area, prisoners, komi and relevant rule adjustments                               | M3              |
+| Puzzles                   | Authored answer branches, scripted responses, hints, restart and answer events                                  | M3              |
+| Analysis display          | Candidate moves, win probability, score/move loss, principal variations and ownership                           | M4              |
+| Analysis integration      | External provider adapters, including a KataGo JSON integration                                                 | M4              |
 
 Milestones describe delivery sequence; exact implemented coverage is owned by the
 current API/compatibility evidence. Komi configuration alone does not imply a

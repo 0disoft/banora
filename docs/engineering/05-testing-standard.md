@@ -7,20 +7,20 @@
 
 ## Risk-Based Coverage
 
-| Changed responsibility | Focused evidence |
-| --- | --- |
-| Rules | Captures, suicide, declared ko/repetition policy, pass, setup and undo/redo |
-| Records / SGF | FF4 Go parse/edit/UTF-8 export/reparse with unknown properties, branches and setup; declared-encoding failure retains active record |
+| Changed responsibility         | Focused evidence                                                                                                                                                                                |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rules                          | Captures, suicide, declared ko/repetition policy, pass, setup and undo/redo                                                                                                                     |
+| Records / SGF                  | FF4 Go parse/edit/UTF-8 export/reparse with unknown properties, branches and setup; declared-encoding failure retains active record                                                             |
 | Edit history / export baseline | Navigation adds no edit entries/dirty state; grouped comment Undo; Undo-to-baseline clears dirty; failed/cancelled export retains baseline; Export/Discard/Cancel retains or replaces as chosen |
-| State authority | Same actions yield equivalent headless/browser positions; invalid moves do not mutate |
-| Renderer/input | Coordinate transforms, hit testing, keyboard/mobile interaction and disposal |
-| Packaging/adapters | Studio/read-only/headless packed consumer imports, declarations, asset paths, optional dependency exclusion |
-| Studio workflow (M1) | Open SGF, navigate/create variation, edit comments/markers, download/reopen; keyboard and mobile operation |
-| Framework adapters (M2) | Independent React 19/Vue 3/Svelte 5 target consumers: updates, remount/dispose, external controller retention, safe server imports/client mounting and native type/component packaging |
-| Scoring (M3) | Confirmed dead-stone selection and each claimed scoring-policy edge case |
-| Puzzles (M3) | Accepted/rejected authored branches, scripted response and restart |
-| Analysis (M4) | Late responses, cancelled requests, changed context, provider failure and unmount |
-| Documentation | Relative links, scope/status consistency and whitespace review |
+| State authority                | Same actions yield equivalent headless/browser positions; invalid moves do not mutate                                                                                                           |
+| Renderer/input                 | Coordinate transforms, hit testing, keyboard/mobile interaction and disposal                                                                                                                    |
+| Packaging/adapters             | Studio/read-only/headless packed consumer imports, declarations, asset paths, optional dependency exclusion                                                                                     |
+| Studio workflow (M1)           | Open SGF, navigate/create variation, edit comments/markers, download/reopen; keyboard and mobile operation                                                                                      |
+| Framework adapters (M2)        | Independent React 19/Vue 3/Svelte 5 target consumers: updates, remount/dispose, external controller retention, safe server imports/client mounting and native type/component packaging          |
+| Scoring (M3)                   | Confirmed dead-stone selection and each claimed scoring-policy edge case                                                                                                                        |
+| Puzzles (M3)                   | Accepted/rejected authored branches, scripted response and restart                                                                                                                              |
+| Analysis (M4)                  | Late responses, cancelled requests, changed context, provider failure and unmount                                                                                                               |
+| Documentation                  | Relative links, scope/status consistency and whitespace review                                                                                                                                  |
 
 Add tests for observable behavior and material failure modes. Avoid assertions
 that merely reproduce implementation internals. Keep real SGF regression fixtures

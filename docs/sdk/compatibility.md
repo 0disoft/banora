@@ -25,19 +25,19 @@ UNDECIDED and must not be claimed without consumer evidence.
 
 ## Runtime Boundaries
 
-| Surface | Intended environment | Support status |
-| --- | --- | --- |
-| Core and SGF | Browser and Node.js, no DOM required | Node 24.14.0 packed consumer and Chrome 154 browser flows; broader floors pending |
-| SVG renderer and Studio | Browsers with the required SVG/input APIs | Production flows checked on Windows Headless Chrome 154; broader matrix pending |
-| Classic browser script | Modern browser, global `Banora` namespace | Chrome 154 standalone viewer/edit/remount flows and packed global declarations checked |
-| SVG/PNG diagrams | Mounted browser board/viewer | Chrome 154 standalone XML, real PNG dimensions/pixels, embedded textures, errors and cancellation checked |
-| Magnified touch placement | Browser Pointer Events/SVG; optional confirmation | Chrome 154 mobile touch emulation in Studio and React/Vue/Svelte; physical devices untested |
-| Position comparison | Common pinned SVG boards and native adapter composition | Chrome 154 Studio/React/Vue/Svelte flows; differences, exports, deletion/import generations and lifecycle checked |
-| React adapter | React 19, client effects and server host rendering | React/react-dom 19.3.0; production lifecycle/Strict Mode and packed types/SSR checked |
-| Vue adapter | Vue 3, client mount and server host rendering | Vue 3.5.43; production refs/lifecycle and packed types/SSR checked |
-| Svelte adapter | Svelte 5, native components and server host rendering | Svelte 5.57.2; production lifecycle and native tarball types/SSR checked |
-| Bun | Development/package scripts | Bun 1.x; checked with 1.4.2; consumer runtime support unclaimed |
-| AI adapter | Host-selected engine/service transport | Protocol/version matrix UNDECIDED |
+| Surface                   | Intended environment                                    | Support status                                                                                                    |
+| ------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Core and SGF              | Browser and Node.js, no DOM required                    | Node 24.14.0 packed consumer and Chrome 154 browser flows; broader floors pending                                 |
+| SVG renderer and Studio   | Browsers with the required SVG/input APIs               | Production flows checked on Windows Headless Chrome 154; broader matrix pending                                   |
+| Classic browser script    | Modern browser, global `Banora` namespace               | Chrome 154 standalone viewer/edit/remount flows and packed global declarations checked                            |
+| SVG/PNG diagrams          | Mounted browser board/viewer                            | Chrome 154 standalone XML, real PNG dimensions/pixels, embedded textures, errors and cancellation checked         |
+| Magnified touch placement | Browser Pointer Events/SVG; optional confirmation       | Chrome 154 mobile touch emulation in Studio and React/Vue/Svelte; physical devices untested                       |
+| Position comparison       | Common pinned SVG boards and native adapter composition | Chrome 154 Studio/React/Vue/Svelte flows; differences, exports, deletion/import generations and lifecycle checked |
+| React adapter             | React 19, client effects and server host rendering      | React/react-dom 19.3.0; production lifecycle/Strict Mode and packed types/SSR checked                             |
+| Vue adapter               | Vue 3, client mount and server host rendering           | Vue 3.5.43; production refs/lifecycle and packed types/SSR checked                                                |
+| Svelte adapter            | Svelte 5, native components and server host rendering   | Svelte 5.57.2; production lifecycle and native tarball types/SSR checked                                          |
+| Bun                       | Development/package scripts                             | Bun 1.x; checked with 1.4.2; consumer runtime support unclaimed                                                   |
+| AI adapter                | Host-selected engine/service transport                  | Protocol/version matrix UNDECIDED                                                                                 |
 
 Headless imports must not reference browser globals at module initialization.
 Headless core/records are intended for server-side use; board views mount after a

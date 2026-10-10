@@ -4,27 +4,88 @@
   "description": "Framework-independent Go board, rules and SGF toolkit",
   "type": "module",
   "license": "MIT",
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "exports": {
-    ".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"},
-    "./core": {"types": "./dist/core.d.ts", "import": "./dist/core.js"},
-    "./geometry": {"types": "./dist/geometry.d.ts", "import": "./dist/geometry.js"},
-    "./sgf": {"types": "./dist/sgf.d.ts", "import": "./dist/sgf.js"},
-    "./controller": {"types": "./dist/controller.d.ts", "import": "./dist/controller.js"},
-    "./board": {"types": "./dist/board.d.ts", "import": "./dist/board.js"},
-    "./viewer": {"types": "./dist/viewer.d.ts", "import": "./dist/viewer.js"},
-    "./comparison": {"types": "./dist/comparison.d.ts", "import": "./dist/comparison.js"},
-    "./share": {"types": "./dist/share.d.ts", "import": "./dist/share.js"},
-    "./textures": {"types": "./dist/textures.d.ts", "import": "./dist/textures.js"},
-    "./rules": {"types": "./dist/rules.d.ts", "import": "./dist/rules.js"},
-    "./scoring": {"types": "./dist/scoring.d.ts", "import": "./dist/scoring.js"},
-    "./puzzle": {"types": "./dist/puzzle.d.ts", "import": "./dist/puzzle.js"},
-    "./puzzle-view": {"types": "./dist/puzzle-view.d.ts", "import": "./dist/puzzle-view.js"},
-    "./analysis": {"types": "./dist/analysis.d.ts", "import": "./dist/analysis.js"},
-    "./katago": {"types": "./dist/katago.d.ts", "import": "./dist/katago.js"},
-    "./analysis-view": {"types": "./dist/analysis-view.d.ts", "import": "./dist/analysis-view.js"}
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./geometry": {
+      "types": "./dist/geometry.d.ts",
+      "import": "./dist/geometry.js"
+    },
+    "./sgf": {
+      "types": "./dist/sgf.d.ts",
+      "import": "./dist/sgf.js"
+    },
+    "./controller": {
+      "types": "./dist/controller.d.ts",
+      "import": "./dist/controller.js"
+    },
+    "./board": {
+      "types": "./dist/board.d.ts",
+      "import": "./dist/board.js"
+    },
+    "./viewer": {
+      "types": "./dist/viewer.d.ts",
+      "import": "./dist/viewer.js"
+    },
+    "./comparison": {
+      "types": "./dist/comparison.d.ts",
+      "import": "./dist/comparison.js"
+    },
+    "./share": {
+      "types": "./dist/share.d.ts",
+      "import": "./dist/share.js"
+    },
+    "./textures": {
+      "types": "./dist/textures.d.ts",
+      "import": "./dist/textures.js"
+    },
+    "./rules": {
+      "types": "./dist/rules.d.ts",
+      "import": "./dist/rules.js"
+    },
+    "./scoring": {
+      "types": "./dist/scoring.d.ts",
+      "import": "./dist/scoring.js"
+    },
+    "./puzzle": {
+      "types": "./dist/puzzle.d.ts",
+      "import": "./dist/puzzle.js"
+    },
+    "./puzzle-view": {
+      "types": "./dist/puzzle-view.d.ts",
+      "import": "./dist/puzzle-view.js"
+    },
+    "./analysis": {
+      "types": "./dist/analysis.d.ts",
+      "import": "./dist/analysis.js"
+    },
+    "./katago": {
+      "types": "./dist/katago.d.ts",
+      "import": "./dist/katago.js"
+    },
+    "./analysis-view": {
+      "types": "./dist/analysis-view.d.ts",
+      "import": "./dist/analysis-view.js"
+    }
   },
-  "engines": {"node": ">=24 <25"},
-  "repository": {"type": "git", "url": "https://github.com/0disoft/banora.git", "directory": "packages/sdk"}
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0disoft/banora.git",
+    "directory": "packages/sdk"
+  }
 }

@@ -3,11 +3,35 @@
   "version": "0.1.0-dev.0",
   "type": "module",
   "license": "MIT",
-  "files": ["dist", "README.md", "LICENSE"],
-  "sideEffects": ["**/*.css"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "svelte": "./dist/index.js",
-  "exports": {".": {"types": "./dist/index.d.ts", "svelte": "./dist/index.js", "default": "./dist/index.js"}},
-  "peerDependencies": {"@banora/sdk": ">=0.1.0-dev.0 <1", "svelte": "5.x"},
-  "devDependencies": {"@banora/sdk": "workspace:*", "svelte": "5.x", "typescript": "6.x", "@sveltejs/package": "3.x", "svelte-check": "4.x"},
-  "scripts": {"build": "svelte-package --input src --output dist --tsconfig tsconfig.json", "typecheck": "svelte-check --tsconfig tsconfig.json"}
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@banora/sdk": ">=0.1.0-dev.0 <1",
+    "svelte": "5.x"
+  },
+  "devDependencies": {
+    "@banora/sdk": "workspace:*",
+    "svelte": "5.x",
+    "typescript": "6.x",
+    "@sveltejs/package": "3.x",
+    "svelte-check": "4.x"
+  },
+  "scripts": {
+    "build": "svelte-package --input src --output dist --tsconfig tsconfig.json",
+    "typecheck": "svelte-check --tsconfig tsconfig.json"
+  }
 }

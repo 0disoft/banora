@@ -2,38 +2,70 @@
   import { onMount } from 'svelte';
   import { Board, Viewer, createRecordStore } from '@banora/svelte';
   import { RecordController } from '@banora/sdk';
-  import type { BoardRotation, BoardView, ControllerState, StoneTextures, ViewerView } from '@banora/sdk';
+  import type {
+    BoardRotation,
+    BoardView,
+    ControllerState,
+    StoneTextures,
+    ViewerView,
+  } from '@banora/sdk';
   import { downloadDiagram } from '../diagram-download.js';
   import sample from '../fixtures/study.sgf?raw';
-  import { describeComparison,pinComparison,startComparison } from '../comparison-pair.js';
+  import { describeComparison, pinComparison, startComparison } from '../comparison-pair.js';
   import type { ComparisonPair } from '../comparison-pair.js';
   import Sharing from './Sharing.svelte';
   import Textures from './Textures.svelte';
 
-  const records = [new RecordController({ sgf: sample }), new RecordController({ sgf: '(;SZ[13]GN[Second record];B[dd];W[jj])' })];
+  const records = [
+    new RecordController({ sgf: sample }),
+    new RecordController({ sgf: '(;SZ[13]GN[Second record];B[dd];W[jj])' }),
+  ];
   let controller = $state.raw(records[0]!);
   const recordStore = $derived(createRecordStore(controller));
-  let mounted = $state(true); let readOnly = $state(false); let flat = $state(false);
-  let callbackB = $state(false); let events = $state(0); let last = $state('');
-  let rotation = $state<BoardRotation>(0), flipX = $state(false);
+  let mounted = $state(true);
+  let readOnly = $state(false);
+  let flat = $state(false);
+  let callbackB = $state(false);
+  let events = $state(0);
+  let last = $state('');
+  let rotation = $state<BoardRotation>(0),
+    flipX = $state(false);
   let ink = $state(false);
-  let stoneTextures=$state.raw<StoneTextures|null>(null);
-  let animateStones=$state(false),animationDuration=$state(160);
-  const placementAnimation=$derived(animateStones ? {durationMs:animationDuration} : false);
-  const drawing = $derived(ink ? {color:'#cc5522',width:0.12} : null);
-  let confirmTouch=$state(false),magnifier=$state(true);
-  const touch=$derived({mode:confirmTouch ? 'confirm' as const : 'release' as const,magnifier});
-  let comparison=$state.raw<ComparisonPair|null>(null);
-  const pair=$derived(comparison?.controller===controller ? comparison : null);
-  const transform = $derived({rotation,flipX});
-  let boardView = $state.raw<BoardView | ViewerView | null>(null), viewerView = $state.raw<BoardView | ViewerView | null>(null);
+  let stoneTextures = $state.raw<StoneTextures | null>(null);
+  let animateStones = $state(false),
+    animationDuration = $state(160);
+  const placementAnimation = $derived(animateStones ? { durationMs: animationDuration } : false);
+  const drawing = $derived(ink ? { color: '#cc5522', width: 0.12 } : null);
+  let confirmTouch = $state(false),
+    magnifier = $state(true);
+  const touch = $derived({
+    mode: confirmTouch ? ('confirm' as const) : ('release' as const),
+    magnifier,
+  });
+  let comparison = $state.raw<ComparisonPair | null>(null);
+  const pair = $derived(comparison?.controller === controller ? comparison : null);
+  const transform = $derived({ rotation, flipX });
+  let boardView = $state.raw<BoardView | ViewerView | null>(null),
+    viewerView = $state.raw<BoardView | ViewerView | null>(null);
   let error = $state('');
-  const bindBoard = (view: BoardView | ViewerView | null) => {boardView=view;};
-  const bindViewer = (view: BoardView | ViewerView | null) => {viewerView=view;};
-  const reportA = (state: ControllerState) => { events++; last = `A:${state.position.moveNumber}`; };
-  const reportB = (state: ControllerState) => { events++; last = `B:${state.position.moveNumber}`; };
+  const bindBoard = (view: BoardView | ViewerView | null) => {
+    boardView = view;
+  };
+  const bindViewer = (view: BoardView | ViewerView | null) => {
+    viewerView = view;
+  };
+  const reportA = (state: ControllerState) => {
+    events++;
+    last = `A:${state.position.moveNumber}`;
+  };
+  const reportB = (state: ControllerState) => {
+    events++;
+    last = `B:${state.position.moveNumber}`;
+  };
   onMount(() => {
-    const close = (event: PageTransitionEvent) => { if (!event.persisted) records.forEach(controller => controller.dispose()); };
+    const close = (event: PageTransitionEvent) => {
+      if (!event.persisted) records.forEach((controller) => controller.dispose());
+    };
     window.addEventListener('pagehide', close);
     return () => window.removeEventListener('pagehide', close);
   });
@@ -42,50 +74,175 @@
 <main>
   <a href="../studio/">← Studio</a><h1>Banora in Svelte</h1>
   <p>Native Svelte components and a readable store share the SDK controller.</p>
-  <p id="state" role="status">Move {$recordStore.position.moveNumber} · {$recordStore.position.width} × {$recordStore.position.height} · {$recordStore.dirty ? 'changed' : 'clean'}</p>
+  <p id="state" role="status"
+    >Move {$recordStore.position.moveNumber} · {$recordStore.position.width} × {$recordStore
+      .position.height} · {$recordStore.dirty ? 'changed' : 'clean'}</p
+  >
   <p id="events">Events {events} · {last}</p>
   <p id="diagram-error" role="status">{error}</p>
   <p id="view-handles">View handles {Number(!!boardView) + Number(!!viewerView)}</p>
   <p id="ink-count">Ink strokes {$recordStore.strokes.length}</p>
-  <div class="controls"><label><input id="animation" type="checkbox" bind:checked={animateStones}/> Animate new stones</label>
-    <label>Duration <select id="animation-duration" bind:value={animationDuration} disabled={!animateStones}>{#each [80,160,320,1000] as value}<option {value}>{value} ms</option>{/each}</select></label></div>
+  <div class="controls"
+    ><label
+      ><input id="animation" type="checkbox" bind:checked={animateStones} /> Animate new stones</label
+    >
+    <label
+      >Duration <select
+        id="animation-duration"
+        bind:value={animationDuration}
+        disabled={!animateStones}
+        >{#each [80, 160, 320, 1000] as value}<option {value}>{value} ms</option>{/each}</select
+      ></label
+    ></div
+  >
   <div class="controls">
     <button id="advance" onclick={() => controller.next()}>Advance controller</button>
-    <button id="toggle" onclick={() => mounted = !mounted}>{mounted ? 'Unmount widgets' : 'Mount widgets'}</button>
-    <button id="readonly" onclick={() => readOnly = !readOnly}>{readOnly ? 'Enable placement' : 'Read only'}</button>
-    <button id="theme" onclick={() => flat = !flat}>Change theme</button>
-    <button id="rotate" onclick={() => rotation = (rotation + 90) % 360 as BoardRotation}>Rotate board</button>
-    <button id="reflect" onclick={() => flipX = !flipX}>Reflect board</button>
-    <button id="ink" onclick={() => ink = !ink}>{ink ? 'Use placement tool' : 'Use ink tool'}</button>
+    <button id="toggle" onclick={() => (mounted = !mounted)}
+      >{mounted ? 'Unmount widgets' : 'Mount widgets'}</button
+    >
+    <button id="readonly" onclick={() => (readOnly = !readOnly)}
+      >{readOnly ? 'Enable placement' : 'Read only'}</button
+    >
+    <button id="theme" onclick={() => (flat = !flat)}>Change theme</button>
+    <button id="rotate" onclick={() => (rotation = ((rotation + 90) % 360) as BoardRotation)}
+      >Rotate board</button
+    >
+    <button id="reflect" onclick={() => (flipX = !flipX)}>Reflect board</button>
+    <button id="ink" onclick={() => (ink = !ink)}
+      >{ink ? 'Use placement tool' : 'Use ink tool'}</button
+    >
     <button id="clear-ink" onclick={() => controller.clearStrokes()}>Clear ink</button>
     <button id="undo-edit" onclick={() => controller.undo()}>Undo record edit</button>
-    <button id="touch-confirm" onclick={() => confirmTouch=!confirmTouch}>{confirmTouch ? 'Place on touch release' : 'Require touch confirmation'}</button>
-    <button id="magnify" onclick={() => magnifier=!magnifier}>{magnifier ? 'Hide touch magnifier' : 'Show touch magnifier'}</button>
-    <button id="callback" onclick={() => callbackB = !callbackB}>Change callback</button>
-    <button id="swap" onclick={() => controller = controller === records[0] ? records[1]! : records[0]!}>Switch controller</button>
+    <button id="touch-confirm" onclick={() => (confirmTouch = !confirmTouch)}
+      >{confirmTouch ? 'Place on touch release' : 'Require touch confirmation'}</button
+    >
+    <button id="magnify" onclick={() => (magnifier = !magnifier)}
+      >{magnifier ? 'Hide touch magnifier' : 'Show touch magnifier'}</button
+    >
+    <button id="callback" onclick={() => (callbackB = !callbackB)}>Change callback</button>
+    <button
+      id="swap"
+      onclick={() => (controller = controller === records[0] ? records[1]! : records[0]!)}
+      >Switch controller</button
+    >
   </div>
   <div class="controls">
-    <button id="png" disabled={!mounted || !boardView} onclick={() => downloadDiagram(boardView,'png','svelte-board.png').catch(result => error=String(result))}>Save board PNG</button>
-    <button id="svg" disabled={!mounted || !viewerView} onclick={() => downloadDiagram(viewerView,'svg','svelte-viewer.svg').catch(result => error=String(result))}>Save viewer SVG</button>
+    <button
+      id="png"
+      disabled={!mounted || !boardView}
+      onclick={() =>
+        downloadDiagram(boardView, 'png', 'svelte-board.png').catch(
+          (result) => (error = String(result)),
+        )}>Save board PNG</button
+    >
+    <button
+      id="svg"
+      disabled={!mounted || !viewerView}
+      onclick={() =>
+        downloadDiagram(viewerView, 'svg', 'svelte-viewer.svg').catch(
+          (result) => (error = String(result)),
+        )}>Save viewer SVG</button
+    >
   </div>
   {#if mounted}
     <div class="controls">
-      <button id="compare" onclick={() => comparison=pair ? null : startComparison(controller)}>{pair ? 'Close comparison' : 'Compare positions'}</button>
-      <button id="pin-left" disabled={!pair} onclick={() => {if (pair) comparison=pinComparison(pair,'left');}}>Pin current on left</button>
-      <button id="pin-right" disabled={!pair} onclick={() => {if (pair) comparison=pinComparison(pair,'right');}}>Pin current on right</button>
+      <button id="compare" onclick={() => (comparison = pair ? null : startComparison(controller))}
+        >{pair ? 'Close comparison' : 'Compare positions'}</button
+      >
+      <button
+        id="pin-left"
+        disabled={!pair}
+        onclick={() => {
+          if (pair) comparison = pinComparison(pair, 'left');
+        }}>Pin current on left</button
+      >
+      <button
+        id="pin-right"
+        disabled={!pair}
+        onclick={() => {
+          if (pair) comparison = pinComparison(pair, 'right');
+        }}>Pin current on right</button
+      >
     </div>
     <div class="boards">
-      <section id="board-host"><Board {controller} {readOnly} {transform} {drawing} {touch} {stoneTextures} {placementAnimation} theme={flat ? 'flat' : 'wood'} onStateChange={callbackB ? reportB : reportA} onView={bindBoard}/></section>
-      <section id="viewer-host"><Viewer {controller} editable={!readOnly} onView={bindViewer} board={{ transform, drawing, touch,stoneTextures,placementAnimation, theme: flat ? 'flat' : 'wood' }}/></section>
+      <section id="board-host"
+        ><Board
+          {controller}
+          {readOnly}
+          {transform}
+          {drawing}
+          {touch}
+          {stoneTextures}
+          {placementAnimation}
+          theme={flat ? 'flat' : 'wood'}
+          onStateChange={callbackB ? reportB : reportA}
+          onView={bindBoard}
+        /></section
+      >
+      <section id="viewer-host"
+        ><Viewer
+          {controller}
+          editable={!readOnly}
+          onView={bindViewer}
+          board={{
+            transform,
+            drawing,
+            touch,
+            stoneTextures,
+            placementAnimation,
+            theme: flat ? 'flat' : 'wood',
+          }}
+        /></section
+      >
     </div>
-    <Textures textures={stoneTextures} onChange={(color,texture) => {stoneTextures={...stoneTextures,[color]:texture};}}/>
-    <Sharing {controller}/>
-    <section id="owned-board" style="max-width:350px"><h2>Optional owned controller</h2><Board {readOnly} {transform} {drawing} {touch} {stoneTextures} {placementAnimation} theme={flat ? 'flat' : 'wood'}/></section>
+    <Textures
+      textures={stoneTextures}
+      onChange={(color, texture) => {
+        stoneTextures = { ...stoneTextures, [color]: texture };
+      }}
+    />
+    <Sharing {controller} />
+    <section id="owned-board" style="max-width:350px"
+      ><h2>Optional owned controller</h2><Board
+        {readOnly}
+        {transform}
+        {drawing}
+        {touch}
+        {stoneTextures}
+        {placementAnimation}
+        theme={flat ? 'flat' : 'wood'}
+      /></section
+    >
     {#if pair}
-      <section id="comparison-host"><h2>Position comparison</h2><p id="comparison-summary">{describeComparison(pair,$recordStore)}</p>
+      <section id="comparison-host"
+        ><h2>Position comparison</h2><p id="comparison-summary"
+          >{describeComparison(pair, $recordStore)}</p
+        >
         <div class="boards">
-          <section id="compare-left"><Board {controller} nodeId={pair.left} compareTo={pair.right} referenceGeneration={pair.generation} {transform} {stoneTextures} {placementAnimation} theme={flat ? 'flat' : 'wood'}/></section>
-          <section id="compare-right"><Board {controller} nodeId={pair.right} compareTo={pair.left} referenceGeneration={pair.generation} {transform} {stoneTextures} {placementAnimation} theme={flat ? 'flat' : 'wood'}/></section>
+          <section id="compare-left"
+            ><Board
+              {controller}
+              nodeId={pair.left}
+              compareTo={pair.right}
+              referenceGeneration={pair.generation}
+              {transform}
+              {stoneTextures}
+              {placementAnimation}
+              theme={flat ? 'flat' : 'wood'}
+            /></section
+          >
+          <section id="compare-right"
+            ><Board
+              {controller}
+              nodeId={pair.right}
+              compareTo={pair.left}
+              referenceGeneration={pair.generation}
+              {transform}
+              {stoneTextures}
+              {placementAnimation}
+              theme={flat ? 'flat' : 'wood'}
+            /></section
+          >
         </div>
       </section>
     {/if}

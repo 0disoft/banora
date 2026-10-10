@@ -31,16 +31,16 @@ These optional checks are not added to `check` or hosted CI and require local as
 
 ## Tested Assets and Configuration
 
-| Item | Observed selection |
-| --- | --- |
-| Engine | KataGo 1.18.1, Git revision `92ee95c0a4b25fec214da00951ab69e97e207729`, Eigen CPU, Windows x64 |
-| Official archive | [katago-v1.18.1-eigen-windows-x64.zip](https://github.com/lightvector/KataGo/releases/download/v1.18.1/katago-v1.18.1-eigen-windows-x64.zip) |
-| Archive SHA-256 | `074485cf150c38aa3bb14ac9f54f2952ffefbceb44673709bbb8a83650bf95d6`, matched the official release API digest before extraction |
-| Executable SHA-256 | `0c162587d3cda7369b3f521ed3270382f76550c4035799e70f68318dc0620270` |
-| Model | `kata1-b6c96-s175395328-d26788732.txt.gz`, loaded internal name `b6c96-s175395328-d26788732`, model version 8 |
-| Official model | [Network file](https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-b6c96-s175395328-d26788732.txt.gz), linked from the [network index](https://katagotraining.org/networks/) |
-| Model bytes / observed SHA-256 | 4,967,720 bytes / `48d6754de3c4754f95bf6a5ca40957a49e5e915aaaeede133a17b9ccf8fa5fcb` |
-| Base configuration | [analysis.cfg](../../examples/katago-cli/analysis.cfg): one analysis/search/Eigen thread, small cache, 32 visits, 15-second engine search cap, cleanup prevention and original history retained |
+| Item                           | Observed selection                                                                                                                                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Engine                         | KataGo 1.18.1, Git revision `92ee95c0a4b25fec214da00951ab69e97e207729`, Eigen CPU, Windows x64                                                                                                  |
+| Official archive               | [katago-v1.18.1-eigen-windows-x64.zip](https://github.com/lightvector/KataGo/releases/download/v1.18.1/katago-v1.18.1-eigen-windows-x64.zip)                                                    |
+| Archive SHA-256                | `074485cf150c38aa3bb14ac9f54f2952ffefbceb44673709bbb8a83650bf95d6`, matched the official release API digest before extraction                                                                   |
+| Executable SHA-256             | `0c162587d3cda7369b3f521ed3270382f76550c4035799e70f68318dc0620270`                                                                                                                              |
+| Model                          | `kata1-b6c96-s175395328-d26788732.txt.gz`, loaded internal name `b6c96-s175395328-d26788732`, model version 8                                                                                   |
+| Official model                 | [Network file](https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-b6c96-s175395328-d26788732.txt.gz), linked from the [network index](https://katagotraining.org/networks/)  |
+| Model bytes / observed SHA-256 | 4,967,720 bytes / `48d6754de3c4754f95bf6a5ca40957a49e5e915aaaeede133a17b9ccf8fa5fcb`                                                                                                            |
+| Base configuration             | [analysis.cfg](../../examples/katago-cli/analysis.cfg): one analysis/search/Eigen thread, small cache, 32 visits, 15-second engine search cap, cleanup prevention and original history retained |
 
 The model hash identifies the downloaded bytes; it is not represented as an
 upstream-published checksum. The network index marks this small model as imported
@@ -56,17 +56,17 @@ engine/model loading and settings. Logs never enter the JSON response decoder.
 
 ## Checks and Observed Results
 
-| Fixture | Verified behavior for all three reporting perspectives |
-| --- | --- |
-| Black 9x9 root | Actual root/candidate metrics and ownership; comments/player names absent from engine input |
-| White with recorded history | Exact turn/current player, Black conversion and current-player score loss |
-| 5x7 setup/PL and subsequent move | Actual dimensions, legal GTP-to-top-left coordinates, 35-point ownership |
-| Capture followed by a pass | Actual colored history, capture/pass context and legal candidate/PV replay |
-| Setup epoch retaining old captures | Initial prisoner advantage reflected in effective komi: 6.5 minus one = 5.5 |
-| AGA area with three handicap stones | Explicit compensation reflected in effective komi: 7.5 plus two = 9.5 |
-| Tromp-Taylor | Explicit supported play/scoring flags accepted without an engine warning |
-| Cancel / stale source / dispose | Immediate caller settlement, exact-ID/turn terminate acknowledgement, late final reply ignored |
-| Host stop with pending work | Pending work settles, process closes with code zero and borrowed controller remains usable |
+| Fixture                             | Verified behavior for all three reporting perspectives                                         |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Black 9x9 root                      | Actual root/candidate metrics and ownership; comments/player names absent from engine input    |
+| White with recorded history         | Exact turn/current player, Black conversion and current-player score loss                      |
+| 5x7 setup/PL and subsequent move    | Actual dimensions, legal GTP-to-top-left coordinates, 35-point ownership                       |
+| Capture followed by a pass          | Actual colored history, capture/pass context and legal candidate/PV replay                     |
+| Setup epoch retaining old captures  | Initial prisoner advantage reflected in effective komi: 6.5 minus one = 5.5                    |
+| AGA area with three handicap stones | Explicit compensation reflected in effective komi: 7.5 plus two = 9.5                          |
+| Tromp-Taylor                        | Explicit supported play/scoring flags accepted without an engine warning                       |
+| Cancel / stale source / dispose     | Immediate caller settlement, exact-ID/turn terminate acknowledgement, late final reply ignored |
+| Host stop with pending work         | Pending work settles, process closes with code zero and borrowed controller remains usable     |
 
 Seven analysis contexts plus four lifecycle cases, across three perspectives,
 produce 33 checks. Missing executable and missing model add two actual host-failure

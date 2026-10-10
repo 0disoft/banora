@@ -1,10 +1,14 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async page => {
+async (page) => {
   const origin = new URL(page.url()).origin;
   const errors = [];
-  page.on('pageerror', error => errors.push(String(error)));
-  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-  const verify = (condition, message) => { if (!condition) throw Error(message); };
+  page.on('pageerror', (error) => errors.push(String(error)));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  const verify = (condition, message) => {
+    if (!condition) throw Error(message);
+  };
   for (const framework of ['react', 'vue', 'svelte']) {
     await page.goto(`${origin}/${framework}/`);
     await page.waitForFunction(() => document.querySelectorAll('svg').length === 3);
@@ -12,28 +16,58 @@ async page => {
     const viewer = page.locator('#viewer-host');
     const owned = page.locator('#owned-board').getByRole('application');
     await owned.click({ position: { x: 100, y: 100 } });
-    verify(await page.locator('#owned-board [data-stone]').count() === 1, `${framework}: owned placement failed`);
+    verify(
+      (await page.locator('#owned-board [data-stone]').count()) === 1,
+      `${framework}: owned placement failed`,
+    );
     await page.locator('#theme').click();
-    verify(await page.locator('#owned-board [data-stone]').count() === 1, `${framework}: prop update reset owned record`);
-    verify((await page.locator('#board-host svg rect').first().getAttribute('fill')).includes('#e8e1ce'), `${framework}: theme did not update`);
-    await page.locator('#rotate').click(); await page.locator('#reflect').click();
-    await page.waitForFunction(() => [...document.querySelectorAll('svg')].every(svg => svg.dataset.rotation === '90' && svg.dataset.flipX === 'true'));
-    verify(await page.locator('#owned-board [data-stone]').count() === 1, `${framework}: transform reset owned state`);
-    for (const format of ['png','svg']) {
+    verify(
+      (await page.locator('#owned-board [data-stone]').count()) === 1,
+      `${framework}: prop update reset owned record`,
+    );
+    verify(
+      (await page.locator('#board-host svg rect').first().getAttribute('fill')).includes('#e8e1ce'),
+      `${framework}: theme did not update`,
+    );
+    await page.locator('#rotate').click();
+    await page.locator('#reflect').click();
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll('svg')].every(
+        (svg) => svg.dataset.rotation === '90' && svg.dataset.flipX === 'true',
+      ),
+    );
+    verify(
+      (await page.locator('#owned-board [data-stone]').count()) === 1,
+      `${framework}: transform reset owned state`,
+    );
+    for (const format of ['png', 'svg']) {
       const downloadPromise = page.waitForEvent('download');
       await page.locator(`#${format}`).click();
       const download = await downloadPromise;
       await download.saveAs(`output/playwright/${framework}-diagram.${format}`);
     }
-    verify(await page.locator('#diagram-error').innerText() === '', `${framework}: diagram callback failed`);
+    verify(
+      (await page.locator('#diagram-error').innerText()) === '',
+      `${framework}: diagram callback failed`,
+    );
     for (let turn = 0; turn < 3; turn++) await page.locator('#rotate').click();
     await page.locator('#reflect').click();
     await page.locator('#advance').click();
-    await page.waitForFunction(() => document.querySelector('#state').textContent.includes('Move 1'));
-    verify(await page.locator('#board-host [data-stone]').count() === 1 && await viewer.locator('[data-stone]').count() === 1, `${framework}: shared state diverged`);
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('Move 1'),
+    );
+    verify(
+      (await page.locator('#board-host [data-stone]').count()) === 1 &&
+        (await viewer.locator('[data-stone]').count()) === 1,
+      `${framework}: shared state diverged`,
+    );
     await page.locator('#readonly').click();
-    await board.focus(); await page.keyboard.press('Enter');
-    verify((await page.locator('#state').innerText()).includes('Move 1'), `${framework}: readonly update ignored`);
+    await board.focus();
+    await page.keyboard.press('Enter');
+    verify(
+      (await page.locator('#state').innerText()).includes('Move 1'),
+      `${framework}: readonly update ignored`,
+    );
     await page.locator('#callback').click();
     const before = Number((await page.locator('#events').innerText()).match(/Events (\d+)/)[1]);
     await page.locator('#advance').click();
@@ -41,32 +75,63 @@ async page => {
     const after = Number((await page.locator('#events').innerText()).match(/Events (\d+)/)[1]);
     verify(after === before + 1, `${framework}: duplicate or stale state callback`);
     await page.locator('#toggle').click();
-    verify(await page.locator('svg').count() === 0, `${framework}: unmount leaked renderer`);
-    verify(await page.locator('#png').isDisabled() && await page.locator('#svg').isDisabled(), `${framework}: disposed view handle retained`);
-    await page.waitForFunction(() => document.querySelector('#view-handles').textContent === 'View handles 0');
+    verify((await page.locator('svg').count()) === 0, `${framework}: unmount leaked renderer`);
+    verify(
+      (await page.locator('#png').isDisabled()) && (await page.locator('#svg').isDisabled()),
+      `${framework}: disposed view handle retained`,
+    );
+    await page.waitForFunction(
+      () => document.querySelector('#view-handles').textContent === 'View handles 0',
+    );
     const unmountedEvents = await page.locator('#events').innerText();
     await page.locator('#advance').click();
-    await page.waitForFunction(() => document.querySelector('#state').textContent.includes('Move 3'));
-    verify(await page.locator('#events').innerText() === unmountedEvents, `${framework}: unmounted callback still subscribed`);
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('Move 3'),
+    );
+    verify(
+      (await page.locator('#events').innerText()) === unmountedEvents,
+      `${framework}: unmounted callback still subscribed`,
+    );
     await page.locator('#toggle').click();
     await page.waitForFunction(() => document.querySelectorAll('svg').length === 3);
-    await page.waitForFunction(() => document.querySelector('#view-handles').textContent === 'View handles 2');
-    verify(await page.locator('#board-host [data-stone]').count() === 3, `${framework}: remount lost shared controller`);
+    await page.waitForFunction(
+      () => document.querySelector('#view-handles').textContent === 'View handles 2',
+    );
+    verify(
+      (await page.locator('#board-host [data-stone]').count()) === 3,
+      `${framework}: remount lost shared controller`,
+    );
     await page.locator('#swap').click();
-    await page.waitForFunction(() => document.querySelector('#state').textContent.includes('13 × 13'));
-    verify(await page.locator('#board-host svg').getAttribute('data-board-width') === '13', `${framework}: controller swap failed`);
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('13 × 13'),
+    );
+    verify(
+      (await page.locator('#board-host svg').getAttribute('data-board-width')) === '13',
+      `${framework}: controller swap failed`,
+    );
     await page.locator('#advance').click();
-    await page.waitForFunction(() => document.querySelector('#state').textContent.includes('Move 1'));
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('Move 1'),
+    );
     await page.locator('#swap').click();
-    await page.waitForFunction(() => document.querySelector('#state').textContent.includes('Move 3'));
-    verify(await page.locator('#board-host svg').getAttribute('data-board-width') === '9', `${framework}: old controller was disposed`);
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('Move 3'),
+    );
+    verify(
+      (await page.locator('#board-host svg').getAttribute('data-board-width')) === '9',
+      `${framework}: old controller was disposed`,
+    );
     await page.locator('#readonly').click();
     await viewer.getByRole('textbox', { name: 'Position comments' }).fill('Framework comment');
-    await page.waitForFunction(() => document.querySelector('#state').textContent.includes('changed'));
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('changed'),
+    );
     await viewer.getByRole('button', { name: 'Undo', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('#state').textContent.includes('clean'));
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('clean'),
+    );
     await page.screenshot({ path: `output/playwright/${framework}-adapter.png`, fullPage: true });
   }
   verify(errors.length === 0, `Framework browser errors: ${errors.join('; ')}`);
   return 'banora-frameworks-complete';
-}
+};

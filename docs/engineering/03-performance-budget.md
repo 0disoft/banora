@@ -6,15 +6,15 @@
 
 ## Workloads and Measurements
 
-| Workload | Measure |
-| --- | --- |
+| Workload                | Measure                                                      |
+| ----------------------- | ------------------------------------------------------------ |
 | Interactive 19x19 board | Input-to-visible-update latency, redraw time and allocations |
-| Viewer navigation | Move/branch navigation latency and state/history memory |
-| Large SGF imports | Parse time, memory, tree depth and defined input limits |
-| Many thumbnail boards | Mount/render cost and scrolling responsiveness |
-| Analysis overlays | Update latency with candidates/ownership data |
-| Minimal consumers | Compressed bundle size and excluded optional dependencies |
-| Mount/unmount cycles | Remaining listeners, subscriptions, objects and pending work |
+| Viewer navigation       | Move/branch navigation latency and state/history memory      |
+| Large SGF imports       | Parse time, memory, tree depth and defined input limits      |
+| Many thumbnail boards   | Mount/render cost and scrolling responsiveness               |
+| Analysis overlays       | Update latency with candidates/ownership data                |
+| Minimal consumers       | Compressed bundle size and excluded optional dependencies    |
+| Mount/unmount cycles    | Remaining listeners, subscriptions, objects and pending work |
 
 Numerical budgets, fixtures and representative device/browser versions are
 UNDECIDED. Record these with the initial implementation baseline before advertising

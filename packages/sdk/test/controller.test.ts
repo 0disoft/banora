@@ -4,12 +4,14 @@ import { stoneAt } from '../src/core.js';
 
 describe('authoritative record editing', () => {
   test('an old edit-group cleanup cannot split a newer editor session', () => {
-    const controller = new RecordController({sgf:'(;C[original])'});
+    const controller = new RecordController({ sgf: '(;C[original])' });
     const endFirst = controller.beginEditGroup();
     controller.setComment('first');
     const endSecond = controller.beginEditGroup();
     controller.setComment('second');
-    endFirst(); controller.setComment('second final'); endSecond();
+    endFirst();
+    controller.setComment('second final');
+    endSecond();
     controller.undo();
     expect(controller.getState().node.properties.C).toEqual(['first']);
     controller.undo();
@@ -52,7 +54,9 @@ describe('authoritative record editing', () => {
   test('a comment editing session is one Undo unit; return to baseline clears dirty', () => {
     const controller = new RecordController({ sgf: '(;C[original])' });
     controller.beginEditGroup();
-    controller.setComment('o'); controller.setComment('once'); controller.setComment('final');
+    controller.setComment('o');
+    controller.setComment('once');
+    controller.setComment('final');
     controller.endEditGroup();
     controller.undo();
     expect(controller.getState().node.properties.C).toEqual(['original']);
@@ -69,11 +73,13 @@ describe('authoritative record editing', () => {
     const ticket = controller.prepareExport();
     const reopened = new RecordController({ sgf: ticket.text });
     expect(reopened.getState().node.properties.XX).toEqual(['preserved']);
-    expect(reopened.getState().markers.find(marker => marker.kind === 'label')?.label).toBe('A:B]C');
+    expect(reopened.getState().markers.find((marker) => marker.kind === 'label')?.label).toBe(
+      'A:B]C',
+    );
     expect(reopened.getState().markers.length).toBe(4);
     controller.undo();
     expect(controller.getState().dirty).toBe(false);
-    expect(controller.getState().markers.every(marker => marker.kind === 'triangle')).toBe(true);
+    expect(controller.getState().markers.every((marker) => marker.kind === 'triangle')).toBe(true);
   });
   test('failed imports and dirty replacement guards preserve the active record', () => {
     const controller = new RecordController({ sgf: '(;C[keep])' });
@@ -107,7 +113,8 @@ describe('authoritative record editing', () => {
   });
   test('SGF playback executes occupied and same-color recorded moves while new play validates', () => {
     const controller = new RecordController({ sgf: '(;SZ[9];B[aa];B[aa];W[bb])' });
-    controller.next(); controller.next();
+    controller.next();
+    controller.next();
     expect(stoneAt(controller.getState().position, { x: 0, y: 0 })).toBe('black');
     expect(controller.play({ x: 0, y: 0 })).toEqual({ ok: false, reason: 'occupied' });
     controller.next();
@@ -115,12 +122,17 @@ describe('authoritative record editing', () => {
     expect(controller.getState().dirty).toBe(false);
   });
   test('branch navigation reconstructs simple ko instead of comparing only visible stones', () => {
-    const controller = new RecordController({ sgf: '(;SZ[5]AB[ab][ba][cb]AW[bb][ac][cc][bd](;B[bc])(;B[];W[]))' });
+    const controller = new RecordController({
+      sgf: '(;SZ[5]AB[ab][ba][cb]AW[bb][ac][cc][bd](;B[bc])(;B[];W[]))',
+    });
     const root = controller.getState().node.id;
     controller.next(0);
     const koNode = controller.getState().node.id;
     expect(controller.play({ x: 1, y: 1 })).toEqual({ ok: false, reason: 'ko' });
-    controller.goTo(root); controller.next(1); controller.next(); controller.goTo(koNode);
+    controller.goTo(root);
+    controller.next(1);
+    controller.next();
+    controller.goTo(koNode);
     expect(controller.play({ x: 1, y: 1 })).toEqual({ ok: false, reason: 'ko' });
   });
   test('all games remain in the export when editing the second game', () => {
@@ -133,12 +145,17 @@ describe('authoritative record editing', () => {
   });
   test('reentrant subscribers receive states in order and unsubscription releases the listener', () => {
     const controller = new RecordController();
-    controller.subscribe(state => { if (state.node.properties.C?.[0] === 'first') controller.setComment('second'); });
+    controller.subscribe((state) => {
+      if (state.node.properties.C?.[0] === 'first') controller.setComment('second');
+    });
     const observed: string[] = [];
-    const unsubscribe = controller.subscribe(state => { observed.push(state.node.properties.C?.[0] ?? ''); });
+    const unsubscribe = controller.subscribe((state) => {
+      observed.push(state.node.properties.C?.[0] ?? '');
+    });
     controller.setComment('first');
     expect(observed).toEqual(['', 'first', 'second']);
-    unsubscribe(); controller.setComment('third');
+    unsubscribe();
+    controller.setComment('third');
     expect(observed.length).toBe(3);
     controller.dispose();
     expect(() => controller.getState()).toThrow('disposed');

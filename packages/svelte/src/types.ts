@@ -1,4 +1,10 @@
-import type { BoardOptions, BoardView, ControllerState, ViewerOptions, ViewerView } from '@banora/sdk';
+import type {
+  BoardOptions,
+  BoardView,
+  ControllerState,
+  ViewerOptions,
+  ViewerView,
+} from '@banora/sdk';
 
 export interface ContainerProps {
   readonly class?: string;

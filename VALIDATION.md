@@ -26,21 +26,21 @@ Final responses must list executed validations, passed validations, skipped vali
 
 Use the root Bun package scripts. Run state-changing build/check commands serially.
 
-| Name | Command | Evidence |
-| --- | --- | --- |
-| lint | `bun run lint` | Oxlint correctness rules, React hooks/compiler and Vue rules; warnings and unused suppressions fail |
-| format | `bun run format` | Read-only Oxfmt check for supported source, styles, components and documentation |
-| typecheck | `bun run typecheck` | Strict TypeScript checks for implementation, tests and scripts |
-| typecheck (Svelte) | `bun run typecheck:svelte` | Native components and example checked with Svelte's supported isolated TypeScript toolchain |
-| test | `bun run test` | Focused SDK behavior and CLI completion-result tests using Bun's test runner |
-| docs | `bun run docs` | English documentation, LF endings and relative links |
-| smoke | `bun run smoke` | SDK build, isolated tarball install, strict ESM/headless/global declarations and Node public-export/classic VM execution |
-| smoke (adapters) | `bun run smoke:adapters` | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR |
-| smoke (starter) | `bun run smoke:starter` | Copyable standalone app, isolated npm SDK/tools installation, independent strict types/build, actual browser editing/download/reopen, guards and keyboard/emulated touch |
-| smoke (KataGo) | `bun run smoke:katago <binary> <model>` | 35 actual local-engine/process checks across all reporting perspectives; explicitly supplied assets required |
-| smoke (KataGo, Node) | `bun run smoke:katago:node <binary> <model>` | Same checks on the actual Node runtime with external public SDK imports |
-| smoke (browser) | `bun run smoke:browser` | Studio/viewer and framework consumers; editing/ink round-trips, touch, comparisons, embedded sharing/guards/clipboard, transforms/input, diagrams, encoding/cancellation and lifecycle |
-| check | `bun run check` | Lint, SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
+| Name                 | Command                                      | Evidence                                                                                                                                                                               |
+| -------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| lint                 | `bun run lint`                               | Oxlint correctness rules, React hooks/compiler and Vue rules; warnings and unused suppressions fail                                                                                    |
+| format               | `bun run format`                             | Read-only Oxfmt check for supported source, styles, components and documentation                                                                                                       |
+| typecheck            | `bun run typecheck`                          | Strict TypeScript checks for implementation, tests and scripts                                                                                                                         |
+| typecheck (Svelte)   | `bun run typecheck:svelte`                   | Native components and example checked with Svelte's supported isolated TypeScript toolchain                                                                                            |
+| test                 | `bun run test`                               | Focused SDK behavior and CLI completion-result tests using Bun's test runner                                                                                                           |
+| docs                 | `bun run docs`                               | English documentation, LF endings and relative links                                                                                                                                   |
+| smoke                | `bun run smoke`                              | SDK build, isolated tarball install, strict ESM/headless/global declarations and Node public-export/classic VM execution                                                               |
+| smoke (adapters)     | `bun run smoke:adapters`                     | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR                                                                       |
+| smoke (starter)      | `bun run smoke:starter`                      | Copyable standalone app, isolated npm SDK/tools installation, independent strict types/build, actual browser editing/download/reopen, guards and keyboard/emulated touch               |
+| smoke (KataGo)       | `bun run smoke:katago <binary> <model>`      | 35 actual local-engine/process checks across all reporting perspectives; explicitly supplied assets required                                                                           |
+| smoke (KataGo, Node) | `bun run smoke:katago:node <binary> <model>` | Same checks on the actual Node runtime with external public SDK imports                                                                                                                |
+| smoke (browser)      | `bun run smoke:browser`                      | Studio/viewer and framework consumers; editing/ink round-trips, touch, comparisons, embedded sharing/guards/clipboard, transforms/input, diagrams, encoding/cancellation and lifecycle |
+| check                | `bun run check`                              | Lint, format, SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke                                                                                    |
 
 `bun run build` builds the common SDK; `bun run build:adapters` also builds the
 three adapters. SDK build emits selective ESM/declarations plus a standalone IIFE
@@ -73,12 +73,17 @@ Intentional Playwright callback expressions, control-character sanitizers and
 Unused suppression comments fail the lint check.
 
 Oxfmt uses two spaces, LF, semicolons, single quotes and a 100-column print width.
+Playwright runners remove only the callback file's final statement semicolon before
+passing it to the CLI's parenthesized expression boundary. A regression test checks
+real expression evaluation, comments, internal semicolons and rejection of extra
+statements; the callback files follow the same formatting rules as other scripts.
 It preserves import/package-key order, Svelte section order, significant HTML
 whitespace, Markdown prose wrapping and fenced examples. Build output, dependency
 trees, caches, local evidence, scaffold state and generated lockfiles are excluded.
 `bun run lint:fix` and `bun run format:write` explicitly modify source files; review
 their diff before committing. Validation commands never apply automatic fixes.
-The formatting baseline is established separately from the tooling/lint changes.
+The formatting baseline is committed separately from the tooling/lint changes.
+Both read-only checks run first in `bun run check`.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
 Standalone smoke is also separate: it copies `examples/standalone`, installs the

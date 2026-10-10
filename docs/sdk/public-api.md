@@ -46,12 +46,12 @@ presets and their nested policies are frozen. Explicitly supply a preset's `play
 to `createPosition` or `RecordController.rules`; existing SGF RU metadata is preserved
 without automatic policy selection. Their scoring policy is used by `scorePosition`.
 
-| ID | Legal play | Scoring policy |
-| --- | --- | --- |
-| `japanese-territory` | Simple ko, no suicide/pass stones | Territory/prisoners; manual seki exclusion |
-| `aga-territory` | Situational superko, no suicide, pass stones | Territory/prisoners; White last pass |
-| `aga-area` | Same AGA play policy | Area; White handicap count minus one; White last pass |
-| `tromp-taylor` | Positional superko, suicide allowed, no pass stones | Area, no handicap score adjustment |
+| ID                   | Legal play                                          | Scoring policy                                        |
+| -------------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| `japanese-territory` | Simple ko, no suicide/pass stones                   | Territory/prisoners; manual seki exclusion            |
+| `aga-territory`      | Situational superko, no suicide, pass stones        | Territory/prisoners; White last pass                  |
+| `aga-area`           | Same AGA play policy                                | Area; White handicap count minus one; White last pass |
+| `tromp-taylor`       | Positional superko, suicide allowed, no pass stones | Area, no handicap score adjustment                    |
 
 Coverage is `agreed-position`. Automatic life/death, seki detection, Japanese
 post-stop hypothetical/special-ko rulings, no-result adjudication, forced final
@@ -303,24 +303,24 @@ no-ops, so they do not create an epoch. After a move, an explicit
 `setSetup([], state.position.toPlay)` creates a setup/PL child and resets repetition.
 This differs from the lower-level `setup`, which always returns a new epoch.
 
-| Operation | Behavior |
-| --- | --- |
-| `getState()` / `subscribe(listener)` | Immutable current state; subscription immediately delivers a snapshot and returns cleanup |
-| `inspectNode(id)` | Read an immutable snapshot at another node without navigation, history changes or notifications; missing IDs return null |
-| `goTo(id)` / `previous()` / `next(variation?)` | Select an existing node/path without creating an edit |
-| `play(pointOrNull)` | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch |
-| `setComment(text)` / `setMarker(point, kindOrNull, label?)` | Undoable comments and triangle/square/circle/cross/label edits |
-| `setConnection(from, to, 'line' \| 'arrow', present?)` | Add/remove a node-local SGF line or directed arrow; endpoints must differ |
-| `addStroke(points, style?)` / `removeStroke(id)` / `clearStrokes()` | Undoable node-local freehand annotations; removing an absent ID or clearing empty ink is a no-op |
-| `setSetup(stones, toPlay?)` | Patch free black/white/empty setup points and optional turn; after a move append a setup child rather than mixing move/setup properties |
-| `removeBranch(nodeId?)` | Remove a non-root node and descendants; a deleted selection moves to its surviving parent |
-| `reorderBranch(nodeId, index)` | Move a non-root node to a zero-based sibling slot without moving the current cursor |
-| `beginEditGroup()` / `endEditGroup()` | Group comments into one undo unit; begin returns an idempotent cleanup scoped to that group; navigation/global end closes it |
-| `undo()` / `redo()` | Restore record edits and the cursor captured for that history entry |
-| `loadSgf(textOrBytes, { discardChanges?, locator? })` | Validate record and target first; reject dirty replacement unless explicitly permitted; select the target atomically and reset editing history on success |
-| `prepareExport()` | Return an immutable `{ id, text }` ticket without changing dirty state |
-| `acknowledgeExport(id)` / `cancelExport(id)` | Acknowledge host export success or cancel; only acknowledgment advances the exact exported semantic baseline |
-| `dispose()` | Release controller subscriptions/cache/tickets; subsequent state/mutation use is rejected |
+| Operation                                                           | Behavior                                                                                                                                                  |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getState()` / `subscribe(listener)`                                | Immutable current state; subscription immediately delivers a snapshot and returns cleanup                                                                 |
+| `inspectNode(id)`                                                   | Read an immutable snapshot at another node without navigation, history changes or notifications; missing IDs return null                                  |
+| `goTo(id)` / `previous()` / `next(variation?)`                      | Select an existing node/path without creating an edit                                                                                                     |
+| `play(pointOrNull)`                                                 | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch                                                            |
+| `setComment(text)` / `setMarker(point, kindOrNull, label?)`         | Undoable comments and triangle/square/circle/cross/label edits                                                                                            |
+| `setConnection(from, to, 'line' \| 'arrow', present?)`              | Add/remove a node-local SGF line or directed arrow; endpoints must differ                                                                                 |
+| `addStroke(points, style?)` / `removeStroke(id)` / `clearStrokes()` | Undoable node-local freehand annotations; removing an absent ID or clearing empty ink is a no-op                                                          |
+| `setSetup(stones, toPlay?)`                                         | Patch free black/white/empty setup points and optional turn; after a move append a setup child rather than mixing move/setup properties                   |
+| `removeBranch(nodeId?)`                                             | Remove a non-root node and descendants; a deleted selection moves to its surviving parent                                                                 |
+| `reorderBranch(nodeId, index)`                                      | Move a non-root node to a zero-based sibling slot without moving the current cursor                                                                       |
+| `beginEditGroup()` / `endEditGroup()`                               | Group comments into one undo unit; begin returns an idempotent cleanup scoped to that group; navigation/global end closes it                              |
+| `undo()` / `redo()`                                                 | Restore record edits and the cursor captured for that history entry                                                                                       |
+| `loadSgf(textOrBytes, { discardChanges?, locator? })`               | Validate record and target first; reject dirty replacement unless explicitly permitted; select the target atomically and reset editing history on success |
+| `prepareExport()`                                                   | Return an immutable `{ id, text }` ticket without changing dirty state                                                                                    |
+| `acknowledgeExport(id)` / `cancelExport(id)`                        | Acknowledge host export success or cancel; only acknowledgment advances the exact exported semantic baseline                                              |
+| `dispose()`                                                         | Release controller subscriptions/cache/tickets; subsequent state/mutation use is rejected                                                                 |
 
 An asynchronous acknowledgment of older content leaves newer edits dirty; stale
 acknowledgments cannot replace a newer acknowledged baseline. Import invalidates old
@@ -636,10 +636,10 @@ Creation defaults to `kind: 'node'`; both functions return `{ ok, value }` on
 success or `{ ok: false, reason, message }`. Invalid configured length bounds throw
 `RangeError`. The limit defaults to 16,384 characters and may only be lowered.
 
-| Kind | Embedded content and initial selection |
-| --- | --- |
-| `record` | Entire SGF collection, including all metadata/comments/branches; opens the current game's root |
-| `node` | Entire SGF collection; opens the exact selected game/child-index path |
+| Kind       | Embedded content and initial selection                                                                                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `record`   | Entire SGF collection, including all metadata/comments/branches; opens the current game's root                                                                   |
+| `node`     | Entire SGF collection; opens the exact selected game/child-index path                                                                                            |
 | `position` | One root with visible AB/AW stones, dimensions, PL/MN and current-node shapes/labels/lines/arrows/BPN ink; no history or game metadata; optional current comment |
 
 Position creation omits comments by default, unknown properties, player names,
@@ -765,11 +765,11 @@ and `Viewer` components, binding the same SDK controller and renderer. Create a
 `RecordController({ sgf })` to initialize a shared record; adapter viewers omit the
 plain mount's initial `sgf` option. All other rendering/editability options are shared.
 
-| Package | State binding | Container and events |
-| --- | --- | --- |
-| React | `useRecordState(controller): ControllerState` via `useSyncExternalStore` | `className`, React `style`, `ariaLabel`, `onStateChange(state)`, `onView(viewOrNull)` |
-| Vue | `useRecordState(controllerOrRefOrGetter)` in setup, returning a read-only snapshot ref | Forwarded attributes, `stateChange(state)` and `view(viewOrNull)` emissions |
-| Svelte | `createRecordStore(controller)` returning a readable snapshot store | `class`, CSS text `style`, `ariaLabel`, `onStateChange(state)`, `onView(viewOrNull)` |
+| Package | State binding                                                                          | Container and events                                                                  |
+| ------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| React   | `useRecordState(controller): ControllerState` via `useSyncExternalStore`               | `className`, React `style`, `ariaLabel`, `onStateChange(state)`, `onView(viewOrNull)` |
+| Vue     | `useRecordState(controllerOrRefOrGetter)` in setup, returning a read-only snapshot ref | Forwarded attributes, `stateChange(state)` and `view(viewOrNull)` emissions           |
+| Svelte  | `createRecordStore(controller)` returning a readable snapshot store                    | `class`, CSS text `style`, `ariaLabel`, `onStateChange(state)`, `onView(viewOrNull)`  |
 
 Configuration updates preserve record state. Replacing the controller remounts the
 view; unmounting removes its listeners/subscriptions and retains a host controller.
@@ -825,16 +825,16 @@ artifact, including production navigation/edit/Undo and shared-controller remoun
 
 ## Logical API Surfaces and Remaining Work
 
-| Surface | Responsibility |
-| --- | --- |
-| Core | Create positions/rule policies, apply actions, validate moves, inspect captures and navigate history |
-| Records / SGF | Parse/export SGF, inspect metadata/properties, edit branches, select a node/path |
-| SVG renderer | Mount a board, update snapshots, theme/crop/transform it, emit logical input, dispose resources |
-| Viewer / editor | Load records, navigate branches, bind controls/comments, select editing modes |
+| Surface                       | Responsibility                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Core                          | Create positions/rule policies, apply actions, validate moves, inspect captures and navigate history   |
+| Records / SGF                 | Parse/export SGF, inspect metadata/properties, edit branches, select a node/path                       |
+| SVG renderer                  | Mount a board, update snapshots, theme/crop/transform it, emit logical input, dispose resources        |
+| Viewer / editor               | Load records, navigate branches, bind controls/comments, select editing modes                          |
 | React / Vue / Svelte adapters | Framework lifecycle, configuration, events and read-only state bindings over the same model/controller |
-| Scoring | Dead-stone selection and score calculation with explicit rules |
-| Puzzles | Authored answers, scripted responses, hints, restart and feedback |
-| Analysis | Provider requests/results, cancellation, freshness and overlay normalization |
+| Scoring                       | Dead-stone selection and score calculation with explicit rules                                         |
+| Puzzles                       | Authored answers, scripted responses, hints, restart and feedback                                      |
+| Analysis                      | Provider requests/results, cancellation, freshness and overlay normalization                           |
 
 Except for the implemented core/records/controller/board/viewer/adapters above, these are responsibilities, not finalized
 npm subpaths or exported type names.

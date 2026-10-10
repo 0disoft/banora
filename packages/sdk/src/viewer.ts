@@ -28,7 +28,8 @@ const stylesheet = `
 `;
 
 export function mountViewer(container: HTMLElement, initial: ViewerOptions = {}): ViewerView {
-  if (initial.controller && initial.sgf !== undefined) throw new TypeError('Supply a controller or SGF, not both');
+  if (initial.controller && initial.sgf !== undefined)
+    throw new TypeError('Supply a controller or SGF, not both');
   const document = container.ownerDocument;
   const owned = !initial.controller;
   const controller = initial.controller ?? new RecordController({ sgf: initial.sgf });
@@ -36,29 +37,50 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   let options = { ...initial, board: { ...initial.board } };
   let disposed = false;
   let closeCommentGroup: (() => void) | undefined;
-  const endCommentGroup = () => { closeCommentGroup?.(); closeCommentGroup = undefined; };
+  const endCommentGroup = () => {
+    closeCommentGroup?.();
+    closeCommentGroup = undefined;
+  };
   const abort = new AbortController();
-  const root = document.createElement('section'); root.className = 'banora-viewer';
+  const root = document.createElement('section');
+  root.className = 'banora-viewer';
   root.setAttribute('aria-label', 'Go record viewer');
-  const style = document.createElement('style'); style.textContent = stylesheet;
+  const style = document.createElement('style');
+  style.textContent = stylesheet;
   const header = document.createElement('header');
   const title = document.createElement('h2');
-  const gameLabel = document.createElement('label'); gameLabel.textContent = 'Game ';
-  const games = document.createElement('select'); games.setAttribute('aria-label', 'Select game');
-  gameLabel.append(games); header.append(title, gameLabel);
+  const gameLabel = document.createElement('label');
+  gameLabel.textContent = 'Game ';
+  const games = document.createElement('select');
+  games.setAttribute('aria-label', 'Select game');
+  gameLabel.append(games);
+  header.append(title, gameLabel);
   const boardContainer = document.createElement('div');
-  const nav = document.createElement('nav'); nav.setAttribute('aria-label', 'Record navigation');
+  const nav = document.createElement('nav');
+  nav.setAttribute('aria-label', 'Record navigation');
   const move = document.createElement('span');
-  const summary = document.createElement('p'); summary.dataset.summary = '';
-  const status = document.createElement('p'); status.dataset.status = ''; status.setAttribute('role', 'status');
-  const report = (result: CommandResult) => { status.textContent = result.ok ? '' : result.diagnostics?.map(item => item.message).join('; ') ?? `Action rejected: ${result.reason}`; };
+  const summary = document.createElement('p');
+  summary.dataset.summary = '';
+  const status = document.createElement('p');
+  status.dataset.status = '';
+  status.setAttribute('role', 'status');
+  const report = (result: CommandResult) => {
+    status.textContent = result.ok
+      ? ''
+      : (result.diagnostics?.map((item) => item.message).join('; ') ??
+        `Action rejected: ${result.reason}`);
+  };
   const button = (label: string, text: string, action: () => CommandResult) => {
-    const element = document.createElement('button'); element.type = 'button'; element.textContent = text;
+    const element = document.createElement('button');
+    element.type = 'button';
+    element.textContent = text;
     element.setAttribute('aria-label', label);
     element.addEventListener('click', () => report(action()), { signal: abort.signal });
     return element;
   };
-  const first = button('First node', '|←', () => controller.goTo(controller.getState().record.games[controller.getState().gameIndex]!.id));
+  const first = button('First node', '|←', () =>
+    controller.goTo(controller.getState().record.games[controller.getState().gameIndex]!.id),
+  );
   const previous = button('Previous move', '←', () => controller.previous());
   const next = button('Next move', '→', () => controller.next());
   const last = button('Last node', '→|', () => {
@@ -71,25 +93,48 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   const redo = button('Redo', 'Redo', () => controller.redo());
   nav.append(first, previous, move, next, last, pass, undo, redo);
   const variations = document.createElement('details');
-  const treeTitle = document.createElement('summary'); treeTitle.textContent = 'Variations';
-  const tree = document.createElement('div'); tree.dataset.tree = ''; tree.setAttribute('role', 'list');
-  const treeNote = document.createElement('p'); treeNote.dataset.status = '';
+  const treeTitle = document.createElement('summary');
+  treeTitle.textContent = 'Variations';
+  const tree = document.createElement('div');
+  tree.dataset.tree = '';
+  tree.setAttribute('role', 'list');
+  const treeNote = document.createElement('p');
+  treeNote.dataset.status = '';
   variations.append(treeTitle, tree, treeNote);
-  const notes = document.createElement('label'); notes.dataset.notes = ''; notes.textContent = 'Comments';
-  const comment = document.createElement('textarea'); comment.setAttribute('aria-label', 'Position comments');
+  const notes = document.createElement('label');
+  notes.dataset.notes = '';
+  notes.textContent = 'Comments';
+  const comment = document.createElement('textarea');
+  comment.setAttribute('aria-label', 'Position comments');
   notes.append(comment);
   root.append(style, header, boardContainer, nav, summary, variations, notes, status);
   container.append(root);
   let board: BoardView;
-  try { board = mountBoard(boardContainer, { ...options.board, controller, readOnly: !options.editable,nodeId:null }); }
-  catch (error) { root.remove(); abort.abort(); if (owned) controller.dispose(); throw error; }
+  try {
+    board = mountBoard(boardContainer, {
+      ...options.board,
+      controller,
+      readOnly: !options.editable,
+      nodeId: null,
+    });
+  } catch (error) {
+    root.remove();
+    abort.abort();
+    if (owned) controller.dispose();
+    throw error;
+  }
   let lastTree: { record: ControllerState['record']; selected: string } | undefined;
 
   function nodeName(node: SgfNode, state: ControllerState): string {
     const value = node.properties.B?.[0] ?? node.properties.W?.[0];
-    if (value === undefined) return node.properties.N?.[0] ?? (node.id === state.record.games[state.gameIndex]!.id ? 'Start position' : 'Annotation');
+    if (value === undefined)
+      return (
+        node.properties.N?.[0] ??
+        (node.id === state.record.games[state.gameIndex]!.id ? 'Start position' : 'Annotation')
+      );
     const color = node.properties.B ? 'Black' : 'White';
-    if (!value || (value === 'tt' && state.position.width <= 19 && state.position.height <= 19)) return `${color} pass`;
+    if (!value || (value === 'tt' && state.position.width <= 19 && state.position.height <= 19))
+      return `${color} pass`;
     const point = pointFromSgf(value, state.position.width, state.position.height);
     return `${color} ${'ABCDEFGHJKLMNOPQRSTUVWXYZ'[point.x] ?? point.x + 1}${state.position.height - point.y}`;
   }
@@ -102,36 +147,50 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     let count = 0;
     let selected: HTMLButtonElement | undefined;
     const row = (node: SgfNode, indent: number) => {
-      const item = document.createElement('div'); item.setAttribute('role', 'listitem');
-      const entry = document.createElement('button'); entry.type = 'button';
-      entry.textContent = nodeName(node, state); entry.setAttribute('aria-label', `Select ${nodeName(node, state)}`);
+      const item = document.createElement('div');
+      item.setAttribute('role', 'listitem');
+      const entry = document.createElement('button');
+      entry.type = 'button';
+      entry.textContent = nodeName(node, state);
+      entry.setAttribute('aria-label', `Select ${nodeName(node, state)}`);
       entry.dataset.node = node.id;
       entry.style.paddingLeft = `${10 + Math.min(indent, 8) * 12}px`;
       entry.setAttribute('aria-current', String(node.id === state.node.id));
       if (node.id === state.node.id) selected = entry;
-      item.append(entry); fragment.append(item);
+      item.append(entry);
+      fragment.append(item);
     };
     while (pending.length && count++ < 500) {
-      const item = pending.pop()!; row(item.node, item.indent);
-      for (let i = item.node.children.length - 1; i >= 0; i--) pending.push({ node: item.node.children[i]!, indent: item.indent + (i > 0 ? 1 : 0) });
+      const item = pending.pop()!;
+      row(item.node, item.indent);
+      for (let i = item.node.children.length - 1; i >= 0; i--)
+        pending.push({ node: item.node.children[i]!, indent: item.indent + (i > 0 ? 1 : 0) });
     }
     if (!selected) row(state.node, 0);
     tree.replaceChildren(fragment);
-    treeNote.textContent = pending.length ? 'First 500 nodes shown; move controls navigate the complete record.' : '';
+    treeNote.textContent = pending.length
+      ? 'First 500 nodes shown; move controls navigate the complete record.'
+      : '';
     if (focusInside) selected?.focus({ preventScroll: true });
   }
   function render(state: ControllerState): void {
     const game = state.record.games[state.gameIndex]!;
     title.textContent = game.properties.GN?.[0] ?? 'Go record';
-    games.replaceChildren(...state.record.games.map((game, index) => {
-      const option = document.createElement('option'); option.value = String(index); option.textContent = game.properties.GN?.[0] ?? `Game ${index + 1}`; return option;
-    }));
+    games.replaceChildren(
+      ...state.record.games.map((game, index) => {
+        const option = document.createElement('option');
+        option.value = String(index);
+        option.textContent = game.properties.GN?.[0] ?? `Game ${index + 1}`;
+        return option;
+      }),
+    );
     games.value = String(state.gameIndex);
     gameLabel.hidden = state.record.games.length < 2;
     move.textContent = `Move ${state.position.moveNumber}`;
     first.disabled = previous.disabled = state.path.length < 2;
     next.disabled = last.disabled = state.node.children.length === 0;
-    undo.disabled = !state.canUndo; redo.disabled = !state.canRedo;
+    undo.disabled = !state.canUndo;
+    redo.disabled = !state.canRedo;
     undo.hidden = redo.hidden = pass.hidden = !options.editable;
     summary.textContent = `${game.properties.PB?.[0] ?? 'Black'} / ${game.properties.PW?.[0] ?? 'White'} · ${state.position.toPlay} to play · Captures ${state.position.captures.black} / ${state.position.captures.white}`;
     comment.readOnly = !options.editable;
@@ -142,34 +201,59 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     renderTree(state);
   }
   const unsubscribe = controller.subscribe(render);
-  tree.addEventListener('click', event => {
-    const element = event.target as Element;
-    const entry = element.closest<HTMLButtonElement>('button[data-node]');
-    if (entry && tree.contains(entry)) report(controller.goTo(entry.dataset.node!));
-  }, { signal: abort.signal });
-  games.addEventListener('change', () => report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id)), { signal: abort.signal });
-  comment.addEventListener('focus', () => { if (options.editable) closeCommentGroup = controller.beginEditGroup(); }, { signal: abort.signal });
+  tree.addEventListener(
+    'click',
+    (event) => {
+      const element = event.target as Element;
+      const entry = element.closest<HTMLButtonElement>('button[data-node]');
+      if (entry && tree.contains(entry)) report(controller.goTo(entry.dataset.node!));
+    },
+    { signal: abort.signal },
+  );
+  games.addEventListener(
+    'change',
+    () => report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id)),
+    { signal: abort.signal },
+  );
+  comment.addEventListener(
+    'focus',
+    () => {
+      if (options.editable) closeCommentGroup = controller.beginEditGroup();
+    },
+    { signal: abort.signal },
+  );
   comment.addEventListener('blur', endCommentGroup, { signal: abort.signal });
-  comment.addEventListener('input', () => {
-    if (!options.editable) return;
-    const result = controller.setComment(comment.value); report(result);
-    if (!result.ok) comment.value = controller.getState().node.properties.C?.[0] ?? '';
-  }, { signal: abort.signal });
-  return Object.freeze({ controller,
+  comment.addEventListener(
+    'input',
+    () => {
+      if (!options.editable) return;
+      const result = controller.setComment(comment.value);
+      report(result);
+      if (!result.ok) comment.value = controller.getState().node.properties.C?.[0] ?? '';
+    },
+    { signal: abort.signal },
+  );
+  return Object.freeze({
+    controller,
     exportSvg: (config?: DiagramOptions) => board.exportSvg(config),
     exportPng: (config?: DiagramOptions) => board.exportPng(config),
     update(next: Omit<ViewerOptions, 'controller' | 'sgf'>) {
       if (disposed) throw new Error('Viewer is disposed');
       const previous = options;
       const merged = { ...options, ...next, board: { ...options.board, ...next.board } };
-      board.update({ ...merged.board, readOnly: !merged.editable,nodeId:null });
+      board.update({ ...merged.board, readOnly: !merged.editable, nodeId: null });
       options = merged;
       if ((previous.editable && !options.editable) || next.comments === false) endCommentGroup();
       render(controller.getState());
     },
     dispose() {
       if (disposed) return;
-      disposed = true; endCommentGroup(); abort.abort(); unsubscribe(); board.dispose(); root.remove();
+      disposed = true;
+      endCommentGroup();
+      abort.abort();
+      unsubscribe();
+      board.dispose();
+      root.remove();
       if (owned) controller.dispose();
     },
   });

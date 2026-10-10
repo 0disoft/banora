@@ -1,1 +1,69 @@
-.scoring{margin:18px 0}.scoring-card{margin-top:10px;min-width:0}.scoring-card>p{margin:10px 0}.score-controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;align-items:end}.score-controls label{display:grid;gap:5px}.score-controls input{width:100px}.score-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,.8fr);gap:20px;align-items:start}.score-layout>div{min-width:0;max-width:460px}.score-layout table{border-collapse:collapse;width:100%;font-size:.8rem}.score-layout caption{text-align:left;font-weight:650;padding:8px 0}.score-layout th,.score-layout td{padding:8px;border-bottom:1px solid #dce4d8;text-align:right}.score-layout th:first-child{text-align:left}.score-layout tr[data-component=total]{font-weight:750;background:#edf4e9}#score-result{font-weight:650;color:#225b49}@media(max-width:680px){.score-layout{grid-template-columns:minmax(0,1fr)}.score-controls input{width:90px}}
+.scoring {
+  margin: 18px 0;
+}
+.scoring-card {
+  margin-top: 10px;
+  min-width: 0;
+}
+.scoring-card > p {
+  margin: 10px 0;
+}
+.score-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0;
+  align-items: end;
+}
+.score-controls label {
+  display: grid;
+  gap: 5px;
+}
+.score-controls input {
+  width: 100px;
+}
+.score-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 0.8fr);
+  gap: 20px;
+  align-items: start;
+}
+.score-layout > div {
+  min-width: 0;
+  max-width: 460px;
+}
+.score-layout table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8rem;
+}
+.score-layout caption {
+  text-align: left;
+  font-weight: 650;
+  padding: 8px 0;
+}
+.score-layout th,
+.score-layout td {
+  padding: 8px;
+  border-bottom: 1px solid #dce4d8;
+  text-align: right;
+}
+.score-layout th:first-child {
+  text-align: left;
+}
+.score-layout tr[data-component='total'] {
+  font-weight: 750;
+  background: #edf4e9;
+}
+#score-result {
+  font-weight: 650;
+  color: #225b49;
+}
+@media (max-width: 680px) {
+  .score-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .score-controls input {
+    width: 90px;
+  }
+}

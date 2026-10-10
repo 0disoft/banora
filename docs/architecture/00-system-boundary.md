@@ -5,18 +5,18 @@
 
 ## Ownership
 
-| Owner | Responsibility |
-| --- | --- |
-| Core | Coordinates, board state, legal transitions, captures, rule policy and position history |
-| Records / SGF | Game metadata, properties, comments, setup nodes, branches and active cursor |
-| SVG renderer | Themes, grid/stones/overlays, display transforms, hit testing and visual lifecycle |
-| Viewer / editor | Navigation controls, input modes, branch editing and orchestration |
-| Framework adapter | Mount/unmount, host bindings and subscriptions; no game rules |
-| Scoring | Agreed dead-stone selections and rule-specific score calculation |
-| Puzzles | Authored solution branches, response behavior and feedback |
-| Analysis adapter | Request/result normalization, cancellation and freshness checks |
-| Host application | Accounts, persistence, game server authority, collaboration and service credentials |
-| External engine | Move search, win/score prediction and ownership estimates |
+| Owner             | Responsibility                                                                          |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| Core              | Coordinates, board state, legal transitions, captures, rule policy and position history |
+| Records / SGF     | Game metadata, properties, comments, setup nodes, branches and active cursor            |
+| SVG renderer      | Themes, grid/stones/overlays, display transforms, hit testing and visual lifecycle      |
+| Viewer / editor   | Navigation controls, input modes, branch editing and orchestration                      |
+| Framework adapter | Mount/unmount, host bindings and subscriptions; no game rules                           |
+| Scoring           | Agreed dead-stone selections and rule-specific score calculation                        |
+| Puzzles           | Authored solution branches, response behavior and feedback                              |
+| Analysis adapter  | Request/result normalization, cancellation and freshness checks                         |
+| Host application  | Accounts, persistence, game server authority, collaboration and service credentials     |
+| External engine   | Move search, win/score prediction and ownership estimates                               |
 
 ## Boundary Rules
 

@@ -1,9 +1,16 @@
+/** The CLI parenthesizes its callback; a formatter's final semicolon is a statement terminator. */
+export function scenarioExpression(source: string): string {
+  return source.trimEnd().replace(/;$/, '') + '\n';
+}
+
 /** Only an actual CLI Result can prove the complete scenario returned. */
 export function requireScenarioResult(output: string, expected: string): void {
-  const results = output.split(/^### /m).filter(section => /^Result\r?\n/.test(section));
+  const results = output.split(/^### /m).filter((section) => /^Result\r?\n/.test(section));
   let value: unknown;
   try {
     if (results.length === 1) value = JSON.parse(results[0]!.replace(/^Result\r?\n/, '').trim());
-  } catch { /* Incomplete or malformed output cannot establish completion. */ }
+  } catch {
+    /* Incomplete or malformed output cannot establish completion. */
+  }
   if (value !== expected) throw new Error(`Scenario did not return ${expected}:\n${output}`);
 }

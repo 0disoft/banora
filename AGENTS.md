@@ -17,7 +17,6 @@ milestones in cohesive increments; do not describe planned capabilities as shipp
 
 - sdk: This repository type owns public API, compatibility, examples, versioning, and consumer migration.
 
-
 ## Source of Truth
 
 - Product scope: docs/product/02-spec.md

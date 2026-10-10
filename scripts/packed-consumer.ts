@@ -6,14 +6,25 @@ await mkdir(resolve(root, '.tmp'), { recursive: true });
 const directory = await mkdtemp(resolve(root, '.tmp/packed-consumer-'));
 const run = (command: string[], cwd: string) => {
   const result = Bun.spawnSync(command, { cwd, stdout: 'pipe', stderr: 'pipe' });
-  if (result.exitCode !== 0) throw new Error(`${command.join(' ')} failed:\n${result.stdout.toString()}${result.stderr.toString()}`);
+  if (result.exitCode !== 0)
+    throw new Error(
+      `${command.join(' ')} failed:\n${result.stdout.toString()}${result.stderr.toString()}`,
+    );
   return result.stdout.toString();
 };
-run([process.execPath, 'pm', 'pack', '--filename', resolve(directory, 'sdk.tgz'), '--ignore-scripts'], resolve(root, 'packages/sdk'));
-await writeFile(resolve(directory, 'package.json'), JSON.stringify({
-  name: 'banora-packed-consumer', private: true, type: 'module',
-  dependencies: { '@banora/sdk': './sdk.tgz' },
-}));
+run(
+  [process.execPath, 'pm', 'pack', '--filename', resolve(directory, 'sdk.tgz'), '--ignore-scripts'],
+  resolve(root, 'packages/sdk'),
+);
+await writeFile(
+  resolve(directory, 'package.json'),
+  JSON.stringify({
+    name: 'banora-packed-consumer',
+    private: true,
+    type: 'module',
+    dependencies: { '@banora/sdk': './sdk.tgz' },
+  }),
+);
 run([process.execPath, 'install', '--ignore-scripts'], directory);
 const consumer = `import { RecordController, createPosition, play, stoneAt } from '@banora/sdk';
 import { parseSgf } from '@banora/sdk/sgf';
@@ -79,11 +90,18 @@ controller.dispose(); reopened.dispose();
 console.log('Packed public SDK consumer passed');
 `;
 await writeFile(resolve(directory, 'consumer.ts'), consumer);
-await writeFile(resolve(directory, 'tsconfig.json'), JSON.stringify({
-  extends: resolve(root, 'tsconfig.json'), compilerOptions: { types: [] }, include: ['consumer.ts'],
-}));
+await writeFile(
+  resolve(directory, 'tsconfig.json'),
+  JSON.stringify({
+    extends: resolve(root, 'tsconfig.json'),
+    compilerOptions: { types: [] },
+    include: ['consumer.ts'],
+  }),
+);
 run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'tsconfig.json')], root);
-await writeFile(resolve(directory, 'headless.ts'), `import {createPosition, play} from '@banora/sdk/core';
+await writeFile(
+  resolve(directory, 'headless.ts'),
+  `import {createPosition, play} from '@banora/sdk/core';
 import type {RepetitionHistory, RulePolicy} from '@banora/sdk/core';
 import {getRuleProfile} from '@banora/sdk/rules';
 import {scorePosition} from '@banora/sdk/scoring';
@@ -149,33 +167,62 @@ if (!repetition.play({x:1,y:1}).ok) throw Error('Packed superko setup epoch fail
 repetition.dispose();
 const shown = toDisplayPoint({x:1,y:2},size,transform);
 if (toLogicalPoint(shown,size,transform).x !== 1) throw Error('Headless geometry subpath failed');
-`);
-await writeFile(resolve(directory, 'headless-tsconfig.json'), JSON.stringify({
-  extends: resolve(root, 'tsconfig.json'), compilerOptions: { types: [], lib: ['ES2022'] }, include: ['headless.ts'],
-}));
-run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'headless-tsconfig.json')], root);
+`,
+);
+await writeFile(
+  resolve(directory, 'headless-tsconfig.json'),
+  JSON.stringify({
+    extends: resolve(root, 'tsconfig.json'),
+    compilerOptions: { types: [], lib: ['ES2022'] },
+    include: ['headless.ts'],
+  }),
+);
+run(
+  [process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'headless-tsconfig.json')],
+  root,
+);
 run(['node', resolve(directory, 'headless.ts')], directory);
 // Node 24 can strip erasable types, so the exact typed consumer runs against the
 // installed tarball rather than source files or workspace symlinks.
 console.log(run(['node', resolve(directory, 'consumer.ts')], directory).trim());
-const installed = JSON.parse(await readFile(resolve(directory, 'node_modules/@banora/sdk/package.json'), 'utf8'));
-if (installed.dependencies && Object.keys(installed.dependencies).length) throw new Error('Unexpected SDK runtime dependencies');
+const installed = JSON.parse(
+  await readFile(resolve(directory, 'node_modules/@banora/sdk/package.json'), 'utf8'),
+);
+if (installed.dependencies && Object.keys(installed.dependencies).length)
+  throw new Error('Unexpected SDK runtime dependencies');
 await readFile(resolve(directory, 'node_modules/@banora/sdk/LICENSE'));
 const globalDirectory = resolve(directory, 'node_modules/@banora/sdk/dist');
-const browserSource = await readFile(resolve(globalDirectory,'banora.global.js'),'utf8');
-const browserLicense = await readFile(resolve(directory,'node_modules/@banora/sdk/LICENSE'),'utf8');
-if (!browserSource.includes(browserLicense.trim())) throw new Error('Standalone browser distribution lost its MIT notice');
-await writeFile(resolve(directory, 'global-consumer.ts'), `/// <reference path="./node_modules/@banora/sdk/dist/banora.global.d.ts" />
+const browserSource = await readFile(resolve(globalDirectory, 'banora.global.js'), 'utf8');
+const browserLicense = await readFile(
+  resolve(directory, 'node_modules/@banora/sdk/LICENSE'),
+  'utf8',
+);
+if (!browserSource.includes(browserLicense.trim()))
+  throw new Error('Standalone browser distribution lost its MIT notice');
+await writeFile(
+  resolve(directory, 'global-consumer.ts'),
+  `/// <reference path="./node_modules/@banora/sdk/dist/banora.global.d.ts" />
 const model = new Banora.RecordController({size:9});
 model.setConnection({x:0,y:0}, {x:1,y:1}, 'arrow');
 const viewer: typeof Banora.mountViewer = Banora.mountViewer;
 model.dispose();
-`);
-await writeFile(resolve(directory, 'global-tsconfig.json'), JSON.stringify({
-  extends: resolve(root, 'tsconfig.json'), compilerOptions: {types:[], skipLibCheck:false}, include:['global-consumer.ts'],
-}));
-run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'global-tsconfig.json')], root);
-await writeFile(resolve(directory, 'global-consumer.js'), `import {readFileSync} from 'node:fs';
+`,
+);
+await writeFile(
+  resolve(directory, 'global-tsconfig.json'),
+  JSON.stringify({
+    extends: resolve(root, 'tsconfig.json'),
+    compilerOptions: { types: [], skipLibCheck: false },
+    include: ['global-consumer.ts'],
+  }),
+);
+run(
+  [process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'global-tsconfig.json')],
+  root,
+);
+await writeFile(
+  resolve(directory, 'global-consumer.js'),
+  `import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 const context = {TextEncoder, TextDecoder, console};
 runInNewContext(readFileSync(${JSON.stringify(resolve(globalDirectory, 'banora.global.js'))}, 'utf8'), context);
@@ -183,6 +230,7 @@ if (typeof context.Banora?.mountViewer !== 'function') throw Error('Missing glob
 const model = new context.Banora.RecordController({size:9});
 if (!model.play({x:0,y:0}).ok || model.getState().position.moveNumber !== 1) throw Error('Classic artifact failed');
 model.dispose(); console.log('Packed classic global and ambient declarations passed');
-`);
+`,
+);
 console.log(run(['node', resolve(directory, 'global-consumer.js')], directory).trim());
 console.log(`Packed declarations, entrypoints and license checked in ${directory}`);

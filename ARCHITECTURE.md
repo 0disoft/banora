@@ -9,15 +9,15 @@
 
 ## Technology Direction
 
-| Surface | Initial choice | Purpose |
-| --- | --- | --- |
-| Board state and rules | Pure TypeScript | Shared browser/server behavior and typed contracts |
-| Records | TypeScript SGF parser/serializer and variation model | Record preservation and headless navigation |
-| Default rendering | SVG and CSS | Themes, annotation layers, input and vector export |
-| Framework integration | Framework-independent controller; optional React, Vue, and Svelte adapters | Plain web embedding and framework-specific lifecycle bindings |
-| Distribution | Vite library builds, ESM/types and browser script output | Selective imports and simple embedding |
-| Development | Bun package/script workflow | Convenient development on Windows and other platforms |
-| AI integration | Provider-neutral session, checked host-owned KataGo JSON and isolated display | Analysis display without bundling an AI engine |
+| Surface               | Initial choice                                                                | Purpose                                                       |
+| --------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Board state and rules | Pure TypeScript                                                               | Shared browser/server behavior and typed contracts            |
+| Records               | TypeScript SGF parser/serializer and variation model                          | Record preservation and headless navigation                   |
+| Default rendering     | SVG and CSS                                                                   | Themes, annotation layers, input and vector export            |
+| Framework integration | Framework-independent controller; optional React, Vue, and Svelte adapters    | Plain web embedding and framework-specific lifecycle bindings |
+| Distribution          | Vite library builds, ESM/types and browser script output                      | Selective imports and simple embedding                        |
+| Development           | Bun package/script workflow                                                   | Convenient development on Windows and other platforms         |
+| AI integration        | Provider-neutral session, checked host-owned KataGo JSON and isolated display | Analysis display without bundling an AI engine                |
 
 Compatibility evidence for Node 24, React 19, Vue 3 and Svelte 5 is recorded in the
 [SDK contract](docs/sdk/compatibility.md); broader floors remain unclaimed. Tooling

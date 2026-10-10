@@ -1,18 +1,52 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="icon" href="/favicon.svg" />
-  <title>Banora — Read-only embed</title>
-  <style>body{font:16px system-ui;color:#234536;background:#f3f3eb;max-width:650px;margin:40px auto;padding:0 20px}#board{max-width:560px}button{font:inherit;border:1px solid #c9d5c7;border-radius:8px;padding:10px 16px;margin:12px 8px 12px 0;background:#fff;color:#234536}a{color:#285d46}p{line-height:1.6}button:focus-visible,svg:focus-visible{outline:3px solid #568e70}</style>
-</head>
-<body>
-  <a href="../studio/">← Banora Studio</a>
-  <h1>A board, wherever you need one.</h1>
-  <p>This read-only consumer uses the same public SDK and controller. It requires no framework or editor UI.</p>
-  <div id="board"></div><p id="position" role="status"></p>
-  <button id="previous">Previous</button><button id="next">Next</button><button id="toggle">Unmount board</button>
-  <script type="module" src="./main.ts"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" />
+    <title>Banora — Read-only embed</title>
+    <style>
+      body {
+        font: 16px system-ui;
+        color: #234536;
+        background: #f3f3eb;
+        max-width: 650px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      #board {
+        max-width: 560px;
+      }
+      button {
+        font: inherit;
+        border: 1px solid #c9d5c7;
+        border-radius: 8px;
+        padding: 10px 16px;
+        margin: 12px 8px 12px 0;
+        background: #fff;
+        color: #234536;
+      }
+      a {
+        color: #285d46;
+      }
+      p {
+        line-height: 1.6;
+      }
+      button:focus-visible,
+      svg:focus-visible {
+        outline: 3px solid #568e70;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../studio/">← Banora Studio</a>
+    <h1>A board, wherever you need one.</h1>
+    <p
+      >This read-only consumer uses the same public SDK and controller. It requires no framework or
+      editor UI.</p
+    >
+    <div id="board"></div><p id="position" role="status"></p> <button id="previous">Previous</button
+    ><button id="next">Next</button><button id="toggle">Unmount board</button>
+    <script type="module" src="./main.ts"></script>
+  </body>
 </html>

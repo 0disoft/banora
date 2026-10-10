@@ -1,81 +1,135 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
-import { requireScenarioResult } from './scenario-result.js';
+import { requireScenarioResult, scenarioExpression } from './scenario-result.js';
 
 const root = process.cwd();
 const output = resolve(root, 'output/playwright');
 await mkdir(output, { recursive: true });
 const session = `banora-smoke-${process.pid}`;
-const server = Bun.serve({ hostname: '127.0.0.1', port: 0, async fetch(request) {
-  if (!['GET', 'HEAD'].includes(request.method)) return new Response('Method not allowed', { status: 405 });
-  const pathname = decodeURIComponent(new URL(request.url).pathname);
-  const sdk = pathname.startsWith('/sdk/');
-  const directory = resolve(root, sdk ? 'packages/sdk/dist' : 'dist/examples');
-  const relative = sdk ? pathname.slice(5) : pathname.slice(1);
-  const path = resolve(directory, relative + (pathname.endsWith('/') ? 'index.html' : ''));
-  if (!path.startsWith(directory + sep)) return new Response('Not found', { status: 404 });
-  const file = Bun.file(path);
-  if (!await file.exists()) return new Response('Not found', { status: 404 });
-  return new Response(file, { headers: { 'Cache-Control': 'no-store' } });
-} });
+const server = Bun.serve({
+  hostname: '127.0.0.1',
+  port: 0,
+  async fetch(request) {
+    if (!['GET', 'HEAD'].includes(request.method))
+      return new Response('Method not allowed', { status: 405 });
+    const pathname = decodeURIComponent(new URL(request.url).pathname);
+    const sdk = pathname.startsWith('/sdk/');
+    const directory = resolve(root, sdk ? 'packages/sdk/dist' : 'dist/examples');
+    const relative = sdk ? pathname.slice(5) : pathname.slice(1);
+    const path = resolve(directory, relative + (pathname.endsWith('/') ? 'index.html' : ''));
+    if (!path.startsWith(directory + sep)) return new Response('Not found', { status: 404 });
+    const file = Bun.file(path);
+    if (!(await file.exists())) return new Response('Not found', { status: 404 });
+    return new Response(file, { headers: { 'Cache-Control': 'no-store' } });
+  },
+});
 async function cli(...args: string[]): Promise<string> {
   const child = Bun.spawn([process.execPath, 'run', 'playwright-cli', `-s=${session}`, ...args], {
-    cwd: root, stdout: 'pipe', stderr: 'pipe',
+    cwd: root,
+    stdout: 'pipe',
+    stderr: 'pipe',
   });
-  const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-  if (code !== 0 || stdout.includes('### Error')) throw new Error(`Browser command failed:\n${stdout}\n${stderr}`);
+  const [stdout, stderr, code] = await Promise.all([
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+    child.exited,
+  ]);
+  if (code !== 0 || stdout.includes('### Error'))
+    throw new Error(`Browser command failed:\n${stdout}\n${stderr}`);
   return stdout;
 }
 async function scenario(file: string, expected: string): Promise<void> {
-  const result = await cli('run-code', await readFile(resolve(root, `scripts/${file}-scenario.js`), 'utf8'));
+  const result = await cli(
+    'run-code',
+    scenarioExpression(await readFile(resolve(root, `scripts/${file}-scenario.js`), 'utf8')),
+  );
   requireScenarioResult(result, expected);
 }
 async function dropSmoke(): Promise<void> {
   await scenario('drop', 'banora-drop-complete');
   const saved = await readFile(resolve(output, 'drop-preserved.sgf'), 'utf8');
-  for (const value of ['CA[UTF-8]', 'HA[2]', 'KM[6.5]', 'XX[drop-preserve]', 'Unsaved drop note', 'Black & 日本', 'LB[ee:A]']) {
+  for (const value of [
+    'CA[UTF-8]',
+    'HA[2]',
+    'KM[6.5]',
+    'XX[drop-preserve]',
+    'Unsaved drop note',
+    'Black & 日本',
+    'LB[ee:A]',
+  ]) {
     if (!saved.includes(value)) throw new Error(`Dropped SGF export lost ${value}`);
   }
 }
 async function scoringSmoke(): Promise<void> {
   await scenario('scoring', 'banora-scoring-complete');
-  const before=await readFile(resolve(output,'scoring-before.sgf'),'utf8');
-  const after=await readFile(resolve(output,'scoring-after.sgf'),'utf8');
-  if (before!==after || !after.includes('XX[score-preserve]')) throw new Error('Scoring changed the exported source record');
+  const before = await readFile(resolve(output, 'scoring-before.sgf'), 'utf8');
+  const after = await readFile(resolve(output, 'scoring-after.sgf'), 'utf8');
+  if (before !== after || !after.includes('XX[score-preserve]'))
+    throw new Error('Scoring changed the exported source record');
 }
 async function puzzleSmoke(): Promise<void> {
   await scenario('puzzle', 'banora-puzzle-complete');
-  const diagram=await readFile(resolve(output,'puzzle.svg'),'utf8');
-  if (!diagram.includes('xmlns="http://www.w3.org/2000/svg"') || diagram.includes('data-cursor') || (diagram.match(/data-stone=/g) ?? []).length!==6) throw new Error('Puzzle diagram lost final stones or retained interactive cursor');
+  const diagram = await readFile(resolve(output, 'puzzle.svg'), 'utf8');
+  if (
+    !diagram.includes('xmlns="http://www.w3.org/2000/svg"') ||
+    diagram.includes('data-cursor') ||
+    (diagram.match(/data-stone=/g) ?? []).length !== 6
+  )
+    throw new Error('Puzzle diagram lost final stones or retained interactive cursor');
 }
 async function analysisSmoke(): Promise<void> {
-  await scenario('analysis','banora-analysis-complete');
-  const before=await readFile(resolve(output,'analysis-before.sgf'),'utf8'),after=await readFile(resolve(output,'analysis-after.sgf'),'utf8');
-  if (before!==after || !after.includes('XX[analysis-preserve]')) throw Error('Analysis preview changed the exported source SGF');
-  const diagram=await readFile(resolve(output,'analysis.svg'),'utf8');
-  if ((diagram.match(/data-stone=/g)??[]).length!==6 || diagram.includes('data-analysis-') || diagram.includes('data-cursor')) throw Error('Analysis diagram lost PV stones or retained prediction/cursor overlays');
+  await scenario('analysis', 'banora-analysis-complete');
+  const before = await readFile(resolve(output, 'analysis-before.sgf'), 'utf8'),
+    after = await readFile(resolve(output, 'analysis-after.sgf'), 'utf8');
+  if (before !== after || !after.includes('XX[analysis-preserve]'))
+    throw Error('Analysis preview changed the exported source SGF');
+  const diagram = await readFile(resolve(output, 'analysis.svg'), 'utf8');
+  if (
+    (diagram.match(/data-stone=/g) ?? []).length !== 6 ||
+    diagram.includes('data-analysis-') ||
+    diagram.includes('data-cursor')
+  )
+    throw Error('Analysis diagram lost PV stones or retained prediction/cursor overlays');
 }
 async function shareSmoke(): Promise<void> {
   await scenario('share', 'banora-sharing-complete: studio react vue svelte');
-  for (const name of ['studio','react','vue','svelte']) {
-    const saved=await readFile(resolve(output,`${name}-share-before-open.sgf`),'utf8');
-    if (!saved.includes('unsaved sharing note') || !saved.includes('XX[keep]') || !saved.includes('BPN[')) throw new Error(`${name} share guard export lost record content`);
+  for (const name of ['studio', 'react', 'vue', 'svelte']) {
+    const saved = await readFile(resolve(output, `${name}-share-before-open.sgf`), 'utf8');
+    if (
+      !saved.includes('unsaved sharing note') ||
+      !saved.includes('XX[keep]') ||
+      !saved.includes('BPN[')
+    )
+      throw new Error(`${name} share guard export lost record content`);
   }
 }
 async function textureConsumers(): Promise<void> {
   await scenario('texture-consumer', 'banora-texture-consumers-complete: studio react vue svelte');
-  for (const name of ['studio','react','vue','svelte']) {
-    const png=await readFile(resolve(output,`${name}-texture.png`));
-    const svg=await readFile(resolve(output,`${name}-texture.svg`),'utf8');
-    if (png.toString('hex',0,8)!=='89504e470d0a1a0a' || (svg.match(/<image /g) ?? []).length!==2 || !svg.includes('data-texture="black"')) throw new Error(`${name} lost texture diagram assets`);
+  for (const name of ['studio', 'react', 'vue', 'svelte']) {
+    const png = await readFile(resolve(output, `${name}-texture.png`));
+    const svg = await readFile(resolve(output, `${name}-texture.svg`), 'utf8');
+    if (
+      png.toString('hex', 0, 8) !== '89504e470d0a1a0a' ||
+      (svg.match(/<image /g) ?? []).length !== 2 ||
+      !svg.includes('data-texture="black"')
+    )
+      throw new Error(`${name} lost texture diagram assets`);
   }
 }
 async function animationConsumers(): Promise<void> {
-  await scenario('animation-consumer', 'banora-animation-consumers-complete: studio react vue svelte');
-  for (const name of ['studio','react','vue','svelte']) {
-    const png=await readFile(resolve(output,`${name}-animation.png`));
-    const svg=await readFile(resolve(output,`${name}-animation.svg`),'utf8');
-    if (png.toString('hex',0,8)!=='89504e470d0a1a0a' || svg.includes('data-placement-animation') || svg.includes('<animate')) throw new Error(`${name} diagram retained transient motion`);
+  await scenario(
+    'animation-consumer',
+    'banora-animation-consumers-complete: studio react vue svelte',
+  );
+  for (const name of ['studio', 'react', 'vue', 'svelte']) {
+    const png = await readFile(resolve(output, `${name}-animation.png`));
+    const svg = await readFile(resolve(output, `${name}-animation.svg`), 'utf8');
+    if (
+      png.toString('hex', 0, 8) !== '89504e470d0a1a0a' ||
+      svg.includes('data-placement-animation') ||
+      svg.includes('<animate')
+    )
+      throw new Error(`${name} diagram retained transient motion`);
   }
 }
 try {
@@ -86,13 +140,19 @@ try {
   await cli('snapshot');
   if (process.argv.includes('--analysis-only')) {
     await analysisSmoke();
-    console.log('Focused analysis smoke passed: candidate metrics/PVs/ownership, keyboard/touch, exact freshness, manual JSON, source preservation and lifecycle.');
+    console.log(
+      'Focused analysis smoke passed: candidate metrics/PVs/ownership, keyboard/touch, exact freshness, manual JSON, source preservation and lifecycle.',
+    );
   } else if (process.argv.includes('--puzzle-only')) {
     await puzzleSmoke();
-    console.log('Focused puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.');
+    console.log(
+      'Focused puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.',
+    );
   } else if (process.argv.includes('--scoring-only')) {
     await scoringSmoke();
-    console.log('Focused scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.');
+    console.log(
+      'Focused scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.',
+    );
   } else if (process.argv.includes('--rules-only')) {
     await scenario('rules', 'banora-rules-complete');
     console.log('Focused repetition rules smoke passed.');
@@ -117,67 +177,114 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
-  await scenario('browser', 'banora-browser-complete');
-  await dropSmoke();
-  console.log('File-drop smoke passed: metadata/setup, branch selection, guards, encoding failures and actual export/reopen.');
-  await scenario('rules', 'banora-rules-complete');
-  console.log('Repetition rules smoke passed: mounted legal/rejected moves, announcements, setup epochs, recorded navigation and controller disposal.');
-  await cli('snapshot');
-  await scenario('framework', 'banora-frameworks-complete');
-  console.log('Framework browser smoke passed: React Strict Mode, Vue refs, Svelte updates, callbacks, owned/shared controllers and unmount/remount.');
-  await cli('snapshot');
-  await scenario('editing', 'banora-editing-complete');
-  const editing = await readFile(resolve(output, 'editing-roundtrip.sgf'), 'utf8');
-  if (!editing.includes('XX[preserve]') || !editing.includes('AR[') || !editing.includes('LN[') || !editing.includes('AB[ef]')) throw new Error('Extended edits lost in SGF export');
-  console.log('Extended editor smoke passed: setup/turn, line/arrow, inherited CSS tokens, SGF round-trip and branch remove/reorder Undo.');
-  await cli('snapshot');
-  await scenario('global', 'banora-global-complete');
-  console.log('Classic browser distribution passed: navigation, editing/Undo and external-controller remount without modules/frameworks.');
-  await cli('snapshot');
-  await scenario('presentation', 'banora-presentation-complete');
-  console.log('Presentation smoke passed: eight rectangular/cropped transforms, logical mouse input, screen keyboard axes, upright labels and atomic configuration.');
-  await cli('snapshot');
-  await scenario('diagram', 'banora-diagrams-complete');
-  for (const name of ['studio','react','vue','svelte']) {
-    const bytes = await readFile(resolve(output,`${name}-diagram.png`));
-    if (bytes.toString('hex',0,8) !== '89504e470d0a1a0a') throw new Error(`${name} exported an invalid PNG signature`);
-    const svg = await readFile(resolve(output,`${name}-diagram.svg`),'utf8');
-    if (!svg.includes('xmlns="http://www.w3.org/2000/svg"') || svg.includes('data-cursor')) throw new Error(`${name} exported invalid/interactive SVG`);
-  }
-  console.log('Diagram smoke passed: Studio and three adapters export real SVG/PNG; bounded standalone styles, failure and disposal handling preserve SGF dirty state.');
-  await cli('snapshot');
-  await scenario('ink', 'banora-ink-complete');
-  console.log('Ink smoke passed: logical drag/touch/keyboard, cancellation, Undo/reopen, SVG/PNG pixels and React/Vue/Svelte propagation.');
-  await cli('snapshot');
-  await scenario('touch', 'banora-touch-complete');
-  console.log('Touch smoke passed: magnification, release/confirmation, logical transforms, callbacks, cancellation and keyboard.');
-  await cli('snapshot');
-  await scenario('comparison', 'banora-comparison-complete');
-  console.log('Comparison smoke passed: pinned branches, highlighted differences, exports, generation/deletion handling and lifecycle.');
-  await cli('snapshot');
-  await shareSmoke();
-  console.log('Sharing smoke passed: exact targets, position privacy, clipboard fallback, Export/Discard/Cancel, bounds and native lifecycle.');
-  await cli('snapshot');
-  await scenario('texture', 'banora-textures-complete: SDK');
-  await textureConsumers();
-  console.log('Texture smoke passed: normalized files, reusable SVG paints, PNG pixels, bounds, cancellation and local-only resources.');
-  await cli('snapshot');
-  await scenario('animation', 'banora-animation-sdk-complete');
-  await animationConsumers();
-  console.log('Animation smoke passed: adjacent placement, cancellation, reduced motion, stable redraws and final diagrams.');
-  await cli('snapshot');
-  await scoringSmoke();
-  console.log('Scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.');
-  await cli('snapshot');
-  await puzzleSmoke();
-  console.log('Puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.');
-  await analysisSmoke();
-  console.log('Analysis smoke passed: candidate metrics/PVs/ownership, exact freshness, manual JSON, source preservation and lifecycle.');
-  const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
-  if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
-  console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');
-  console.log((await cli('eval', '() => navigator.userAgent')).trim());
+    await scenario('browser', 'banora-browser-complete');
+    await dropSmoke();
+    console.log(
+      'File-drop smoke passed: metadata/setup, branch selection, guards, encoding failures and actual export/reopen.',
+    );
+    await scenario('rules', 'banora-rules-complete');
+    console.log(
+      'Repetition rules smoke passed: mounted legal/rejected moves, announcements, setup epochs, recorded navigation and controller disposal.',
+    );
+    await cli('snapshot');
+    await scenario('framework', 'banora-frameworks-complete');
+    console.log(
+      'Framework browser smoke passed: React Strict Mode, Vue refs, Svelte updates, callbacks, owned/shared controllers and unmount/remount.',
+    );
+    await cli('snapshot');
+    await scenario('editing', 'banora-editing-complete');
+    const editing = await readFile(resolve(output, 'editing-roundtrip.sgf'), 'utf8');
+    if (
+      !editing.includes('XX[preserve]') ||
+      !editing.includes('AR[') ||
+      !editing.includes('LN[') ||
+      !editing.includes('AB[ef]')
+    )
+      throw new Error('Extended edits lost in SGF export');
+    console.log(
+      'Extended editor smoke passed: setup/turn, line/arrow, inherited CSS tokens, SGF round-trip and branch remove/reorder Undo.',
+    );
+    await cli('snapshot');
+    await scenario('global', 'banora-global-complete');
+    console.log(
+      'Classic browser distribution passed: navigation, editing/Undo and external-controller remount without modules/frameworks.',
+    );
+    await cli('snapshot');
+    await scenario('presentation', 'banora-presentation-complete');
+    console.log(
+      'Presentation smoke passed: eight rectangular/cropped transforms, logical mouse input, screen keyboard axes, upright labels and atomic configuration.',
+    );
+    await cli('snapshot');
+    await scenario('diagram', 'banora-diagrams-complete');
+    for (const name of ['studio', 'react', 'vue', 'svelte']) {
+      const bytes = await readFile(resolve(output, `${name}-diagram.png`));
+      if (bytes.toString('hex', 0, 8) !== '89504e470d0a1a0a')
+        throw new Error(`${name} exported an invalid PNG signature`);
+      const svg = await readFile(resolve(output, `${name}-diagram.svg`), 'utf8');
+      if (!svg.includes('xmlns="http://www.w3.org/2000/svg"') || svg.includes('data-cursor'))
+        throw new Error(`${name} exported invalid/interactive SVG`);
+    }
+    console.log(
+      'Diagram smoke passed: Studio and three adapters export real SVG/PNG; bounded standalone styles, failure and disposal handling preserve SGF dirty state.',
+    );
+    await cli('snapshot');
+    await scenario('ink', 'banora-ink-complete');
+    console.log(
+      'Ink smoke passed: logical drag/touch/keyboard, cancellation, Undo/reopen, SVG/PNG pixels and React/Vue/Svelte propagation.',
+    );
+    await cli('snapshot');
+    await scenario('touch', 'banora-touch-complete');
+    console.log(
+      'Touch smoke passed: magnification, release/confirmation, logical transforms, callbacks, cancellation and keyboard.',
+    );
+    await cli('snapshot');
+    await scenario('comparison', 'banora-comparison-complete');
+    console.log(
+      'Comparison smoke passed: pinned branches, highlighted differences, exports, generation/deletion handling and lifecycle.',
+    );
+    await cli('snapshot');
+    await shareSmoke();
+    console.log(
+      'Sharing smoke passed: exact targets, position privacy, clipboard fallback, Export/Discard/Cancel, bounds and native lifecycle.',
+    );
+    await cli('snapshot');
+    await scenario('texture', 'banora-textures-complete: SDK');
+    await textureConsumers();
+    console.log(
+      'Texture smoke passed: normalized files, reusable SVG paints, PNG pixels, bounds, cancellation and local-only resources.',
+    );
+    await cli('snapshot');
+    await scenario('animation', 'banora-animation-sdk-complete');
+    await animationConsumers();
+    console.log(
+      'Animation smoke passed: adjacent placement, cancellation, reduced motion, stable redraws and final diagrams.',
+    );
+    await cli('snapshot');
+    await scoringSmoke();
+    console.log(
+      'Scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.',
+    );
+    await cli('snapshot');
+    await puzzleSmoke();
+    console.log(
+      'Puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.',
+    );
+    await analysisSmoke();
+    console.log(
+      'Analysis smoke passed: candidate metrics/PVs/ownership, exact freshness, manual JSON, source preservation and lifecycle.',
+    );
+    const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
+    if (!exported.includes('XG[Banora original sample]'))
+      throw new Error('Unknown property lost in browser export');
+    console.log(
+      'Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.',
+    );
+    console.log((await cli('eval', '() => navigator.userAgent')).trim());
   }
 } finally {
-  try { await cli('close'); } finally { await server.stop(true); }
+  try {
+    await cli('close');
+  } finally {
+    await server.stop(true);
+  }
 }

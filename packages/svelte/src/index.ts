@@ -6,5 +6,5 @@ export { default as Viewer } from './Viewer.svelte';
 export type { BoardProps, ViewerProps } from './types.js';
 
 export function createRecordStore(controller: RecordController) {
-  return readable(controller.getState(), set => controller.subscribe(set));
+  return readable(controller.getState(), (set) => controller.subscribe(set));
 }

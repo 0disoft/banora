@@ -1,2 +1,66 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="icon" href="/favicon.svg"/><title>Banora — Curated puzzles</title><style>body{font:16px system-ui;color:#294738;background:#f3f3eb;max-width:740px;margin:30px auto;padding:0 20px}a{color:#225b49}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:20px 0}label{display:grid;gap:5px}select,button{font:inherit;padding:9px 12px;border:1px solid #cfd9cb;border-radius:7px;background:#fff;color:inherit}#state{font-size:13px}p{line-height:1.6}</style></head><body><a href="../studio/">← Studio</a><h1>Play an authored continuation.</h1><p>These original exercises use explicit answer trees. Responses and hints come from the author, and no engine or remote service is involved.</p><div class="controls"><label>Exercise <select id="puzzle"></select></label><label>Board theme <select id="theme"><option value="wood">Warm wood</option><option value="flat">Flat</option></select></label><button id="toggle" type="button">Unmount puzzle</button><button id="svg" type="button">Save SVG</button></div><div id="puzzle-host"></div><p id="state" role="status"></p><script type="module" src="./main.ts"></script></body></html>
+<html lang="en"
+  ><head
+    ><meta charset="UTF-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1"
+    /><link rel="icon" href="/favicon.svg" /><title>Banora — Curated puzzles</title
+    ><style>
+      body {
+        font: 16px system-ui;
+        color: #294738;
+        background: #f3f3eb;
+        max-width: 740px;
+        margin: 30px auto;
+        padding: 0 20px;
+      }
+      a {
+        color: #225b49;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+      }
+      label {
+        display: grid;
+        gap: 5px;
+      }
+      select,
+      button {
+        font: inherit;
+        padding: 9px 12px;
+        border: 1px solid #cfd9cb;
+        border-radius: 7px;
+        background: #fff;
+        color: inherit;
+      }
+      #state {
+        font-size: 13px;
+      }
+      p {
+        line-height: 1.6;
+      }
+    </style></head
+  ><body
+    ><a href="../studio/">← Studio</a><h1>Play an authored continuation.</h1
+    ><p
+      >These original exercises use explicit answer trees. Responses and hints come from the author,
+      and no engine or remote service is involved.</p
+    ><div class="controls"
+      ><label
+        >Exercise
+        <select id="puzzle"></select></label
+      ><label
+        >Board theme
+        <select id="theme"
+          ><option value="wood">Warm wood</option
+          ><option value="flat">Flat</option></select
+        ></label
+      ><button id="toggle" type="button">Unmount puzzle</button
+      ><button id="svg" type="button">Save SVG</button></div
+    ><div id="puzzle-host"></div><p id="state" role="status"></p
+    ><script type="module" src="./main.ts"></script></body
+></html>

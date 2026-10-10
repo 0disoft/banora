@@ -4,10 +4,24 @@
   background: #f3f3eb;
   line-height: 1.6;
 }
-body {margin: 0;}
-main {max-width: 720px; margin: 32px auto; padding: 0 16px;}
-h1 {font-size: clamp(1.5rem, 5vw, 2rem); line-height: 1.25;}
-.toolbar {display: flex; flex-wrap: wrap; gap: 8px; align-items: center;}
+body {
+  margin: 0;
+}
+main {
+  max-width: 720px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+h1 {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  line-height: 1.25;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
 button {
   font: inherit;
   color: inherit;
@@ -17,9 +31,32 @@ button {
   border-radius: 7px;
   cursor: pointer;
 }
-button:disabled {opacity: 0.5; cursor: default;}
-button:focus-visible, input:focus-visible {outline: 3px solid #589474; outline-offset: 3px;}
-.toolbar label {display: flex; gap: 8px; align-items: center;}
-#record-state, #status, .note {font-size: 0.875rem; overflow-wrap: anywhere;}
-dialog {max-width: min(480px, calc(100vw - 64px)); border: 1px solid #b8c9b3; border-radius: 12px; color: inherit;}
-dialog::backdrop {background: #14251baa;}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #589474;
+  outline-offset: 3px;
+}
+.toolbar label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+#record-state,
+#status,
+.note {
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+dialog {
+  max-width: min(480px, calc(100vw - 64px));
+  border: 1px solid #b8c9b3;
+  border-radius: 12px;
+  color: inherit;
+}
+dialog::backdrop {
+  background: #14251baa;
+}

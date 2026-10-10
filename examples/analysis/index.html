@@ -1,2 +1,154 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="icon" href="/favicon.svg"/><title>Banora — Position analysis</title><style>body{font:16px system-ui;color:#294738;background:#f3f3eb;max-width:1100px;margin:30px auto;padding:0 20px}a{color:#225b49}p{line-height:1.6}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:20px 0}label{display:grid;gap:5px}select,button,textarea,input{font:inherit;padding:9px 12px;border:1px solid #cfd9cb;border-radius:7px;background:#fff;color:inherit}button{cursor:pointer}button:disabled{opacity:.45}.layout{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1fr);gap:24px}.layout>section{min-width:0}#source-board{max-width:450px}textarea{box-sizing:border-box;width:100%;resize:vertical}#outgoing,#incoming{font:12px ui-monospace,monospace}details{margin:20px 0}#source-state,#transport-state{font-size:13px}.notice{padding:12px 16px;background:#e7ecdf;border-radius:9px}@media(max-width:850px){.layout{grid-template-columns:1fr}body{padding:0 12px}}</style></head><body><a href="../studio/">← Studio</a><h1>Inspect a continuation. Keep the record.</h1><p>Analysis previews use an isolated board. Local moves, comments and Undo remain available while a provider is busy or fails.</p><p class="notice" id="mode-help">Offline mode uses authored illustrative numbers and protocol fixtures. No engine computed these predictions, and no network request is sent.</p><div class="controls"><label>Position <select id="position"></select></label><label>Provider <select id="provider"><option value="offline">Offline protocol illustrations</option><option value="manual">Manual KataGo JSON</option></select></label><label>Board theme <select id="theme"><option value="wood">Warm wood</option><option value="flat">Flat</option></select></label><label>Rotation <select id="rotation"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select></label><button id="toggle" type="button">Unmount analysis</button><button id="svg" type="button">Save preview SVG</button></div><div class="layout"><section aria-label="Source record"><h2>Source record</h2><div id="source-board"></div><div class="controls"><button id="previous" type="button">Previous record move</button><button id="next" type="button">Next record move</button><button id="undo" type="button">Undo record edit</button><button id="root" type="button">First record node</button><button id="sgf" type="button">Save source SGF</button></div><label>Source comment <textarea id="comment" rows="3"></textarea></label><p id="source-state" role="status"></p></section><section><div id="analysis-host"></div></section></div><details id="protocol"><summary>KataGo JSON input/output</summary><p>Manual mode sends nothing automatically. Analyze position captures a query below. Pass that one line to your configured KataGo analysis process, then paste its final stdout response. Configure Black reporting and preventCleanupPhase=true. Credentials, engine setup and connections remain host-owned.</p><label>Latest outgoing KataGo JSON line <textarea id="outgoing" readonly rows="6"></textarea></label><label>Incoming KataGo stdout JSON line <textarea id="incoming" rows="6"></textarea></label><div class="controls"><button id="receive" type="button">Process response line</button></div><p id="transport-state" role="status"></p></details><script type="module" src="./main.ts"></script></body></html>
+<html lang="en"
+  ><head
+    ><meta charset="UTF-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1"
+    /><link rel="icon" href="/favicon.svg" /><title>Banora — Position analysis</title
+    ><style>
+      body {
+        font: 16px system-ui;
+        color: #294738;
+        background: #f3f3eb;
+        max-width: 1100px;
+        margin: 30px auto;
+        padding: 0 20px;
+      }
+      a {
+        color: #225b49;
+      }
+      p {
+        line-height: 1.6;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+      }
+      label {
+        display: grid;
+        gap: 5px;
+      }
+      select,
+      button,
+      textarea,
+      input {
+        font: inherit;
+        padding: 9px 12px;
+        border: 1px solid #cfd9cb;
+        border-radius: 7px;
+        background: #fff;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.45;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
+        gap: 24px;
+      }
+      .layout > section {
+        min-width: 0;
+      }
+      #source-board {
+        max-width: 450px;
+      }
+      textarea {
+        box-sizing: border-box;
+        width: 100%;
+        resize: vertical;
+      }
+      #outgoing,
+      #incoming {
+        font:
+          12px ui-monospace,
+          monospace;
+      }
+      details {
+        margin: 20px 0;
+      }
+      #source-state,
+      #transport-state {
+        font-size: 13px;
+      }
+      .notice {
+        padding: 12px 16px;
+        background: #e7ecdf;
+        border-radius: 9px;
+      }
+      @media (max-width: 850px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        body {
+          padding: 0 12px;
+        }
+      }
+    </style></head
+  ><body
+    ><a href="../studio/">← Studio</a><h1>Inspect a continuation. Keep the record.</h1
+    ><p
+      >Analysis previews use an isolated board. Local moves, comments and Undo remain available
+      while a provider is busy or fails.</p
+    ><p class="notice" id="mode-help"
+      >Offline mode uses authored illustrative numbers and protocol fixtures. No engine computed
+      these predictions, and no network request is sent.</p
+    ><div class="controls"
+      ><label
+        >Position
+        <select id="position"></select></label
+      ><label
+        >Provider
+        <select id="provider"
+          ><option value="offline">Offline protocol illustrations</option
+          ><option value="manual">Manual KataGo JSON</option></select
+        ></label
+      ><label
+        >Board theme
+        <select id="theme"
+          ><option value="wood">Warm wood</option
+          ><option value="flat">Flat</option></select
+        ></label
+      ><label
+        >Rotation
+        <select id="rotation"
+          ><option value="0">0°</option
+          ><option value="90">90°</option
+          ><option value="180">180°</option
+          ><option value="270">270°</option></select
+        ></label
+      ><button id="toggle" type="button">Unmount analysis</button
+      ><button id="svg" type="button">Save preview SVG</button></div
+    ><div class="layout"
+      ><section aria-label="Source record"
+        ><h2>Source record</h2><div id="source-board"></div
+        ><div class="controls"
+          ><button id="previous" type="button">Previous record move</button
+          ><button id="next" type="button">Next record move</button
+          ><button id="undo" type="button">Undo record edit</button
+          ><button id="root" type="button">First record node</button
+          ><button id="sgf" type="button">Save source SGF</button></div
+        ><label>Source comment <textarea id="comment" rows="3"></textarea></label
+        ><p id="source-state" role="status"></p></section
+      ><section><div id="analysis-host"></div></section></div
+    ><details id="protocol"
+      ><summary>KataGo JSON input/output</summary
+      ><p
+        >Manual mode sends nothing automatically. Analyze position captures a query below. Pass that
+        one line to your configured KataGo analysis process, then paste its final stdout response.
+        Configure Black reporting and preventCleanupPhase=true. Credentials, engine setup and
+        connections remain host-owned.</p
+      ><label
+        >Latest outgoing KataGo JSON line
+        <textarea id="outgoing" readonly rows="6"></textarea></label
+      ><label>Incoming KataGo stdout JSON line <textarea id="incoming" rows="6"></textarea></label
+      ><div class="controls"><button id="receive" type="button">Process response line</button></div
+      ><p id="transport-state" role="status"></p></details
+    ><script type="module" src="./main.ts"></script></body
+></html>

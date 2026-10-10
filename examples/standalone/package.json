@@ -12,5 +12,7 @@
     "typescript": "7.x",
     "vite": "8.x"
   },
-  "engines": {"node": ">=24 <25"}
+  "engines": {
+    "node": ">=24 <25"
+  }
 }

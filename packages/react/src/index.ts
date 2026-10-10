@@ -1,7 +1,21 @@
-import { createElement, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import {
+  createElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 import type { CSSProperties, RefObject } from 'react';
 import { mountBoard, mountViewer } from '@banora/sdk';
-import type { BoardOptions, BoardView, ControllerState, RecordController, ViewerOptions, ViewerView } from '@banora/sdk';
+import type {
+  BoardOptions,
+  BoardView,
+  ControllerState,
+  RecordController,
+  ViewerOptions,
+  ViewerView,
+} from '@banora/sdk';
 
 interface ContainerProps {
   readonly className?: string;
@@ -13,51 +27,120 @@ interface ContainerProps {
 export type BoardProps = BoardOptions & ContainerProps;
 export type ViewerProps = Omit<ViewerOptions, 'sgf'> & ContainerProps;
 
-function useMount(kind: 'board' | 'viewer', container: RefObject<HTMLDivElement | null>,
-  controller: RecordController | undefined, options: BoardOptions | ViewerOptions,
-  callback: ContainerProps['onStateChange'], onView: ContainerProps['onView']) {
+function useMount(
+  kind: 'board' | 'viewer',
+  container: RefObject<HTMLDivElement | null>,
+  controller: RecordController | undefined,
+  options: BoardOptions | ViewerOptions,
+  callback: ContainerProps['onStateChange'],
+  onView: ContainerProps['onView'],
+) {
   const view = useRef<BoardView | ViewerView | null>(null);
   const onStateChange = useRef(callback);
   const mountOptions = useRef(options);
   // Commit the latest configuration before mounting, without remounting on updates.
-  useEffect(() => { mountOptions.current = options; }, [options]);
-  useEffect(() => { onStateChange.current = callback; }, [callback]);
+  useEffect(() => {
+    mountOptions.current = options;
+  }, [options]);
+  useEffect(() => {
+    onStateChange.current = callback;
+  }, [callback]);
   useEffect(() => {
     if (!container.current) return;
     const options = mountOptions.current;
-    const mounted = kind === 'board' ? mountBoard(container.current, { ...options as BoardOptions, controller }) :
-      mountViewer(container.current, { ...options as ViewerOptions, controller });
+    const mounted =
+      kind === 'board'
+        ? mountBoard(container.current, { ...(options as BoardOptions), controller })
+        : mountViewer(container.current, { ...(options as ViewerOptions), controller });
     view.current = mounted;
-    const unsubscribe = mounted.controller.subscribe(state => onStateChange.current?.(state));
-    return () => { unsubscribe(); mounted.dispose(); if (view.current === mounted) view.current = null; };
+    const unsubscribe = mounted.controller.subscribe((state) => onStateChange.current?.(state));
+    return () => {
+      unsubscribe();
+      mounted.dispose();
+      if (view.current === mounted) view.current = null;
+    };
   }, [kind, controller, container]);
-  useEffect(() => { view.current?.update(options); }, [options]);
-  useEffect(() => { onView?.(view.current); return () => onView?.(null); }, [kind,controller,onView]);
+  useEffect(() => {
+    view.current?.update(options);
+  }, [options]);
+  useEffect(() => {
+    onView?.(view.current);
+    return () => onView?.(null);
+  }, [kind, controller, onView]);
 }
 
 export function Board(props: BoardProps) {
   const container = useRef<HTMLDivElement>(null);
-  const options = useMemo(() => ({ readOnly: props.readOnly, theme: props.theme, coordinates: props.coordinates,
-    moveNumbers: props.moveNumbers, crop: props.crop, transform: props.transform, drawing: props.drawing, touch: props.touch,stoneTextures:props.stoneTextures,placementAnimation:props.placementAnimation,
-    nodeId:props.nodeId,compareTo:props.compareTo,referenceGeneration:props.referenceGeneration,onPoint: props.onPoint }),
-  [props.readOnly, props.theme, props.coordinates, props.moveNumbers, props.crop, props.transform, props.drawing, props.touch,props.stoneTextures,props.placementAnimation,
-    props.nodeId,props.compareTo,props.referenceGeneration,props.onPoint]);
+  const options = useMemo(
+    () => ({
+      readOnly: props.readOnly,
+      theme: props.theme,
+      coordinates: props.coordinates,
+      moveNumbers: props.moveNumbers,
+      crop: props.crop,
+      transform: props.transform,
+      drawing: props.drawing,
+      touch: props.touch,
+      stoneTextures: props.stoneTextures,
+      placementAnimation: props.placementAnimation,
+      nodeId: props.nodeId,
+      compareTo: props.compareTo,
+      referenceGeneration: props.referenceGeneration,
+      onPoint: props.onPoint,
+    }),
+    [
+      props.readOnly,
+      props.theme,
+      props.coordinates,
+      props.moveNumbers,
+      props.crop,
+      props.transform,
+      props.drawing,
+      props.touch,
+      props.stoneTextures,
+      props.placementAnimation,
+      props.nodeId,
+      props.compareTo,
+      props.referenceGeneration,
+      props.onPoint,
+    ],
+  );
   useMount('board', container, props.controller, options, props.onStateChange, props.onView);
   // oxlint-disable-next-line react/refs -- createElement forwards the ref object; render never reads current.
-  return createElement('div', { ref: container, className: props.className, style: props.style, 'aria-label': props.ariaLabel ?? 'Banora board' });
+  return createElement('div', {
+    ref: container,
+    className: props.className,
+    style: props.style,
+    'aria-label': props.ariaLabel ?? 'Banora board',
+  });
 }
 export function Viewer(props: ViewerProps) {
   const container = useRef<HTMLDivElement>(null);
-  const options = useMemo(() => ({ editable: props.editable, comments: props.comments,
-    variations: props.variations, board: props.board }), [props.editable, props.comments, props.variations, props.board]);
+  const options = useMemo(
+    () => ({
+      editable: props.editable,
+      comments: props.comments,
+      variations: props.variations,
+      board: props.board,
+    }),
+    [props.editable, props.comments, props.variations, props.board],
+  );
   useMount('viewer', container, props.controller, options, props.onStateChange, props.onView);
   // oxlint-disable-next-line react/refs -- createElement forwards the ref object; render never reads current.
-  return createElement('div', { ref: container, className: props.className, style: props.style, 'aria-label': props.ariaLabel ?? 'Banora viewer' });
+  return createElement('div', {
+    ref: container,
+    className: props.className,
+    style: props.style,
+    'aria-label': props.ariaLabel ?? 'Banora viewer',
+  });
 }
 
 /** Supply the same record content on server/client when hydrating state bindings. */
 export function useRecordState(controller: RecordController): ControllerState {
-  const subscribe = useCallback((notify: () => void) => controller.subscribe(() => notify()), [controller]);
+  const subscribe = useCallback(
+    (notify: () => void) => controller.subscribe(() => notify()),
+    [controller],
+  );
   const snapshot = useCallback(() => controller.getState(), [controller]);
   return useSyncExternalStore(subscribe, snapshot, snapshot);
 }

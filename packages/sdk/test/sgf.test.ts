@@ -10,7 +10,8 @@ function parsed(result: SgfResult): SgfRecord {
 
 describe('SGF FF4 preservation', () => {
   test('round-trips a multi-game collection, branches and escaped unknown properties', () => {
-    const input = '(;FF[4]GM[1]SZ[9]PB[A]XX[one\\:two][bracket\\] and slash\\\\]C[hello\\\nworld](;B[aa]LB[bb:a\\:b])(;B[cc];W[]))(;SZ[13]PW[B])';
+    const input =
+      '(;FF[4]GM[1]SZ[9]PB[A]XX[one\\:two][bracket\\] and slash\\\\]C[hello\\\nworld](;B[aa]LB[bb:a\\:b])(;B[cc];W[]))(;SZ[13]PW[B])';
     const before = parsed(parseSgf(input));
     const output = serializeSgf(before);
     const after = parsed(parseSgf(output));
@@ -24,7 +25,11 @@ describe('SGF FF4 preservation', () => {
   test('decodes declared UTF-8, falls back to true Latin-1, and ignores fake CA in comments', () => {
     const utf8 = parsed(decodeSgf(new TextEncoder().encode('(;CA[UTF-8]C[한글])')));
     expect(utf8.games[0]!.properties.C?.[0]).toBe('한글');
-    const bytes = new Uint8Array([...new TextEncoder().encode('(;C[CA[UTF-8\\] caf'), 233, ...new TextEncoder().encode('])')]);
+    const bytes = new Uint8Array([
+      ...new TextEncoder().encode('(;C[CA[UTF-8\\] caf'),
+      233,
+      ...new TextEncoder().encode('])'),
+    ]);
     const latin = parsed(decodeSgf(bytes));
     expect(latin.games[0]!.properties.C?.[0]).toBe('CA[UTF-8] café');
     expect(serializeSgf(latin)).toContain('CA[UTF-8]');
@@ -36,8 +41,18 @@ describe('SGF FF4 preservation', () => {
     expect(decodeSgf(new TextEncoder().encode('(;CA[UTF-8])(;CA[ISO-8859-1])')).ok).toBe(false);
   });
   test('rejects invalid structure, conflicting setup, malformed points and other formats', () => {
-    for (const input of ['()', '(;C[x]C[y])', '(;B[aa]W[bb])', '(;SZ[9]B[zz])',
-      '(;AB[aa]AW[aa])', '(;B[aa]PL[W])', '(;GM[2])', '(;FF[3])', '(;MN[NaN])', '(;C[unfinished)']) {
+    for (const input of [
+      '()',
+      '(;C[x]C[y])',
+      '(;B[aa]W[bb])',
+      '(;SZ[9]B[zz])',
+      '(;AB[aa]AW[aa])',
+      '(;B[aa]PL[W])',
+      '(;GM[2])',
+      '(;FF[3])',
+      '(;MN[NaN])',
+      '(;C[unfinished)',
+    ]) {
       expect(parseSgf(input).ok).toBe(false);
     }
   });
@@ -53,6 +68,7 @@ describe('SGF FF4 preservation', () => {
   });
   test('compressed point lists compare semantically to expanded lists', () => {
     expect(semanticRecord(parsed(parseSgf('(;SZ[9]TR[aa:bb])')))).toBe(
-      semanticRecord(parsed(parseSgf('(;SZ[9]TR[aa][ba][ab][bb])'))));
+      semanticRecord(parsed(parseSgf('(;SZ[9]TR[aa][ba][ab][bb])'))),
+    );
   });
 });
