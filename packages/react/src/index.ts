@@ -34,9 +34,9 @@ function useMount(kind: 'board' | 'viewer', container: RefObject<HTMLDivElement 
 export function Board(props: BoardProps) {
   const container = useRef<HTMLDivElement>(null);
   const options = useMemo(() => ({ readOnly: props.readOnly, theme: props.theme, coordinates: props.coordinates,
-    moveNumbers: props.moveNumbers, crop: props.crop, transform: props.transform, drawing: props.drawing, touch: props.touch,
+    moveNumbers: props.moveNumbers, crop: props.crop, transform: props.transform, drawing: props.drawing, touch: props.touch,stoneTextures:props.stoneTextures,
     nodeId:props.nodeId,compareTo:props.compareTo,referenceGeneration:props.referenceGeneration,onPoint: props.onPoint }),
-  [props.readOnly, props.theme, props.coordinates, props.moveNumbers, props.crop, props.transform, props.drawing, props.touch,
+  [props.readOnly, props.theme, props.coordinates, props.moveNumbers, props.crop, props.transform, props.drawing, props.touch,props.stoneTextures,
     props.nodeId,props.compareTo,props.referenceGeneration,props.onPoint]);
   useMount('board', container, props.controller, options, props.onStateChange, props.onView);
   return createElement('div', { ref: container, className: props.className, style: props.style, 'aria-label': props.ariaLabel ?? 'Banora board' });

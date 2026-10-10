@@ -35,7 +35,8 @@ export function mountTouchUI(container: HTMLElement, svg: SVGSVGElement, confirm
       if (!point || !screen || awaiting || !magnifier) {lens.style.display='none';lens.replaceChildren();return;}
       const window = document.defaultView!;
       const inherited = window.getComputedStyle(svg);
-      if (svg.firstElementChild) lens.style.background=window.getComputedStyle(svg.firstElementChild).fill;
+      const background=[...svg.children].find(child => child.tagName==='rect');
+      if (background) lens.style.background=window.getComputedStyle(background).fill;
       for (const name of ['board','grid','black','white','annotation']) {
         const key = `--banora-${name}`, value = inherited.getPropertyValue(key);
         if (value) lens.style.setProperty(key,value); else lens.style.removeProperty(key);

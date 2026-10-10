@@ -13,6 +13,7 @@ const boardProps = {
   transform: Object as PropType<BoardTransform>,
   drawing: Object as PropType<BoardOptions['drawing']>,
   touch: Object as PropType<BoardOptions['touch']>,
+  stoneTextures:Object as PropType<BoardOptions['stoneTextures']>,
   nodeId:String as PropType<BoardOptions['nodeId']>,compareTo:String as PropType<BoardOptions['compareTo']>,referenceGeneration:Number,
 };
 const viewerProps = { ...common, editable: Boolean, comments: { type: Boolean, default: true },
@@ -26,7 +27,7 @@ export const Board = defineComponent({
     let view: BoardView | undefined;
     let unsubscribe: (() => void) | undefined;
     const options = (): Omit<BoardOptions, 'controller'> => ({ readOnly: props.readOnly, theme: props.theme,
-      coordinates: props.coordinates, moveNumbers: props.moveNumbers, crop: props.crop, transform: props.transform, drawing: props.drawing, touch: props.touch,
+      coordinates: props.coordinates, moveNumbers: props.moveNumbers, crop: props.crop, transform: props.transform, drawing: props.drawing, touch: props.touch,stoneTextures:props.stoneTextures,
       nodeId:props.nodeId,compareTo:props.compareTo,referenceGeneration:props.referenceGeneration,onPoint: props.onPoint });
     const mount = () => {
       if (view) emit('view',null);
@@ -41,6 +42,8 @@ export const Board = defineComponent({
     watch(() => [props.readOnly, props.theme, props.coordinates, props.moveNumbers,
       props.crop?.x, props.crop?.y, props.crop?.width, props.crop?.height, props.transform?.rotation, props.transform?.flipX,
       props.drawing, props.drawing?.color, props.drawing?.width, props.touch, props.touch?.mode, props.touch?.magnifier,
+      props.stoneTextures,props.stoneTextures?.black,props.stoneTextures?.white,
+      props.stoneTextures?.black?.dataUrl,props.stoneTextures?.white?.dataUrl,
       props.nodeId,props.compareTo,props.referenceGeneration,props.onPoint],
     () => view?.update(options()), { flush: 'post' });
     onBeforeUnmount(() => { unsubscribe?.(); view?.dispose(); emit('view',null); });
@@ -69,6 +72,8 @@ export const Viewer = defineComponent({
       props.board?.theme, props.board?.moveNumbers, props.board?.crop?.x, props.board?.crop?.y,
       props.board?.crop?.width, props.board?.crop?.height, props.board?.transform?.rotation, props.board?.transform?.flipX,
       props.board?.drawing, props.board?.drawing?.color, props.board?.drawing?.width,
+      props.board?.stoneTextures,props.board?.stoneTextures?.black,props.board?.stoneTextures?.white,
+      props.board?.stoneTextures?.black?.dataUrl,props.board?.stoneTextures?.white?.dataUrl,
       props.board?.touch, props.board?.touch?.mode, props.board?.touch?.magnifier,props.board?.compareTo,props.board?.referenceGeneration, props.board?.onPoint],
     () => view?.update(options()), { flush: 'post' });
     onBeforeUnmount(() => { unsubscribe?.(); view?.dispose(); emit('view',null); });

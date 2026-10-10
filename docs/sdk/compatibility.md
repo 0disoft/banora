@@ -165,6 +165,9 @@ explicit Blob preparation uses browser image/2D canvas APIs and makes no fetch.
 The SDK does not accept texture URLs directly or extract them from SGF. PNG/JPEG/WebP
 preparation, eight cropped rectangular transforms, standalone PNG pixels, image
 deduplication, cancellation and object-URL cleanup have Chrome 154 evidence.
+Studio and React/Vue/Svelte file-selection/reset controls pass real production
+checks, including native prop forwarding, controller swaps, remounts and late-result
+rejection. Independent adapter tarballs check those props with strict types and SSR.
 Other browsers/devices and arbitrary image corpus coverage remain unclaimed.
 Animation is separate work; setting textures does not imply animated placement.
 

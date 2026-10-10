@@ -3,9 +3,10 @@ import { mountBoard } from './board.js';
 import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
 import type { ControllerState, RecordController } from './controller.js';
 import { displayCrop, normalizeBoardTransform } from './geometry.js';
+import {normalizeStoneTextures} from './stone-textures.js';
 
 export type ComparisonSide = 'left' | 'right';
-export type ComparisonBoardOptions = Pick<BoardOptions,'theme'|'coordinates'|'moveNumbers'|'crop'|'transform'>;
+export type ComparisonBoardOptions = Pick<BoardOptions,'theme'|'coordinates'|'moveNumbers'|'crop'|'transform'|'stoneTextures'>;
 export interface ComparisonOptions {
   readonly controller: RecordController;
   readonly left?: string;
@@ -25,7 +26,7 @@ export function mountComparison(container: HTMLElement, initial: ComparisonOptio
   const controller=initial.controller,document=container.ownerDocument,state=controller.getState();
   let left=initial.left ?? state.node.id,right=initial.right ?? state.node.id,generation=state.recordGeneration;
   const pickBoard=(board?:ComparisonBoardOptions): ComparisonBoardOptions => ({theme:board?.theme,coordinates:board?.coordinates,
-    moveNumbers:board?.moveNumbers,crop:board?.crop,transform:normalizeBoardTransform(board?.transform)});
+    moveNumbers:board?.moveNumbers,crop:board?.crop,transform:normalizeBoardTransform(board?.transform),stoneTextures:normalizeStoneTextures(board?.stoneTextures)});
   let boardOptions=pickBoard(initial.board);
   let disposed=false;
   const views={} as Record<ComparisonSide,BoardView>;

@@ -2,12 +2,20 @@ import { createApp, defineComponent, h, onBeforeUnmount, onMounted, ref, shallow
 import type {PropType} from 'vue';
 import { Board, Viewer, useRecordState } from '@banora/vue';
 import { RecordController } from '@banora/sdk';
-import type { BoardRotation, BoardView, ControllerState, ViewerView } from '@banora/sdk';
+import type { BoardRotation, BoardView, Color, ControllerState, StoneTexture, StoneTextures, ViewerView } from '@banora/sdk';
 import { downloadDiagram } from '../diagram-download.js';
 import sample from '../fixtures/study.sgf?raw';
 import { describeComparison,pinComparison,startComparison } from '../comparison-pair.js';
 import type { ComparisonPair } from '../comparison-pair.js';
 import {mountSharing} from '../sharing-controls.js';
+import {mountTextureControls} from '../texture-controls.js';
+
+const Textures=defineComponent({props:{textures:Object as PropType<StoneTextures|null>,
+  onTextureChange:{type:Function as PropType<(color:Color,texture:StoneTexture|null)=>void>,required:true}},setup(props) {
+  const host=ref<HTMLDivElement>();let dispose:(() => void)|undefined;
+  onMounted(() => {if (host.value) dispose=mountTextureControls(host.value,{initial:props.textures,onChange:(color,texture) => props.onTextureChange(color,texture)});});
+  onBeforeUnmount(() => dispose?.());return () => h('div',{ref:host});
+}});
 
 const Sharing=defineComponent({props:{controller:{type:Object as PropType<RecordController>,required:true}},setup(props) {
   const host=ref<HTMLDivElement>();let dispose:(() => void)|undefined,stop:(() => void)|undefined;
@@ -26,6 +34,7 @@ const App = defineComponent({ setup() {
   const callbackB = ref(false); const events = ref(0); const last = ref('');
   const rotation = ref<BoardRotation>(0), flipX = ref(false);
   const ink = ref(false);
+  const stoneTextures=shallowRef<StoneTextures|null>(null);
   const drawing = () => ink.value ? {color:'#cc5522',width:0.12} : null;
   const confirmTouch=ref(false),magnifier=ref(true);
   const touch=() => ({mode:confirmTouch.value ? 'confirm' as const : 'release' as const,magnifier:magnifier.value});
@@ -67,16 +76,17 @@ const App = defineComponent({ setup() {
       h('button',{id:'pin-left',disabled:!pair(),onClick:() => {const active=pair();if (active) comparison.value=pinComparison(active,'left');}},'Pin current on left'),
       h('button',{id:'pin-right',disabled:!pair(),onClick:() => {const active=pair();if (active) comparison.value=pinComparison(active,'right');}},'Pin current on right')]),
     mounted.value ? h('div', { class: 'boards' }, [h('section', { id: 'board-host' }, h(Board, {
-      controller: controller.value, readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(), theme: flat.value ? 'flat' : 'wood', onStateChange, onView:bindBoard,
-    })), h('section', { id: 'viewer-host' }, h(Viewer, { controller: controller.value, editable: !readOnly.value, onView:bindViewer, board: { transform:transform(), drawing:drawing(), touch:touch(), theme: flat.value ? 'flat' : 'wood' } }))]) :
+      controller: controller.value, readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value, theme: flat.value ? 'flat' : 'wood', onStateChange, onView:bindBoard,
+    })), h('section', { id: 'viewer-host' }, h(Viewer, { controller: controller.value, editable: !readOnly.value, onView:bindViewer, board: { transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value, theme: flat.value ? 'flat' : 'wood' } }))]) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
+    mounted.value ? h(Textures,{textures:stoneTextures.value,onTextureChange:(color,texture) => {stoneTextures.value={...stoneTextures.value,[color]:texture};}}) : null,
     mounted.value ? h(Sharing,{controller:controller.value as RecordController}) : null,
     mounted.value ? h('section', { id: 'owned-board', style: { maxWidth: '350px' } }, [h('h2', null, 'Optional owned controller'),
-      h(Board, { readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(), theme: flat.value ? 'flat' : 'wood' })]) : null,
+      h(Board, { readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value, theme: flat.value ? 'flat' : 'wood' })]) : null,
     mounted.value && pair() ? h('section',{id:'comparison-host'},[h('h2','Position comparison'),
       h('p',{id:'comparison-summary'},describeComparison(pair()!,state.value)),h('div',{class:'boards'},[
-        h('section',{id:'compare-left'},h(Board,{controller:controller.value,nodeId:pair()!.left,compareTo:pair()!.right,referenceGeneration:pair()!.generation,transform:transform(),theme:flat.value ? 'flat' : 'wood'})),
-        h('section',{id:'compare-right'},h(Board,{controller:controller.value,nodeId:pair()!.right,compareTo:pair()!.left,referenceGeneration:pair()!.generation,transform:transform(),theme:flat.value ? 'flat' : 'wood'}))])]) : null]);
+        h('section',{id:'compare-left'},h(Board,{controller:controller.value,nodeId:pair()!.left,compareTo:pair()!.right,referenceGeneration:pair()!.generation,transform:transform(),stoneTextures:stoneTextures.value,theme:flat.value ? 'flat' : 'wood'})),
+        h('section',{id:'compare-right'},h(Board,{controller:controller.value,nodeId:pair()!.right,compareTo:pair()!.left,referenceGeneration:pair()!.generation,transform:transform(),stoneTextures:stoneTextures.value,theme:flat.value ? 'flat' : 'wood'}))])]) : null]);
 } });
 createApp(App).mount(document.getElementById('app')!);
 window.addEventListener('pagehide', event => { if (!event.persisted) records.forEach(controller => controller.dispose()); });

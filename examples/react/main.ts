@@ -2,12 +2,20 @@ import { createElement as h, StrictMode, useCallback, useEffect, useRef, useStat
 import { createRoot } from 'react-dom/client';
 import { Board, Viewer, useRecordState } from '@banora/react';
 import { RecordController } from '@banora/sdk';
-import type { BoardRotation, BoardView, ControllerState, ViewerView } from '@banora/sdk';
+import type { BoardRotation, BoardView, Color, ControllerState, StoneTexture, StoneTextures, ViewerView } from '@banora/sdk';
 import { downloadDiagram } from '../diagram-download.js';
 import sample from '../fixtures/study.sgf?raw';
 import { describeComparison,pinComparison,startComparison } from '../comparison-pair.js';
 import type { ComparisonPair } from '../comparison-pair.js';
 import {mountSharing} from '../sharing-controls.js';
+import {mountTextureControls} from '../texture-controls.js';
+
+function Textures({textures,onChange}:{textures:StoneTextures|null;onChange:(color:Color,texture:StoneTexture|null)=>void}) {
+  const host=useRef<HTMLDivElement>(null),callback=useRef(onChange);
+  useEffect(() => {callback.current=onChange;},[onChange]);
+  useEffect(() => host.current ? mountTextureControls(host.current,{initial:textures,onChange:(color,texture) => callback.current(color,texture)}) : undefined,[]);
+  return h('div',{ref:host});
+}
 
 function Sharing({controller}:{controller:RecordController}) {
   const host=useRef<HTMLDivElement>(null);
@@ -24,6 +32,7 @@ function App() {
   const [rotation, setRotation] = useState<BoardRotation>(0);
   const [flipX, setFlipX] = useState(false);
   const [ink, setInk] = useState(false);
+  const [stoneTextures,setStoneTextures]=useState<StoneTextures|null>(null);
   const drawing = ink ? {color:'#cc5522',width:0.12} : null;
   const [confirmTouch,setConfirmTouch] = useState(false), [magnifier,setMagnifier] = useState(true);
   const touch = {mode:confirmTouch ? 'confirm' as const : 'release' as const,magnifier};
@@ -68,16 +77,17 @@ function App() {
       h('button',{id:'pin-left',disabled:!pair,onClick:() => pair && setComparison(pinComparison(pair,'left'))},'Pin current on left'),
       h('button',{id:'pin-right',disabled:!pair,onClick:() => pair && setComparison(pinComparison(pair,'right'))},'Pin current on right')),
     mounted ? h('div', { className: 'boards' }, h('section', { id: 'board-host' },
-      h(Board, { controller, readOnly, transform, drawing, touch, theme: flat ? 'flat' : 'wood', onStateChange, onView:setBoardView })),
-    h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, onView:setViewerView, board: { transform, drawing, touch, theme: flat ? 'flat' : 'wood' } }))) :
+      h(Board, { controller, readOnly, transform, drawing, touch,stoneTextures, theme: flat ? 'flat' : 'wood', onStateChange, onView:setBoardView })),
+    h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, onView:setViewerView, board: { transform, drawing, touch,stoneTextures, theme: flat ? 'flat' : 'wood' } }))) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
+    mounted ? h(Textures,{textures:stoneTextures,onChange:(color,texture) => setStoneTextures(previous => ({...previous,[color]:texture}))}) : null,
     mounted ? h(Sharing,{controller}) : null,
     mounted ? h('section', { id: 'owned-board', style: { maxWidth: 350 } }, h('h2', null, 'Optional owned controller'),
-      h(Board, { readOnly, transform, drawing, touch, theme: flat ? 'flat' : 'wood' })) : null,
+      h(Board, { readOnly, transform, drawing, touch,stoneTextures, theme: flat ? 'flat' : 'wood' })) : null,
     mounted && pair ? h('section',{id:'comparison-host'},h('h2',null,'Position comparison'),
       h('p',{id:'comparison-summary'},describeComparison(pair,state)),h('div',{className:'boards'},
-        h('section',{id:'compare-left'},h(Board,{controller,nodeId:pair.left,compareTo:pair.right,referenceGeneration:pair.generation,transform,theme:flat ? 'flat' : 'wood'})),
-        h('section',{id:'compare-right'},h(Board,{controller,nodeId:pair.right,compareTo:pair.left,referenceGeneration:pair.generation,transform,theme:flat ? 'flat' : 'wood'})))) : null);
+        h('section',{id:'compare-left'},h(Board,{controller,nodeId:pair.left,compareTo:pair.right,referenceGeneration:pair.generation,transform,stoneTextures,theme:flat ? 'flat' : 'wood'})),
+        h('section',{id:'compare-right'},h(Board,{controller,nodeId:pair.right,compareTo:pair.left,referenceGeneration:pair.generation,transform,stoneTextures,theme:flat ? 'flat' : 'wood'})))) : null);
 }
 createRoot(document.getElementById('app')!).render(h(StrictMode, null, h(App)));
 window.addEventListener('pagehide', event => { if (!event.persisted) records.forEach(controller => controller.dispose()); });

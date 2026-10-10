@@ -1,7 +1,8 @@
 import { RecordController, decodeSgf, mountBoard, mountComparison, parseSgf } from '@banora/sdk';
-import type { BoardRotation, CommandResult, ComparisonView, ControllerState, MarkerKind, Point, RecordLocator, SgfNode, SgfRecord, TouchOptions } from '@banora/sdk';
+import type { BoardRotation, CommandResult, ComparisonView, ControllerState, MarkerKind, Point, RecordLocator, SgfNode, SgfRecord, StoneTextures, TouchOptions } from '@banora/sdk';
 import sample from '../fixtures/study.sgf?raw';
 import {mountSharing} from '../sharing-controls.js';
+import {mountTextureControls} from '../texture-controls.js';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const controller = new RecordController({ sgf: sample });
@@ -18,6 +19,7 @@ let opening = false;
 let lastTreeState: { record: ControllerState['record']; id: string } | undefined;
 let connectionStart: { point: Point; node: string } | undefined;
 let comparison:ComparisonView|undefined;
+let stoneTextures:StoneTextures|null=null;
 
 function report(result: CommandResult): void {
   if (!result.ok) status.textContent = result.diagnostics?.map(item => item.message).join('; ') ?? `Action rejected: ${result.reason.replaceAll('-', ' ')}.`;
@@ -242,7 +244,7 @@ find('compare').addEventListener('click',() => {
   else {
     const state=controller.getState();find('comparison-panel').hidden=false;
     comparison=mountComparison(find('comparison-board'),{controller,left:state.node.id,right:state.node.children[0]?.id ?? state.node.id,
-      board:{theme:find<HTMLSelectElement>('theme').value as 'wood'|'flat',moveNumbers:find<HTMLInputElement>('numbers').checked,
+      board:{theme:find<HTMLSelectElement>('theme').value as 'wood'|'flat',moveNumbers:find<HTMLInputElement>('numbers').checked,stoneTextures,
         transform:{rotation:Number(find<HTMLSelectElement>('rotation').value) as BoardRotation,flipX:find<HTMLInputElement>('flip-x').checked}}});
     find('compare').textContent='Close comparison';
   }
@@ -257,12 +259,15 @@ document.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); report(event.shiftKey ? controller.redo() : controller.undo()); }
 });
 window.addEventListener('beforeunload', event => { if (controller.getState().dirty) { event.preventDefault(); event.returnValue = ''; } });
-window.addEventListener('pagehide', event => { if (!event.persisted) { disposeSharing();comparison?.dispose();view.dispose(); unsubscribe(); controller.dispose(); } });
+window.addEventListener('pagehide', event => { if (!event.persisted) { disposeTextures();disposeSharing();comparison?.dispose();view.dispose(); unsubscribe(); controller.dispose(); } });
 let dragDepth = 0;
 document.addEventListener('dragover', event => { if (event.dataTransfer?.types.includes('Files')) event.preventDefault(); });
 document.addEventListener('dragenter', event => { if (event.dataTransfer?.types.includes('Files')) { dragDepth++; document.body.classList.add('dragging'); } });
 document.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragging'); } });
 document.addEventListener('drop', event => { event.preventDefault(); dragDepth = 0; document.body.classList.remove('dragging'); void openFile(event.dataTransfer?.files[0]); });
+const disposeTextures=mountTextureControls(find('texture-host'),{onChange:(color,texture) => {
+  const next={...stoneTextures,[color]:texture};view.update({stoneTextures:next});comparison?.update({board:{stoneTextures:next}});stoneTextures=next;
+}});
 const disposeSharing=mountSharing(find('sharing-host'),controller,{
   replace:(shared,signal) => openRecord(shared.sgf,shared.kind==='position' ? 'shared-position.sgf' : 'shared-record.sgf',shared.locator,signal),
 });

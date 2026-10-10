@@ -53,9 +53,11 @@ unrelated browser flows during implementation.
 position privacy, Export/Discard/Cancel and framework cleanup. Clipboard writes
 are stubbed in this check to avoid modifying the machine's clipboard.
 `--texture-only` selects public SDK texture preparation/rendering/diagram pixels,
-bounded inputs, object-URL cleanup and presentation isolation. It verifies an
-explicit completion marker instead of assuming a returned CLI command finished
-the complete scenario. All texture fixtures are locally authored raster data.
+bounded inputs, object-URL cleanup and presentation isolation, then Studio and
+React/Vue/Svelte file selection/reset, native props, diagrams and cancelled late
+preparation. It verifies explicit completion markers and actual download assets
+instead of assuming a returned CLI command finished the complete scenarios.
+All texture fixtures are locally authored raster data.
 Use them for adapter/common-renderer changes; documentation-only edits need docs
 and whitespace review. Adapter packed checks require npm (supplied by Node 24),
 install with lifecycle scripts disabled and do not use workspace source aliases.

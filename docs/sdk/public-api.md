@@ -135,7 +135,8 @@ and reopen retain the annotations; this is an extension, not universal SGF marku
 `@banora/sdk/board` and the root export expose `mountBoard(container, options?)`.
 The returned `BoardView` exposes `controller`, `update(options)`, `exportSvg`,
 `exportPng` and idempotent `dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
-`coordinates`, `moveNumbers`, integer `crop`, `transform`, `drawing`, `touch` and `onPoint(point)`.
+`coordinates`, `moveNumbers`, integer `crop`, `transform`, `drawing`, `touch`,
+`stoneTextures` and `onPoint(point)`.
 
 An externally supplied controller survives view disposal. If omitted, the view
 creates and disposes its own controller. The SDK owns its appended SVG, live
@@ -241,6 +242,16 @@ the renderer's valid local texture paint references. External/inherited unresolv
 paints still fail. Texture tiles are host-owned immutable values with no persistent
 asset handles to dispose; hosts decide their cache, provenance and distribution.
 
+React/Vue/Svelte Board components forward `stoneTextures`; Viewer receives it
+inside `board`. Studio and the native examples offer independent black/white file
+selection, locally authored demo tiles and default restoration. Each color owns
+one pending preparation: replacing/resetting it or unmounting the selector cancels
+that work. Stale results cannot overwrite a newer selection or a remounted view.
+Native hosts store presentation values independently of controller selection, so
+accepted textures survive controller swaps and widget remounts. Colors use the
+same settings across shared/owned boards, viewers and comparison panes. These
+client-only file controls are consumer examples, not mandatory adapter APIs.
+
 ### Touch Aim and Confirmation
 
 `touch: {mode?: 'direct' | 'release' | 'confirm', magnifier?: boolean}` configures
@@ -301,7 +312,7 @@ its controller's cursor and accepts `board.compareTo`, but does not accept `node
 the root and `@banora/sdk/comparison`. It borrows one controller, composes two pinned
 boards, shows node selectors/comments and a left-to-right change count. Omitted
 nodes default to the current node. `board` accepts only theme, coordinates, move
-numbers, crop and transform, applied to both panes. Updates validate before changing
+numbers, crop, transform and stone textures, applied to both panes. Updates validate before changing
 the pair/configuration; selecting nodes never changes the main cursor, dirty state
 or edit history. Missing/deleted selections remain unavailable until restored or
 reselected. Successful record replacement explicitly resets both panes to the new

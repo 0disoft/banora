@@ -33,6 +33,15 @@ async function shareSmoke(): Promise<void> {
     if (!saved.includes('unsaved sharing note') || !saved.includes('XX[keep]') || !saved.includes('BPN[')) throw new Error(`${name} share guard export lost record content`);
   }
 }
+async function textureConsumers(): Promise<void> {
+  const result=await cli('run-code',await readFile(resolve(root,'scripts/texture-consumer-scenario.js'),'utf8'));
+  if (!result.includes('banora-texture-consumers-complete: studio react vue svelte')) throw new Error(`Texture consumers did not complete:\n${result}`);
+  for (const name of ['studio','react','vue','svelte']) {
+    const png=await readFile(resolve(output,`${name}-texture.png`));
+    const svg=await readFile(resolve(output,`${name}-texture.svg`),'utf8');
+    if (png.toString('hex',0,8)!=='89504e470d0a1a0a' || (svg.match(/<image /g) ?? []).length!==2 || !svg.includes('data-texture="black"')) throw new Error(`${name} lost texture diagram assets`);
+  }
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
@@ -42,6 +51,7 @@ try {
   if (process.argv.includes('--texture-only')) {
     const result=await cli('run-code',await readFile(resolve(root,'scripts/texture-scenario.js'),'utf8'));
     if (!result.includes('banora-textures-complete: SDK')) throw new Error('Texture scenario did not complete');
+    await textureConsumers();
     console.log('Focused texture smoke passed.');
   } else if (process.argv.includes('--share-only')) {
     await shareSmoke();
@@ -94,6 +104,7 @@ try {
   await cli('snapshot');
   const textures=await cli('run-code',await readFile(resolve(root,'scripts/texture-scenario.js'),'utf8'));
   if (!textures.includes('banora-textures-complete: SDK')) throw new Error('Texture scenario did not complete');
+  await textureConsumers();
   console.log('Texture smoke passed: normalized files, reusable SVG paints, PNG pixels, bounds, cancellation and local-only resources.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');

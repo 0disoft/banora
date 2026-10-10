@@ -32,6 +32,10 @@ static-position share links without a server. Record/node links include all game
 metadata, comments and branches; position links omit history and game metadata.
 Links contain readable encoded data and have a length limit; use SGF export for
 larger records. See the [share contract](docs/sdk/public-api.md#embedded-share-links).
+The same examples offer local black/white stone texture selection and reset.
+Prepared textures are presentation settings; exported SVG/PNG diagrams embed them,
+while SGF and share links retain record data only. See the
+[texture contract](docs/sdk/public-api.md#custom-stone-textures).
 
 ## Direction
 

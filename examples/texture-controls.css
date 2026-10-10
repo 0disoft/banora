@@ -1,0 +1,11 @@
+.texture-controls{padding:16px;margin:20px 0;border:1px solid #d2dccd;border-radius:10px;background:#fafbf5;color:#294738}
+.texture-controls h2{font-size:16px;margin:0 0 10px}
+.texture-controls p{font-size:13px;line-height:1.5}
+.texture-controls fieldset{display:flex;flex-wrap:wrap;gap:10px;align-items:center;border:1px solid #d2dccd;border-radius:8px;padding:10px;margin:12px 0}
+.texture-controls legend{font-size:14px;font-weight:600}
+.texture-controls label{font-size:13px;min-width:0}
+.texture-controls input{max-width:100%;font:inherit}
+.texture-controls fieldset p{flex-basis:100%;margin:0}
+.texture-controls button{font:13px system-ui;padding:8px 10px;border:1px solid #cbd8c7;border-radius:6px;background:#fff;color:inherit;cursor:pointer}
+.texture-controls button:disabled{opacity:.45;cursor:default}
+.texture-controls :focus-visible{outline:3px solid #589474;outline-offset:3px}

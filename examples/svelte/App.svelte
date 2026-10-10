@@ -2,12 +2,13 @@
   import { onMount } from 'svelte';
   import { Board, Viewer, createRecordStore } from '@banora/svelte';
   import { RecordController } from '@banora/sdk';
-  import type { BoardRotation, BoardView, ControllerState, ViewerView } from '@banora/sdk';
+  import type { BoardRotation, BoardView, ControllerState, StoneTextures, ViewerView } from '@banora/sdk';
   import { downloadDiagram } from '../diagram-download.js';
   import sample from '../fixtures/study.sgf?raw';
   import { describeComparison,pinComparison,startComparison } from '../comparison-pair.js';
   import type { ComparisonPair } from '../comparison-pair.js';
   import Sharing from './Sharing.svelte';
+  import Textures from './Textures.svelte';
 
   const records = [new RecordController({ sgf: sample }), new RecordController({ sgf: '(;SZ[13]GN[Second record];B[dd];W[jj])' })];
   let controller = $state.raw(records[0]!);
@@ -16,6 +17,7 @@
   let callbackB = $state(false); let events = $state(0); let last = $state('');
   let rotation = $state<BoardRotation>(0), flipX = $state(false);
   let ink = $state(false);
+  let stoneTextures=$state.raw<StoneTextures|null>(null);
   const drawing = $derived(ink ? {color:'#cc5522',width:0.12} : null);
   let confirmTouch=$state(false),magnifier=$state(true);
   const touch=$derived({mode:confirmTouch ? 'confirm' as const : 'release' as const,magnifier});
@@ -69,16 +71,17 @@
       <button id="pin-right" disabled={!pair} onclick={() => {if (pair) comparison=pinComparison(pair,'right');}}>Pin current on right</button>
     </div>
     <div class="boards">
-      <section id="board-host"><Board {controller} {readOnly} {transform} {drawing} {touch} theme={flat ? 'flat' : 'wood'} onStateChange={callbackB ? reportB : reportA} onView={bindBoard}/></section>
-      <section id="viewer-host"><Viewer {controller} editable={!readOnly} onView={bindViewer} board={{ transform, drawing, touch, theme: flat ? 'flat' : 'wood' }}/></section>
+      <section id="board-host"><Board {controller} {readOnly} {transform} {drawing} {touch} {stoneTextures} theme={flat ? 'flat' : 'wood'} onStateChange={callbackB ? reportB : reportA} onView={bindBoard}/></section>
+      <section id="viewer-host"><Viewer {controller} editable={!readOnly} onView={bindViewer} board={{ transform, drawing, touch,stoneTextures, theme: flat ? 'flat' : 'wood' }}/></section>
     </div>
+    <Textures textures={stoneTextures} onChange={(color,texture) => {stoneTextures={...stoneTextures,[color]:texture};}}/>
     <Sharing {controller}/>
-    <section id="owned-board" style="max-width:350px"><h2>Optional owned controller</h2><Board {readOnly} {transform} {drawing} {touch} theme={flat ? 'flat' : 'wood'}/></section>
+    <section id="owned-board" style="max-width:350px"><h2>Optional owned controller</h2><Board {readOnly} {transform} {drawing} {touch} {stoneTextures} theme={flat ? 'flat' : 'wood'}/></section>
     {#if pair}
       <section id="comparison-host"><h2>Position comparison</h2><p id="comparison-summary">{describeComparison(pair,$recordStore)}</p>
         <div class="boards">
-          <section id="compare-left"><Board {controller} nodeId={pair.left} compareTo={pair.right} referenceGeneration={pair.generation} {transform} theme={flat ? 'flat' : 'wood'}/></section>
-          <section id="compare-right"><Board {controller} nodeId={pair.right} compareTo={pair.left} referenceGeneration={pair.generation} {transform} theme={flat ? 'flat' : 'wood'}/></section>
+          <section id="compare-left"><Board {controller} nodeId={pair.left} compareTo={pair.right} referenceGeneration={pair.generation} {transform} {stoneTextures} theme={flat ? 'flat' : 'wood'}/></section>
+          <section id="compare-right"><Board {controller} nodeId={pair.right} compareTo={pair.left} referenceGeneration={pair.generation} {transform} {stoneTextures} theme={flat ? 'flat' : 'wood'}/></section>
         </div>
       </section>
     {/if}

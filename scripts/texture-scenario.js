@@ -38,7 +38,13 @@ async page => {
     try {view.update({stoneTextures:{black:{dataUrl:'https://example.test/stone.png',width:64,height:64}},theme:'flat'});throw Error('Invalid texture accepted');}
     catch (error) {verify(error.name==='RangeError','Wrong texture validation failure');}
     verify(svg.outerHTML===html && controller.getState()===before,'Failed texture update was not atomic');
-    const pending=view.exportPng({width:480});view.update({stoneTextures:null});await pending;
+    const pending=view.exportPng({width:480});view.update({stoneTextures:null});
+    const captured=await createImageBitmap(await pending);
+    const snapshotCanvas=document.createElement('canvas');snapshotCanvas.width=captured.width;snapshotCanvas.height=captured.height;
+    const snapshotContext=snapshotCanvas.getContext('2d');snapshotContext.drawImage(captured,0,0);captured.close();
+    const snapshotBox=svg.viewBox.baseVal,snapshotPoint=sdk.toDisplayPoint({x:3,y:4},before.position,{rotation:270,flipX:true});
+    const snapshotPixel=[...snapshotContext.getImageData(Math.floor((snapshotPoint.x+1.25-0.22-snapshotBox.x)/snapshotBox.width*snapshotCanvas.width),Math.floor((snapshotPoint.y+1.25-0.22-snapshotBox.y)/snapshotBox.height*snapshotCanvas.height),1,1).data];
+    verify(snapshotPixel.join(',')==='18,52,86,255','Pending PNG lost its captured texture after later updates');
     verify(svg.querySelectorAll('pattern,[data-texture]').length===0 && controller.getState()===before,'Texture reset changed state or retained definitions');
     view.update({stoneTextures:textures});
     let created=0,revoked=0;const makeUrl=URL.createObjectURL,revokeUrl=URL.revokeObjectURL;
@@ -69,6 +75,18 @@ async page => {
     return 'banora-textures-complete: SDK';
   });
   if (requests.length) throw Error('Textures made implicit external requests: '+requests.join('; '));
+  await page.locator('#texture-fixture svg').scrollIntoViewIfNeeded();
+  const point=await page.locator('#texture-fixture [data-stone="3,4"]').evaluate(stone => {const box=stone.getBoundingClientRect();return {x:box.x+box.width/2,y:box.y+box.height/2};});
+  const cdp=await page.context().newCDPSession(page);
+  try {
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...point,id:1}]});
+    const lens=page.locator('[data-touch-lens]').last();
+    if (!await lens.isVisible() || await lens.locator('pattern image').count()!==2) throw Error('Magnified touch lost embedded textures');
+    const backdrop=await page.evaluate(() => ({lens:document.querySelector('[data-touch-lens]:last-child').style.background,board:getComputedStyle(document.querySelector('#texture-fixture svg > rect')).fill}));
+    if (backdrop.lens!==backdrop.board) throw Error('Texture definitions changed the magnifier backdrop');
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    await page.locator('#texture-fixture [data-touch-confirm]').getByRole('button',{name:'Cancel placement',exact:true}).click();
+  } finally {await cdp.detach();}
   await page.locator('#texture-fixture').screenshot({path:'output/playwright/sdk-textures.png'});
   await page.evaluate(() => {const fixture=window.__textureFixture;fixture.view.dispose();if (fixture.controller.getState()!==fixture.before) throw Error('Texture view disposed borrowed controller');fixture.controller.dispose();fixture.host.remove();delete window.__textureFixture;});
   return result;
