@@ -1,6 +1,6 @@
 # SDK Public API
 
-- Status: Core API implemented; remaining surfaces proposed
+- Status: Core, SGF and record controller implemented; rendering/adapters remain planned
 - Product contract: [Specification](../product/02-spec.md)
 - Architecture: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 - Initial contracts: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
@@ -15,6 +15,9 @@ After `bun run build`, `@banora/sdk/core` and the root export expose:
   `setup(position, stones, toPlay?)`: structured `MoveResult`, with a new immutable
   position on success and a typed reason on failure. Setup is atomic and clears ko.
 - `stoneAt(position, point)`, `isOnBoard(position, point)` and `opposite(color)`.
+- `replayMove(position, pointOrNull, color)` executes recorded Go moves without
+  ordinary turn/ko/suicide rejection, including occupied-point replacement. Use
+  `play` for legal user moves; record playback follows SGF semantics.
 - `Color`, `Point`, `RulePolicy`, `Position`, `PositionOptions`, `SetupStone`,
   `MoveResult` and `MoveFailure` types, with declarations included in the build.
 
@@ -22,6 +25,36 @@ Rules currently expose `suicide: 'forbid' | 'allow'` and `ko: 'simple' | 'none'`
 The defaults forbid suicide and enforce simple ko. Named profiles, superko and
 scoring are not implemented. Snapshots freeze their board, captures and rule policy.
 Move color defaults to the current turn; a mismatched color is rejected.
+
+## Implemented Records and Controller
+
+`@banora/sdk/sgf` exports `parseSgf(text, limits?)`, `decodeSgf(bytes, limits?)`,
+`serializeSgf(record)`, `createSgfNode`, point helpers, immutable record types and
+`DEFAULT_SGF_LIMITS`. Parsing returns a structured success/diagnostic result.
+See [compatibility](compatibility.md#record-compatibility) for the supported subset.
+
+`@banora/sdk/controller` exports `RecordController` and related state/command types.
+Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
+
+| Operation | Behavior |
+| --- | --- |
+| `getState()` / `subscribe(listener)` | Immutable current state; subscription immediately delivers a snapshot and returns cleanup |
+| `goTo(id)` / `previous()` / `next(variation?)` | Select an existing node/path without creating an edit |
+| `play(pointOrNull)` | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch |
+| `setComment(text)` / `setMarker(point, kindOrNull, label?)` | Undoable comments and triangle/square/circle/cross/label edits |
+| `beginEditGroup()` / `endEditGroup()` | Group a comment session into one undo unit; navigation ends the group |
+| `undo()` / `redo()` | Restore record edits and the cursor captured for that history entry |
+| `loadSgf(textOrBytes, { discardChanges? })` | Validate first; reject dirty replacement unless explicitly permitted; successful import resets editing history |
+| `prepareExport()` | Return an immutable `{ id, text }` ticket without changing dirty state |
+| `acknowledgeExport(id)` / `cancelExport(id)` | Acknowledge host export success or cancel; only acknowledgment advances the exact exported semantic baseline |
+| `dispose()` | Release controller subscriptions/cache/tickets; subsequent state/mutation use is rejected |
+
+An asynchronous acknowledgment of older content leaves newer edits dirty; stale
+acknowledgments cannot replace a newer acknowledged baseline. Import invalidates old
+tickets. Keep at most eight outstanding tickets, 100 edit history entries and 128
+cached positions. Parsed node IDs remain stable through editing, not across
+serialization. Subscriber reentrancy delivers snapshots in order; notification errors
+are logged without rolling back committed commands. Root exports include all these APIs.
 
 ## Planned Logical API Surfaces
 
@@ -36,7 +69,7 @@ Move color defaults to the current turn; a mismatched color is rejected.
 | Puzzles | Authored answers, scripted responses, hints, restart and feedback |
 | Analysis | Provider requests/results, cancellation, freshness and overlay normalization |
 
-Except for the implemented core above, these are responsibilities, not finalized
+Except for the implemented core/records/controller above, these are responsibilities, not finalized
 npm subpaths or exported type names.
 Resolve names while implementing the first consumer example, then document actual
 signatures here before publication.
@@ -70,8 +103,8 @@ signatures here before publication.
 One controller owns the current record, selected node/cursor and edit history.
 Consumers send commands and subscribe to read-only state/change events. Views
 release their own renderer, listeners and subscriptions on disposal; an externally
-supplied controller remains available. Exact constructor/command names, snapshot
-types and export acknowledgment signatures remain UNDECIDED.
+supplied controller remains available. Implemented names and acknowledgment semantics
+are listed above; framework component exports and renderer interfaces remain pending.
 
 Previous/next and branch selection are navigation operations, separate from edit
 Undo/Redo. Variation creation, comments and marker changes are undoable edits.
@@ -83,7 +116,8 @@ Dirty state compares semantic record content with the export baseline, excluding
 cursor/presentation state. Import establishes a clean baseline; a successful export
 advances it. Undo to that content clears dirty state. Failed/cancelled exports keep
 the previous baseline. A browser download request does not prove disk persistence;
-document the host acknowledgment boundary when export APIs are implemented.
+hosts acknowledge export according to their transport. This records exported content,
+not verified filesystem persistence.
 
 Studio offers Export / Discard / Cancel before replacing or closing a dirty record.
 Export continues only after success, Discard allows replacement/close, and Cancel

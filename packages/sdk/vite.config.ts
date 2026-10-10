@@ -9,6 +9,8 @@ export default defineConfig({
       entry: {
         index: resolve(import.meta.dirname, 'src/index.ts'),
         core: resolve(import.meta.dirname, 'src/core.ts'),
+        sgf: resolve(import.meta.dirname, 'src/sgf.ts'),
+        controller: resolve(import.meta.dirname, 'src/controller.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,

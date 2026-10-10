@@ -146,3 +146,17 @@ export function setup(position: Position, stones: readonly SetupStone[], toPlay:
   }
   return { ok: true, position: seal({ ...position, board, toPlay, previousBoard: null }), captured: Object.freeze([]) };
 }
+
+/** SGF playback executes recorded moves even when normal play would reject them. */
+export function replayMove(position: Position, point: Point | null, color: Color): MoveResult {
+  if (!['black', 'white'].includes(color)) return { ok: false, reason: 'wrong-turn' };
+  if (point === null) return pass(seal({ ...position, toPlay: color }), color);
+  if (!isOnBoard(position, point)) return { ok: false, reason: 'out-of-bounds' };
+  const board = [...position.board];
+  board[point.y * position.width + point.x] = null;
+  const result = play(seal({ ...position, board, toPlay: color,
+    rules: { suicide: 'allow', ko: 'none' } }), point, color);
+  if (!result.ok) return result;
+  return { ...result, position: seal({ ...result.position, rules: position.rules,
+    previousBoard: position.board }) };
+}

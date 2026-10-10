@@ -3,8 +3,9 @@
 A modular TypeScript SDK for building Go (Baduk/Weiqi) boards, game viewers,
 editors, puzzles, and analysis interfaces.
 
-**Status: early implementation.** A headless TypeScript rules engine is implemented;
-Studio, SGF editing and framework adapters are in progress. Nothing is published yet.
+**Status: early implementation.** Headless rules, SGF loading/export and the record
+editing controller are implemented. Studio, rendering and framework adapters remain
+in progress. Nothing is published yet.
 The capabilities below describe the complete direction, not shipped support claims.
 See [implementation status](docs/engineering/08-implementation-status.md).
 

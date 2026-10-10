@@ -96,8 +96,9 @@ through supported read/edit/write workflows. Preserve decoded property semantics
 not byte-for-byte whitespace, property order, or original text formatting.
 
 Decode file bytes according to declared encoding; string input is already decoded.
-Export UTF-8. The supported input encoding list, absent-encoding policy and detailed
-property coverage remain UNDECIDED and must be documented before claiming compatibility.
+Export UTF-8. Implemented encoding/default/limit policies are documented in
+[record compatibility](../sdk/compatibility.md#record-compatibility); broader property
+behavior needs evidence before claiming full FF4 conformance.
 Unsupported or malformed input must produce an explicit error or diagnostic, not
 silently discard data. Imports should be validated before replacing the active
 record. Keep the original record available if an import fails.

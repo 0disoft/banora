@@ -31,10 +31,11 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | typecheck | `bun run typecheck` | Strict TypeScript checks for implementation, tests and scripts |
 | test | `bun run test` | Focused SDK behavior tests using Bun's test runner |
 | docs | `bun run docs` | English documentation, LF endings and relative links |
-| check | `bun run check` | Typecheck, tests, documentation and ESM/declaration build |
+| smoke | `bun run smoke` | SDK build, isolated tarball install, strict consumer typecheck and Node public-export execution |
+| check | `bun run check` | Typecheck, tests, documentation and packed-consumer smoke |
 
 `bun run build` builds the common SDK. `lint`, `format`, `contract`, `migration-check`
-and `smoke` are not yet configured; report them as skipped when relevant. Manual
+and browser smoke are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 
 ## Hygiene Validation

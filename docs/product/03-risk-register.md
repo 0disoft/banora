@@ -30,8 +30,8 @@
 - Final API identifiers, npm name availability and exact package entrypoints/artifacts.
 - Browser support floors and tested versions for the selected Node 24 LTS,
   React 19, Vue 3 and Svelte 5 targets; framework peer/compiler minimums and export details.
-- Supported SGF input encodings, absent-encoding behavior, detailed FF4 Go property
-  coverage and host export acknowledgment semantics.
+- Remaining FF4 property coverage and additional encoding fixture evidence. The
+  current subset, limits and acknowledgment API are documented in SDK contracts.
 - Numerical record limits, memory/latency/bundle budgets, and benchmark devices.
 - Exact named-rule coverage, superko algorithms, scoring corner cases, and annotation
   serialization conventions for nonstandard drawing data.

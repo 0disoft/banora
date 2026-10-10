@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test packages",
     "docs": "bun scripts/check-docs.ts",
-    "check": "bun run typecheck && bun run test && bun run docs && bun run build"
+    "smoke": "bun run build && bun scripts/packed-consumer.ts",
+    "check": "bun run typecheck && bun run test && bun run docs && bun run smoke"
   },
   "devDependencies": {
     "@types/bun": "1.x",

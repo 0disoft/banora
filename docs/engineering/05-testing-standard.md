@@ -38,5 +38,5 @@ batch validated pushes/releases to avoid redundant runner usage.
 ## Current Scaffold State
 
 Root Bun scripts configure `test`, `typecheck`, `docs` and `check`, including the
-SDK build. See VALIDATION.md for commands. `lint` and browser `smoke` are not yet
+SDK build, plus packed headless `smoke`. See VALIDATION.md for commands. `lint` and browser smoke are not yet
 configured. Report only checks actually run; later-stage coverage remains required.

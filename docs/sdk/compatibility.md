@@ -53,8 +53,24 @@ Initially target SGF FF4 for Go, using the [preservation contract](../product/02
 Prioritize moves/pass, setup, branches, comments, player/game metadata, labels and
 shape markers. File bytes follow declared encoding; string input is already decoded.
 Export UTF-8 and preserve unknown properties semantically through supported edits.
-Supported input encodings, absent-encoding behavior, detailed property coverage,
-board-size limits and malformed-input limits must be documented before release.
+Supported byte-input encodings are UTF-8, ISO-8859-1 (true Latin-1), Windows-1252,
+Shift_JIS, GB18030 and EUC-KR, including common aliases in the decoder. Absent CA
+defaults to Latin-1; a UTF-8 BOM selects UTF-8 when CA is absent. Mixed encoding
+collections and invalid/unsupported byte encodings are rejected explicitly.
+String input is already decoded, so CA does not re-decode it. Only UTF-8/Latin-1
+have fixture evidence so far; other decoder paths need fixtures before broad
+encoding compatibility claims. Missing FF/GM are accepted under this FF4 Go subset;
+explicitly different FF/GM values are rejected. Root-only property misuse, conflicting
+setup, malformed points and duplicate property keys are diagnosed.
+
+Default limits are 5 MiB for input and normalized UTF-8 export, 50,000 nodes,
+128 nested game trees and 65,536 raw characters per property value. Callers can
+configure positive limits. Dimensions are 2 through 52, including rectangles.
+`C`/`GC` text and known SimpleText fields normalize SGF whitespace; unknown values
+retain their unedited escaping on export. Edits are revalidated before commit so
+limit failures preserve state. Collections retain every game during editing/export.
+Recorded moves execute SGF playback semantics; new user moves use the selected
+rule policy. Named `RU` values are metadata, not automatic implemented rule profiles.
 Exact bytes and formatting are not guaranteed. No drop-in compatibility
 with WGo.js, Goban, Shudan or jGoBoard APIs is assumed.
 
