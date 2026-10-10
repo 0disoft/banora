@@ -85,8 +85,9 @@ placement and score calculation are not claimed by that probe.
    Named play/scoring presets and the headless manual scoring calculator now have
    focused and installed-artifact evidence. Studio's scoring consumer has Chrome
    group correction, counting/adjustment, mobile touch, context/lifecycle and unchanged
-   SGF download evidence. Authored puzzles with responses/hints/events remain
-   unimplemented; the completed counting slice does not close M3.
+   SGF download evidence. Headless authored puzzles now have targeted response,
+   hint/restart/event and invalid-definition evidence. Their browser view/runnable
+   consumer remains pending; these core slices do not close M3.
 4. M4 remains unimplemented: provider-neutral/KataGo integration, display overlays,
    cancellation and complete position-context freshness checks.
 5. Registry ownership, intentional version promotion, third-party distribution

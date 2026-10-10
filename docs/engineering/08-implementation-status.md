@@ -37,6 +37,12 @@ An implemented slice does not complete its milestone or establish untested compa
   Actual SGF downloads before/after scoring are identical, including unknown data;
   source cursor, dirty state and main board remain unchanged. The panel is Studio
   only; there is no automatic life/death, status agreement or result persistence.
+- Headless curated puzzles: explicit bounded `banora.puzzle/v1` answer trees,
+  normal core legality/captures, deterministic authored responses, correct/incorrect
+  terminal branches, unlisted retry, sequential hints and exact restart. Fixtures
+  cover selected game/branch history, ko/superko/pass policies, immutable input/state,
+  atomic rejection, metadata/tree limits and listener reentrancy/errors/disposal.
+  Browser view and runnable consumer remain the next increment.
 - SGF FF4 Go: collections, ordered branches, setup/compressed points, comments,
   metadata, labels/shape marks, unknown properties and unedited escaping preservation.
   Text and declared-encoding file input; UTF-8 export; bounded iterative parsing.
@@ -198,7 +204,8 @@ An implemented slice does not complete its milestone or establish untested compa
    separate; this evidence does not establish untested runtime compatibility.
 3. M3: Superko core policies and controller/consumer integration are implemented.
    Named play presets/pass accounting and headless scoring are implemented.
-   The Studio scoring consumer is implemented; authored puzzles remain.
+   The Studio scoring consumer and headless authored puzzle sessions are implemented;
+   the puzzle browser view/runnable consumer remain.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 
 Publishing, hosting and external provider credentials remain separate operational

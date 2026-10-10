@@ -42,6 +42,13 @@ lists are limited to board area; duplicate seeds do not repeatedly traverse a gr
 The derived board, ownership and component report are immutable and do not retain
 a record tree or run background work. No device latency guarantee is claimed.
 
+Puzzle authoring is bounded by the existing SGF limits plus 1,000 answer nodes,
+depth 128 and 262,144 metadata characters. Compilation rejects a discovered tree
+count above the cap before applying those branches, validates all legal paths and
+retains normalized definitions plus only the initial position, not a position for
+every answer node. Sessions calculate only played transitions; unlisted answers
+discard the hypothetical position. No timers/workers or device latency promises.
+
 Start with TypeScript and SVG. Profile first; evaluate batching, caching and a
 smaller update scope before changing technology. A measured rendering problem may
 justify Canvas; main-thread computation may justify a worker. Rust/WASM requires

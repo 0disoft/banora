@@ -19,6 +19,7 @@ export default defineConfig({
         textures: resolve(import.meta.dirname, 'src/textures.ts'),
         rules: resolve(import.meta.dirname, 'src/rules.ts'),
         scoring: resolve(import.meta.dirname, 'src/scoring.ts'),
+        puzzle: resolve(import.meta.dirname, 'src/puzzle.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,

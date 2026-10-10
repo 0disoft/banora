@@ -117,6 +117,11 @@ covered separately from successful downloads; image export never saves an SGF.
 
 ## Record Compatibility
 
+`@banora/sdk/puzzle` is a selective headless authored-session entrypoint. Its
+definitions use `banora.puzzle/v1` plus SGF initial context and explicit logical
+answer-tree moves, rather than claiming automatic third-party puzzle compatibility.
+Framework/browser puzzle controls require their own consumer evidence.
+
 Selective `@banora/sdk/rules` and `@banora/sdk/scoring` imports have installed Node
 24.14.0 runtime/declaration evidence with ES2022 libraries and no DOM types. Named
 presets expose explicit agreed-position coverage. Score calculations are headless,

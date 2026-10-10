@@ -78,6 +78,8 @@ import type {RepetitionHistory, RulePolicy} from '@banora/sdk/core';
 import {getRuleProfile} from '@banora/sdk/rules';
 import {scorePosition} from '@banora/sdk/scoring';
 import type {ScoreSummary} from '@banora/sdk/scoring';
+import {PuzzleSession} from '@banora/sdk/puzzle';
+import type {PuzzleDefinition,PuzzleEvent} from '@banora/sdk/puzzle';
 import {toDisplayPoint, toLogicalPoint} from '@banora/sdk/geometry';
 import {parseSgf} from '@banora/sdk/sgf';
 import {RecordController} from '@banora/sdk/controller';
@@ -96,6 +98,13 @@ if (!passing.rules.passStones || passing.passPrisoners.white!==0 || passing.cons
 const score=scorePosition(passing,{profile:'aga-area',komi:0.5,handicap:3});
 const report:ScoreSummary|undefined=score.ok ? score.value : undefined;
 if (!report || report.white.total!==2.5 || report.black.total!==0 || report.passSequenceComplete) throw Error('Packed scoring subpath failed');
+const definition:PuzzleDefinition={schemaVersion:'banora.puzzle/v1',id:'installed',title:'Installed puzzle',prompt:'Pass to finish.',
+  sgf:'(;SZ[3])',rules:getRuleProfile('aga-area').play,tree:{id:'root',children:[{id:'pass',move:null,response:'reply',children:[{id:'reply',move:null,result:'correct'}]}]}};
+const puzzle=new PuzzleSession(definition),puzzleEvents:PuzzleEvent[]=[];
+puzzle.onEvent(event => puzzleEvents.push(event));puzzle.pass();
+if (puzzle.getState().status!=='correct' || puzzle.getState().position.passPrisoners.white!==1 || puzzleEvents[0]?.type!=='answer') throw Error('Packed headless puzzle transition failed');
+puzzle.restart();if (puzzle.getState().attempts!==0 || puzzle.getState().position.moveNumber!==0) throw Error('Packed puzzle restart failed');
+puzzle.dispose();
 const repetition=new RecordController({sgf:'(;SZ[5]AW[bb][ac][cc][bd]AB[ab][ba][cb];B[bc];W[];B[])',rules:{ko}});
 for (let i=0;i<3;i++) repetition.next();
 const before=repetition.getState(),history:RepetitionHistory|null=before.position.repetitionHistory;

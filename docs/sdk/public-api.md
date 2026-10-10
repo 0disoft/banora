@@ -121,6 +121,87 @@ No status marks, score adjustments or result properties are written into the sou
 SGF. The reference UI currently ships in Studio; React/Vue/Svelte consumers can use
 the same headless calculator, but do not yet include this panel.
 
+### Curated Puzzle Sessions
+
+`@banora/sdk/puzzle` and root exports provide headless `PuzzleSession` and the
+`PuzzleDefinition`, `PuzzleNode`, `PuzzleHint`, `PuzzleState`, `PuzzleLineMove`,
+`PuzzleAnswer`, `PuzzleOutcome`, `PuzzleEvent`, `PuzzleResult` and `PuzzleFailure`
+types. This is an authored answer-tree player, without AI or DOM dependencies.
+
+```ts
+import {PuzzleSession} from '@banora/sdk/puzzle';
+const puzzle = new PuzzleSession({
+  schemaVersion:'banora.puzzle/v1', id:'first-capture', title:'Find the last liberty',
+  prompt:'Black to play and capture the white stone.',
+  sgf:'(;SZ[5]AB[ab][ba][cb]AW[bb])',
+  tree:{id:'start', hints:[{text:'Count White\'s liberties.'}], children:[
+    {id:'capture', move:{x:1,y:2}, result:'correct', feedback:'Captured.'},
+    {id:'miss', move:{x:3,y:3}, result:'incorrect', feedback:'Try the last liberty.'}
+  ]}
+});
+const unsubscribe = puzzle.subscribe(state => console.log(state.status));
+const stopEvents = puzzle.onEvent(event => console.log(event.type));
+puzzle.play({x:1,y:2});
+unsubscribe(); stopEvents(); puzzle.dispose();
+```
+
+The definition requires the exact schema version, ID/title/prompt, SGF and tree.
+An optional `initial:{gameIndex,path}` identifies a serialized node in any game
+or branch; default is the first game root. `rules` configures core legality before
+record replay; SGF `RU` does not select rules. `player` defaults to the initial
+position's turn and must match it when supplied. The private initial record is
+disposed after extracting its immutable position; a session never edits a host SGF.
+
+Root omits `move`; every descendant has a logical point or null for pass. A node
+has either children or explicit terminal `result:'correct'|'incorrect'`. Optional
+`feedback` and `hints:[{text,point?}]` are author data. At opponent nonterminal nodes,
+`response` must identify the selected child. Alternative responses are validated
+but not automatically chosen. There must be a reachable correct result through
+the selected response policy. SGF quality annotations/comments are not inferred
+as puzzle grades. Terminal status expresses the author's result, not automatic
+verification of the Go objective. Client-bundled answers remain inspectable.
+
+Construction validates and defensively copies all definitions. Invalid SGF,
+locators/rules, malformed shapes/text/points, duplicate IDs/sibling moves,
+cycles/reused node objects, illegal branches and absent response/solution paths
+throw before exposing a session. Limits: 1,000 tree nodes, depth 128 (root depth 0),
+64 ASCII identifier characters, title 256 characters, prompt/feedback/hint text
+4,096 characters, 16 hints per node and 262,144 aggregate authored characters.
+The existing SGF parser bounds also apply; see [ADR 0008](../adr/0008-curated-puzzle-authoring-and-session.md).
+
+`getState()` returns the current deeply immutable snapshot: ID/title/prompt/player,
+current `nodeId`/`position`, `status:'active'|'correct'|'incorrect'`, attempts,
+feedback, authored ID path, played line, revealed hints and last answer. Each line
+move exposes node ID, point/pass, color and solver/response role. Only played moves
+appear; unexplored choices are not injected into a renderer's variation tree.
+
+`play(point)` and `pass()` validate the submitted move using core rules. A listed
+move advances the authored path and applies its explicit opponent response
+synchronously; one answer event exposes the final snapshot and response list.
+Outcome is `continue`, `correct` or `incorrect`. A legal unlisted move has outcome
+`unlisted`, increments attempts and updates feedback, retaining exact position,
+turn/path/line and revealed hints for retry. This does not declare the move wrong
+under the Go objective. Illegal/malformed moves return `{ok:false,reason}` without
+changing state/counters or notifying. Attempts are bounded to 1,000,000,000.
+
+`requestHint()` reveals the next current-node hint without moving or counting an
+answer. Accepted path progress clears previous-node hints; unlisted answers keep
+them. Exhaustion returns `no-hint`. Finished sessions reject play/hints with
+`finished`; `restart()` resets the original position/path, attempts, line, hints,
+feedback and last answer, emitting only a restart event. Successful commands return
+`{ok:true,state}`. Failures include core move reasons, `invalid-move`, `finished`,
+`no-hint`, `busy`, `disposed` and `limit`.
+
+`subscribe(listener)` immediately supplies current state and returns unsubscribe.
+`onEvent(listener)` subscribes to later discriminated `answer`, `hint` and `restart`
+events, each containing the committed state. Commands during notification return
+`busy`. Listener errors are logged and isolated; unsubscribe/dispose during a
+notification suppress later callbacks to detached listeners. `dispose()` is
+idempotent, releases owned state/listeners and emits no answer; later commands
+return `disposed`, while getState/subscription throws. No timers, workers, remote
+providers or progress storage are started. The browser view/consumer is the next
+increment and is tracked separately from the headless session.
+
 ### Repetition Policies
 
 Positional superko rejects a placement restoring any previously observed stone
