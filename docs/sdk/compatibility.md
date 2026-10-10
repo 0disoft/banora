@@ -117,6 +117,13 @@ covered separately from successful downloads; image export never saves an SGF.
 
 ## Record Compatibility
 
+Selective `@banora/sdk/rules` and `@banora/sdk/scoring` imports have installed Node
+24.14.0 runtime/declaration evidence with ES2022 libraries and no DOM types. Named
+presets expose explicit agreed-position coverage. Score calculations are headless,
+require manually correct status and do not certify prior rule legality or player
+agreement. AGA pass accounting must be configured before record replay. The browser
+selection consumer is tracked separately; no full tournament-conformity claim applies.
+
 Initially target SGF FF4 for Go, using the [preservation contract](../product/02-spec.md#sgf-preservation).
 Prioritize moves/pass, setup, branches, comments, player/game metadata, labels and
 shape markers, plus implemented AR/LN lines and arrows. File bytes follow declared

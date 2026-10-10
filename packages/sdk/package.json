@@ -17,7 +17,8 @@
     "./comparison": {"types": "./dist/comparison.d.ts", "import": "./dist/comparison.js"},
     "./share": {"types": "./dist/share.d.ts", "import": "./dist/share.js"},
     "./textures": {"types": "./dist/textures.d.ts", "import": "./dist/textures.js"},
-    "./rules": {"types": "./dist/rules.d.ts", "import": "./dist/rules.js"}
+    "./rules": {"types": "./dist/rules.d.ts", "import": "./dist/rules.js"},
+    "./scoring": {"types": "./dist/scoring.d.ts", "import": "./dist/scoring.js"}
   },
   "engines": {"node": ">=24 <25"},
   "repository": {"type": "git", "url": "https://github.com/0disoft/banora.git", "directory": "packages/sdk"}

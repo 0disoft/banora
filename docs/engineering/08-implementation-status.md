@@ -23,8 +23,14 @@ An implemented slice does not complete its milestone or establish untested compa
   Tromp-Taylor, with immutable play/scoring policy descriptors and agreed-position
   coverage. A separate pass-prisoner ledger and consecutive-pass count have headless
   core/controller replay, branch, setup and Undo/Redo evidence; defaults retain no
-  pass-stone accounting. Actual scoring and its consumer remain the next increment;
-  no full tournament-rules support is claimed.
+  pass-stone accounting. No full tournament-rules support is claimed.
+- Headless manual scoring: explicit named counting policies, whole-group dead/seki
+  selection, derived ownership/neutral regions, territory/area and capture/dead/pass
+  prisoner components, komi, AGA area handicap bonus and explicit adjustments.
+  Fixtures verify corrections, seki, negative/fractional komi, AGA final-pass
+  warnings/equivalent differences and atomic invalid input. Installed headless
+  declarations/runtime include the new scoring subpath. The browser selection
+  consumer remains the next increment; there is no automatic life/death or agreement.
 - SGF FF4 Go: collections, ordered branches, setup/compressed points, comments,
   metadata, labels/shape marks, unknown properties and unedited escaping preservation.
   Text and declared-encoding file input; UTF-8 export; bounded iterative parsing.
@@ -185,7 +191,8 @@ An implemented slice does not complete its milestone or establish untested compa
    aggregate acceptance audit. Broader compatibility and an actual release remain
    separate; this evidence does not establish untested runtime compatibility.
 3. M3: Superko core policies and controller/consumer integration are implemented.
-   Named play presets/pass accounting are implemented; scoring and authored puzzles remain.
+   Named play presets/pass accounting and headless scoring are implemented.
+   The scoring browser consumer and authored puzzles remain.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 
 Publishing, hosting and external provider credentials remain separate operational

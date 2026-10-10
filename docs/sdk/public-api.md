@@ -44,10 +44,9 @@ Move color defaults to the current turn; a mismatched color is rejected.
 `RuleProfileId`, `RuleProfile` and `ScoringPolicy`. Unknown IDs throw `TypeError`;
 presets and their nested policies are frozen. Explicitly supply a preset's `play`
 to `createPosition` or `RecordController.rules`; existing SGF RU metadata is preserved
-without automatic policy selection. Scoring policies are implemented in the next
-increment; profile values currently describe the selected calculation contract.
+without automatic policy selection. Their scoring policy is used by `scorePosition`.
 
-| ID | Legal play | Planned scoring policy |
+| ID | Legal play | Scoring policy |
 | --- | --- | --- |
 | `japanese-territory` | Simple ko, no suicide/pass stones | Territory/prisoners; manual seki exclusion |
 | `aga-territory` | Situational superko, no suicide, pass stones | Territory/prisoners; White last pass |
@@ -61,6 +60,49 @@ preset. Komi is host-selected. See
 [ADR 0007](../adr/0007-manual-scoring-and-named-profile-coverage.md) for source
 basis and exact boundaries. Full tournament conformity is not claimed.
 
+### Manual Agreed-Position Scoring
+
+`@banora/sdk/scoring` and root exports provide `scorePosition(position, options)`
+and `ScoreOptions`, `ScoreResult`, `ScoreSummary`, `ScoreBreakdown`, `ScoreFailure`
+and `ScoreWarning`. These import without DOM types/globals or framework dependencies.
+Supply `profile` and optional `komi`, `handicap`, `deadStones`, `sekiStones` and
+per-color `adjustments`. Komi/adjustments default zero; handicap defaults zero.
+Komi and adjustments are finite numbers with absolute value at most 1,000,000,000;
+handicap is an integer from zero to board area. Prisoner/pass counters are nonnegative
+integers bounded by the same component limit. No text/number coercion occurs.
+
+Each occupied selection point represents its entire connected same-color group.
+Duplicate seeds are deduplicated; lists are bounded by board area. Empty/off-board
+seeds and overlapping dead/seki groups fail. Empty selections restore all groups
+as live. Dead stones are removed only from a derived board and credited to the
+opponent's dead-prisoner component. Single-color-bordered empty regions are territory;
+mixed/no-color borders remain neutral. Japanese territory excludes regions adjacent
+to manually selected seki groups. Other supplied presets count otherwise surrounded
+seki points. The calculator does not decide whether the user's status choices are right.
+
+Success returns `{ok:true,value:ScoreSummary}`. Its deeply immutable value contains
+original/derived boards, logical row-major ownership (including surviving stone
+colors), expanded dead/seki points, neutral count, per-color component breakdowns,
+Black-minus-White `difference`, `winner` and absolute `margin`. Territory adds owned
+empty points and eligible capture/dead/pass prisoners; area adds owned empty points
+and surviving stones. Komi is credited to White; AGA area credits White with
+`max(0, handicap-1)`. Explicit color adjustments are separate components.
+
+AGA requires a position produced/replayed with `passStones:true`; otherwise return
+`profile-mismatch` rather than inventing a pass ledger. Other failures identify
+invalid profile/position/options/selections. Scoring compares the selected counting
+method; it does not certify historical legal play under that profile. To reopen an
+AGA record, explicitly configure its `play` policy before deriving pass prisoners.
+
+`passSequenceComplete` checks two alternating passes and, for AGA, White's final
+pass. Missing protocol yields `passes-incomplete` or `white-last-pass-required`
+warnings while preserving a provisional numerical report. It never synthesizes
+moves, ends a game, confirms player agreement or resolves unfinished dame/status.
+Calculations and corrections leave the input position, record cursor, edit history,
+dirty/export baseline and SGF unchanged. Selections/results are transient host state;
+revalidate them when their source position changes. A browser selection consumer
+is tracked separately in implementation status.
+
 ### Repetition Policies
 
 Positional superko rejects a placement restoring any previously observed stone
@@ -71,7 +113,8 @@ repetition. The initial position is included; a rejected repetition returns
 
 Pass is exempt from repetition rejection and retains superko history, remembering
 its resulting board/next-player situation. Simple ko alone is released by a pass.
-No automatic end after passes or pass-prisoner accounting is implied. Successful
+Repetition policies alone imply no automatic end or pass-prisoner accounting;
+explicit `passStones` controls the separate ledger. Successful
 `setup`, including an unchanged layout or explicit turn edit, starts a new epoch
 while preserving move/capture counters. Failed setup preserves the entire position.
 

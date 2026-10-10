@@ -37,6 +37,11 @@ remain part of the required superko context and must not be truncated for speed.
 Record limits bound controller imports/edits; measured long-record memory/latency
 budgets, especially for superko, remain pending.
 
+Manual scoring visits the bounded board and selected groups/empty regions. Selection
+lists are limited to board area; duplicate seeds do not repeatedly traverse a group.
+The derived board, ownership and component report are immutable and do not retain
+a record tree or run background work. No device latency guarantee is claimed.
+
 Start with TypeScript and SVG. Profile first; evaluate batching, caching and a
 smaller update scope before changing technology. A measured rendering problem may
 justify Canvas; main-thread computation may justify a worker. Rust/WASM requires

@@ -76,6 +76,8 @@ run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'tsco
 await writeFile(resolve(directory, 'headless.ts'), `import {createPosition, play} from '@banora/sdk/core';
 import type {RepetitionHistory, RulePolicy} from '@banora/sdk/core';
 import {getRuleProfile} from '@banora/sdk/rules';
+import {scorePosition} from '@banora/sdk/scoring';
+import type {ScoreSummary} from '@banora/sdk/scoring';
 import {toDisplayPoint, toLogicalPoint} from '@banora/sdk/geometry';
 import {parseSgf} from '@banora/sdk/sgf';
 import {RecordController} from '@banora/sdk/controller';
@@ -91,6 +93,9 @@ const size = {width:5,height:9}, transform = {rotation:90 as const, flipX:true};
 const ko:RulePolicy['ko']='situational-superko';
 const passing=createPosition({rules:getRuleProfile('aga-area').play});
 if (!passing.rules.passStones || passing.passPrisoners.white!==0 || passing.consecutivePasses!==0) throw Error('Packed rule preset failed');
+const score=scorePosition(passing,{profile:'aga-area',komi:0.5,handicap:3});
+const report:ScoreSummary|undefined=score.ok ? score.value : undefined;
+if (!report || report.white.total!==2.5 || report.black.total!==0 || report.passSequenceComplete) throw Error('Packed scoring subpath failed');
 const repetition=new RecordController({sgf:'(;SZ[5]AW[bb][ac][cc][bd]AB[ab][ba][cb];B[bc];W[];B[])',rules:{ko}});
 for (let i=0;i<3;i++) repetition.next();
 const before=repetition.getState(),history:RepetitionHistory|null=before.position.repetitionHistory;

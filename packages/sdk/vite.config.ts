@@ -18,6 +18,7 @@ export default defineConfig({
         share: resolve(import.meta.dirname, 'src/share.ts'),
         textures: resolve(import.meta.dirname, 'src/textures.ts'),
         rules: resolve(import.meta.dirname, 'src/rules.ts'),
+        scoring: resolve(import.meta.dirname, 'src/scoring.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,
