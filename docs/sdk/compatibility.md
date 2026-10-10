@@ -166,6 +166,11 @@ Chrome 154 checks step eligibility, own-stone transform origin, redraw continuat
 atomic invalid options, navigation/import/setup/pass/Undo cancellation, re-enabling,
 final SVG/PNG geometry, missing-API fallback and borrowed-controller disposal.
 This is browser behavior evidence, not a frame-rate or physical-device guarantee.
+Studio and React/Vue/Svelte controls also pass production checks for opt-in defaults,
+Board/Viewer/owned settings, duration changes, comment redraws, static comparison,
+diagram downloads, media-preference changes, controller swaps, remount and repeated
+playback with at most one effect per view. Independent adapter types/SSR include
+the option without running browser effects on the server.
 
 ## Texture Compatibility
 

@@ -285,8 +285,13 @@ does not replay a previously suppressed animation. SVG/PNG exports always contai
 the final stone geometry, even while the visible effect is running or paused; export
 does not cancel live motion. The magnifier shows a stable final-position patch.
 Physical-device/frame-rate guarantees and additional browser evidence remain pending.
-Studio/native animation controls and adapter forwarding are tracked separately in
-implementation status.
+React/Vue/Svelte Board props forward `placementAnimation`; their Viewer receives
+it inside `board`. Studio and all three native examples expose opt-in activation
+and duration selection, initially disabled. Native shared/owned boards and viewers
+use the same host setting; pinned comparison panes remain static. Settings survive
+controller swaps and widget remounts without replaying old stones. Packed component
+types/SSR include the option and keep all effects client-only; actual production
+lifecycle evidence is tracked in implementation status.
 
 ### Touch Aim and Confirmation
 

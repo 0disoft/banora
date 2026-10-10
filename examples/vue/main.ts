@@ -35,6 +35,8 @@ const App = defineComponent({ setup() {
   const rotation = ref<BoardRotation>(0), flipX = ref(false);
   const ink = ref(false);
   const stoneTextures=shallowRef<StoneTextures|null>(null);
+  const animateStones=ref(false),animationDuration=ref(160);
+  const placementAnimation=() => animateStones.value ? {durationMs:animationDuration.value} : false;
   const drawing = () => ink.value ? {color:'#cc5522',width:0.12} : null;
   const confirmTouch=ref(false),magnifier=ref(true);
   const touch=() => ({mode:confirmTouch.value ? 'confirm' as const : 'release' as const,magnifier:magnifier.value});
@@ -55,6 +57,9 @@ const App = defineComponent({ setup() {
     h('p', {id:'diagram-error',role:'status'},error.value),
     h('p', {id:'view-handles'},`View handles ${Number(!!boardView.value) + Number(!!viewerView.value)}`),
     h('p', {id:'ink-count'},`Ink strokes ${state.value.strokes.length}`),
+    h('div',{class:'controls'},[h('label',[h('input',{id:'animation',type:'checkbox',checked:animateStones.value,onChange:(event:Event) => {animateStones.value=(event.target as HTMLInputElement).checked;}}),' Animate new stones']),
+      h('label',[' Duration ',h('select',{id:'animation-duration',value:animationDuration.value,disabled:!animateStones.value,onChange:(event:Event) => {animationDuration.value=Number((event.target as HTMLSelectElement).value);}},
+        [80,160,320,1000].map(value => h('option',{value},`${value} ms`)))])]),
     h('div', { class: 'controls' }, [button('advance', 'Advance controller', () => toRaw(controller.value).next()),
       button('toggle', mounted.value ? 'Unmount widgets' : 'Mount widgets', () => { mounted.value = !mounted.value; }),
       button('readonly', readOnly.value ? 'Enable placement' : 'Read only', () => { readOnly.value = !readOnly.value; }),
@@ -76,17 +81,17 @@ const App = defineComponent({ setup() {
       h('button',{id:'pin-left',disabled:!pair(),onClick:() => {const active=pair();if (active) comparison.value=pinComparison(active,'left');}},'Pin current on left'),
       h('button',{id:'pin-right',disabled:!pair(),onClick:() => {const active=pair();if (active) comparison.value=pinComparison(active,'right');}},'Pin current on right')]),
     mounted.value ? h('div', { class: 'boards' }, [h('section', { id: 'board-host' }, h(Board, {
-      controller: controller.value, readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value, theme: flat.value ? 'flat' : 'wood', onStateChange, onView:bindBoard,
-    })), h('section', { id: 'viewer-host' }, h(Viewer, { controller: controller.value, editable: !readOnly.value, onView:bindViewer, board: { transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value, theme: flat.value ? 'flat' : 'wood' } }))]) :
+      controller: controller.value, readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value,placementAnimation:placementAnimation(), theme: flat.value ? 'flat' : 'wood', onStateChange, onView:bindBoard,
+    })), h('section', { id: 'viewer-host' }, h(Viewer, { controller: controller.value, editable: !readOnly.value, onView:bindViewer, board: { transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value,placementAnimation:placementAnimation(), theme: flat.value ? 'flat' : 'wood' } }))]) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
     mounted.value ? h(Textures,{textures:stoneTextures.value,onTextureChange:(color,texture) => {stoneTextures.value={...stoneTextures.value,[color]:texture};}}) : null,
     mounted.value ? h(Sharing,{controller:controller.value as RecordController}) : null,
     mounted.value ? h('section', { id: 'owned-board', style: { maxWidth: '350px' } }, [h('h2', null, 'Optional owned controller'),
-      h(Board, { readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value, theme: flat.value ? 'flat' : 'wood' })]) : null,
+      h(Board, { readOnly: readOnly.value, transform:transform(), drawing:drawing(), touch:touch(),stoneTextures:stoneTextures.value,placementAnimation:placementAnimation(), theme: flat.value ? 'flat' : 'wood' })]) : null,
     mounted.value && pair() ? h('section',{id:'comparison-host'},[h('h2','Position comparison'),
       h('p',{id:'comparison-summary'},describeComparison(pair()!,state.value)),h('div',{class:'boards'},[
-        h('section',{id:'compare-left'},h(Board,{controller:controller.value,nodeId:pair()!.left,compareTo:pair()!.right,referenceGeneration:pair()!.generation,transform:transform(),stoneTextures:stoneTextures.value,theme:flat.value ? 'flat' : 'wood'})),
-        h('section',{id:'compare-right'},h(Board,{controller:controller.value,nodeId:pair()!.right,compareTo:pair()!.left,referenceGeneration:pair()!.generation,transform:transform(),stoneTextures:stoneTextures.value,theme:flat.value ? 'flat' : 'wood'}))])]) : null]);
+        h('section',{id:'compare-left'},h(Board,{controller:controller.value,nodeId:pair()!.left,compareTo:pair()!.right,referenceGeneration:pair()!.generation,transform:transform(),stoneTextures:stoneTextures.value,placementAnimation:placementAnimation(),theme:flat.value ? 'flat' : 'wood'})),
+        h('section',{id:'compare-right'},h(Board,{controller:controller.value,nodeId:pair()!.right,compareTo:pair()!.left,referenceGeneration:pair()!.generation,transform:transform(),stoneTextures:stoneTextures.value,placementAnimation:placementAnimation(),theme:flat.value ? 'flat' : 'wood'}))])]) : null]);
 } });
 createApp(App).mount(document.getElementById('app')!);
 window.addEventListener('pagehide', event => { if (!event.persisted) records.forEach(controller => controller.dispose()); });

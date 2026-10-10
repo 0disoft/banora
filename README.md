@@ -36,6 +36,10 @@ The same examples offer local black/white stone texture selection and reset.
 Prepared textures are presentation settings; exported SVG/PNG diagrams embed them,
 while SGF and share links retain record data only. See the
 [texture contract](docs/sdk/public-api.md#custom-stone-textures).
+Placement motion is an optional Board/Viewer setting, with activation/duration
+controls in Studio and each framework example. It respects reduced-motion
+preferences; diagrams export final stone geometry. See the
+[motion contract](docs/sdk/public-api.md#placement-animation).
 
 ## Direction
 

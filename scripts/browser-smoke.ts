@@ -42,6 +42,15 @@ async function textureConsumers(): Promise<void> {
     if (png.toString('hex',0,8)!=='89504e470d0a1a0a' || (svg.match(/<image /g) ?? []).length!==2 || !svg.includes('data-texture="black"')) throw new Error(`${name} lost texture diagram assets`);
   }
 }
+async function animationConsumers(): Promise<void> {
+  const result=await cli('run-code',await readFile(resolve(root,'scripts/animation-consumer-scenario.js'),'utf8'));
+  if (!result.includes('banora-animation-consumers-complete: studio react vue svelte')) throw new Error(`Animation consumers did not complete:\n${result}`);
+  for (const name of ['studio','react','vue','svelte']) {
+    const png=await readFile(resolve(output,`${name}-animation.png`));
+    const svg=await readFile(resolve(output,`${name}-animation.svg`),'utf8');
+    if (png.toString('hex',0,8)!=='89504e470d0a1a0a' || svg.includes('data-placement-animation') || svg.includes('<animate')) throw new Error(`${name} diagram retained transient motion`);
+  }
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
@@ -51,6 +60,7 @@ try {
   if (process.argv.includes('--animation-only')) {
     const result=await cli('run-code',await readFile(resolve(root,'scripts/animation-scenario.js'),'utf8'));
     if (!result.includes('banora-animation-sdk-complete')) throw new Error('Animation scenario did not complete');
+    await animationConsumers();
     console.log('Focused animation smoke passed.');
   } else if (process.argv.includes('--texture-only')) {
     const result=await cli('run-code',await readFile(resolve(root,'scripts/texture-scenario.js'),'utf8'));
@@ -113,6 +123,7 @@ try {
   await cli('snapshot');
   const animations=await cli('run-code',await readFile(resolve(root,'scripts/animation-scenario.js'),'utf8'));
   if (!animations.includes('banora-animation-sdk-complete')) throw new Error('Animation scenario did not complete');
+  await animationConsumers();
   console.log('Animation smoke passed: adjacent placement, cancellation, reduced motion, stable redraws and final diagrams.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');

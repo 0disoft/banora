@@ -105,8 +105,12 @@ An implemented slice does not complete its milestone or establish untested compa
   imports, setup, pass, replacement and jumps. Chrome 154 checks transform/origin,
   immutable state, continuation through redraw/comments, invalid-update atomicity,
   cancellation, live reduced-motion changes, missing-API fallback and final diagram
-  pixels during a paused effect. Studio/native controls and adapter forwarding
-  remain in progress; no frame-rate or physical-device guarantee is claimed.
+  pixels during a paused effect. Studio and React/Vue/Svelte offer opt-in activation
+  and duration controls; production checks cover shared/owned Board and Viewer
+  forwarding, comment redraws, diagram downloads, preferences, controller swaps,
+  unmount/remount and repeated playback with bounded effects. Comparison stays
+  static. Packed adapter declarations/SSR include the new option; no frame-rate
+  or physical-device guarantee is claimed.
 - Fifty focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
@@ -154,7 +158,9 @@ An implemented slice does not complete its milestone or establish untested compa
    Freehand storage/input, rotation/reflection and SVG/PNG static diagrams are implemented.
    Magnified touch placement, position comparison and embedded sharing are implemented.
    Custom stone textures and their consumer controls are implemented.
-   Placement motion has SDK evidence; native forwarding/example controls remain.
+   Placement motion and native forwarding/controls are implemented.
+   All listed M2 feature slices have local evidence; the aggregate milestone/release
+   audit remains and does not establish untested runtime compatibility.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 

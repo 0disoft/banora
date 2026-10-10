@@ -61,6 +61,9 @@ All texture fixtures are locally authored raster data.
 `--animation-only` checks public SDK placement eligibility, real Web Animations,
 redraw continuation, cancellation, live reduced-motion changes and final SVG/PNG
 geometry. Its explicit completion marker is required before reporting success.
+It then exercises Studio and all three native consumers' opt-in/duration controls,
+Board/Viewer/owned propagation, pinned/static behavior, diagrams and lifecycle;
+completion markers and actual download assets are checked for these consumers too.
 Use them for adapter/common-renderer changes; documentation-only edits need docs
 and whitespace review. Adapter packed checks require npm (supplied by Node 24),
 install with lifecycle scripts disabled and do not use workspace source aliases.

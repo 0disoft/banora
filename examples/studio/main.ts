@@ -221,6 +221,11 @@ function updateTouch() {
 }
 find('touch-mode').addEventListener('change',updateTouch);
 find('touch-magnifier').addEventListener('change',updateTouch);
+function updateAnimation() {
+  const enabled=find<HTMLInputElement>('animation').checked,duration=find<HTMLSelectElement>('animation-duration');duration.disabled=!enabled;
+  view.update({placementAnimation:enabled ? {durationMs:Number(duration.value)} : false});
+}
+find('animation').addEventListener('change',updateAnimation);find('animation-duration').addEventListener('change',updateAnimation);
 find<HTMLSelectElement>('theme').addEventListener('change', event => {const theme=(event.target as HTMLSelectElement).value as 'wood'|'flat';view.update({theme});comparison?.update({board:{theme}});});
 find<HTMLInputElement>('numbers').addEventListener('change', event => {const moveNumbers=(event.target as HTMLInputElement).checked;view.update({moveNumbers});comparison?.update({board:{moveNumbers}});});
 const transformView = () => {const transform={rotation:Number(find<HTMLSelectElement>('rotation').value) as BoardRotation,
