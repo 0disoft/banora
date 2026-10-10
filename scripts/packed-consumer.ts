@@ -85,6 +85,8 @@ import {scorePosition} from '@banora/sdk/scoring';
 import type {ScoreSummary} from '@banora/sdk/scoring';
 import {PuzzleSession} from '@banora/sdk/puzzle';
 import type {PuzzleDefinition,PuzzleEvent} from '@banora/sdk/puzzle';
+import {AnalysisSession} from '@banora/sdk/analysis';
+import type {AnalysisProvider,AnalysisCancellation} from '@banora/sdk/analysis';
 import {toDisplayPoint, toLogicalPoint} from '@banora/sdk/geometry';
 import {parseSgf} from '@banora/sdk/sgf';
 import {RecordController} from '@banora/sdk/controller';
@@ -110,6 +112,15 @@ puzzle.onEvent(event => puzzleEvents.push(event));puzzle.pass();
 if (puzzle.getState().status!=='correct' || puzzle.getState().position.passPrisoners.white!==1 || puzzleEvents[0]?.type!=='answer') throw Error('Packed headless puzzle transition failed');
 puzzle.restart();if (puzzle.getState().attempts!==0 || puzzle.getState().position.moveNumber!==0) throw Error('Packed puzzle restart failed');
 puzzle.dispose();
+const analysisRecord=new RecordController({size:5});
+const analysisProvider:AnalysisProvider={id:'installed',async analyze(request,cancellation:AnalysisCancellation) {
+  if (cancellation.cancelled || request.context.moves.length!==0) throw Error('Unexpected installed analysis context');
+  return {requestId:request.id,contextKey:request.context.key,root:{winProbabilityBlack:0.5,scoreLeadBlack:0,visits:10},
+    candidates:[{move:null,rank:0,principalVariation:[null],winProbabilityBlack:0.5,scoreLeadBlack:0,visits:10}]};
+}};
+const analysis=new AnalysisSession(analysisRecord,analysisProvider,{profile:'japanese-territory'});
+if (analysis.getState().status!=='idle' || !(await analysis.request()).ok || analysis.getState().result?.candidates[0]?.move!==null) throw Error('Packed headless analysis failed');
+analysis.dispose();if (!analysisRecord.play({x:0,y:0}).ok) throw Error('Analysis disposed its borrowed record');analysisRecord.dispose();
 const repetition=new RecordController({sgf:'(;SZ[5]AW[bb][ac][cc][bd]AB[ab][ba][cb];B[bc];W[];B[])',rules:{ko}});
 for (let i=0;i<3;i++) repetition.next();
 const before=repetition.getState(),history:RepetitionHistory|null=before.position.repetitionHistory;

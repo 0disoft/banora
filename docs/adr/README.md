@@ -13,7 +13,7 @@ mean its implementation or compatibility has been validated.
 | [0006](0006-explicit-repetition-and-rule-profile-boundaries.md) | Accepted for repetition; remaining M3 pending | Explicit superko, immutable path history and rule profile coverage boundaries |
 | [0007](0007-manual-scoring-and-named-profile-coverage.md) | Accepted; headless and Studio evidence | Manual agreed-position scoring, named presets, pass prisoners and coverage boundaries |
 | [0008](0008-curated-puzzle-authoring-and-session.md) | Accepted; headless and browser evidence | Explicit curated answer trees, deterministic responses, hints and isolated sessions |
-| [0009](0009-analysis-context-and-external-provider-contract.md) | Accepted; implementation pending | Exact context matching, provider-neutral metrics and explicit cancellable external analysis |
+| [0009](0009-analysis-context-and-external-provider-contract.md) | Accepted; headless implementation | Exact context matching, provider-neutral metrics and explicit cancellable external analysis |
 
 Update the owning ADR when a design changes and describe the consequences for
 consumers and validation. Keep unresolved choices explicit. Use the

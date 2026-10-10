@@ -58,3 +58,13 @@ Keep existing state/coordinate contracts when adding a backend. Faster rendering
 does not justify stale analysis, divergent rules, data loss or unbounded work.
 Performance checks should target changed workloads rather than run by default on
 every documentation or unrelated code change.
+
+Analysis context extraction traverses the bounded selected SGF path and validates
+its active epoch. It retains current/initial immutable positions and ordered moves,
+not every intermediate position or the full record in its provider DTO. Exact
+signature strings are SDK-owned weak context metadata; no hash-only matching.
+Normalized results are bounded by board area, requested PV length, 8,192 aggregate
+PV moves and exact-size ownership. At most one request lease is active per session.
+Cancelling detaches the session/source from late provider callbacks and settles the
+caller without waiting for a provider deadline. Cold-path latency/memory profiling
+remains pending; these structural bounds are not device performance guarantees.

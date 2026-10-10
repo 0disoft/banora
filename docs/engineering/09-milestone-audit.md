@@ -109,8 +109,9 @@ remain open, and none of these checks establishes untested device compatibility.
    group correction, counting/adjustment, mobile touch, context/lifecycle and unchanged
    SGF download evidence. Headless authored puzzles and their view/runnable consumer
    have targeted, installed and browser evidence; the M3 table records their scope.
-4. M4 remains unimplemented: provider-neutral/KataGo integration, display overlays,
-   cancellation and complete position-context freshness checks.
+4. M4 now has provider-neutral headless contexts/results/session and targeted
+   cancellation/freshness evidence. KataGo protocol integration, display overlays
+   and the runnable analysis consumer remain; these core checks do not close M4.
 5. Registry ownership, intentional version promotion, third-party distribution
    notices, publication and hosting require a separate release task. The current
    local development version remains `0.1.0-dev.0`; this audit changes no versions.

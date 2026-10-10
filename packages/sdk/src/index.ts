@@ -11,3 +11,4 @@ export * from './rules.js';
 export * from './scoring.js';
 export * from './puzzle.js';
 export * from './puzzle-view.js';
+export * from './analysis.js';

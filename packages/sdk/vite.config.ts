@@ -21,6 +21,7 @@ export default defineConfig({
         scoring: resolve(import.meta.dirname, 'src/scoring.ts'),
         puzzle: resolve(import.meta.dirname, 'src/puzzle.ts'),
         'puzzle-view': resolve(import.meta.dirname, 'src/puzzle-view.ts'),
+        analysis: resolve(import.meta.dirname, 'src/analysis.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,

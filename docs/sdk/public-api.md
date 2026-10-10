@@ -241,6 +241,13 @@ theme updates, diagrams and borrowed-session unmount/remount. Native React/Vue/S
 puzzle components are not yet exported; the same session/view can be used from their
 host lifecycle without a framework-specific puzzle engine.
 
+### Provider-Neutral Analysis Sessions
+
+The selective headless `@banora/sdk/analysis` entrypoint provides explicit external
+requests, exact context matching, validated Black-perspective metrics and advisory
+cancellation that rejects stale work. See the [analysis API contract](analysis.md)
+for settings, provider DTOs, limits, errors and lifecycle.
+
 ### Repetition Policies
 
 Positional superko rejects a placement restoring any previously observed stone

@@ -117,6 +117,12 @@ covered separately from successful downloads; image export never saves an SGF.
 
 ## Record Compatibility
 
+`@banora/sdk/analysis` is a selective headless coordinator, without DOM cancellation
+types or bundled engine/transport dependencies. Requests need explicit profile or
+custom scoring settings and preserve real setup-epoch history/counts. Illegal
+recorded epochs cannot be silently rewritten for analysis; local SGF browsing/editing
+still work. KataGo and browser compatibility require separate adapter/consumer evidence.
+
 `@banora/sdk/puzzle` is a selective headless authored-session entrypoint. Its
 definitions use `banora.puzzle/v1` plus SGF initial context and explicit logical
 answer-tree moves, rather than claiming automatic third-party puzzle compatibility.
