@@ -12,6 +12,15 @@ dependencies or external assets are included.
 explicit `banora.puzzle/v1` answer trees and SGF context. Importing the view is
 SSR-safe; mounting requires a DOM. No AI engine or automatic problem grading.
 
+`@banora/sdk/analysis` supplies explicit provider-neutral `AnalysisSession` requests,
+exact context/result matching and cancellation. `@banora/sdk/katago` bridges host-owned
+KataGo JSON lines with checked rules/history/komi and declared reporting perspective.
+`@banora/sdk/analysis-view` exports `mountAnalysis` for candidate metrics, isolated
+legal PVs and root ownership. It never edits the borrowed source record or submits
+on mount. These imports bundle no model, credentials or automatic transport; the
+view mounts only in a browser. Read the repository's analysis contracts for limits,
+unsupported KataGo contexts and owned/borrowed disposal.
+
 The build also supplies `dist/banora.global.js`, a self-contained classic browser
 script exposing the common API as `Banora`, and `dist/banora.global.d.ts` ambient
 namespace declarations. Copy the script alongside a page and load it with an

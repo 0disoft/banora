@@ -124,8 +124,15 @@ recorded epochs cannot be silently rewritten for analysis; local SGF browsing/ed
 still work. The selective headless `@banora/sdk/katago` module has original protocol
 fixtures and installed Node 24/ES2022-only type/runtime evidence. It has no automatic
 process/network transport, rejects unsupported contexts and requires declared engine
-perspective/capability. No actual engine/model/version or browser overlay was run.
+perspective/capability. No actual engine/model/version was run.
 See [KataGo integration](katago.md) before selecting an external backend.
+The selective `analysis-view` import is SSR-safe and has isolated installed root/
+subpath evidence; mounting requires a DOM. Chrome 154 verifies its common view and
+runnable consumer, candidate metrics/PVs/root ownership, keyboard/emulated touch,
+source preservation, exact freshness/errors and owned/borrowed cleanup. Offline
+data is explicitly illustrative; manual JSON is host-controlled. No native Analysis
+component exports or broader engine/browser/device support is implied. See the
+[analysis view contract](analysis-view.md).
 
 `@banora/sdk/puzzle` is a selective headless authored-session entrypoint. Its
 definitions use `banora.puzzle/v1` plus SGF initial context and explicit logical

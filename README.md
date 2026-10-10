@@ -3,10 +3,11 @@
 A modular TypeScript SDK for building Go (Baduk/Weiqi) boards, game viewers,
 editors, puzzles, and analysis interfaces.
 
-**Status: early implementation.** Headless rules, SGF loading/export and the record
-editing controller, SVG rendering, complete viewer, Studio and optional React/Vue/Svelte
-adapters are implemented. Later milestones remain in progress. Nothing is published yet.
-The capabilities below describe the complete direction, not shipped support claims.
+**Status: early development snapshot.** Headless rules/SGF/controller, SVG rendering,
+viewer/Studio, optional React/Vue/Svelte adapters, manual scoring, authored puzzles
+and external analysis integration/display are implemented within documented
+coverage. Broader compatibility and release evidence remain separate. Nothing is
+published yet; the capability direction is not an unrestricted support claim.
 See [implementation status](docs/engineering/08-implementation-status.md).
 
 ## Local Development
@@ -49,6 +50,11 @@ The [curated puzzle example](http://127.0.0.1:4317/puzzle/) plays locally author
 answer trees with explicit responses, hints, restart and outcome events. The common
 headless session and complete puzzle mount require no framework or analysis engine.
 See the [puzzle contract](docs/sdk/public-api.md#curated-puzzle-sessions).
+The [analysis example](http://127.0.0.1:4317/analysis/) displays candidate metrics,
+ownership and isolated legal PVs without changing source SGF. Offline mode uses
+explicitly authored illustrative data; manual KataGo JSON mode accepts your engine's
+responses without opening an automatic connection. See the
+[consumer guide](examples/analysis/README.md) and [view contract](docs/sdk/analysis-view.md).
 
 ## Direction
 
@@ -72,7 +78,7 @@ shared game rules, SGF records, and optional integrations through clear boundari
 - Framework-independent TypeScript core shared by browsers and servers.
 - SVG board with themes, annotations, keyboard input, and mobile placement tools.
 - SGF import/export, comments, variations, and an embeddable game viewer.
-- Manual agreed-position scoring and curated puzzles; external AI analysis remains planned.
+- Manual agreed-position scoring, curated puzzles and explicit external analysis/display.
 - Optional React, Vue, and Svelte adapters, selective imports, and a browser script build.
 
 The first release is driven by **Banora Studio**, a browser-based SGF review and

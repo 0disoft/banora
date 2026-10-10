@@ -31,6 +31,7 @@ export default defineConfig({
       readonly: resolve(import.meta.dirname, 'readonly/index.html'),
       viewer: resolve(import.meta.dirname, 'viewer/index.html'),
       puzzle: resolve(import.meta.dirname, 'puzzle/index.html'),
+      analysis: resolve(import.meta.dirname, 'analysis/index.html'),
       react: resolve(import.meta.dirname, 'react/index.html'),
       vue: resolve(import.meta.dirname, 'vue/index.html'),
       svelte: resolve(import.meta.dirname, 'svelte/index.html'),

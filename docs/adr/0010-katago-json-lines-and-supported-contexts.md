@@ -84,4 +84,6 @@ unsupported contexts, all reporting perspectives, malformed/illegal results,
 out-of-order finals, warnings/errors/partial/action responses, cancellation/late
 responses, bounded pending/line state, failed writes, EOF, reentrant disposal and
 subscription cleanup. Verify installed ES2022-only declarations and Node execution.
-Browser overlays and the runnable analysis consumer remain separate M4 work.
+Browser overlays and runnable-consumer evidence belong to the separate
+[display contract](0011-isolated-analysis-view-and-explicit-consumer.md), rather
+than these adapter protocol fixtures.

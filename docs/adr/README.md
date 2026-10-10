@@ -15,7 +15,7 @@ mean its implementation or compatibility has been validated.
 | [0008](0008-curated-puzzle-authoring-and-session.md) | Accepted; headless and browser evidence | Explicit curated answer trees, deterministic responses, hints and isolated sessions |
 | [0009](0009-analysis-context-and-external-provider-contract.md) | Accepted; headless implementation | Exact context matching, provider-neutral metrics and explicit cancellable external analysis |
 | [0010](0010-katago-json-lines-and-supported-contexts.md) | Accepted; local protocol fixtures | Host-owned KataGo JSON lines, checked contexts, perspective conversion and scoped termination |
-| [0011](0011-isolated-analysis-view-and-explicit-consumer.md) | Accepted; display implemented, consumer evidence pending | Isolated PV/ownership display, explicit submission and common runnable analysis consumer |
+| [0011](0011-isolated-analysis-view-and-explicit-consumer.md) | Accepted; installed and browser evidence | Isolated PV/ownership display, explicit submission and common runnable analysis consumer |
 
 Update the owning ADR when a design changes and describe the consequences for
 consumers and validation. Keep unresolved choices explicit. Use the

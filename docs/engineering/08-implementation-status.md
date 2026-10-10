@@ -65,8 +65,20 @@ An implemented slice does not complete its milestone or establish untested compa
   reentrant disposal and subscription cleanup. Installed Node 24/ES2022-only types
   complete the public JSON request/result. No engine binary/model/remote service
   was executed; this is protocol evidence, not model/version compatibility.
-  Browser overlays/example remain unimplemented. See the exact
+  See the exact
   [supported contexts](../sdk/katago.md#wire-conversion-and-supported-contexts).
+- Common analysis view and consumer: ranked candidate/root Black metrics, current-
+  player score loss, legal capture/pass PV steps with move labels, root ownership
+  squares and numeric point inspection. The isolated drawing/preview never changes
+  source SGF, and predictions are excluded from position SVG/PNG exports. Installed
+  SSR-safe entrypoint/types and Chrome 154 production/public-SDK fixtures verify
+  explicit submission, keyboard/emulated touch, rectangular transforms/crop,
+  updates/callbacks, source retention, manual JSON errors/cancel/stale/destroyed-view
+  replies and owned/borrowed lifetime. Actual source SGF downloads before/after
+  previews are identical, and the actual six-stone PV SVG excludes predictions/
+  cursor. `examples/analysis` uses labeled authored offline protocol illustrations
+  or manually supplied host engine JSON. No automatic connection, live model run,
+  quality guarantee or native framework Analysis component exports are claimed.
 - SGF FF4 Go: collections, ordered branches, setup/compressed points, comments,
   metadata, labels/shape marks, unknown properties and unedited escaping preservation.
   Text and declared-encoding file input; UTF-8 export; bounded iterative parsing.
@@ -232,8 +244,9 @@ An implemented slice does not complete its milestone or establish untested compa
    are implemented with the exit evidence recorded in the milestone audit. Broader
    browser/device and tournament/automatic objective-grading claims remain excluded.
 4. M4: Provider-neutral headless context/result/session and cancellation/freshness
-   and a checked KataGo JSON adapter are implemented. Display overlays and runnable
-   consumer remain; no live-engine compatibility is claimed.
+   and a checked KataGo JSON adapter, isolated display overlays/PVs and runnable
+   consumer are implemented with the recorded local evidence. No live-engine or
+   broader browser/device compatibility is claimed. Final aggregate audit remains.
 
 Publishing, hosting and external provider credentials remain separate operational
 actions. Runtime support claims require actual consumer evidence; local tests do not

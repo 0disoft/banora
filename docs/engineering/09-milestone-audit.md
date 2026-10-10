@@ -91,8 +91,32 @@ for the isolated new puzzle view.
 | Authored accepted/rejected continuations and responses | Headless tree/legality tests, installed `puzzle` types/runtime and public `examples/puzzle` browser scenario | Explicit curated schema/response policy; unlisted legal moves permit retry without claiming objective failure |
 | Hints/restart/answer events and runnable consumer | Same puzzle scenario verifies real keyboard/touch, capture, pass, hints, outcomes, source retention, safe text, callbacks, diagrams and owned/borrowed lifecycle; [ADR 0008](../adr/0008-curated-puzzle-authoring-and-session.md) | Chrome 154/emulated mobile; no AI-generated responses or native framework Puzzle component claim |
 
-This provides M3 local exit evidence for the declared scope. M4 and release work
-remain open, and none of these checks establishes untested device compatibility.
+This provides M3 local exit evidence for the declared scope. Subsequent M4 evidence
+is recorded below; release work remains open, and none of these checks establishes
+untested device compatibility.
+
+## M4 Local Exit Evidence
+
+The analysis view/consumer increment passed `bun run check`: 114 tests with 1,439
+assertions, strict root/Svelte checks, builds, docs and installed headless/root/classic
+artifacts. The focused `--analysis-only` browser route completed its exact Result,
+identical source SGF downloads and the actual six-stone PV SVG excluding predictions/
+cursor. The complete production browser suite was then run after the final example
+build, including the analysis route and existing Studio/React/Vue/Svelte flows.
+No real engine/model or physical device was involved.
+
+| M4 requirement | Authoritative evidence | Boundary |
+| --- | --- | --- |
+| Provider-neutral contexts/results and explicit submission | Core result/session fixtures; installed ES2022-only Node request; [ADR 0009](../adr/0009-analysis-context-and-external-provider-contract.md) | Exact source/history/rules/komi, no auto transport or quality claim |
+| KataGo JSON integration | Actual checked query/result/termination conversion, out-of-order/partial/action/error/warning fixtures, installed Node JSON flow; [ADR 0010](../adr/0010-katago-json-lines-and-supported-contexts.md) | Supported contexts documented; no executed engine/version/model compatibility |
+| Candidates, win probability, score/move loss, PVs and ownership | Public production consumer/root/White metrics, capture/pass/previous/next PV, ownership toggle/numeric point inspection and transform/crop fixture | Root prediction only; speculative moves do not edit SGF or certify life/death |
+| Late replies cannot annotate changed positions or destroyed views | Manual delayed JSON after source edit/cancel/unmount, controlled owned disposal and live-source session fixtures | Cancellation advisory; host owns process/socket deadlines and shutdown |
+| Errors leave local play/edit usable | Production manual engine error followed by local move/Undo, retained comment/edit/export behavior and unchanged source downloads | Raw engine diagnostics redacted; no automatic retry |
+| Runnable consumer and explicit lifecycle | Public `examples/analysis`, installed SSR-safe view, keyboard/emulated touch, source/PV SVG download, callback/invalid-update and owned/borrowed remount checks; [ADR 0011](../adr/0011-isolated-analysis-view-and-explicit-consumer.md) | Illustrative offline data/manual host JSON; common view without native Analysis component exports |
+
+M4 has local exit evidence in this declared scope. Final aggregate requirement
+review and release decisions remain separate; broader runtime/performance claims
+still require their own evidence.
 
 ## Remaining Work and Claim Boundaries
 
@@ -109,12 +133,10 @@ remain open, and none of these checks establishes untested device compatibility.
    group correction, counting/adjustment, mobile touch, context/lifecycle and unchanged
    SGF download evidence. Headless authored puzzles and their view/runnable consumer
    have targeted, installed and browser evidence; the M3 table records their scope.
-4. M4 now has provider-neutral headless contexts/results/session and a checked
-   KataGo JSON-line adapter. `bun run check` passed 111 tests with 1,411 assertions,
-   strict root/Svelte checks, package builds, docs and installed SDK/headless/classic
-   consumers. The adapter's original protocol fixtures and installed Node JSON flow
-   do not establish live engine/model compatibility. Display overlays and the
-   runnable analysis consumer remain; these headless checks do not close M4.
+4. M4 now has provider-neutral contexts/results/session, checked KataGo JSON-line
+   integration, isolated display/PVs/root ownership and a runnable consumer. The
+   table above maps local exit evidence. Final aggregate requirement review remains;
+   these checks do not establish live engine/model or untested device compatibility.
 5. Registry ownership, intentional version promotion, third-party distribution
    notices, publication and hosting require a separate release task. The current
    local development version remains `0.1.0-dev.0`; this audit changes no versions.

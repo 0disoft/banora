@@ -39,8 +39,11 @@ Official examples at `examples/react`, `examples/vue` and `examples/svelte` each
 consume their built public package/native components. Isolated tarball consumers
 also check dependency isolation, declarations and real SSR. `examples/puzzle`
 consumes the common headless session and complete puzzle view, including borrowed
-ownership across remount. An AI example remains planned for M4. These browser
-workflows prevent the SDK API from becoming editor-specific.
+ownership across remount. `examples/analysis` consumes provider-neutral sessions,
+the KataGo JSON adapter and isolated PV/ownership view. Its offline data is explicitly
+illustrative, while manual mode accepts actual host-pasted engine output; no connection
+is automatic. See the [consumer guide](../../examples/analysis/README.md). These
+browser workflows prevent the SDK API from becoming editor-specific.
 
 All framework adapters are optional. Plain browser consumers require no framework;
 framework consumers share the same state/actions and rendering behavior. Each adapter

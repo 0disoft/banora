@@ -66,6 +66,14 @@ unlisted retention, hints/restart, keyboard focus, safe author text, presentatio
 callback updates, downloaded SVG, failed mounting and owned/borrowed disposal/remount.
 Emulated mobile touch/layout also complete the same authored solution. Its explicit
 Result and actual diagram are required; it is included in the complete suite.
+`--analysis-only` selects the production analysis consumer and public analysis-view
+fixture. It verifies candidate/root Black metrics and current-player loss, pass/
+capture PV steps, ownership/point values, rectangular transforms/crop, callback/
+presentation updates, explicit manual JSON submission, errors/cancel/stale/destroyed
+replies and owned/borrowed lifetime. Keyboard/emulated touch/layout, identical source
+SGF downloads and an actual six-stone PV SVG excluding predictions/cursor are
+required with the exact completion Result. It is included in the complete suite;
+illustrative protocol data does not establish actual engine/model compatibility.
 `--drop-only` exercises Studio's production DOM file drag/drop boundary, metadata,
 handicap/setup and branch rendering, Cancel/Export & continue, actual export/reopen
 and retention after malformed bytes. It requires a completed Result and downloaded

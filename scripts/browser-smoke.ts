@@ -48,6 +48,13 @@ async function puzzleSmoke(): Promise<void> {
   const diagram=await readFile(resolve(output,'puzzle.svg'),'utf8');
   if (!diagram.includes('xmlns="http://www.w3.org/2000/svg"') || diagram.includes('data-cursor') || (diagram.match(/data-stone=/g) ?? []).length!==6) throw new Error('Puzzle diagram lost final stones or retained interactive cursor');
 }
+async function analysisSmoke(): Promise<void> {
+  await scenario('analysis','banora-analysis-complete');
+  const before=await readFile(resolve(output,'analysis-before.sgf'),'utf8'),after=await readFile(resolve(output,'analysis-after.sgf'),'utf8');
+  if (before!==after || !after.includes('XX[analysis-preserve]')) throw Error('Analysis preview changed the exported source SGF');
+  const diagram=await readFile(resolve(output,'analysis.svg'),'utf8');
+  if ((diagram.match(/data-stone=/g)??[]).length!==6 || diagram.includes('data-analysis-') || diagram.includes('data-cursor')) throw Error('Analysis diagram lost PV stones or retained prediction/cursor overlays');
+}
 async function shareSmoke(): Promise<void> {
   await scenario('share', 'banora-sharing-complete: studio react vue svelte');
   for (const name of ['studio','react','vue','svelte']) {
@@ -77,7 +84,10 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--puzzle-only')) {
+  if (process.argv.includes('--analysis-only')) {
+    await analysisSmoke();
+    console.log('Focused analysis smoke passed: candidate metrics/PVs/ownership, keyboard/touch, exact freshness, manual JSON, source preservation and lifecycle.');
+  } else if (process.argv.includes('--puzzle-only')) {
     await puzzleSmoke();
     console.log('Focused puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.');
   } else if (process.argv.includes('--scoring-only')) {
@@ -161,6 +171,8 @@ try {
   await cli('snapshot');
   await puzzleSmoke();
   console.log('Puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.');
+  await analysisSmoke();
+  console.log('Analysis smoke passed: candidate metrics/PVs/ownership, exact freshness, manual JSON, source preservation and lifecycle.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

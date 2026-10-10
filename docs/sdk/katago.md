@@ -120,6 +120,7 @@ failure boundaries, plus isolated installed Node 24/ES2022-only types and a comp
 JSON request/result. No engine binary, neural model, remote endpoint or credentials
 were run/configured. These checks establish the adapter contract, not actual model
 quality/version compatibility. Record an engine version/config/model when adding
-live-engine evidence. The browser analysis view and runnable consumer are pending.
+live-engine evidence. The separate [analysis view](analysis-view.md) and runnable
+[consumer](../../examples/analysis/README.md) have their own display/lifecycle scope.
 See [ADR 0010](../adr/0010-katago-json-lines-and-supported-contexts.md) for the upstream
 source basis and exact coverage decisions.
