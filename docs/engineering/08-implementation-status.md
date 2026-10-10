@@ -7,6 +7,21 @@ local exit evidence; the implementation scope is complete within that coverage.
 
 ## Current Evidence
 
+- Additive host-controlled display boundary: immutable plain snapshots and keyed
+  point/navigation/stroke/menu intentions; external hosts retain state/rules/history
+  authority without creating a `RecordController`. Shared SVG painting/input now
+  serves both record and host-controlled mounts, including logical masks, dimming,
+  bounded heatmap/badge/ring overlays, host labels and diagram exports. Headless
+  installed snapshots typecheck without DOM libraries. Native React/Vue/Svelte
+  `ControlledBoard` artifacts retain SDK peers and pass independent types/SSR.
+  Four production host consumers verify approval/rejection/stale keys, callback
+  replacement, read-only, remount, actual SVG/PNG and mobile confirmation/cleanup
+  on Chrome 154. Full existing browser flows passed after the shared surface
+  refactor; focused native consumers passed after adding wrappers/examples.
+  The final unit suite has 118 tests and 1,472 assertions. See the
+  [contract](../sdk/controlled-board.md) and [examples](../../examples/controlled/README.md).
+  No external application is adopted; native bridges, physical devices, hydration
+  and broader browser/transport support remain separate evidence requirements.
 - Common SDK: `packages/sdk`, local package name `@banora/sdk`, version `0.1.0-dev.0`.
   Names are development identifiers, not a claim of npm ownership/publication.
 - Immutable headless board transitions: dimensions 2 through 52, rectangular boards,

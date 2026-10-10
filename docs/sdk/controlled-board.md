@@ -1,6 +1,6 @@
 # Host-Controlled Boards
 
-- Status: Headless/common SVG and native adapters implemented; installed types/SSR checked, native client examples follow
+- Status: Headless/common SVG and native adapters implemented; installed types/SSR and four production client consumers checked
 - Decision: [ADR 0012](../adr/0012-host-controlled-board-and-presentation-boundary.md)
 
 Use this boundary when another engine, server or application owns the game state.
@@ -133,3 +133,25 @@ React/Vue artifacts keep every SDK subpath external and Svelte preserves native
 component sources. Independently installed tarballs check those types, peers,
 native sources and real server host rendering. Native browser lifecycle/input
 evidence is recorded separately from SSR evidence.
+
+## Runnable Host Consumers and Evidence
+
+The [controlled consumer examples](../../examples/controlled/README.md) render
+one transport-free host simulator through Vanilla TypeScript, React Strict Mode,
+Vue ordinary refs and Svelte effects. The host separately queues intentions,
+approves/rejects them, replaces positions and rejects stale state keys. Its occupied
+point check is illustrative; real applications retain their own game legality,
+authorization and asynchronous request/reply handling.
+
+Production Chrome 154 checks all four consumers for unchanged state before
+approval, rejection/stale keys, callback replacement, read-only updates, retained
+host state across remount and actual standalone SVG/PNG downloads. Mobile touch
+emulation checks confirmation, cancellation on snapshot replacement and view-owned
+lens cleanup. Common surface checks cover all eight rectangular transforms,
+nonrectangular masks, labels/overlays, keyboard/ink/menu intentions and invalid
+combined-update rollback. Packed artifacts separately verify headless snapshot
+imports without DOM types and three native adapter server host renders.
+
+These checks establish the documented browser boundary, not native toolkit
+rendering, a particular RPC/engine/store integration, real-device support,
+hydration or other browser engines. No external application adoption is performed.

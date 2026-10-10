@@ -35,6 +35,11 @@ Browser checks run
 using Playwright CLI; a compatible browser installation is required.
 The common SDK lives at `packages/sdk`; current exports are documented in the
 [public API](docs/sdk/public-api.md). No framework or remote service is required.
+If an existing application owns game state, use the additive
+[host-controlled board API](docs/sdk/controlled-board.md) instead of creating a
+second record controller. The [four controlled consumers](examples/controlled/README.md)
+demonstrate plain snapshots, host-approved intentions and independent view lifecycle
+in Vanilla TypeScript, React, Vue and Svelte, without choosing a transport or engine.
 The build also creates `packages/sdk/dist/banora.global.js` for direct script use.
 Studio and the React/Vue/Svelte examples can create/open embedded record, node and
 static-position share links without a server. Record/node links include all games,

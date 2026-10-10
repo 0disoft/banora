@@ -132,6 +132,25 @@ async function animationConsumers(): Promise<void> {
       throw new Error(`${name} diagram retained transient motion`);
   }
 }
+async function controlledConsumers(): Promise<void> {
+  await scenario(
+    'controlled-consumer',
+    'banora-controlled-consumers-complete: vanilla react vue svelte',
+  );
+  for (const name of ['vanilla', 'react', 'vue', 'svelte']) {
+    const png = await readFile(resolve(output, `controlled-${name}.png`));
+    const svg = await readFile(resolve(output, `controlled-${name}.svg`), 'utf8');
+    if (
+      png.toString('hex', 0, 8) !== '89504e470d0a1a0a' ||
+      !svg.includes('xmlns="http://www.w3.org/2000/svg"') ||
+      svg.includes('data-cursor') ||
+      (svg.match(/data-stone=/g) ?? []).length !== 3
+    )
+      throw new Error(
+        `${name} controlled diagram lost accepted host stones or retained interaction`,
+      );
+  }
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
@@ -140,7 +159,10 @@ try {
   await cli('snapshot');
   if (process.argv.includes('--controlled-only')) {
     await scenario('controlled', 'banora-controlled-complete');
-    console.log('Focused controlled-board smoke passed.');
+    await controlledConsumers();
+    console.log(
+      'Focused controlled-board smoke passed: common surface, four native consumers, host decisions, lifecycle, diagrams and touch confirmation.',
+    );
   } else if (process.argv.includes('--analysis-only')) {
     await analysisSmoke();
     console.log(
@@ -181,6 +203,7 @@ try {
     console.log('Focused comparison smoke passed.');
   } else {
     await scenario('controlled', 'banora-controlled-complete');
+    await controlledConsumers();
     console.log(
       'Controlled-board smoke passed: external state, immutable intentions, masks/overlays, transforms, diagrams and lifecycle.',
     );

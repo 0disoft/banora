@@ -97,7 +97,12 @@ After building examples, `bun scripts/browser-smoke.ts --controlled-only` checks
 plain host snapshots, immutable intentions, eight rectangular transforms,
 nonrectangular masks/keyboard input, data overlays, combined-update rollback,
 read-only/ink/navigation/context menus, actual SVG/PNG and view-owned cleanup.
-It is also part of the complete browser suite.
+It also runs the four production controlled consumers (Vanilla/React/Vue/Svelte),
+host approval/rejection/stale keys, latest callbacks, read-only updates, remount,
+actual diagram downloads and mobile touch confirmation/replacement/cleanup.
+Both fixtures require their exact completion value in the CLI Result; consumer
+downloads additionally require PNG signatures and standalone noninteractive SVG
+with the host-approved stones. It is also part of the complete browser suite.
 
 After building, `bun scripts/browser-smoke.ts --rules-only` selects the mounted
 simple/none/positional/situational repetition fixture, actual keyboard play,

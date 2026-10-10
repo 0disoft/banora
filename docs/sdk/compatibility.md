@@ -72,6 +72,19 @@ actual peer dependency metadata, artifact formats and compiler versions during M
 
 ## Framework Artifact Evidence
 
+Host-controlled boards additionally expose headless `@banora/sdk/board-state`
+DTO normalization and the SSR-safe `@banora/sdk/controlled-board` DOM mount.
+The latter mounts only in a browser and creates no record/rules controller.
+All three optional packages export native `ControlledBoard` components; React/Vue
+artifacts retain SDK subpath peer imports rather than bundling another SVG surface.
+Independent installations check those types and actual SSR host containers without
+view/input callbacks. Production Chrome 154 verifies Vanilla/React/Vue/Svelte
+host decisions, stale keys, callback/read-only changes, remount, standalone SVG/PNG
+and mobile-emulated confirmation/replacement/cleanup. The common surface also
+checks masks, overlays, keyboard/ink/menu intentions and eight transforms.
+See the [host-controlled contract](controlled-board.md). External/native transports,
+physical devices, other browser engines and hydration remain outside this evidence.
+
 Adapters peer-depend on `@banora/sdk` (`>=0.1.0-dev.0 <1`) and only their own
 framework major (`19.x`, `3.x`, `5.x` respectively). Framework runtimes are not
 bundled into adapter artifacts. Independent tarball installations verify that the

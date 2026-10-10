@@ -1,0 +1,35 @@
+@import '../framework.css';
+
+#board-root {
+  max-width: 640px;
+  margin: 24px auto;
+}
+#board-root svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+nav {
+  margin-block: 16px;
+}
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+}
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+button {
+  min-height: 40px;
+}
+@media (max-width: 600px) {
+  body {
+    margin: 0;
+    padding: 16px;
+  }
+  dl {
+    grid-template-columns: 1fr;
+  }
+}
