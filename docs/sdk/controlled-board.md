@@ -1,6 +1,6 @@
 # Host-Controlled Boards
 
-- Status: Headless snapshot contract implemented; surface/native integrations follow
+- Status: Headless snapshot and common SVG surface implemented; native integrations follow
 - Decision: [ADR 0012](../adr/0012-host-controlled-board-and-presentation-boundary.md)
 
 Use this boundary when another engine, server or application owns the game state.
@@ -29,3 +29,54 @@ can reject them without changing the displayed board or supply an accepted snaps
 This integration does not replace existing `RecordController`/Board/Viewer APIs,
 does not write SGF or implement a second rules engine, and does not open a server
 connection. Applications choose their own state store, serialization and transport.
+
+## Common SVG Surface
+
+`@banora/sdk/controlled-board` exports `mountControlledBoard`,
+`ControlledBoardOptions`, `ControlledBoardPresentation` and `ControlledBoardView`.
+The root/global SDK exports the same API. Importing the mount is safe on the server;
+calling it requires a browser DOM. It does not create a `RecordController`.
+
+```ts
+import {mountControlledBoard} from '@banora/sdk/controlled-board';
+const view = mountControlledBoard(document.getElementById('board')!, {
+  state: {key:'host/game/node/revision-1', width:9, height:9, stones:Array(81).fill(null)},
+  onIntent: event => console.log(event),
+  touch: {mode:'confirm'},
+  contextMenu: true,
+});
+// The board stays unchanged until an accepted host snapshot is supplied.
+view.update({state: {key:'host/game/node/revision-2', width:9, height:9,
+  stones:['black', ...Array(80).fill(null)], lastMove:{x:0,y:0}, toPlay:'white'}});
+```
+
+`getSnapshot()` returns the owned immutable value. `update(partialOptions)` merges
+presentation options and completely replaces a supplied state. Invalid combined
+updates retain the old snapshot, configuration, callbacks and display. Resizing
+clears an old out-of-bounds crop unless a new crop is explicitly supplied.
+Every successful update cancels pending ink/touch, so a replacement cannot accept
+an old confirmation. A view with no intention handler disables placement; readOnly
+also disables point/stroke intentions. Navigation and opted-in context menus remain
+host actions and never traverse a local record. Handlers own their asynchronous
+errors/retries and check `stateKey` before committing requests or replies.
+
+Presentation supports theme/CSS variables, coordinates/numbers, crop, rotation/
+reflection, prepared textures, ink input and direct/release/confirmed touch.
+Nonrectangular masks clip grid/stones/annotations/overlays and filter point/ink
+input; keyboard navigation skips holes. Empty masks expose no point activation.
+Point, navigation, normalized frozen stroke and pointer/keyboard context-menu
+intentions contain only their payload and stateKey. No provider metrics are inferred.
+
+`labels` accepts bounded board/point/state/confirm/cancel and color/empty text.
+Point/state templates accept `{coordinate}`, `{stone}`, `{moveNumber}`, `{toPlay}`,
+`{blackCaptures}` and `{whiteCaptures}` as applicable; unknown placeholders remain
+literal. Overlay ariaLabel descriptions join keyboard point announcements.
+Transient diagnostic messages retain SDK English; this is not full application
+localization. `announce(text)` lets a host report rejection without changing state.
+
+`exportSvg` and asynchronous `exportPng` use the shared standalone-diagram path,
+including supplied annotations/masks/overlays and excluding transient cursors/ink/
+touch previews. Export never writes a record. `dispose()` is idempotent, aborts
+pending image work and removes view listeners, DOM and lens UI; it never releases
+host state/engines. Other operations reject a disposed view. Record adjacency
+animation, SGF navigation/comparison and complete Viewer UI remain record APIs.

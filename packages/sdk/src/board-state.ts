@@ -7,6 +7,16 @@ export interface BoardNumber {
   readonly point: Point;
   readonly value: number;
 }
+export interface BoardLabels {
+  readonly board?: string;
+  readonly point?: string;
+  readonly state?: string;
+  readonly confirm?: string;
+  readonly cancel?: string;
+  readonly black?: string;
+  readonly white?: string;
+  readonly empty?: string;
+}
 /** Bounded presentation primitives; labels are text, never HTML or SVG source. */
 export interface BoardOverlay {
   readonly kind: 'heatmap' | 'badge' | 'ring';

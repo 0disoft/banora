@@ -39,6 +39,10 @@
       "types": "./dist/board-state.d.ts",
       "import": "./dist/board-state.js"
     },
+    "./controlled-board": {
+      "types": "./dist/controlled-board.d.ts",
+      "import": "./dist/controlled-board.js"
+    },
     "./viewer": {
       "types": "./dist/viewer.d.ts",
       "import": "./dist/viewer.js"

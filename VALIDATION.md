@@ -93,6 +93,12 @@ It requires `banora-standalone-complete` in the actual CLI Result, downloaded SG
 preservation and outgoing Save & open content. For a focused rerun of an already
 built copy, `bun scripts/starter-browser-smoke.ts .tmp/standalone-consumer-<id>`
 uses the same server/session cleanup; it accepts only consumers under `.tmp`.
+After building examples, `bun scripts/browser-smoke.ts --controlled-only` checks
+plain host snapshots, immutable intentions, eight rectangular transforms,
+nonrectangular masks/keyboard input, data overlays, combined-update rollback,
+read-only/ink/navigation/context menus, actual SVG/PNG and view-owned cleanup.
+It is also part of the complete browser suite.
+
 After building, `bun scripts/browser-smoke.ts --rules-only` selects the mounted
 simple/none/positional/situational repetition fixture, actual keyboard play,
 rejection announcements, immutable state/events, setup epochs, recorded navigation

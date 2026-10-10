@@ -14,6 +14,7 @@ export default defineConfig({
         controller: resolve(import.meta.dirname, 'src/controller.ts'),
         board: resolve(import.meta.dirname, 'src/board.ts'),
         'board-state': resolve(import.meta.dirname, 'src/board-state.ts'),
+        'controlled-board': resolve(import.meta.dirname, 'src/controlled-board.ts'),
         viewer: resolve(import.meta.dirname, 'src/viewer.ts'),
         comparison: resolve(import.meta.dirname, 'src/comparison.ts'),
         share: resolve(import.meta.dirname, 'src/share.ts'),

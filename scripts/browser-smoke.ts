@@ -138,7 +138,10 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--analysis-only')) {
+  if (process.argv.includes('--controlled-only')) {
+    await scenario('controlled', 'banora-controlled-complete');
+    console.log('Focused controlled-board smoke passed.');
+  } else if (process.argv.includes('--analysis-only')) {
     await analysisSmoke();
     console.log(
       'Focused analysis smoke passed: candidate metrics/PVs/ownership, keyboard/touch, exact freshness, manual JSON, source preservation and lifecycle.',
@@ -177,6 +180,10 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await scenario('controlled', 'banora-controlled-complete');
+    console.log(
+      'Controlled-board smoke passed: external state, immutable intentions, masks/overlays, transforms, diagrams and lifecycle.',
+    );
     await scenario('browser', 'banora-browser-complete');
     await dropSmoke();
     console.log(

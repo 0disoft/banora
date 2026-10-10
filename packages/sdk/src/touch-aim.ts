@@ -1,4 +1,6 @@
 import type { Point } from './core.js';
+import type { BoardLabels } from './board-state.js';
+import { boardMessage } from './board-frame.js';
 
 export interface TouchOptions {
   readonly mode?: 'direct' | 'release' | 'confirm';
@@ -23,6 +25,7 @@ export function mountTouchUI(
   confirm: () => void,
   cancel: () => void,
   signal: AbortSignal,
+  labels: () => BoardLabels | undefined = () => undefined,
 ) {
   const document = container.ownerDocument,
     namespace = 'http://www.w3.org/2000/svg';
@@ -72,7 +75,10 @@ export function mountTouchUI(
       panel.style.display = awaiting && point ? 'flex' : 'none';
       panel.setAttribute('aria-label', `Placement at ${label}`);
       prompt.textContent = `${label} selected.`;
-      accept.textContent = `Confirm placement at ${label}`;
+      accept.textContent = boardMessage(labels()?.confirm ?? 'Confirm placement at {coordinate}', {
+        coordinate: label,
+      });
+      reject.textContent = labels()?.cancel ?? 'Cancel placement';
       if (!point || !screen || awaiting || !magnifier) {
         lens.style.display = 'none';
         lens.replaceChildren();

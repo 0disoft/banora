@@ -29,6 +29,11 @@ run([process.execPath, 'install', '--ignore-scripts'], directory);
 const consumer = `import { RecordController, createPosition, play, stoneAt } from '@banora/sdk';
 import { parseSgf } from '@banora/sdk/sgf';
 import {createBoardSnapshot} from '@banora/sdk/board-state';
+import {mountControlledBoard} from '@banora/sdk/controlled-board';
+import type {ControlledBoardView, ControlledBoardOptions} from '@banora/sdk/controlled-board';
+const controlledConfig:ControlledBoardOptions={state:{key:'host/1',width:2,height:2,stones:Array(4).fill(null)}};
+const controlledView:ControlledBoardView|undefined=undefined;
+if (typeof mountControlledBoard!=='function') throw Error('Packed controlled mount import was not SSR-safe');
 const externalBoard=createBoardSnapshot({key:'host/node/1',width:2,height:3,stones:Array(6).fill(null)});
 if (externalBoard.stones.length!==6 || 'rules' in externalBoard || !Object.isFrozen(externalBoard)) throw Error('Packed external board data failed');
 import { opposite, comparePositions } from '@banora/sdk/core';
@@ -105,6 +110,9 @@ run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'tsco
 await writeFile(
   resolve(directory, 'headless.ts'),
   `import {createPosition, play} from '@banora/sdk/core';
+import {createBoardSnapshot} from '@banora/sdk/board-state';
+const external=createBoardSnapshot({key:'headless/host',width:2,height:3,stones:Array(6).fill(null)});
+if ('rules' in external || external.stones.length!==6) throw Error('Headless external snapshot failed');
 import type {RepetitionHistory, RulePolicy} from '@banora/sdk/core';
 import {getRuleProfile} from '@banora/sdk/rules';
 import {scorePosition} from '@banora/sdk/scoring';

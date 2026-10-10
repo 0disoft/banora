@@ -7,6 +7,10 @@
 
 ## Implemented Core Exports
 
+For a host-owned engine/server state, use the additive
+[controlled-board API](controlled-board.md): checked immutable snapshots, shared
+SVG presentation and intentions without creating a Banora record controller.
+
 After `bun run build`, `@banora/sdk/core` and the root export expose:
 
 - `createPosition({ width?, height?, toPlay?, rules? })`: immutable position;
