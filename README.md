@@ -19,11 +19,14 @@ static production examples. The [complete viewer](http://127.0.0.1:4317/viewer/)
 demonstrates the convenience mount and optional editing. `bun run smoke:browser`
 checks production browser flows, including the [React](http://127.0.0.1:4317/react/),
 [Vue](http://127.0.0.1:4317/vue/) and [Svelte](http://127.0.0.1:4317/svelte/) examples.
+The [classic browser example](http://127.0.0.1:4317/browser/) uses one built script
+and the same complete viewer without a framework or module loader.
 `bun run smoke:adapters` verifies independently installed adapter types and SSR.
 Browser checks run
 using Playwright CLI; a compatible browser installation is required.
 The common SDK lives at `packages/sdk`; current exports are documented in the
 [public API](docs/sdk/public-api.md). No framework or remote service is required.
+The build also creates `packages/sdk/dist/banora.global.js` for direct script use.
 
 ## Direction
 

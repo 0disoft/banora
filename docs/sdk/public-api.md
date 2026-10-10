@@ -165,6 +165,32 @@ declarations for a Svelte-aware compiler. Each isolated package consumer validat
 types and SSR separately; production examples validate client lifecycle/configuration.
 See [compatibility](compatibility.md), package READMEs and framework examples.
 
+## Classic Browser Distribution
+
+`bun run build` also creates `packages/sdk/dist/banora.global.js`, a self-contained
+classic script exposing the same common SDK under the global `Banora` namespace.
+It has no framework/runtime asset dependencies and does not need an ESM loader.
+Copy the built file alongside a page before using this example; no package/CDN
+publication is implied:
+
+```html
+<div id="record"></div>
+<script src="./banora.global.js"></script>
+<script>
+  const view = Banora.mountViewer(document.querySelector('#record'), {
+    sgf: '(;SZ[9];B[gc];W[cg])'
+  });
+  // Dispose the view when the host removes this container.
+</script>
+```
+
+The tarball includes `dist/banora.global.d.ts` ambient namespace declarations;
+reference that file when typechecking a classic TypeScript consumer. Use the normal
+ESM entrypoints in applications that already have a module loader. The IIFE is a
+browser script artifact, not a CommonJS or named ESM export. Importing it as ESM is
+not the supported integration path. `examples/browser` consumes the exact built
+artifact, including production navigation/edit/Undo and shared-controller remount.
+
 ## Logical API Surfaces and Remaining Work
 
 | Surface | Responsibility |

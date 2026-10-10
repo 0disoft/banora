@@ -4,7 +4,7 @@
   "type": "module",
   "workspaces": ["packages/*"],
   "scripts": {
-    "build": "vite build --config packages/sdk/vite.config.ts && tsc -p packages/sdk/tsconfig.build.json",
+    "build": "vite build --config packages/sdk/vite.config.ts && tsc -p packages/sdk/tsconfig.build.json && bun scripts/build-browser.ts",
     "build:adapters": "bun run build && bun scripts/build-adapters.ts",
     "build:examples": "bun run build:adapters && vite build --config examples/vite.config.ts",
     "dev": "bun run build:adapters && vite --config examples/vite.config.ts",

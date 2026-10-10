@@ -34,6 +34,7 @@ The read-only example at `examples/readonly` and an isolated tarball/headless co
 are implemented. Browser flows have production-build evidence on Chrome 154.
 `examples/viewer` demonstrates the complete viewer, optional editing and ownership
 preservation across unmount/remount.
+`examples/browser` embeds the same viewer from the built classic global script.
 Official examples at `examples/react`, `examples/vue` and `examples/svelte` each
 consume their built public package/native components. Isolated tarball consumers
 also check dependency isolation, declarations and real SSR. Add puzzle/AI examples as their milestones

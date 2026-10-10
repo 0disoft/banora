@@ -13,7 +13,7 @@ does not import it.
 
 M1 validates the ESM/type package through Studio, a read-only browser example, and
 a headless consumer. React, Vue, and Svelte adapters have an implemented M2 slice;
-browser script distribution remains pending.
+the classic browser script distribution also has a runnable consumer.
 
 Use one repository with one common SDK package and three separate optional adapter
 packages: React, Vue and Svelte. Logical core/record/renderer modules may use selective
@@ -29,6 +29,7 @@ UNDECIDED and must not be claimed without consumer evidence.
 | --- | --- | --- |
 | Core and SGF | Browser and Node.js, no DOM required | Node 24.14.0 packed consumer and Chrome 154 browser flows; broader floors pending |
 | SVG renderer and Studio | Browsers with the required SVG/input APIs | Production flows checked on Windows Headless Chrome 154; broader matrix pending |
+| Classic browser script | Modern browser, global `Banora` namespace | Chrome 154 standalone viewer/edit/remount flows and packed global declarations checked |
 | React adapter | React 19, client effects and server host rendering | React/react-dom 19.3.0; production lifecycle/Strict Mode and packed types/SSR checked |
 | Vue adapter | Vue 3, client mount and server host rendering | Vue 3.5.43; production refs/lifecycle and packed types/SSR checked |
 | Svelte adapter | Svelte 5, native components and server host rendering | Svelte 5.57.2; production lifecycle and native tarball types/SSR checked |
@@ -73,6 +74,13 @@ callbacks, controller replacement, unsubscribe/remount and edit Undo. React's
 consumer enables Strict Mode; Vue's consumer intentionally uses an ordinary ref.
 No board HTML/hydration, full SSR framework deployment, real-device, Firefox,
 Safari or additional framework-major support is claimed by these checks.
+
+The SDK tarball also contains the self-contained IIFE `dist/banora.global.js` and
+its ambient namespace declaration. A separate VM consumer executes that exact
+installed file without DOM globals and typechecks its global API; the production
+classic-script example verifies actual client mounting without `type="module"`
+scripts. Vite emits the example's local script asset unchanged rather than converting
+it to ESM. CommonJS support remains unclaimed.
 
 ## Record Compatibility
 

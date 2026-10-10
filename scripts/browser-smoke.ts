@@ -42,6 +42,9 @@ try {
   const editing = await readFile(resolve(output, 'editing-roundtrip.sgf'), 'utf8');
   if (!editing.includes('XX[preserve]') || !editing.includes('AR[') || !editing.includes('LN[') || !editing.includes('AB[ef]')) throw new Error('Extended edits lost in SGF export');
   console.log('Extended editor smoke passed: setup/turn, line/arrow, inherited CSS tokens, SGF round-trip and branch remove/reorder Undo.');
+  await cli('snapshot');
+  await cli('run-code', await readFile(resolve(root, 'scripts/global-scenario.js'), 'utf8'));
+  console.log('Classic browser distribution passed: navigation, editing/Undo and external-controller remount without modules/frameworks.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

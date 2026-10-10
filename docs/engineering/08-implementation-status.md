@@ -50,6 +50,11 @@ An implemented slice does not complete its milestone or establish untested compa
   real server rendering of containers/state text on Node 24.14.0, with no DOM or
   unrelated framework dependencies. Board HTML/hydration support is deferred.
   Svelte package/check tools use isolated TypeScript 6.0.3; root/core remain on 7.x.
+- Classic distribution: a self-contained `banora.global.js` IIFE exposes the common
+  SDK under `Banora`, with packaged ambient namespace declarations. The isolated
+  tarball verifies execution without DOM globals; `examples/browser` verifies a
+  production script-only viewer, editing/Undo and external-controller remount in
+  Chrome 154. The bundle needs no framework, ESM loader or implicit remote assets.
 - Tooling uses Bun 1.x, TypeScript 7.x and Vite 8.x, with the lockfile capturing
   resolved versions. Core has zero runtime dependencies. No hosted CI is configured.
 - Root and package MIT license files cover original code/documentation.
@@ -62,7 +67,8 @@ An implemented slice does not complete its milestone or establish untested compa
    remain outside the current narrow compatibility evidence.
 2. M2: The three framework adapters and their consumer evidence are implemented.
    Branch removal/reordering, free setup and lines/arrows also have local evidence.
-   Browser script, freehand annotations, remaining teaching/presentation tools,
+   The classic browser distribution also has package/client evidence.
+   Freehand annotations, remaining teaching/presentation tools,
    transforms, diagrams and sharing remain to be delivered.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.

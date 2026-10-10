@@ -26,6 +26,8 @@ Bun's test runner and root scripts are configured. The optional `@banora/react`,
 `@banora/vue` and `@banora/svelte` packages export Board/Viewer and state bindings.
 Svelte ships native component artifacts with isolated TypeScript 6.x packaging;
 the SDK and root continue using TypeScript 7.x.
+Common build also emits a self-contained classic script and its ambient declaration.
+The `examples/browser` consumer uses that artifact without modules/frameworks.
 
 Keep the workflow usable on Windows and Unix-like environments. Provide package
 scripts for actual development/build/validation tasks; Make is not required.

@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 
-const ignored = new Set(['node_modules', '.git', '.ssealed', 'dist', '.cache', '.tmp']);
+const ignored = new Set(['node_modules', '.git', '.ssealed', '.svelte-kit', 'dist', '.cache', '.tmp']);
 let documents = 0;
 let links = 0;
 async function inspect(directory: string): Promise<void> {

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Banora browser script</title><link rel="icon" href="data:,"><link rel="stylesheet" href="../framework.css"></head>
+<body><main><h1>Banora browser script</h1><p>A complete viewer from one local classic script. No framework or module loader.</p>
+<nav><button id="advance">Advance record</button><button id="editable">Enable editing</button><button id="toggle">Unmount viewer</button></nav>
+<p id="state" role="status"></p><section id="viewer"></section></main>
+<script src="../banora.global.js"></script>
+<script>
+  const controller = new Banora.RecordController({sgf:'(;SZ[9]GN[Script example]C[One shared SDK, loaded as a classic script.];B[gc];W[cg])'});
+  let editable = false;
+  let view = Banora.mountViewer(document.querySelector('#viewer'), {controller});
+  const unsubscribe = controller.subscribe(state => { document.querySelector('#state').textContent = `Move ${state.position.moveNumber} · ${state.dirty ? 'changed' : 'clean'}`; });
+  document.querySelector('#advance').onclick = () => controller.next();
+  document.querySelector('#editable').onclick = event => { editable = !editable; view?.update({editable}); event.target.textContent = editable ? 'Disable editing' : 'Enable editing'; };
+  document.querySelector('#toggle').onclick = event => {
+    if (view) { view.dispose(); view = null; } else view = Banora.mountViewer(document.querySelector('#viewer'), {controller, editable});
+    event.target.textContent = view ? 'Unmount viewer' : 'Mount viewer';
+  };
+  window.addEventListener('pagehide', event => { if (!event.persisted) { view?.dispose(); unsubscribe(); controller.dispose(); } });
+</script></body>
+</html>

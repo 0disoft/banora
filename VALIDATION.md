@@ -32,13 +32,15 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | typecheck (Svelte) | `bun run typecheck:svelte` | Native components and example checked with Svelte's supported isolated TypeScript toolchain |
 | test | `bun run test` | Focused SDK behavior tests using Bun's test runner |
 | docs | `bun run docs` | English documentation, LF endings and relative links |
-| smoke | `bun run smoke` | SDK build, isolated tarball install, strict consumer typecheck and Node public-export execution |
+| smoke | `bun run smoke` | SDK build, isolated tarball install, strict ESM/headless/global declarations and Node public-export/classic VM execution |
 | smoke (adapters) | `bun run smoke:adapters` | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR |
 | smoke (browser) | `bun run smoke:browser` | Production Studio/viewer plus framework consumers; basic/extended editing round-trips, guards, branch/setup/line/arrow Undo, CSS tokens, keyboard/touch and lifecycle |
 | check | `bun run check` | SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
 
 `bun run build` builds the common SDK; `bun run build:adapters` also builds the
-three adapters. `lint`, `format`, `contract`, `migration-check`
+three adapters. SDK build emits selective ESM/declarations plus a standalone IIFE
+and its global declaration; example build copies that exact script into its output.
+`lint`, `format`, `contract`, `migration-check`
 are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 

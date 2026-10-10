@@ -68,4 +68,25 @@ console.log(run(['node', resolve(directory, 'consumer.ts')], directory).trim());
 const installed = JSON.parse(await readFile(resolve(directory, 'node_modules/@banora/sdk/package.json'), 'utf8'));
 if (installed.dependencies && Object.keys(installed.dependencies).length) throw new Error('Unexpected SDK runtime dependencies');
 await readFile(resolve(directory, 'node_modules/@banora/sdk/LICENSE'));
+const globalDirectory = resolve(directory, 'node_modules/@banora/sdk/dist');
+await writeFile(resolve(directory, 'global-consumer.ts'), `/// <reference path="./node_modules/@banora/sdk/dist/banora.global.d.ts" />
+const model = new Banora.RecordController({size:9});
+model.setConnection({x:0,y:0}, {x:1,y:1}, 'arrow');
+const viewer: typeof Banora.mountViewer = Banora.mountViewer;
+model.dispose();
+`);
+await writeFile(resolve(directory, 'global-tsconfig.json'), JSON.stringify({
+  extends: resolve(root, 'tsconfig.json'), compilerOptions: {types:[], skipLibCheck:false}, include:['global-consumer.ts'],
+}));
+run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'global-tsconfig.json')], root);
+await writeFile(resolve(directory, 'global-consumer.js'), `import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+const context = {TextEncoder, TextDecoder, console};
+runInNewContext(readFileSync(${JSON.stringify(resolve(globalDirectory, 'banora.global.js'))}, 'utf8'), context);
+if (typeof context.Banora?.mountViewer !== 'function') throw Error('Missing global viewer');
+const model = new context.Banora.RecordController({size:9});
+if (!model.play({x:0,y:0}).ok || model.getState().position.moveNumber !== 1) throw Error('Classic artifact failed');
+model.dispose(); console.log('Packed classic global and ambient declarations passed');
+`);
+console.log(run(['node', resolve(directory, 'global-consumer.js')], directory).trim());
 console.log(`Packed declarations, entrypoints and license checked in ${directory}`);
