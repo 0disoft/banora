@@ -29,8 +29,12 @@ An implemented slice does not complete its milestone or establish untested compa
 - Freehand record model: node-local, immutable fractional strokes use the bounded
   version-1 BPN extension, with add/remove/clear, independent Undo units and SGF
   export/reopen. Headless checks cover unsafe/malformed imports, per-node limits,
-  atomic failures, stable IDs and baseline restoration. Browser drawing is the
-  next consumer increment; other SGF programs may not display private BPN ink.
+  atomic failures, stable IDs and baseline restoration. Studio and all three
+  framework consumers exercise the common pointer/keyboard tool, style updates,
+  shared rendering, read-only mode and remounts. Chrome 154 also checks real touch
+  drags/cancellation, eight cropped rectangular transforms, pending-input cleanup,
+  SGF download/reopen and red ink pixels in an actual PNG. Other SGF programs may
+  not display private BPN ink; pressure/smoothing and real-device testing are deferred.
 - Complete `mountViewer`: built-in navigation, game/branch selection, comments,
   player information and optional editing/Undo/Redo. `examples/viewer` consumes it
   through public exports; browser checks cover navigation, branch selection,
@@ -87,8 +91,8 @@ An implemented slice does not complete its milestone or establish untested compa
 2. M2: The three framework adapters and their consumer evidence are implemented.
    Branch removal/reordering, free setup and lines/arrows also have local evidence.
    The classic browser distribution also has package/client evidence.
-   Freehand record storage is implemented; its interactive browser tooling and remaining teaching/presentation tools,
-   sharing remains to be delivered. Rotation/reflection and SVG/PNG static diagrams are implemented;
+   Freehand storage/input, rotation/reflection and SVG/PNG static diagrams are implemented.
+   Remaining teaching/presentation tools and sharing remain to be delivered;
    animation/textures, magnified touch and variation comparison are still pending.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.

@@ -130,6 +130,14 @@ AR/LN values are rejected instead of being accepted as unknown properties. Valid
 unknown properties remain preserved. Setup editing uses AB/AW/AE/PL and creates a
 separate setup child after a move; it never rewrites a move into a setup position.
 
+Freehand annotations use Banora's versioned private BPN JSON extension, documented
+in the [public API](public-api.md#freehand-record-format). Other SGF tools may not
+display it. BPN was previously opaque; malformed/unsupported BPN values are now
+rejected atomically rather than treated as unknown data. Other valid unknown
+properties retain preservation. Version 1 keeps fractional logical points, stable
+node-local IDs and drawing order through Undo/export/reopen. Input and style limits
+bound SVG rendering and disallow URL paints. Pressure/smoothing are deferred.
+
 ## Versioning and Migration
 
 Use semantic versioning and document breaking consumer changes, including during

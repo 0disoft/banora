@@ -40,3 +40,9 @@ document and Svelte consumer example for tested versions and limitations.
 null, including callback replacement. Keep handles raw, configure through props
 and leave disposal to the component. Image export does not save the SGF record or
 clear dirty state.
+
+`drawing={{color:'#206650',width:0.08}}` enables the common freehand tool on Board;
+use nested `board` options on Viewer. Null disables it. Immutable store snapshots
+include `strokes`; the controller owns add/remove/clear, Undo and SGF export/reopen.
+Read-only views display saved ink, and diagrams include it. SGF uses Banora's
+private BPN extension, which other viewers may not display.

@@ -7,6 +7,8 @@ import { displayCrop, normalizeBoardTransform, toDisplayPoint, toLogicalPoint } 
 import type { BoardCrop, BoardTransform } from './geometry.js';
 import { rasterizeBoardDiagram, serializeBoardDiagram } from './diagram-export.js';
 import type { DiagramOptions } from './diagram-export.js';
+import { normalizeStrokeStyle, strokeLimits } from './annotations.js';
+import type { StrokeStyle } from './annotations.js';
 
 export type { BoardCrop, BoardTransform } from './geometry.js';
 export type { DiagramOptions } from './diagram-export.js';
@@ -18,6 +20,8 @@ export interface BoardOptions {
   readonly moveNumbers?: boolean;
   readonly crop?: BoardCrop | null;
   readonly transform?: BoardTransform;
+  /** Opt-in freehand mode; null/undefined restores ordinary point activation. */
+  readonly drawing?: StrokeStyle | null;
   readonly onPoint?: (point: Point) => void;
 }
 export interface BoardView {
@@ -35,13 +39,16 @@ const columnLabel = (index: number) => letters[index] ?? String(index + 1);
 /** Browser globals are used only during mounting; importing this module is SSR-safe. */
 export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): BoardView {
   const document = container.ownerDocument;
+  let options = { ...initial, transform: normalizeBoardTransform(initial.transform),
+    drawing: initial.drawing ? normalizeStrokeStyle(initial.drawing) : null };
   const owned = !initial.controller;
   const controller = initial.controller ?? new RecordController();
-  let options = { ...initial, transform: normalizeBoardTransform(initial.transform) };
   let disposed = false;
   let current = controller.getState();
   let focus: Point = { x: 0, y: 0 };
   let hover: Point | null = null;
+  let pendingStroke: { pointer: number | null; points: Point[] } | null = null;
+  let cancelledPointer: number | null = null;
   const abort = new AbortController();
   const svg = document.createElementNS(namespace, 'svg');
   svg.setAttribute('role', 'application');
@@ -90,7 +97,9 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     svg.setAttribute('data-rotation', String(options.transform.rotation));
     svg.setAttribute('data-flip-x', String(options.transform.flipX));
     svg.setAttribute('aria-roledescription', `${width} by ${height} Go board`);
-    if (options.readOnly && !options.onPoint) svg.setAttribute('aria-label', 'Read-only Go board. Arrow keys move the cursor; Page Up and Page Down navigate moves.');
+    svg.style.touchAction = options.drawing && !options.readOnly ? 'none' : 'manipulation';
+    if (options.drawing && !options.readOnly) svg.setAttribute('aria-label', 'Go board ink tool. Drag to draw. Arrow keys move the cursor; Space adds a point; Enter finishes the stroke; Escape cancels.');
+    else if (options.readOnly && !options.onPoint) svg.setAttribute('aria-label', 'Read-only Go board. Arrow keys move the cursor; Page Up and Page Down navigate moves.');
     else svg.setAttribute('aria-label', 'Go board. Arrow keys move the cursor; Enter places a stone or marker; Page Up and Page Down navigate moves.');
     const fragment = document.createDocumentFragment();
     const add = (name: string, attrs: Record<string, string | number>, text?: string) => {
@@ -192,7 +201,16 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       if (marker.kind === 'label') add('text', { x, y: y + 0.14, 'text-anchor': 'middle', 'font-size': 0.4,
         fill: ink, 'font-family': 'system-ui', 'font-weight': 650, 'data-marker': `${marker.point.x},${marker.point.y}` }, marker.label);
     }
-    if (hover && visible(hover) && !board[hover.y * width + hover.x] && !options.readOnly) {
+    for (const stroke of state.strokes) add('polyline', {
+      points: stroke.points.map(point => { const shown = displayPoint(point); return `${shown.x},${shown.y}`; }).join(' '),
+      fill:'none', stroke:stroke.color, 'stroke-width':stroke.width, 'stroke-linecap':'round', 'stroke-linejoin':'round', 'data-stroke':stroke.id,
+    });
+    if (pendingStroke && options.drawing) add('polyline', {
+      points: pendingStroke.points.map(point => { const shown = displayPoint(point); return `${shown.x},${shown.y}`; }).join(' '),
+      fill:'none', stroke:options.drawing.color, 'stroke-width':options.drawing.width,
+      'stroke-linecap':'round', 'stroke-linejoin':'round', opacity:0.7, 'data-preview':'ink',
+    });
+    if (hover && visible(hover) && !board[hover.y * width + hover.x] && !options.readOnly && !options.drawing) {
       const point = displayPoint(hover);
       add('circle', {cx:point.x, cy:point.y, r:0.44, fill:state.position.toPlay === 'black' ? '#20272a' : '#fff', opacity:0.4, 'data-preview':''});
     }
@@ -213,24 +231,84 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       if (!result.ok) live.textContent = `Move rejected: ${result.reason}.`;
     }
   }
-  function pointerPoint(event: PointerEvent): Point | null {
+  function logicalPointer(event: PointerEvent): Point | null {
     const matrix = svg.getScreenCTM();
     if (!matrix) return null;
     const screen = svg.createSVGPoint(); screen.x = event.clientX; screen.y = event.clientY;
     const displayed = screen.matrixTransform(matrix.inverse());
-    const logical = toLogicalPoint({x:displayed.x-padding, y:displayed.y-padding}, current.position, options.transform);
+    return toLogicalPoint({x:displayed.x-padding, y:displayed.y-padding}, current.position, options.transform);
+  }
+  function pointerPoint(event: PointerEvent): Point | null {
+    const logical = logicalPointer(event);
+    if (!logical) return null;
     const point = { x: Math.round(logical.x), y: Math.round(logical.y) };
     return isOnBoard(current.position, point) && visible(point) ? point : null;
   }
-  svg.addEventListener('pointermove', event => { const point = pointerPoint(event); if (point?.x !== hover?.x || point?.y !== hover?.y) { hover = point; render(current); } }, { signal: abort.signal });
+  function inkPoint(event: PointerEvent): Point | null {
+    const point = logicalPointer(event), crop = cropFor(current);
+    if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y) || point.x < crop.x - 0.00001 ||
+      point.y < crop.y - 0.00001 || point.x > crop.x + crop.width - 1 + 0.00001 || point.y > crop.y + crop.height - 1 + 0.00001) return null;
+    return {x:Math.max(crop.x, Math.min(crop.x+crop.width-1, point.x)), y:Math.max(crop.y, Math.min(crop.y+crop.height-1, point.y))};
+  }
+  function cancelInk(): void {
+    const pointer = pendingStroke?.pointer;
+    pendingStroke = null;
+    if (pointer !== undefined && pointer !== null) cancelledPointer = pointer;
+    if (pointer !== undefined && pointer !== null && svg.hasPointerCapture(pointer)) svg.releasePointerCapture(pointer);
+  }
+  function appendInk(point: Point): void {
+    if (!pendingStroke) return;
+    const last = pendingStroke.points.at(-1)!;
+    if (Math.hypot(point.x-last.x, point.y-last.y) < 0.01) return;
+    if (pendingStroke.points.length >= strokeLimits.pointsPerStroke) {
+      cancelInk(); live.textContent = 'Stroke cancelled: more than 512 sampled points. Draw shorter strokes.';
+    } else pendingStroke.points.push(point);
+  }
+  function finishInk(): void {
+    const points = pendingStroke?.points;
+    cancelInk();
+    if (!points || points.length < 2 || !options.drawing || options.readOnly) { render(current); return; }
+    const result = controller.addStroke(points, options.drawing);
+    live.textContent = result.ok ? 'Ink stroke added. Undo removes it.' : `Ink rejected: ${result.reason}.`;
+    render(current);
+  }
+  svg.addEventListener('pointerdown', event => {
+    if (cancelledPointer === event.pointerId) cancelledPointer = null;
+    if (!options.drawing || options.readOnly || event.button !== 0 || !event.isPrimary || pendingStroke) return;
+    const point = inkPoint(event);
+    if (!point) return;
+    event.preventDefault(); svg.focus({preventScroll:true}); hover = null;
+    pendingStroke = {pointer:event.pointerId, points:[point]};
+    try { svg.setPointerCapture(event.pointerId); }
+    catch { cancelInk(); live.textContent = 'Ink cancelled: pointer capture is unavailable.'; }
+    render(current);
+  }, {signal:abort.signal});
+  svg.addEventListener('pointermove', event => {
+    if (pendingStroke?.pointer === event.pointerId) {
+      event.preventDefault(); const point = inkPoint(event); if (point) appendInk(point); render(current); return;
+    }
+    if (options.drawing) return;
+    const point = pointerPoint(event); if (point?.x !== hover?.x || point?.y !== hover?.y) { hover = point; render(current); }
+  }, { signal: abort.signal });
   svg.addEventListener('pointerleave', () => { hover = null; render(current); }, { signal: abort.signal });
   svg.addEventListener('pointerup', event => {
+    if (cancelledPointer === event.pointerId) { cancelledPointer = null; return; }
     if (event.button !== 0) return;
+    if (options.drawing) {
+      if (pendingStroke?.pointer !== event.pointerId) return;
+      event.preventDefault(); const point = inkPoint(event);
+      if (point) { appendInk(point); finishInk(); }
+      else { cancelInk(); render(current); live.textContent = 'Ink cancelled: release inside the board.'; }
+      return;
+    }
     const point = pointerPoint(event);
     if (point) { focus = point; svg.focus({ preventScroll: true }); activate(point); render(current); }
   }, { signal: abort.signal });
+  for (const name of ['pointercancel','lostpointercapture'] as const) svg.addEventListener(name, event => {
+    if (pendingStroke?.pointer === event.pointerId) { cancelInk(); render(current); live.textContent = 'Ink cancelled.'; }
+  }, {signal:abort.signal});
   svg.addEventListener('focus', () => render(current), { signal: abort.signal });
-  svg.addEventListener('blur', () => render(current), { signal: abort.signal });
+  svg.addEventListener('blur', () => { cancelInk(); render(current); }, { signal: abort.signal });
   svg.addEventListener('keydown', event => {
     const crop = cropFor(current);
     const shifts: Record<string, Point> = { ArrowLeft: { x: -1, y: 0 }, ArrowRight: { x: 1, y: 0 }, ArrowUp: { x: 0, y: -1 }, ArrowDown: { x: 0, y: 1 } };
@@ -242,11 +320,23 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       focus = { x: Math.max(crop.x, Math.min(crop.x + crop.width - 1, logical.x)),
         y: Math.max(crop.y, Math.min(crop.y + crop.height - 1, logical.y)) };
       render(current); live.textContent = `${columnLabel(focus.x)}${current.position.height - focus.y}. ${current.position.board[focus.y * current.position.width + focus.x] ?? 'Empty'}.`;
-    } else if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(focus); }
+    } else if (event.key === 'Escape') { cancelInk(); render(current); live.textContent = 'Ink cancelled.'; }
+    else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (options.drawing) {
+        if (options.readOnly || (pendingStroke && pendingStroke.pointer !== null)) return;
+        if (!pendingStroke) { pendingStroke = {pointer:null, points:[{...focus}]}; live.textContent = 'Ink started. Move the cursor and add points with Space; Enter finishes.'; }
+        else { appendInk({...focus}); if (event.key === 'Enter') finishInk(); }
+        render(current);
+      } else activate(focus);
+    }
     else if (event.key === 'PageUp' || event.key === 'PageDown') { event.preventDefault(); event.key === 'PageUp' ? controller.previous() : controller.next(); }
   }, { signal: abort.signal });
   cropFor(current);
-  const unsubscribe = controller.subscribe(state => { render(state); announce(state); });
+  const unsubscribe = controller.subscribe(state => {
+    if (state.record !== current.record || state.node.id !== current.node.id) cancelInk();
+    render(state); announce(state);
+  });
   return Object.freeze({ controller,
     exportSvg(config: DiagramOptions = {}) {
       if (disposed) throw new Error('Board view is disposed');
@@ -259,12 +349,14 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     update(next: Omit<BoardOptions, 'controller'>) {
       if (disposed) throw new Error('Board view is disposed');
       const previous = options;
-      options = { ...options, ...next, transform: normalizeBoardTransform(Object.hasOwn(next, 'transform') ? next.transform : options.transform) };
-      try { cropFor(current); render(current); } catch (error) { options = previous; throw error; }
+      options = { ...options, ...next, transform: normalizeBoardTransform(Object.hasOwn(next, 'transform') ? next.transform : options.transform),
+        drawing: Object.hasOwn(next, 'drawing') ? next.drawing ? normalizeStrokeStyle(next.drawing) : null : options.drawing };
+      try { cropFor(current); } catch (error) { options = previous; throw error; }
+      cancelInk(); render(current);
     },
     dispose() {
       if (disposed) return;
-      disposed = true; abort.abort(); unsubscribe(); svg.remove(); live.remove();
+      disposed = true; cancelInk(); abort.abort(); unsubscribe(); svg.remove(); live.remove();
       if (owned) controller.dispose();
     },
   });

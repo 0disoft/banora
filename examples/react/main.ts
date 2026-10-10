@@ -14,6 +14,8 @@ function App() {
   const [flat, setFlat] = useState(false);
   const [rotation, setRotation] = useState<BoardRotation>(0);
   const [flipX, setFlipX] = useState(false);
+  const [ink, setInk] = useState(false);
+  const drawing = ink ? {color:'#cc5522',width:0.12} : null;
   const [boardView, setBoardView] = useState<BoardView | ViewerView | null>(null);
   const [viewerView, setViewerView] = useState<BoardView | ViewerView | null>(null);
   const [error, setError] = useState('');
@@ -32,23 +34,27 @@ function App() {
     h('p', { id: 'events' }, `Events ${events} · ${last}`),
     h('p', {id:'diagram-error',role:'status'},error),
     h('p', {id:'view-handles'},`View handles ${Number(!!boardView) + Number(!!viewerView)}`),
+    h('p', {id:'ink-count'},`Ink strokes ${state.strokes.length}`),
     h('div', { className: 'controls' }, button('advance', 'Advance controller', () => controller.next()),
       button('toggle', mounted ? 'Unmount widgets' : 'Mount widgets', () => setMounted(value => !value)),
       button('readonly', readOnly ? 'Enable placement' : 'Read only', () => setReadOnly(value => !value)),
       button('theme', 'Change theme', () => setFlat(value => !value)),
       button('rotate', 'Rotate board', () => setRotation(value => (value + 90) % 360 as BoardRotation)),
       button('reflect', 'Reflect board', () => setFlipX(value => !value)),
+      button('ink', ink ? 'Use placement tool' : 'Use ink tool', () => setInk(value => !value)),
+      button('clear-ink', 'Clear ink', () => controller.clearStrokes()),
+      button('undo-edit', 'Undo record edit', () => controller.undo()),
       button('callback', 'Change callback', () => setCallbackB(value => !value)),
       button('swap', 'Switch controller', () => setSecond(value => !value))),
     h('div', {className:'controls'},
       h('button', {id:'png', disabled:!mounted || !boardView, onClick:() => { void downloadDiagram(boardView,'png','react-board.png').catch(error => setError(String(error))); }}, 'Save board PNG'),
       h('button', {id:'svg', disabled:!mounted || !viewerView, onClick:() => { void downloadDiagram(viewerView,'svg','react-viewer.svg').catch(error => setError(String(error))); }}, 'Save viewer SVG')),
     mounted ? h('div', { className: 'boards' }, h('section', { id: 'board-host' },
-      h(Board, { controller, readOnly, transform, theme: flat ? 'flat' : 'wood', onStateChange, onView:setBoardView })),
-    h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, onView:setViewerView, board: { transform, theme: flat ? 'flat' : 'wood' } }))) :
+      h(Board, { controller, readOnly, transform, drawing, theme: flat ? 'flat' : 'wood', onStateChange, onView:setBoardView })),
+    h('section', { id: 'viewer-host' }, h(Viewer, { controller, editable: !readOnly, onView:setViewerView, board: { transform, drawing, theme: flat ? 'flat' : 'wood' } }))) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
     mounted ? h('section', { id: 'owned-board', style: { maxWidth: 350 } }, h('h2', null, 'Optional owned controller'),
-      h(Board, { readOnly, transform, theme: flat ? 'flat' : 'wood' })) : null);
+      h(Board, { readOnly, transform, drawing, theme: flat ? 'flat' : 'wood' })) : null);
 }
 createRoot(document.getElementById('app')!).render(h(StrictMode, null, h(App)));
 window.addEventListener('pagehide', event => { if (!event.persisted) records.forEach(controller => controller.dispose()); });

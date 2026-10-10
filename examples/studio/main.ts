@@ -6,6 +6,8 @@ const find = <T extends HTMLElement>(id: string) => document.getElementById(id) 
 const controller = new RecordController({ sgf: sample });
 const comment = find<HTMLTextAreaElement>('comment');
 const tool = find<HTMLSelectElement>('tool');
+const penOption = document.createElement('option'); penOption.value = 'pen'; penOption.textContent = 'Freehand ink';
+tool.append(penOption);
 const status = find('status');
 const dialog = find<HTMLDialogElement>('unsaved');
 const file = find<HTMLInputElement>('file');
@@ -95,6 +97,8 @@ const unsubscribe = controller.subscribe(state => {
   find('dirty').classList.toggle('changed', state.dirty);
   find<HTMLButtonElement>('undo').disabled = !state.canUndo;
   find<HTMLButtonElement>('redo').disabled = !state.canRedo;
+  find<HTMLButtonElement>('clear-ink').disabled = state.strokes.length === 0;
+  find('ink-count').textContent = `${state.strokes.length} stroke${state.strokes.length === 1 ? '' : 's'} on this node`;
   find<HTMLButtonElement>('previous').disabled = state.path.length <= 1;
   find<HTMLButtonElement>('first').disabled = state.path.length <= 1;
   find<HTMLButtonElement>('next').disabled = state.node.children.length === 0;
@@ -186,7 +190,18 @@ removal.addEventListener('close', () => { if (removal.returnValue === 'remove' &
 comment.addEventListener('focus', () => controller.beginEditGroup());
 comment.addEventListener('input', () => report(controller.setComment(comment.value)));
 comment.addEventListener('blur', () => controller.endEditGroup());
-tool.addEventListener('change', () => { connectionStart = undefined; find('label-control').hidden = tool.value !== 'label'; });
+function updateInk() {
+  view.update({drawing: tool.value === 'pen' ? {color:find<HTMLInputElement>('ink-color').value,
+    width:Number(find<HTMLSelectElement>('ink-width').value)} : null});
+}
+tool.addEventListener('change', () => {
+  connectionStart = undefined; find('label-control').hidden = tool.value !== 'label'; find('ink-control').hidden = tool.value !== 'pen'; updateInk();
+  find('keyboard-hint').textContent = tool.value === 'pen' ? 'Arrow keys move · Space adds an ink point · Enter finishes · Escape cancels' : 'Arrow keys move the board cursor · Enter places · Page Up / Down navigates';
+  if (tool.value === 'pen') status.textContent = 'Drag to draw. Escape cancels; Undo removes a completed stroke. Keyboard: Space adds a point, Enter finishes.';
+});
+find('ink-color').addEventListener('input', updateInk);
+find('ink-width').addEventListener('change', updateInk);
+find('clear-ink').addEventListener('click', () => report(controller.clearStrokes()));
 find<HTMLSelectElement>('theme').addEventListener('change', event => view.update({ theme: (event.target as HTMLSelectElement).value as 'wood' | 'flat' }));
 find<HTMLInputElement>('numbers').addEventListener('change', event => view.update({ moveNumbers: (event.target as HTMLInputElement).checked }));
 const transformView = () => view.update({transform:{rotation:Number(find<HTMLSelectElement>('rotation').value) as BoardRotation,

@@ -36,6 +36,12 @@ callback replacement clears the old binding and connects the new one. Configure
 through props and leave view disposal to the component. Image export does not save
 the SGF record or clear dirty state.
 
+`drawing={{color:'#206650',width:0.08}}` enables the common freehand tool on Board;
+use `board={{drawing:{...}}}` on Viewer. Null disables drawing. Shared controller
+state includes immutable `strokes`; add/remove/clear and Undo/export/reopen use the
+same controller. Read-only views display saved ink, and diagrams include it.
+SGF uses Banora's private BPN extension, which other viewers may not display.
+
 The framework owns the empty container; the SDK owns its descendants. SSR emits
 only containers; board DOM mounts in client effects. Supply matching record content
 on server/client for state hydration. Rendered board HTML hydration is deferred.

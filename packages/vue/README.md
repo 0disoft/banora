@@ -40,3 +40,9 @@ The `view(viewOrNull)` event supplies a borrowed BoardView/ViewerView for
 null clears the handle on unmount/controller replacement. Use component props for
 configuration and let the component dispose its view. Images do not save the SGF
 record or clear dirty state.
+
+Pass `drawing: {color:'#206650',width:0.08}` to Board (inside `board` for Viewer)
+to enable the shared freehand tool; null disables it. Immutable state includes
+`strokes`, with controller add/remove/clear, Undo and SGF export/reopen. Read-only
+views display saved ink, and diagrams include it. SGF uses the private BPN
+extension, which other viewers may not display.

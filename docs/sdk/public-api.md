@@ -117,7 +117,7 @@ and reopen retain the annotations; this is an extension, not universal SGF marku
 `@banora/sdk/board` and the root export expose `mountBoard(container, options?)`.
 The returned `BoardView` exposes `controller`, `update(options)`, `exportSvg`,
 `exportPng` and idempotent `dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
-`coordinates`, `moveNumbers`, integer `crop`, `transform` and `onPoint(point)`.
+`coordinates`, `moveNumbers`, integer `crop`, `transform`, `drawing` and `onPoint(point)`.
 
 An externally supplied controller survives view disposal. If omitted, the view
 creates and disposes its own controller. The SDK owns only its appended SVG and
@@ -146,6 +146,27 @@ screen axes. Labels and move numbers stay upright. Invalid configurations throw
 without changing the previous presentation or controller; `transform: undefined`
 explicitly restores defaults. Rotating does not create edits or change dirty state.
 All three optional framework wrappers forward these same options.
+
+`drawing: {color?, width?}` opts into freehand input; `null` or explicitly
+`undefined` restores ordinary point activation. The immutable style uses the stroke
+constraints above; invalid mount/update options throw without changing the active
+configuration. Read-only boards display saved ink but cannot draw. Drawing consumes
+input instead of calling `onPoint` or placing stones. Primary mouse/touch/pen drags
+capture the pointer, sample fractional logical points at least 0.01 intersections
+apart, and commit one stroke on release inside the visible board. A click is a
+no-op. More than 512 sampled points cancels the gesture with live feedback rather
+than silently truncating it. Drawing disables native touch panning only while active.
+Pressure-sensitive widths and smoothed curves are not implemented.
+
+Arrow keys move the cursor along screen axes; Space starts/appends a keyboard stroke
+and Enter appends the current point and completes it (or starts if none exists).
+Escape, focus loss, pointer cancellation/capture loss, a record/node change, a
+successful configuration update or disposal discards the pending preview. Invalid
+configuration leaves an in-progress gesture intact. Preview points do not edit the
+controller and are excluded from SVG/PNG export. Completed ink renders over the
+board/markers and is included in both diagrams. Rotation/reflection/crop affect
+presentation only; saved points remain logical. Framework Board components forward
+`drawing`; Viewer components accept it in their nested `board` options.
 
 `@banora/sdk/geometry` and root exports provide headless `toDisplayPoint`,
 `toLogicalPoint`, `displayBoardSize`, `displayCrop` and `normalizeBoardTransform`,

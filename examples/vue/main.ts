@@ -12,6 +12,8 @@ const App = defineComponent({ setup() {
   const mounted = ref(true); const readOnly = ref(false); const flat = ref(false);
   const callbackB = ref(false); const events = ref(0); const last = ref('');
   const rotation = ref<BoardRotation>(0), flipX = ref(false);
+  const ink = ref(false);
+  const drawing = () => ink.value ? {color:'#cc5522',width:0.12} : null;
   const boardView = shallowRef<BoardView | ViewerView | null>(null), viewerView = shallowRef<BoardView | ViewerView | null>(null);
   const bindBoard = (view: BoardView | ViewerView | null) => { boardView.value = view; };
   const bindViewer = (view: BoardView | ViewerView | null) => { viewerView.value = view; };
@@ -26,23 +28,27 @@ const App = defineComponent({ setup() {
     h('p', { id: 'events' }, `Events ${events.value} · ${last.value}`),
     h('p', {id:'diagram-error',role:'status'},error.value),
     h('p', {id:'view-handles'},`View handles ${Number(!!boardView.value) + Number(!!viewerView.value)}`),
+    h('p', {id:'ink-count'},`Ink strokes ${state.value.strokes.length}`),
     h('div', { class: 'controls' }, [button('advance', 'Advance controller', () => toRaw(controller.value).next()),
       button('toggle', mounted.value ? 'Unmount widgets' : 'Mount widgets', () => { mounted.value = !mounted.value; }),
       button('readonly', readOnly.value ? 'Enable placement' : 'Read only', () => { readOnly.value = !readOnly.value; }),
       button('theme', 'Change theme', () => { flat.value = !flat.value; }),
       button('rotate', 'Rotate board', () => { rotation.value = (rotation.value + 90) % 360 as BoardRotation; }),
       button('reflect', 'Reflect board', () => { flipX.value = !flipX.value; }),
+      button('ink', ink.value ? 'Use placement tool' : 'Use ink tool', () => {ink.value=!ink.value;}),
+      button('clear-ink', 'Clear ink', () => toRaw(controller.value).clearStrokes()),
+      button('undo-edit', 'Undo record edit', () => toRaw(controller.value).undo()),
       button('callback', 'Change callback', () => { callbackB.value = !callbackB.value; }),
       button('swap', 'Switch controller', () => { controller.value = toRaw(controller.value) === records[0] ? records[1]! : records[0]!; })]),
     h('div', {class:'controls'},[
       h('button', {id:'png', disabled:!mounted.value || !boardView.value, onClick:() => { void downloadDiagram(boardView.value,'png','vue-board.png').catch(result => {error.value=String(result);}); }}, 'Save board PNG'),
       h('button', {id:'svg', disabled:!mounted.value || !viewerView.value, onClick:() => { void downloadDiagram(viewerView.value,'svg','vue-viewer.svg').catch(result => {error.value=String(result);}); }}, 'Save viewer SVG')]),
     mounted.value ? h('div', { class: 'boards' }, [h('section', { id: 'board-host' }, h(Board, {
-      controller: controller.value, readOnly: readOnly.value, transform:transform(), theme: flat.value ? 'flat' : 'wood', onStateChange, onView:bindBoard,
-    })), h('section', { id: 'viewer-host' }, h(Viewer, { controller: controller.value, editable: !readOnly.value, onView:bindViewer, board: { transform:transform(), theme: flat.value ? 'flat' : 'wood' } }))]) :
+      controller: controller.value, readOnly: readOnly.value, transform:transform(), drawing:drawing(), theme: flat.value ? 'flat' : 'wood', onStateChange, onView:bindBoard,
+    })), h('section', { id: 'viewer-host' }, h(Viewer, { controller: controller.value, editable: !readOnly.value, onView:bindViewer, board: { transform:transform(), drawing:drawing(), theme: flat.value ? 'flat' : 'wood' } }))]) :
       h('p', null, 'Widgets unmounted. The controller remains active.'),
     mounted.value ? h('section', { id: 'owned-board', style: { maxWidth: '350px' } }, [h('h2', null, 'Optional owned controller'),
-      h(Board, { readOnly: readOnly.value, transform:transform(), theme: flat.value ? 'flat' : 'wood' })]) : null]);
+      h(Board, { readOnly: readOnly.value, transform:transform(), drawing:drawing(), theme: flat.value ? 'flat' : 'wood' })]) : null]);
 } });
 createApp(App).mount(document.getElementById('app')!);
 window.addEventListener('pagehide', event => { if (!event.persisted) records.forEach(controller => controller.dispose()); });

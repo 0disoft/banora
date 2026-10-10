@@ -57,6 +57,9 @@ try {
     if (!svg.includes('xmlns="http://www.w3.org/2000/svg"') || svg.includes('data-cursor')) throw new Error(`${name} exported invalid/interactive SVG`);
   }
   console.log('Diagram smoke passed: Studio and three adapters export real SVG/PNG; bounded standalone styles, failure and disposal handling preserve SGF dirty state.');
+  await cli('snapshot');
+  await cli('run-code', await readFile(resolve(root, 'scripts/ink-scenario.js'), 'utf8'));
+  console.log('Ink smoke passed: logical drag/touch/keyboard, cancellation, Undo/reopen, SVG/PNG pixels and React/Vue/Svelte propagation.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');
