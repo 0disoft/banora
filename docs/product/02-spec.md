@@ -60,6 +60,12 @@ AI responses belong to a separate integration.
 
 ## State and Rules Contract
 
+Agents can operate on records and inspect external snapshots through a DOM-free,
+versioned JSON request/response boundary and an optional terminal executable.
+The [automation decision](../adr/0013-machine-readable-terminal-automation.md)
+requires command discovery, checked logical inputs, bounded isolated batches and
+structured failures; it adds no automatic control over another application's state.
+
 Hosts may keep rules, records and revisions in an external server/native engine.
 The additive [controlled-board decision](../adr/0012-host-controlled-board-and-presentation-boundary.md)
 defines a plain snapshot/intention integration without requiring a Banora record

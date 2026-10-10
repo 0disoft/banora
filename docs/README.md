@@ -45,6 +45,9 @@ the [specification](product/02-spec.md) for the initial editing/reopen workflow.
 
 ## Planned Versus Implemented
 
+The [terminal automation contract](sdk/automation.md) documents machine-readable
+commands, input limits and the external state authority boundary.
+
 The additive [host-controlled board guide](sdk/controlled-board.md) documents
 external snapshot/intention integration and its implementation status.
 

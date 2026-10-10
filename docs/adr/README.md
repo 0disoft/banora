@@ -20,6 +20,9 @@ mean its implementation or compatibility has been validated.
 The additive [host-controlled board decision](0012-host-controlled-board-and-presentation-boundary.md)
 defines external snapshot authority, input intentions and shared presentation.
 
+The [terminal automation decision](0013-machine-readable-terminal-automation.md)
+defines checked JSON commands and an optional agent-friendly CLI consumer.
+
 Update the owning ADR when a design changes and describe the consequences for
 consumers and validation. Keep unresolved choices explicit. Use the
 [ADR template](0000-template.md) for future decisions and link them here.

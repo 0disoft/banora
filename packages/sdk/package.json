@@ -31,6 +31,10 @@
       "types": "./dist/controller.d.ts",
       "import": "./dist/controller.js"
     },
+    "./automation": {
+      "types": "./dist/automation.d.ts",
+      "import": "./dist/automation.js"
+    },
     "./board": {
       "types": "./dist/board.d.ts",
       "import": "./dist/board.js"

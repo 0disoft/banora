@@ -112,6 +112,9 @@ await writeFile(
   `import {createPosition, play} from '@banora/sdk/core';
 import {createBoardSnapshot} from '@banora/sdk/board-state';
 const external=createBoardSnapshot({key:'headless/host',width:2,height:3,stones:Array(6).fill(null)});
+import {executeAutomation, AUTOMATION_SCHEMA} from '@banora/sdk/automation';
+const automated=executeAutomation({schemaVersion:'banora.automation/v1',kind:'record',size:9,operations:[{op:'play',point:{x:4,y:4}}]});
+if (!automated.ok || automated.snapshot.stones[40]!=='black' || !JSON.stringify(AUTOMATION_SCHEMA).includes('legal-points')) throw Error('Packed headless automation failed');
 if ('rules' in external || external.stones.length!==6) throw Error('Headless external snapshot failed');
 import type {RepetitionHistory, RulePolicy} from '@banora/sdk/core';
 import {getRuleProfile} from '@banora/sdk/rules';

@@ -7,6 +7,9 @@
 
 ## Implemented Core Exports
 
+The [terminal automation API](automation.md) exposes discoverable, versioned JSON
+commands for headless record operations and checked external snapshot inspection.
+
 For a host-owned engine/server state, use the additive
 [controlled-board API](controlled-board.md): checked immutable snapshots, shared
 SVG presentation and intentions without creating a Banora record controller.
