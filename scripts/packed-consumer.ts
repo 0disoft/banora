@@ -73,6 +73,9 @@ const installed = JSON.parse(await readFile(resolve(directory, 'node_modules/@ba
 if (installed.dependencies && Object.keys(installed.dependencies).length) throw new Error('Unexpected SDK runtime dependencies');
 await readFile(resolve(directory, 'node_modules/@banora/sdk/LICENSE'));
 const globalDirectory = resolve(directory, 'node_modules/@banora/sdk/dist');
+const browserSource = await readFile(resolve(globalDirectory,'banora.global.js'),'utf8');
+const browserLicense = await readFile(resolve(directory,'node_modules/@banora/sdk/LICENSE'),'utf8');
+if (!browserSource.includes(browserLicense.trim())) throw new Error('Standalone browser distribution lost its MIT notice');
 await writeFile(resolve(directory, 'global-consumer.ts'), `/// <reference path="./node_modules/@banora/sdk/dist/banora.global.d.ts" />
 const model = new Banora.RecordController({size:9});
 model.setConnection({x:0,y:0}, {x:1,y:1}, 'arrow');

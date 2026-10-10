@@ -82,6 +82,8 @@ installed file without DOM globals and typechecks its global API; the production
 classic-script example verifies actual client mounting without `type="module"`
 scripts. Vite emits the example's local script asset unchanged rather than converting
 it to ESM. CommonJS support remains unclaimed.
+The standalone script includes the complete package MIT notice in a preserved banner;
+the tarball check verifies that notice as well as the separate LICENSE file.
 
 Headless `@banora/sdk/geometry` is checked without DOM type libraries. Rotation and
 reflection preserve logical coordinates and crop bounds on rectangular boards;

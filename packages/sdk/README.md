@@ -12,3 +12,5 @@ namespace declarations. Copy the script alongside a page and load it with an
 ordinary script tag; then call `Banora.mountViewer(container, {sgf})` or compose the
 other APIs. The global script is not a CommonJS or named ESM entrypoint. Use normal
 selective ESM exports for module-based applications.
+The standalone script preserves the complete MIT notice in its banner when copied
+outside the package; retain that notice when redistributing it.
