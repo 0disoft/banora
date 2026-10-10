@@ -26,7 +26,7 @@ UNDECIDED and must not be claimed without consumer evidence.
 | Surface | Intended environment | Support status |
 | --- | --- | --- |
 | Core and SGF | Browser and Node.js, no DOM required | Initial Node 24 LTS target; browser floors and tested evidence pending |
-| SVG renderer and viewer | Browsers with the required SVG/input APIs | Tested matrix UNDECIDED |
+| SVG renderer and Studio | Browsers with the required SVG/input APIs | Production flows checked on Windows Headless Chrome 154; broader matrix pending |
 | React adapter | Client-mounted React applications | React 19 target; peer minimums and consumer evidence pending |
 | Vue adapter | Client-mounted Vue applications | Vue 3 target; peer minimums and consumer evidence pending |
 | Svelte adapter | Client-mounted Svelte applications | Svelte 5 target; compiler/artifact details and consumer evidence pending |

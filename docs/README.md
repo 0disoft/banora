@@ -1,6 +1,6 @@
 # Documentation
 
-- Status: Design baseline; implementation not started
+- Status: Active design and implementation contracts
 
 ## Start Here
 
@@ -11,7 +11,7 @@
 5. [SDK contract](sdk/README.md): consumer-facing API and compatibility direction.
 6. [Development](../DEVELOPMENT.md): implementation and validation approach.
 
-The first consumer is **Banora Studio**, planned at `examples/studio`, plus a
+The first consumer is **Banora Studio**, implemented at `examples/studio`, plus a
 minimal read-only embedding example. Read the
 [first consumer decision](adr/0003-studio-first-consumer.md) for their role and
 the [specification](product/02-spec.md) for the initial editing/reopen workflow.
@@ -21,6 +21,7 @@ the [specification](product/02-spec.md) for the initial editing/reopen workflow.
 | Subject | Authoritative document |
 | --- | --- |
 | Product scope and acceptance | [Product specification](product/02-spec.md) |
+| Current implementation evidence and remaining work | [Implementation status](engineering/08-implementation-status.md) |
 | Delivery sequence | [Roadmap](product/01-roadmap.md) |
 | Architecture decisions | [ADR index](adr/README.md) |
 | State model and ownership | [Domain model](architecture/01-domain-model.md) |
@@ -37,10 +38,10 @@ the [specification](product/02-spec.md) for the initial editing/reopen workflow.
 
 ## Planned Versus Implemented
 
-The documents describe design intent, not available APIs, benchmark results or
-completed milestones. Mark unresolved details UNDECIDED and technical owners
-UNASSIGNED. Add runnable examples and compatibility evidence when implementation
-exists. Public project documentation and contributor-facing examples use English.
+Specifications and ADRs describe the complete direction. API documentation and
+implementation status distinguish available code/evidence from planned features.
+Mark unresolved details UNDECIDED and technical owners UNASSIGNED. Public project
+documentation and contributor-facing examples use English.
 
 Remaining generic engineering/operations templates are scaffolds, not evidence of
 implemented infrastructure. The [operational contract](ops/00-operational-contract.md)

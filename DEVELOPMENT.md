@@ -30,6 +30,13 @@ Do not publish command examples that refer to missing scripts or packages.
 
 ## First Implementation Slice
 
+The initial Studio workflow is now runnable with `bun run dev`. `bun run check`
+validates the headless SDK and packed consumer; `bun run smoke:browser` validates
+production Studio/read-only flows, including touch emulation. See
+[implementation evidence](docs/engineering/08-implementation-status.md) for scope
+and the remaining release work. SDK changes require rebuilding its artifacts before
+the examples consume them; the examples do not alias SDK exports to source files.
+
 Work toward the [M1 exit evidence](docs/product/01-roadmap.md) through Banora Studio,
 planned at `examples/studio`: load an SGF, navigate branches, create a continuation,
 edit comments/markers, download it and reopen it with edits preserved. Build the

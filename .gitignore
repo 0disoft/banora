@@ -20,4 +20,6 @@ coverage/
 .tmp/
 tmp/
 *.tsbuildinfo
+.playwright-cli/
+output/playwright/
 # <<< ssealed ignore patterns <<<

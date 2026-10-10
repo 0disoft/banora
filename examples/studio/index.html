@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#153b32" />
+  <title>Banora Studio — Go record workspace</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23225b49'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%23edead6'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="./"><span class="brand-icon" aria-hidden="true">●</span><strong>banora<span>studio</span></strong></a>
+    <div class="header-actions"><span id="dirty" class="pill">No changes</span><button id="export" class="button primary">Export SGF</button></div>
+  </header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">YOUR NEXT VARIATION</p><h1>A little room to think.</h1><p class="muted">Open a game. Follow a line. Find your own continuation.</p></div>
+      <div class="file-actions"><button id="new" class="button">New record</button><button id="sample" class="button">Example game</button><button id="open" class="button primary">Open SGF</button><input id="file" type="file" accept=".sgf,application/x-go-sgf,text/plain" hidden /></div>
+    </section>
+    <div class="workspace">
+      <section class="board-panel" aria-label="Board workspace">
+        <div class="board-top"><div><p class="eyebrow">ACTIVE RECORD</p><h2 id="game-name">Opening study</h2></div><label class="theme-label">Board <select id="theme"><option value="wood">Warm wood</option><option value="flat">Paper</option></select></label></div>
+        <div id="board" class="board"></div>
+        <div class="position-info"><span id="turn"></span><span id="captures"></span></div>
+        <div class="navigation"><button id="first" class="button icon" aria-label="First node">|←</button><button id="previous" class="button icon" aria-label="Previous move">←</button><span id="move" class="move-count">Move 0</span><button id="next" class="button icon" aria-label="Next move">→</button><button id="last" class="button icon" aria-label="Last node">→|</button><button id="pass" class="button">Pass</button></div>
+        <div class="editing-tools"><label>Tool <select id="tool"><option value="play">Play stone</option><option value="triangle">Triangle</option><option value="square">Square</option><option value="circle">Circle</option><option value="cross">Cross</option><option value="label">Label</option><option value="erase">Erase marker</option></select></label><label id="label-control" hidden>Text <input id="label-text" value="A" maxlength="12" /></label><label class="checkbox"><input id="numbers" type="checkbox" /> Move numbers</label><span class="spacer"></span><button id="undo" class="button" disabled>Undo</button><button id="redo" class="button" disabled>Redo</button></div>
+        <p class="keyboard-hint">Arrow keys move the board cursor · Enter places · Page Up / Down navigates</p>
+      </section>
+      <aside class="sidebar">
+        <section class="card metadata"><p class="eyebrow">GAME DETAILS</p><label>Game <select id="games"></select></label><dl><div><dt>Black</dt><dd id="black-name"></dd></div><div><dt>White</dt><dd id="white-name"></dd></div><div><dt>Board / Komi</dt><dd id="board-info"></dd></div></dl></section>
+        <section class="card variations"><div class="card-title"><h2>Variations</h2><span class="muted">Explore the tree</span></div><div id="tree" class="tree" role="list" aria-label="Record nodes"></div><p id="tree-note" class="muted small"></p></section>
+        <section class="card comments"><label for="comment"><h2>Notes on this position</h2></label><textarea id="comment" placeholder="What do you see here? Add a comment…" rows="5" maxlength="65536"></textarea><p class="small muted">Comments and markers travel with your SGF.</p></section>
+      </aside>
+    </div>
+    <footer><p id="status" role="status">Your records stay in this browser. No upload, no account.</p><a href="../readonly/">See the read-only embed ↗</a></footer>
+  </main>
+  <dialog id="unsaved"><form method="dialog"><p class="eyebrow">KEEP YOUR CONTINUATION</p><h2>This record has changes.</h2><p>Export a copy before opening another record, or discard these changes.</p><div class="dialog-actions"><button value="cancel" class="button">Cancel</button><button value="discard" class="button">Discard</button><button value="export" class="button primary">Export &amp; continue</button></div></form></dialog>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

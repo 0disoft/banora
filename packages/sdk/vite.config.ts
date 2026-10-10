@@ -11,6 +11,7 @@ export default defineConfig({
         core: resolve(import.meta.dirname, 'src/core.ts'),
         sgf: resolve(import.meta.dirname, 'src/sgf.ts'),
         controller: resolve(import.meta.dirname, 'src/controller.ts'),
+        board: resolve(import.meta.dirname, 'src/board.ts'),
       },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,

@@ -1,6 +1,6 @@
 # SDK Public API
 
-- Status: Core, SGF and record controller implemented; rendering/adapters remain planned
+- Status: Core, SGF, record controller and SVG board implemented; adapters remain planned
 - Product contract: [Specification](../product/02-spec.md)
 - Architecture: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 - Initial contracts: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
@@ -56,7 +56,32 @@ cached positions. Parsed node IDs remain stable through editing, not across
 serialization. Subscriber reentrancy delivers snapshots in order; notification errors
 are logged without rolling back committed commands. Root exports include all these APIs.
 
-## Planned Logical API Surfaces
+## Implemented Board Mounting
+
+`@banora/sdk/board` and the root export expose `mountBoard(container, options?)`.
+The returned `BoardView` exposes `controller`, `update(options)` and idempotent
+`dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
+`coordinates`, `moveNumbers`, integer `crop` and `onPoint(point)`.
+
+An externally supplied controller survives view disposal. If omitted, the view
+creates and disposes its own controller. The SDK owns only its appended SVG and
+live-announcement elements, leaving other host children intact. Importing the board
+module does not access browser globals; mounting requires a real DOM container.
+Update cannot replace the controller; dispose/remount for a different controller.
+
+Pointer/touch maps to logical coordinates through the SVG screen matrix. Arrow keys
+move a visible cursor, Enter/Space activate it, and Page Up/Down navigate the record.
+Default activation issues a legal move unless read-only. `onPoint` delegates activation
+to the host (including annotation/inspection behavior); hosts own that callback's
+mutation policy. A read-only board without a callback never places stones.
+
+Crop changes presentation only. Invalid crop configuration throws without replacing
+the previous options; record-size changes reset a crop that no longer fits. CSS
+variables `--banora-board`, `--banora-grid`, `--banora-black` and `--banora-white`
+customize presentation. Coordinates skip I for standard Go columns, falling back
+to numeric columns beyond the available single-letter alphabet.
+
+## Logical API Surfaces and Remaining Work
 
 | Surface | Responsibility |
 | --- | --- |
@@ -69,7 +94,7 @@ are logged without rolling back committed commands. Root exports include all the
 | Puzzles | Authored answers, scripted responses, hints, restart and feedback |
 | Analysis | Provider requests/results, cancellation, freshness and overlay normalization |
 
-Except for the implemented core/records/controller above, these are responsibilities, not finalized
+Except for the implemented core/records/controller/board above, these are responsibilities, not finalized
 npm subpaths or exported type names.
 Resolve names while implementing the first consumer example, then document actual
 signatures here before publication.
@@ -104,7 +129,7 @@ One controller owns the current record, selected node/cursor and edit history.
 Consumers send commands and subscribe to read-only state/change events. Views
 release their own renderer, listeners and subscriptions on disposal; an externally
 supplied controller remains available. Implemented names and acknowledgment semantics
-are listed above; framework component exports and renderer interfaces remain pending.
+are listed above; framework components and a complete viewer convenience mount remain pending.
 
 Previous/next and branch selection are navigation operations, separate from edit
 Undo/Redo. Variation creation, comments and marker changes are undoable edits.

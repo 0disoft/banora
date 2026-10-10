@@ -38,5 +38,6 @@ batch validated pushes/releases to avoid redundant runner usage.
 ## Current Scaffold State
 
 Root Bun scripts configure `test`, `typecheck`, `docs` and `check`, including the
-SDK build, plus packed headless `smoke`. See VALIDATION.md for commands. `lint` and browser smoke are not yet
-configured. Report only checks actually run; later-stage coverage remains required.
+SDK build, plus packed headless `smoke`. Explicit `smoke:browser` checks production
+Studio/read-only workflows with Playwright CLI. See VALIDATION.md for commands.
+`lint` remains unconfigured. Report only checks run; later coverage remains required.

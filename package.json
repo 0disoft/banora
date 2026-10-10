@@ -5,13 +5,18 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "build": "vite build --config packages/sdk/vite.config.ts && tsc -p packages/sdk/tsconfig.build.json",
+    "build:examples": "bun run build && vite build --config examples/vite.config.ts",
+    "dev": "bun run build && vite --config examples/vite.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test packages",
     "docs": "bun scripts/check-docs.ts",
     "smoke": "bun run build && bun scripts/packed-consumer.ts",
+    "smoke:browser": "bun run build:examples && bun scripts/browser-smoke.ts",
     "check": "bun run typecheck && bun run test && bun run docs && bun run smoke"
   },
   "devDependencies": {
+    "@banora/sdk": "workspace:*",
+    "@playwright/cli": "0.x",
     "@types/bun": "1.x",
     "typescript": "7.x",
     "vite": "8.x"

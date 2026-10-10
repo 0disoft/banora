@@ -1,6 +1,6 @@
 # Banora SDK
 
-- Status: Headless core implemented; other contracts planned; no package published
+- Status: Core, SGF, controller and board implemented; later contracts planned; unpublished
 - Technical owner: UNASSIGNED
 
 ## Sources of Truth
@@ -22,16 +22,17 @@
 4. Use the headless core and records in Node.js without browser globals.
 5. Attach scoring, puzzles or analysis adapters when their milestones ship.
 
-## Planned Examples
+## Consumer Examples
 
 Start with Banora Studio at `examples/studio`: an SGF review/basic editing
-application and planned public demo, consuming only public SDK exports. Verify the
+application and future hosted demo, consuming only built public SDK exports. Verify the
 load/navigate/create-variation/comment/mark/download/reopen workflow against the
 built package. Studio-specific private hooks and internal SDK source imports are
 not acceptable consumer validation.
 
-Also provide a minimal read-only browser embedding example and a headless consumer
-example in M1. Add official React, Vue, and Svelte adapter examples in M2, with each
+The read-only example at `examples/readonly` and an isolated tarball/headless consumer
+are implemented. Browser flows have production-build evidence on Chrome 154.
+Add official React, Vue, and Svelte adapter examples in M2, with each
 consuming its actual public package/component artifacts. Add puzzle/AI examples as their milestones
 ship. This second browser workflow prevents the SDK API from becoming editor-specific.
 
@@ -44,7 +45,8 @@ versions, component packaging and SSR behavior require framework-specific eviden
 
 Plan one common SDK package and three separate optional adapter packages in this
 repository. Initial targets are Node 24 LTS, React 19, Vue 3 and Svelte 5; tested
-support is pending. Exact public symbols, package names/exports, browser floors
-and peer/compiler minimums remain UNDECIDED. No installation snippet should imply an available package until a
+support outside the recorded evidence is pending. The common SDK's development
+name/exports are implemented; adapter symbols/names, browser floors and framework
+peer/compiler minimums remain UNDECIDED. No installation snippet should imply an available package until a
 release exists. Published packages must include type declarations, license files,
 asset notices, documented exports and actual consumer validation.

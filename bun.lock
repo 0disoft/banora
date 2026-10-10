@@ -5,6 +5,8 @@
     "": {
       "name": "banora-workspace",
       "devDependencies": {
+        "@banora/sdk": "workspace:*",
+        "@playwright/cli": "0.x",
         "@types/bun": "1.x",
         "typescript": "7.x",
         "vite": "8.x",
@@ -19,6 +21,8 @@
     "@banora/sdk": ["@banora/sdk@workspace:packages/sdk"],
 
     "@oxc-project/types": ["@oxc-project/types@0.153.0", "", {}, "sha512-jSNrRIyvPVLL5E1z/tS5zLAprosGz/FuI1PWwEOz59j3E4TTTzSpqKb/RDGqJhhW0QHYISGXxq582wGx6T11Tw=="],
+
+    "@playwright/cli": ["@playwright/cli@0.1.22", "", { "dependencies": { "playwright": "1.64.0-alpha-1790635538000", "playwright-core": "1.64.0-alpha-1790635538000" }, "bin": { "playwright-cli": "playwright-cli.js" } }, "sha512-6WMkQNM4VEzqMkdr/l60X9Cr7i+tI/arK87IWz2K7pB6j8I2ZJ8KN+1JfhJDLnK+SXnab6Op8xGt4adcGLsyfA=="],
 
     "@rolldown/binding-android-arm-eabi": ["@rolldown/binding-android-arm-eabi@1.2.13", "", { "os": "android", "cpu": "arm" }, "sha512-Vu/NICrgdRvUOeaJZIyB2FP63s6fO/4ud5l8dXmxDx9yDyn+mN0y+gsvsVviSli+T361Aqo0h46EuMoobrwawA=="],
 
@@ -133,6 +137,10 @@
     "picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 
     "picomatch": ["picomatch@4.0.7", "", {}, "sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA=="],
+
+    "playwright": ["playwright@1.64.0-alpha-1790635538000", "", { "dependencies": { "playwright-core": "1.64.0-alpha-1790635538000" }, "bin": { "playwright": "cli.js" } }, "sha512-/5XDUMxpOd/9AojJtWDFIRV3EJZNQ0AwvK69wgt3CPzy8wTgiBG9pX45VfxtqtvIRGwfWzMhrvawNKreG69Snw=="],
+
+    "playwright-core": ["playwright-core@1.64.0-alpha-1790635538000", "", { "bin": { "playwright-core": "cli.js" } }, "sha512-pNwaXirhXMRLaRQs4NQ18EpTdtDoFwyPH9FOaaDC7YXG4hpwE2xmwCic/1srbuExVQC7zT9LJSJpDBAru+Vo9A=="],
 
     "postcss": ["postcss@8.5.29", "", { "dependencies": { "nanoid": "^3.3.19", "picocolors": "^1.1.1", "source-map-js": "^1.2.2" } }, "sha512-49cGhUbXj8Qenv0iTMxA1cFBzxXoctpC9Ujd77t1WcbJIr6nF/eI7g/8MgxrYldFRuAXvja7xQRwavoW7kgrxQ=="],
 

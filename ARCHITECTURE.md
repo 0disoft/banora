@@ -1,6 +1,6 @@
 # Architecture
 
-- Status: Architecture baseline; headless core implemented, other surfaces pending
+- Status: Core, records, controller, SVG and Studio implemented; later milestones pending
 - Decision: [ADR 0001](docs/adr/0001-initial-architecture-boundaries.md)
 - Framework support: [ADR 0004](docs/adr/0004-framework-independent-adapters.md)
 - Initial contracts: [ADR 0005](docs/adr/0005-initial-api-record-and-package-contracts.md)
