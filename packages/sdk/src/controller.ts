@@ -4,6 +4,9 @@ import { createSgfNode, decodeSgf, expandSgfPoints, parseSgf, pointFromSgf, poin
 import type { SgfDiagnostic, SgfLimits, SgfNode, SgfRecord } from './sgf.js';
 import { applyRecordNode, indexRecord, initialRecordPosition, semanticRecord, sgfColor } from './record-runtime.js';
 import type { RecordIndex } from './record-runtime.js';
+import { createStroke, decodeStrokes, encodeStroke, strokeLimits } from './annotations.js';
+import type { Stroke, StrokeStyle } from './annotations.js';
+export type { Stroke, StrokeStyle } from './annotations.js';
 
 export type MarkerKind = 'triangle' | 'square' | 'circle' | 'cross' | 'label';
 export interface Marker { readonly point: Point; readonly kind: MarkerKind; readonly label?: string }
@@ -20,6 +23,7 @@ export interface ControllerState {
   readonly canRedo: boolean;
   readonly markers: readonly Marker[];
   readonly connections: readonly Connection[];
+  readonly strokes: readonly Stroke[];
 }
 export type ControllerFailure = MoveFailure | 'unsaved-changes' | 'node-not-found' |
   'no-history' | 'invalid-annotation' | 'invalid-edit' | 'import' | 'invalid-export' | 'limit';
@@ -57,6 +61,7 @@ export class RecordController {
   #notifying = false;
   #disposed = false;
   #nodeSequence = 0;
+  #strokeSequence = 0;
   #ticketSequence = 0;
   #lastAcknowledged = 0;
   #tickets = new Map<number, string>();
@@ -120,7 +125,7 @@ export class RecordController {
     return this.#snapshot = Object.freeze({ record: this.#record, node, position, path: Object.freeze(this.#path()),
       gameIndex: this.#index.games.get(this.#selected)!, dirty: this.#dirty,
       canUndo: this.#undo.length > 0, canRedo: this.#redo.length > 0,
-      markers: Object.freeze(markers), connections: Object.freeze(connections) });
+      markers: Object.freeze(markers), connections: Object.freeze(connections), strokes: decodeStrokes(node.properties.BPN, position) });
   }
   subscribe(listener: (state: ControllerState) => void): () => void {
     this.#assertLive();
@@ -293,6 +298,41 @@ export class RecordController {
     if (values.length) properties[key] = values; else delete properties[key];
     this.endEditGroup();
     return this.#edit(createSgfNode(state.node.id, properties, state.node.children, state.node.rawProperties));
+  }
+  addStroke(points: readonly Point[], style: StrokeStyle = {}): CommandResult {
+    this.#assertLive();
+    const state = this.getState();
+    if (!Array.isArray(points)) return { ok: false, reason: 'invalid-annotation' };
+    if (state.strokes.length >= strokeLimits.strokes ||
+      state.strokes.reduce((sum, stroke) => sum + stroke.points.length, 0) + points.length > strokeLimits.pointsPerNode) return { ok: false, reason: 'limit' };
+    let id: string;
+    do { id = `ink${++this.#strokeSequence}`; } while (state.strokes.some(stroke => stroke.id === id));
+    let stroke: Stroke;
+    try { stroke = createStroke(id, points, state.position, style); }
+    catch { return { ok: false, reason: 'invalid-annotation' }; }
+    this.endEditGroup();
+    const properties = { ...state.node.properties, BPN: [...(state.node.properties.BPN ?? []), encodeStroke(stroke)] };
+    return this.#edit(createSgfNode(state.node.id, properties, state.node.children, state.node.rawProperties));
+  }
+  removeStroke(id: string): CommandResult {
+    this.#assertLive();
+    const state = this.getState();
+    const index = state.strokes.findIndex(stroke => stroke.id === id);
+    if (index < 0) return { ok: true };
+    const values = [...state.node.properties.BPN!]; values.splice(index, 1);
+    return this.#replaceStrokes(values);
+  }
+  clearStrokes(): CommandResult {
+    this.#assertLive();
+    if (!this.getState().strokes.length) return { ok: true };
+    return this.#replaceStrokes([]);
+  }
+  #replaceStrokes(values: readonly string[]): CommandResult {
+    const node = this.getState().node;
+    const properties = { ...node.properties };
+    if (values.length) properties.BPN = values; else delete properties.BPN;
+    this.endEditGroup();
+    return this.#edit(createSgfNode(node.id, properties, node.children, node.rawProperties));
   }
   setMarker(point: Point, kind: MarkerKind | null, label = 'A'): CommandResult {
     this.#assertLive();

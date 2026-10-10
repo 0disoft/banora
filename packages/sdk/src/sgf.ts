@@ -1,5 +1,6 @@
 import { createPosition, isOnBoard } from './core.js';
 import type { Point } from './core.js';
+import { decodeStrokes } from './annotations.js';
 
 export interface SgfNode {
   readonly id: string;
@@ -118,6 +119,8 @@ function validateGame(root: SgfNode): void {
   while (pending.length) {
     const node = pending.pop()!;
     const props = node.properties;
+    try { decodeStrokes(props.BPN, {width, height}); }
+    catch (error) { fail('property', `Invalid BPN ink: ${error instanceof Error ? error.message : String(error)}`); }
     for (const [key, values] of Object.entries(props)) {
       if (scalar.has(key) && values.length !== 1) fail('property', `${key} requires one value`);
       if (rootOnly.has(key) && node !== root) fail('property', `${key} is only valid on a game root`);

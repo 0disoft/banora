@@ -2,6 +2,7 @@ import { createPosition, replayMove, setup } from './core.js';
 import type { Color, Position, RulePolicy, SetupStone } from './core.js';
 import { expandSgfPoints, pointFromSgf, pointToSgf, sgfBoardSize } from './sgf.js';
 import type { SgfNode, SgfRecord } from './sgf.js';
+import { decodeStrokes, encodeStroke } from './annotations.js';
 
 export function initialRecordPosition(root: SgfNode, rules?: Partial<RulePolicy>): Position {
   return createPosition({ ...sgfBoardSize(root), rules,
@@ -67,6 +68,7 @@ export function semanticRecord(record: SgfRecord): string {
     const pointLists = new Set(['AB', 'AW', 'AE', 'CR', 'SQ', 'TR', 'MA', 'SL', 'DD', 'TB', 'TW', 'VW']);
     tokens.push('[', JSON.stringify(Object.keys(properties).sort().map(key => {
       const values = properties[key]!;
+      if (key === 'BPN') return [key, decodeStrokes(values, entry).map(encodeStroke)];
       if (pointLists.has(key)) return [key, values.flatMap(value => value === '' ? [''] :
         expandSgfPoints(value, entry.width, entry.height).map(pointToSgf)).sort()];
       if (key === 'LN') return [key, values.map(value => value.split(':').sort().join(':')).sort()];

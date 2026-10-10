@@ -26,6 +26,11 @@ An implemented slice does not complete its milestone or establish untested compa
   grid/stone colors are verified in computed styles.
 - SVG board: themes/CSS tokens, coordinates, setup/capture display, move numbers,
   shapes/labels, crop, keyboard cursor, pointer/touch and ownership-aware disposal.
+- Freehand record model: node-local, immutable fractional strokes use the bounded
+  version-1 BPN extension, with add/remove/clear, independent Undo units and SGF
+  export/reopen. Headless checks cover unsafe/malformed imports, per-node limits,
+  atomic failures, stable IDs and baseline restoration. Browser drawing is the
+  next consumer increment; other SGF programs may not display private BPN ink.
 - Complete `mountViewer`: built-in navigation, game/branch selection, comments,
   player information and optional editing/Undo/Redo. `examples/viewer` consumes it
   through public exports; browser checks cover navigation, branch selection,
@@ -38,7 +43,7 @@ An implemented slice does not complete its milestone or establish untested compa
   unknown properties, keyboard/touch emulation, crop, owned/external disposal and
   no implicit external requests/uploads. Screenshots are generated locally under
   `output/playwright/`, not shipped assets or evidence of real-device testing.
-- Thirty-two focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Thirty-seven focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.
@@ -82,7 +87,7 @@ An implemented slice does not complete its milestone or establish untested compa
 2. M2: The three framework adapters and their consumer evidence are implemented.
    Branch removal/reordering, free setup and lines/arrows also have local evidence.
    The classic browser distribution also has package/client evidence.
-   Freehand annotations, remaining teaching/presentation tools,
+   Freehand record storage is implemented; its interactive browser tooling and remaining teaching/presentation tools,
    sharing remains to be delivered. Rotation/reflection and SVG/PNG static diagrams are implemented;
    animation/textures, magnified touch and variation comparison are still pending.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.

@@ -43,6 +43,7 @@ Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
 | `play(pointOrNull)` | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch |
 | `setComment(text)` / `setMarker(point, kindOrNull, label?)` | Undoable comments and triangle/square/circle/cross/label edits |
 | `setConnection(from, to, 'line' \| 'arrow', present?)` | Add/remove a node-local SGF line or directed arrow; endpoints must differ |
+| `addStroke(points, style?)` / `removeStroke(id)` / `clearStrokes()` | Undoable node-local freehand annotations; removing an absent ID or clearing empty ink is a no-op |
 | `setSetup(stones, toPlay?)` | Patch free black/white/empty setup points and optional turn; after a move append a setup child rather than mixing move/setup properties |
 | `removeBranch(nodeId?)` | Remove a non-root node and descendants; a deleted selection moves to its surviving parent |
 | `reorderBranch(nodeId, index)` | Move a non-root node to a zero-based sibling slot without moving the current cursor |
@@ -79,6 +80,37 @@ Sibling index zero defines the default continuation. `ControllerState.connection
 contains immutable `{ kind, from, to }` values. Lines are undirected; arrows preserve
 direction. SGF AR/LN are validated under the
 [FF4 markup definitions](https://www.red-bean.com/sgf/properties.html#AR).
+
+### Freehand Record Format
+
+`ControllerState.strokes` contains deeply immutable `Stroke` values with `id`,
+`points`, `color` and `width`. `Stroke` and `StrokeStyle` are exported from the
+controller and root entrypoints. Points use fractional logical coordinates, rounded
+to four decimal places, within the board's first/last intersections. A stroke has
+2 through 512 points and must include at least two distinct rounded points.
+Style defaults to `{color:'#206650', width:0.08}`; color accepts six-digit hex only,
+width accepts 0.02 through 0.5 in intersection spacing. Each node allows 64 strokes
+and 4096 total points, also subject to configured SGF byte/value limits. Invalid
+strokes return `invalid-annotation`; node/SGF limits return `limit`, without edits
+or notifications. Each successful stroke operation is one edit Undo unit, separate
+from active comment groups. Strokes do not change stones, turns or captures.
+
+SGF has no standard freehand property. Banora reserves the private `BPN` property
+for one JSON value per stroke, ordered back to front:
+
+```json
+{"v":1,"id":"ink1","color":"#206650","width":0.08,"points":[[1.25,2],[2,2.75]]}
+```
+
+The exact version-1 keys are required; IDs contain 1 through 64 ASCII letters,
+digits, underscores or hyphens and are unique within a node. Invalid schemas,
+unknown versions, unsafe styles, duplicate IDs and excessive/outside points cause
+structured SGF import rejection before replacing the active record. Other unknown
+SGF properties retain their existing preservation behavior. Unedited BPN escaping
+is retained; semantic dirty comparison normalizes JSON formatting and style/point
+precision while retaining drawing order. Other SGF tools may preserve these values
+as unknown properties but will generally not display the strokes. Banora's export
+and reopen retain the annotations; this is an extension, not universal SGF markup.
 
 ## Implemented Board Mounting
 

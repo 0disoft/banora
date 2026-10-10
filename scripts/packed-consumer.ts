@@ -36,9 +36,11 @@ if (reopened.getState().node.properties.C?.[0] !== 'public artifact') throw Erro
 const editor = new RecordController({sgf:'(;SZ[9]XX[keep](;B[aa])(;B[bb]))'});
 editor.setSetup([{x:4,y:4,color:'white'}], 'black');
 editor.setConnection({x:2,y:2},{x:3,y:3}, 'arrow');
+if (!editor.addStroke([{x:1.25,y:2},{x:3,y:4.5}], {color:'#cc7733'}).ok) throw Error('Public ink editing failed');
 const branch = editor.getState().node.children[1]!.id;
 if (!editor.reorderBranch(branch,0).ok || !editor.removeBranch(branch).ok || !editor.undo().ok) throw Error('Extended public editing failed');
 const edited = new RecordController({sgf:editor.prepareExport().text});
+if (edited.getState().strokes[0]?.points[0]?.x !== 1.25 || edited.getState().strokes[0]?.color !== '#cc7733') throw Error('Packed ink round-trip failed');
 if (edited.getState().connections[0]?.kind !== 'arrow' || stoneAt(edited.getState().position,{x:4,y:4}) !== 'white' || edited.getState().node.children[0]?.properties.B?.[0] !== 'bb') throw Error('Extended artifact preservation failed');
 editor.dispose(); edited.dispose();
 controller.acknowledgeExport(exported.id);
