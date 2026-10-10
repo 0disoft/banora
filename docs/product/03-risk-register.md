@@ -1,6 +1,6 @@
 # Risk Register
 
-- Status: Open design risks; no validation evidence recorded yet
+- Status: Open risks with [local M1/M2 evidence](../engineering/09-milestone-audit.md); later milestone risks remain
 - Technical owners: UNASSIGNED
 - Related scope: [Product specification](02-spec.md)
 
@@ -11,7 +11,7 @@
 | Studio grows into a separate product | Demo work delays the SDK release | Keep its first scope to local SGF review/basic editing; defer accounts, cloud storage and analysis |
 | Rule names hide incomplete semantics | Incorrect moves or results | Specify each profile's policies; cover ko, repetition, suicide and scoring with focused fixtures |
 | SGF interpretation or encoding loses data | Edited records cannot be trusted | Define supported properties/encodings; round-trip real fixtures including unknown properties and branches |
-| Large or malformed records | Frozen UI or excessive memory | Bound input size, tree depth and work; explicit diagnostics; numerical limits UNDECIDED |
+| Large or malformed records | Frozen UI or excessive memory | Implemented input/tree/value limits and diagnostics are owned by SDK compatibility; measured large-record UI cost remains open |
 | Duplicate state in UI and core | Renderer-specific game behavior | One state authority; adapters issue actions and subscribe to snapshots |
 | Navigation mixed with edit Undo | Review actions obscure changes or restore the wrong branch | Separate cursor navigation, repetition history and record edit history; group comment edit sessions |
 | Incorrect dirty/export baseline | Lost edits or misleading save status | Semantic comparison, Undo-to-baseline behavior and Export/Discard/Cancel; failed export/import preserves state; download is not proof of disk persistence |
@@ -27,14 +27,16 @@
 
 ## Decisions Still Open
 
-- Final API identifiers, npm name availability and exact package entrypoints/artifacts.
-- Browser support floors and tested versions for the selected Node 24 LTS,
-  React 19, Vue 3 and Svelte 5 targets; framework peer/compiler minimums and export details.
+- Registry name ownership and release versions. Implemented API identifiers,
+  entrypoints and artifacts are owned by the SDK contracts; later APIs remain open.
+- Broader browser support floors and additional runtime versions. The actual Node,
+  browser, framework, peer/compiler and artifact evidence is recorded in compatibility.
 - Remaining FF4 property coverage and additional encoding fixture evidence. The
   current subset, limits and acknowledgment API are documented in SDK contracts.
-- Numerical record limits, memory/latency/bundle budgets, and benchmark devices.
-- Exact named-rule coverage, superko algorithms, scoring corner cases, and annotation
-  serialization conventions for nonstandard drawing data.
+- Measured memory/latency/bundle budgets and benchmark devices; input limits are
+  implemented and documented rather than UNDECIDED.
+- Exact named-rule coverage, superko algorithms and scoring corner cases. The
+  implemented version-1 BPN freehand format is owned by the public API contract.
 - AI provider transport, authentication, deployment, pricing, and engine version.
 - Hosted collaboration/storage design and any commercial service commitment.
 

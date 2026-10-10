@@ -22,6 +22,7 @@ the [specification](product/02-spec.md) for the initial editing/reopen workflow.
 | --- | --- |
 | Product scope and acceptance | [Product specification](product/02-spec.md) |
 | Current implementation evidence and remaining work | [Implementation status](engineering/08-implementation-status.md) |
+| M1/M2 requirement-by-requirement local acceptance | [Milestone audit](engineering/09-milestone-audit.md) |
 | Delivery sequence | [Roadmap](product/01-roadmap.md) |
 | Architecture decisions | [ADR index](adr/README.md) |
 | State model and ownership | [Domain model](architecture/01-domain-model.md) |

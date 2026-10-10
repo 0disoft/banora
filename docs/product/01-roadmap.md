@@ -1,11 +1,13 @@
 # Roadmap
 
-- Status: Planned; no milestone completed
+- Status: M1/M2 implemented locally with an [acceptance audit](../engineering/09-milestone-audit.md); M1 drag/drop evidence open, M3/M4 planned
 - Source of truth for capabilities: [Product specification](02-spec.md)
 
 Milestones establish delivery order, not release dates or completed functionality.
 Each implementation task should produce a small usable increment and a focused
-commit. Exact package versions remain UNDECIDED.
+commit. The development packages are `0.1.0-dev.0`; release versions remain
+UNDECIDED. Local implementation evidence does not establish publication or broader
+runtime support.
 
 ## M1: Banora Studio and Read-Only Embedding
 

@@ -151,7 +151,8 @@ An implemented slice does not complete its milestone or establish untested compa
 ## Remaining Delivery
 
 1. M1: The initial end-to-end workflow and complete viewer have local evidence.
-   The final release audit remains; no package is published.
+   The [local acceptance audit](09-milestone-audit.md) maps every requirement;
+   Studio's drag/drop interaction still needs a browser fixture. No package is published.
    Additional encoding/browser/screen-reader fixtures and performance baselines
    remain outside the current narrow compatibility evidence.
 2. M2: The three framework adapters and their consumer evidence are implemented.
@@ -161,8 +162,9 @@ An implemented slice does not complete its milestone or establish untested compa
    Magnified touch placement, position comparison and embedded sharing are implemented.
    Custom stone textures and their consumer controls are implemented.
    Placement motion and native forwarding/controls are implemented.
-   All listed M2 feature slices have local evidence; the aggregate milestone/release
-   audit remains and does not establish untested runtime compatibility.
+   All listed M2 feature slices and exit conditions have local evidence in the
+   aggregate acceptance audit. Broader compatibility and an actual release remain
+   separate; this evidence does not establish untested runtime compatibility.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 
