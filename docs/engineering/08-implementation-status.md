@@ -29,8 +29,14 @@ An implemented slice does not complete its milestone or establish untested compa
   prisoner components, komi, AGA area handicap bonus and explicit adjustments.
   Fixtures verify corrections, seki, negative/fractional komi, AGA final-pass
   warnings/equivalent differences and atomic invalid input. Installed headless
-  declarations/runtime include the new scoring subpath. The browser selection
-  consumer remains the next increment; there is no automatic life/death or agreement.
+  declarations/runtime include the new scoring subpath. Studio's public-package
+  consumer supports mouse/touch/keyboard group selection and correction, all four
+  counting presets, editable komi/handicap/adjustments and component totals.
+  Chrome verifies exact fixture components, incomplete/White-last-pass warnings,
+  invalid-input recovery, context reset, closing/reopening and mobile layout/touch.
+  Actual SGF downloads before/after scoring are identical, including unknown data;
+  source cursor, dirty state and main board remain unchanged. The panel is Studio
+  only; there is no automatic life/death, status agreement or result persistence.
 - SGF FF4 Go: collections, ordered branches, setup/compressed points, comments,
   metadata, labels/shape marks, unknown properties and unedited escaping preservation.
   Text and declared-encoding file input; UTF-8 export; bounded iterative parsing.
@@ -192,7 +198,7 @@ An implemented slice does not complete its milestone or establish untested compa
    separate; this evidence does not establish untested runtime compatibility.
 3. M3: Superko core policies and controller/consumer integration are implemented.
    Named play presets/pass accounting and headless scoring are implemented.
-   The scoring browser consumer and authored puzzles remain.
+   The Studio scoring consumer is implemented; authored puzzles remain.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 
 Publishing, hosting and external provider credentials remain separate operational

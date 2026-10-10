@@ -70,4 +70,9 @@ whole-group corrections, neutral regions, seki, negative/fractional komi, handic
 adjustments, AGA pass accounting and invalid-input retention. Core/controller
 fixtures cover pass ledger replay, setup and branch/Undo isolation. Installed
 headless exports and a public browser consumer must calculate identical components.
-Browser selection/lifecycle evidence is pending until the UI increment ships.
+Studio's public-package consumer now supplies browser selection/lifecycle evidence:
+whole-group mouse/keyboard/touch corrections, seki, counting presets, component
+adjustments, invalid-input recovery, context reset and disposal. Its actual source
+SGF downloads before/after scoring are identical. The UI never changes live play
+rules; it replays a selected snapshot for counting. The calculator's confirmed
+coverage remains agreed-position counting, without tournament adjudication.

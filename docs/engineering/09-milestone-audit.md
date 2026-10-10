@@ -83,8 +83,10 @@ placement and score calculation are not claimed by that probe.
 3. M3 repetition policies now have core/controller and installed/browser evidence,
    documented in [ADR 0006](../adr/0006-explicit-repetition-and-rule-profile-boundaries.md).
    Named play/scoring presets and the headless manual scoring calculator now have
-   focused and installed-artifact evidence. The browser scoring consumer and
-   authored puzzles with responses/hints/events remain unimplemented.
+   focused and installed-artifact evidence. Studio's scoring consumer has Chrome
+   group correction, counting/adjustment, mobile touch, context/lifecycle and unchanged
+   SGF download evidence. Authored puzzles with responses/hints/events remain
+   unimplemented; the completed counting slice does not close M3.
 4. M4 remains unimplemented: provider-neutral/KataGo integration, display overlays,
    cancellation and complete position-context freshness checks.
 5. Registry ownership, intentional version promotion, third-party distribution

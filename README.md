@@ -40,6 +40,11 @@ Placement motion is an optional Board/Viewer setting, with activation/duration
 controls in Studio and each framework example. It respects reduced-motion
 preferences; diagrams export final stone geometry. See the
 [motion contract](docs/sdk/public-api.md#placement-animation).
+Studio also offers **Score position** with temporary dead/seki group marking,
+explicit Japanese/AGA/Tromp-Taylor counting, editable komi/handicap/adjustments and
+component totals. Mouse, keyboard and touch use the same headless calculator;
+scoring preserves the original SGF. Status must be agreed manually. See the
+[scoring contract](docs/sdk/public-api.md#manual-agreed-position-scoring).
 
 ## Direction
 
@@ -54,7 +59,7 @@ const controller = new RecordController({size:9, rules:{ko:'situational-superko'
 Passes retain superko history, committed setup/PL starts a new epoch, and recorded
 SGF moves remain browsable even when legal play would reject them. See the
 [repetition contract](docs/sdk/public-api.md#repetition-policies) for exact semantics
-and the pending named-profile/scoring boundaries.
+and the [named-profile/scoring boundaries](docs/adr/0007-manual-scoring-and-named-profile-coverage.md).
 
 Banora should make a simple game viewer easy to embed and let developers extend
 the same model into a complete Go application. It combines a customizable board,
@@ -63,7 +68,7 @@ shared game rules, SGF records, and optional integrations through clear boundari
 - Framework-independent TypeScript core shared by browsers and servers.
 - SVG board with themes, annotations, keyboard input, and mobile placement tools.
 - SGF import/export, comments, variations, and an embeddable game viewer.
-- Later milestones for scoring, puzzles, teaching tools, and external AI analysis.
+- Manual agreed-position scoring; puzzles and external AI analysis remain planned.
 - Optional React, Vue, and Svelte adapters, selective imports, and a browser script build.
 
 The first release is driven by **Banora Studio**, a browser-based SGF review and

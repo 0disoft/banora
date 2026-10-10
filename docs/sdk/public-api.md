@@ -100,8 +100,26 @@ warnings while preserving a provisional numerical report. It never synthesizes
 moves, ends a game, confirms player agreement or resolves unfinished dame/status.
 Calculations and corrections leave the input position, record cursor, edit history,
 dirty/export baseline and SGF unchanged. Selections/results are transient host state;
-revalidate them when their source position changes. A browser selection consumer
-is tracked separately in implementation status.
+revalidate them when their source position changes.
+
+Studio's **Score position** panel composes this calculator and a separate public
+`mountBoard` view. Click/tap a stone or use the board cursor and Enter to toggle its
+complete group as dead/seki; changing categories removes conflicting marks. The
+component table exposes territory, living stones, capture/dead/pass prisoners, komi,
+handicap bonus, adjustments and totals, with the selected total formula explaining
+which components count and which are reference-only. Inputs start from the selected game's
+`KM`/`HA`, default zero, and remain editable. Invalid inputs clear the stale report;
+correcting them preserves the current group selections.
+
+The selected counting preset replays a serialized snapshot with its pass-accounting
+policy. It does not change the source controller's legal-move policy or certify its
+move history. Scoring marks and input overrides reset on source record edits,
+node/game navigation and import; changing only the counting preset preserves marks.
+Export acknowledgment preserves marks when the source record/node remains identical.
+Closing disposes the auxiliary view/controller and reopening starts a fresh selection.
+No status marks, score adjustments or result properties are written into the source
+SGF. The reference UI currently ships in Studio; React/Vue/Svelte consumers can use
+the same headless calculator, but do not yet include this panel.
 
 ### Repetition Policies
 

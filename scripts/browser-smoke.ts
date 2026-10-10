@@ -37,6 +37,12 @@ async function dropSmoke(): Promise<void> {
     if (!saved.includes(value)) throw new Error(`Dropped SGF export lost ${value}`);
   }
 }
+async function scoringSmoke(): Promise<void> {
+  await scenario('scoring', 'banora-scoring-complete');
+  const before=await readFile(resolve(output,'scoring-before.sgf'),'utf8');
+  const after=await readFile(resolve(output,'scoring-after.sgf'),'utf8');
+  if (before!==after || !after.includes('XX[score-preserve]')) throw new Error('Scoring changed the exported source record');
+}
 async function shareSmoke(): Promise<void> {
   await scenario('share', 'banora-sharing-complete: studio react vue svelte');
   for (const name of ['studio','react','vue','svelte']) {
@@ -66,7 +72,10 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--rules-only')) {
+  if (process.argv.includes('--scoring-only')) {
+    await scoringSmoke();
+    console.log('Focused scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.');
+  } else if (process.argv.includes('--rules-only')) {
     await scenario('rules', 'banora-rules-complete');
     console.log('Focused repetition rules smoke passed.');
   } else if (process.argv.includes('--drop-only')) {
@@ -138,6 +147,9 @@ try {
   await scenario('animation', 'banora-animation-sdk-complete');
   await animationConsumers();
   console.log('Animation smoke passed: adjacent placement, cancellation, reduced motion, stable redraws and final diagrams.');
+  await cli('snapshot');
+  await scoringSmoke();
+  console.log('Scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

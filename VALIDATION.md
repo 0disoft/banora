@@ -55,6 +55,11 @@ successful command exit alone cannot establish completion. Both full and focused
 routes enforce this; result-parser regressions run with the behavior tests.
 After building examples/SDK, `bun scripts/browser-smoke.ts --touch-only` runs the
 focused real-touch scenario using the same oneshot server/session cleanup.
+`--scoring-only` selects Studio's manual group controls, all four counting presets,
+seki, negative komi/adjustments, AGA pass/handicap components and final-pass warning,
+invalid-input recovery, keyboard focus, navigation/edit/import reset and auxiliary
+view disposal. Emulated mobile touch/layout and identical before/after downloaded
+SGF are required. It runs in the full suite with the same strict completion Result.
 `--drop-only` exercises Studio's production DOM file drag/drop boundary, metadata,
 handicap/setup and branch rendering, Cancel/Export & continue, actual export/reopen
 and retention after malformed bytes. It requires a completed Result and downloaded
