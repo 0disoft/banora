@@ -1,6 +1,7 @@
 # Testing Standard
 
-- Status: Core behavior tests configured; later milestone evidence remains planned
+- Status: M1-M4 behavior/consumer evidence recorded in the
+  [delivery audit](10-delivery-audit.md); broader matrix remains unclaimed
 - Validation names: [VALIDATION.md](../../VALIDATION.md)
 - Required behavior: [Product specification](../product/02-spec.md)
 
@@ -35,9 +36,11 @@ Validate actual packed consumers/examples before publishing compatibility claims
 Keep CI scoped to relevant implementation/package changes and release risks, and
 batch validated pushes/releases to avoid redundant runner usage.
 
-## Current Scaffold State
+## Current Validation State
 
 Root Bun scripts configure `test`, `typecheck`, `docs` and `check`, including the
 SDK build, plus packed headless `smoke`. Explicit `smoke:browser` checks production
-Studio/read-only workflows with Playwright CLI. See VALIDATION.md for commands.
-`lint` remains unconfigured. Report only checks run; later coverage remains required.
+Studio/read-only, all three framework, puzzle and analysis workflows with Playwright
+CLI. Independent adapter smoke checks installed types and real host SSR. See
+VALIDATION.md for commands. `lint`, `format`, `contract` and `migration-check` remain
+unconfigured. Report only observed checks and explicit coverage boundaries.

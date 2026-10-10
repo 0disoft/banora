@@ -1,6 +1,7 @@
 # ADR 0001: Initial Architecture Boundaries
 
-- Status: Recorded design baseline; implementation pending
+- Status: Recorded design baseline; scoped implementation evidence in the
+  [delivery audit](../engineering/10-delivery-audit.md)
 - Date: 2026-10-10
 - Technical owner: UNASSIGNED
 - Product contract: [Specification](../product/02-spec.md)
@@ -28,7 +29,8 @@ logic, theme control, record preservation, and room for external analysis later.
    Bun for development scripts; consumers must not require Bun or Make.
 5. Keep core, records, rendering, viewer, scoring, puzzles and analysis logically
    separate. ADR 0005 refines packaging to one common SDK and three optional
-   framework adapter packages in this repository; exact names/exports remain open.
+   framework adapter packages in this repository; implemented local names/exports
+   are recorded in SDK contracts, while registry ownership/publication remain open.
 6. Separate confirmed scoring from life/death prediction. External analysis uses
    a provider-neutral contract, with KataGo JSON analysis as an integration candidate.
 7. Defer Canvas, workers and Rust/WASM until measured limitations justify them.

@@ -2,6 +2,8 @@
 
 This file tracks evidence against the complete [roadmap](../product/01-roadmap.md).
 An implemented slice does not complete its milestone or establish untested compatibility.
+The [final delivery audit](10-delivery-audit.md) now maps all M1-M4 requirements and
+local exit evidence; the implementation scope is complete within that coverage.
 
 ## Current Evidence
 
@@ -221,7 +223,7 @@ An implemented slice does not complete its milestone or establish untested compa
   resolved versions. Core has zero runtime dependencies. No hosted CI is configured.
 - Root and package MIT license files cover original code/documentation.
 
-## Remaining Delivery
+## Milestone Delivery and Follow-Up Boundaries
 
 1. M1: The initial end-to-end workflow and complete viewer have local evidence.
    The [local acceptance audit](09-milestone-audit.md) maps every requirement;
@@ -246,7 +248,8 @@ An implemented slice does not complete its milestone or establish untested compa
 4. M4: Provider-neutral headless context/result/session and cancellation/freshness
    and a checked KataGo JSON adapter, isolated display overlays/PVs and runnable
    consumer are implemented with the recorded local evidence. No live-engine or
-   broader browser/device compatibility is claimed. Final aggregate audit remains.
+   broader browser/device compatibility is claimed. The final aggregate audit is
+   complete; remaining release/measurement actions are separate.
 
 Publishing, hosting and external provider credentials remain separate operational
 actions. Runtime support claims require actual consumer evidence; local tests do not

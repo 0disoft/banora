@@ -1,6 +1,7 @@
 # Architecture
 
-- Status: Core, records, controller, SVG and Studio implemented; later milestones pending
+- Status: M1-M4 common SDK and consumer implementation complete in the recorded
+  coverage; see the [delivery audit](docs/engineering/10-delivery-audit.md)
 - Decision: [ADR 0001](docs/adr/0001-initial-architecture-boundaries.md)
 - Framework support: [ADR 0004](docs/adr/0004-framework-independent-adapters.md)
 - Initial contracts: [ADR 0005](docs/adr/0005-initial-api-record-and-package-contracts.md)
@@ -16,11 +17,12 @@
 | Framework integration | Framework-independent controller; optional React, Vue, and Svelte adapters | Plain web embedding and framework-specific lifecycle bindings |
 | Distribution | Vite library builds, ESM/types and browser script output | Selective imports and simple embedding |
 | Development | Bun package/script workflow | Convenient development on Windows and other platforms |
-| AI integration | Provider adapter; external KataGo JSON analysis candidate | Analysis display without bundling an AI engine |
+| AI integration | Provider-neutral session, checked host-owned KataGo JSON and isolated display | Analysis display without bundling an AI engine |
 
-Initial compatibility targets are Node 24 LTS, React 19, Vue 3 and Svelte 5; tested
-support remains pending. Tooling uses Bun 1.x, TypeScript 7.x and Vite 8.x.
-Core exports are documented; later public symbols remain UNDECIDED.
+Compatibility evidence for Node 24, React 19, Vue 3 and Svelte 5 is recorded in the
+[SDK contract](docs/sdk/compatibility.md); broader floors remain unclaimed. Tooling
+uses Bun 1.x, TypeScript 7.x and Vite 8.x. Public exports are documented; future
+extension symbols remain UNDECIDED.
 Bun is a development choice,
 not a required runtime for SDK consumers. Make is not required for the planned
 developer workflow.
@@ -29,7 +31,8 @@ developer workflow.
 
 Use one repository with one common SDK package and three separate optional React,
 Vue and Svelte adapter packages. M1 delivers the common SDK; M2 adds adapters.
-Exact package names and entrypoints remain UNDECIDED. The logical modules are core, SGF/records, SVG rendering,
+Local package identifiers/entrypoints are documented in the SDK contract; registry
+ownership/publication remain separate. The logical modules are core, SGF/records, SVG rendering,
 viewer/editor, optional framework adapters, puzzles, scoring, and analysis adapters.
 
 Core owns legal state transitions. Records own metadata and branches; a cursor
@@ -41,16 +44,18 @@ authority, credentials, and remote services.
 
 ```mermaid
 flowchart LR
-  Host[Host application] --> Viewer[Viewer / editor controller]
+  Host[Host application] --> Viewer[Viewer / editor]
   Host --> Adapters[Optional React / Vue / Svelte adapters]
-  Adapters --> Viewer
-  Viewer --> Records[Record tree and cursor]
+  Adapters --> Controller[RecordController]
+  Viewer --> Controller
+  Controller --> Records[Record tree and cursor]
   Records --> Core[Headless rules and board state]
-  Core --> SVG[SVG renderer]
-  SVG -->|input actions| Viewer
-  Viewer --> AI[Optional analysis adapter]
+  Controller -->|snapshots| SVG[SVG renderer]
+  SVG -->|input actions| Controller
+  Controller -->|captured context| AI[Optional AnalysisSession]
   AI --> Provider[Host-owned external engine or service]
-  AI -->|validated results| Viewer
+  AI -->|validated results| AnalysisView[Isolated analysis display / PV]
+  AnalysisView --> SVG
 ```
 
 Framework adapters bind lifecycle, configuration, events and read-only snapshots

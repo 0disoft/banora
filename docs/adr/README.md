@@ -10,7 +10,7 @@ mean its implementation or compatibility has been validated.
 | [0003](0003-studio-first-consumer.md) | Design baseline | Banora Studio as first public SDK consumer, with a read-only embedding example |
 | [0004](0004-framework-independent-adapters.md) | Design baseline | Framework-independent browser SDK with official optional React, Vue, and Svelte adapters |
 | [0005](0005-initial-api-record-and-package-contracts.md) | Design baseline | Controller API, SGF FF4, edit history, export baselines, package layout and initial support targets |
-| [0006](0006-explicit-repetition-and-rule-profile-boundaries.md) | Accepted for repetition; remaining M3 pending | Explicit superko, immutable path history and rule profile coverage boundaries |
+| [0006](0006-explicit-repetition-and-rule-profile-boundaries.md) | Accepted; scoped headless/browser evidence | Explicit superko, immutable path history and rule profile coverage boundaries |
 | [0007](0007-manual-scoring-and-named-profile-coverage.md) | Accepted; headless and Studio evidence | Manual agreed-position scoring, named presets, pass prisoners and coverage boundaries |
 | [0008](0008-curated-puzzle-authoring-and-session.md) | Accepted; headless and browser evidence | Explicit curated answer trees, deterministic responses, hints and isolated sessions |
 | [0009](0009-analysis-context-and-external-provider-contract.md) | Accepted; headless implementation | Exact context matching, provider-neutral metrics and explicit cancellable external analysis |

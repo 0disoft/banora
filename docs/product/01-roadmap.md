@@ -1,6 +1,7 @@
 # Roadmap
 
-- Status: M1/M2 and M3 local exit evidence recorded in the declared matrix; see the [audit](../engineering/09-milestone-audit.md). M4 planned; no published release
+- Status: M1-M4 implementation/local exit evidence complete in the declared matrix;
+  see the [delivery audit](../engineering/10-delivery-audit.md). No published release
 - Source of truth for capabilities: [Product specification](02-spec.md)
 
 Milestones establish delivery order, not release dates or completed functionality.
@@ -69,7 +70,7 @@ puzzle responses follow the authored tree and users can correct dead-stone choic
 
 ## M4: External AI Analysis
 
-- Provider-neutral analysis results and a KataGo JSON analysis adapter design.
+- Provider-neutral analysis results and a host-owned KataGo JSON analysis adapter.
 - Suggested moves, win probability, score estimates, move loss, principal
   variations, and ownership/heatmap overlays.
 - Request cancellation, position-based result matching, and explicit remote

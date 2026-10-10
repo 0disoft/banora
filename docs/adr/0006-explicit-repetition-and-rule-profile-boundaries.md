@@ -1,6 +1,7 @@
 # ADR 0006: Explicit Repetition and Rule Profile Boundaries
 
-- Status: Accepted for the repetition slice; named profiles/scoring still pending
+- Status: Accepted; repetition and the subsequent ADR 0007 profile/scoring scope
+  have local evidence in the [delivery audit](../engineering/10-delivery-audit.md)
 - Owner: UNASSIGNED
 - Scope: M3 in the [product specification](../product/02-spec.md)
 

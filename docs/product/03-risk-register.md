@@ -1,12 +1,13 @@
 # Risk Register
 
-- Status: Open risks with [local M1/M2 evidence](../engineering/09-milestone-audit.md); later milestone risks remain
+- Status: M1-M4 local implementation evidence in the
+  [delivery audit](../engineering/10-delivery-audit.md); broader/release risks remain
 - Technical owners: UNASSIGNED
 - Related scope: [Product specification](02-spec.md)
 
 | Risk | Consequence | Planned response / closure evidence |
 | --- | --- | --- |
-| Four-library replacement scope | M1 never becomes usable | Deliver the Studio SGF editing loop and read-only example first; defer scoring, puzzles, AI and extra renderers |
+| Four-library replacement scope | Useful delivery is delayed | Studio/read-only and M1-M4 local exit evidence are complete; further renderers/services require measured need and separate scope |
 | SDK tailored to Studio internals | Other consumers need private hooks or editor dependencies | Studio uses public package exports; exercise a separate minimal read-only embedding example |
 | Studio grows into a separate product | Demo work delays the SDK release | Keep its first scope to local SGF review/basic editing; defer accounts, cloud storage and analysis |
 | Rule names hide incomplete semantics | Incorrect moves or results | Specify each profile's policies; cover ko, repetition, suicide and scoring with focused fixtures |
@@ -28,15 +29,16 @@
 ## Decisions Still Open
 
 - Registry name ownership and release versions. Implemented API identifiers,
-  entrypoints and artifacts are owned by the SDK contracts; later APIs remain open.
+  entrypoints and artifacts are owned by the SDK contracts; future extensions remain open.
 - Broader browser support floors and additional runtime versions. The actual Node,
   browser, framework, peer/compiler and artifact evidence is recorded in compatibility.
 - Remaining FF4 property coverage and additional encoding fixture evidence. The
   current subset, limits and acknowledgment API are documented in SDK contracts.
 - Measured memory/latency/bundle budgets and benchmark devices; input limits are
   implemented and documented rather than UNDECIDED.
-- Exact named-rule coverage, superko algorithms and scoring corner cases. The
-  implemented version-1 BPN freehand format is owned by the public API contract.
+- Additional tournament-rule/scoring coverage beyond the explicit agreed-position
+  policies. Implemented exact superko, preset/scoring boundaries and version-1 BPN
+  freehand encoding are owned by the public API and ADRs 0006/0007.
 - AI provider transport, authentication, deployment, pricing, and engine version.
 - Hosted collaboration/storage design and any commercial service commitment.
 

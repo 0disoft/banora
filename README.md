@@ -9,6 +9,8 @@ and external analysis integration/display are implemented within documented
 coverage. Broader compatibility and release evidence remain separate. Nothing is
 published yet; the capability direction is not an unrestricted support claim.
 See [implementation status](docs/engineering/08-implementation-status.md).
+The [delivery audit](docs/engineering/10-delivery-audit.md) maps the complete M1-M4
+implementation, consumer evidence and remaining release/compatibility boundaries.
 
 ## Local Development
 

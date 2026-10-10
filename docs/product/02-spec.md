@@ -1,6 +1,7 @@
 # Product Specification
 
-- Status: Design baseline with partial implementation; see [current evidence](../engineering/08-implementation-status.md)
+- Status: M1-M4 implementation/local exit evidence complete in the declared coverage;
+  see the [delivery audit](../engineering/10-delivery-audit.md)
 - Technical owner: UNASSIGNED
 - Delivery sequence: [Roadmap](01-roadmap.md)
 - Architecture decisions: [ADR index](../adr/README.md)
@@ -13,8 +14,8 @@ viewer or compose lower-level modules without adopting an application framework.
 
 ## First Consumer and Initial Workflow
 
-Banora Studio is the initial reference consumer, planned at `examples/studio` in
-this repository and intended to become a public demo when implemented. The initial
+Banora Studio is the initial reference consumer at `examples/studio` in this
+repository. Public demo hosting remains a separate action. The initial
 layout consists of the board, move controls, a variation tree, and a comments panel.
 
 1. Open a local SGF by drag-and-drop/file selection, or choose a bundled example.
@@ -30,7 +31,7 @@ cloud storage and AI analysis are not part of Studio's initial workflow.
 
 ## Capability Scope
 
-| Area | Planned capability | First milestone |
+| Area | Capability | First milestone |
 | --- | --- | --- |
 | Board | 9x9, 13x13, 19x19 and configurable dimensions; coordinates and cropped views | M1 |
 | Presentation | SVG, flat/wood themes, CSS variables, letters, shapes, move numbers | M1 |
@@ -52,9 +53,10 @@ cloud storage and AI analysis are not part of Studio's initial workflow.
 | Analysis display | Candidate moves, win probability, score/move loss, principal variations and ownership | M4 |
 | Analysis integration | External provider adapters, including a KataGo JSON integration | M4 |
 
-These milestones describe planned availability. Configuration fields such as komi
-do not imply a completed scoring implementation in M1. A puzzle response follows
-an authored tree; arbitrary AI responses belong to a separate integration.
+Milestones describe delivery sequence; exact implemented coverage is owned by the
+current API/compatibility evidence. Komi configuration alone does not imply a
+complete scoring system. A puzzle response follows an authored tree; arbitrary
+AI responses belong to a separate integration.
 
 ## State and Rules Contract
 
@@ -142,10 +144,11 @@ packaging, and the SSR/client-mount boundary for that framework. Integration is 
 considered validated merely because a DOM container can be mounted manually.
 Use one common SDK package and separate React, Vue and Svelte adapter packages in
 the same repository. Initial targets are Node 24 LTS, React 19, Vue 3 and Svelte 5;
-these are design targets, not validated support. Headless core/records can run on
+tested coverage is recorded in compatibility. Headless core/records can run on
 the server; board views mount on the client. Server-rendered board HTML/hydration
-are deferred. Exact exports, peer/compiler minimums and artifact details remain
-UNDECIDED. See [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
+are deferred. Exact implemented exports, declared peers, compiler/artifact details
+and tested versions are owned by the SDK contracts; broader floors remain unclaimed.
+See [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
 and [compatibility](../sdk/compatibility.md).
 
 ## Out of Scope
@@ -169,6 +172,7 @@ Legacy WGo.js/Goban/Shudan/jGoBoard API compatibility is not promised.
    without requiring an account, cloud storage or AI service.
 7. Verify package contents, license/provenance, and runnable consumer examples.
 
-Browser support floors, tested runtime versions, API symbols, package exports, limits for untrusted SGF
-input, and measured performance budgets remain UNDECIDED until implemented and
-validated. The [risk register](03-risk-register.md) tracks these decisions.
+Implemented API symbols/exports, SGF input limits and tested runtime versions are
+recorded in the SDK contracts and delivery audit. Broader browser floors and measured
+performance budgets remain unclaimed. The [risk register](03-risk-register.md)
+tracks these follow-up decisions.

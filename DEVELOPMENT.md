@@ -1,6 +1,7 @@
 # Development
 
-- Status: Active SDK implementation; local checks configured in [VALIDATION.md](VALIDATION.md)
+- Status: M1-M4 implementation complete in scoped local evidence; see the
+  [delivery audit](docs/engineering/10-delivery-audit.md) and [VALIDATION.md](VALIDATION.md)
 - Technical owner: UNASSIGNED
 
 ## Sources of Truth
@@ -13,7 +14,7 @@
 - [Public API](docs/sdk/public-api.md) and [compatibility](docs/sdk/compatibility.md).
 - [Validation](VALIDATION.md) and [testing standard](docs/engineering/05-testing-standard.md).
 
-## Planned Tooling
+## Implemented Tooling
 
 Use TypeScript for the SDK and SGF model, SVG/CSS for the initial renderer, Vite
 for library/demo builds, and Bun for dependency installation and package scripts.
@@ -44,8 +45,8 @@ framework's server rendering of host containers/state text. See
 and the remaining release work. SDK changes require rebuilding its artifacts before
 the examples consume them; the examples do not alias SDK exports to source files.
 
-Work toward the [M1 exit evidence](docs/product/01-roadmap.md) through Banora Studio,
-planned at `examples/studio`: load an SGF, navigate branches, create a continuation,
+The [M1 exit evidence](docs/product/01-roadmap.md) is established through Banora Studio
+at `examples/studio`: load an SGF, navigate branches, create a continuation,
 edit comments/markers, download it and reopen it with edits preserved. Build the
 required core, record cursor, renderer and viewer together rather than expanding
 every optional module first.
@@ -73,6 +74,9 @@ The initial Studio interface is a board, move controls, variation tree and comme
 panel. Keep account management, cloud persistence, AI and broader editor tooling
 outside M1. Its public demo is planned; no hosting provider or deployment is selected
 or implemented by this decision.
+Later scoring, curated puzzles and external analysis/display are implemented with
+their own common SDK contracts and runnable consumers. Keep the same ownership,
+public-package and explicit-provider boundaries when extending them.
 
 ## Verification and Change Discipline
 

@@ -1,6 +1,7 @@
 # Project Invariants
 
-- Status: Planned implementation invariants
+- Status: Implemented contracts with scoped evidence in the
+  [delivery audit](10-delivery-audit.md)
 - Source: [Product specification](../product/02-spec.md) and [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 - Technical owner: UNASSIGNED
 

@@ -1,6 +1,7 @@
 # ADR 0003: Banora Studio as the First Consumer
 
-- Status: Recorded design baseline; implementation pending
+- Status: Recorded design baseline; Studio/read-only local evidence in the
+  [delivery audit](../engineering/10-delivery-audit.md)
 - Date: 2026-10-10
 - Technical owner: UNASSIGNED
 - Product contract: [Specification](../product/02-spec.md)

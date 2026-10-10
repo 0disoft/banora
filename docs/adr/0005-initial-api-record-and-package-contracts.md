@@ -1,6 +1,7 @@
 # ADR 0005: Initial API, Record Editing and Package Contracts
 
-- Status: Recorded design baseline; implementation pending
+- Status: Recorded design baseline; scoped API/package/consumer evidence in the
+  [delivery audit](../engineering/10-delivery-audit.md)
 - Date: 2026-10-10
 - Technical owner: UNASSIGNED
 - Extends: [ADR 0001](0001-initial-architecture-boundaries.md) and [ADR 0004](0004-framework-independent-adapters.md)
@@ -19,14 +20,15 @@ runtime boundary before source implementation begins.
    zero-based `{ x, y }`, with the origin at the top-left; colors are `'black'`
    and `'white'`. Illegal moves return structured reasons without changing state.
    View disposal releases its resources without disposing an externally supplied
-   controller. Exact exported symbols and signatures remain UNDECIDED.
+   controller. Exact implemented symbols/signatures are owned by the public API.
 2. Initially target SGF FF4 for Go. Prioritize moves/pass, setup stones, branches,
    comments, player/game metadata, labels and shape markers. Decode file bytes
    according to the declared encoding; string input is already decoded. Export
    UTF-8 and preserve unknown properties through supported edits. Preserve record
    semantics rather than original formatting. Unsupported encodings or unrecoverable
    errors produce diagnostics and retain the active record. The supported encoding
-   list, absent-encoding policy and detailed property/size limits remain UNDECIDED.
+   list, absent-encoding policy and property/size limits are now recorded in SDK
+   compatibility; additional corpus coverage remains separate evidence.
 3. Separate previous/next/branch navigation from edit Undo/Redo. Creating a
    variation and changing comments or markers are undoable edits; navigation adds
    no edit history entry. Group a comment editing session as one undo unit. Branch
@@ -37,7 +39,8 @@ runtime boundary before source implementation begins.
    and successful export advances it. Navigation does not make a record dirty.
    Failed or cancelled exports retain the previous baseline and active record.
    A download request cannot prove a file was saved to disk; host export acknowledgment
-   details remain UNDECIDED. Autosave and recovery are deferred. Hosts own this
+   uses explicit `prepareExport`/`acknowledgeExport` tickets. Autosave and recovery
+   are deferred. Hosts own this
    confirmation UI; the SDK exposes the state and operations needed to implement it.
 5. Use one repository containing one common SDK package and three separately
    packaged optional adapters: React, Vue and Svelte. M1 ships the common SDK;
@@ -60,9 +63,11 @@ Separate adapters accommodate framework-specific peer dependencies and artifacts
 Checks and releases should cover changed packages and their affected consumers,
 without repeatedly running an unrelated four-package matrix.
 
-Package names, exact exports, browser support floors, framework peer/compiler
-minimums, Bun/tooling versions and executable commands remain UNDECIDED. No
-application source, package publication or deployment is part of this decision.
+Implemented local package names/exports, declared peers/compiler artifacts, tested
+versions and executable commands are recorded in SDK contracts and VALIDATION.md.
+Broader browser floors and registry/release ownership remain open. This design
+baseline does not itself perform publication or deployment; current implementation
+evidence belongs to the delivery audit.
 
 ## Validation Before Support Claims
 

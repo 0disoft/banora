@@ -1,12 +1,14 @@
-# M1, M2 and M3 Local Acceptance Audit
+# M1-M4 Local Acceptance Audit
 
 - Scope: the complete M1/M2 requirements and exit evidence in the
   [roadmap](../product/01-roadmap.md), plus the seven first-release acceptance
   items in the [specification](../product/02-spec.md) and the separately recorded
-  M3 exit evidence below.
+  M3/M4 exit evidence below.
 - Result: M1/M2 local acceptance is verified in the declared matrix, including the
   additional Studio file-drop fixture. M3 local exit evidence is recorded below.
-  This audit does not declare a release, broader runtime support or completion of M4.
+  M4 local exit evidence and the final requirement review are now recorded below
+  and in the [delivery audit](10-delivery-audit.md). No published release or broader
+  runtime support is declared.
 - Matrix: Windows, Node 24.14.0, Bun 1.4.2, Headless Chrome 154; framework and
   compiler versions are recorded in [compatibility](../sdk/compatibility.md).
 
@@ -114,9 +116,9 @@ No real engine/model or physical device was involved.
 | Errors leave local play/edit usable | Production manual engine error followed by local move/Undo, retained comment/edit/export behavior and unchanged source downloads | Raw engine diagnostics redacted; no automatic retry |
 | Runnable consumer and explicit lifecycle | Public `examples/analysis`, installed SSR-safe view, keyboard/emulated touch, source/PV SVG download, callback/invalid-update and owned/borrowed remount checks; [ADR 0011](../adr/0011-isolated-analysis-view-and-explicit-consumer.md) | Illustrative offline data/manual host JSON; common view without native Analysis component exports |
 
-M4 has local exit evidence in this declared scope. Final aggregate requirement
-review and release decisions remain separate; broader runtime/performance claims
-still require their own evidence.
+M4 has local exit evidence in this declared scope. The final aggregate requirement
+review is complete in the [delivery audit](10-delivery-audit.md). Release decisions
+and broader runtime/performance claims still require their own evidence/actions.
 
 ## Remaining Work and Claim Boundaries
 
@@ -135,8 +137,8 @@ still require their own evidence.
    have targeted, installed and browser evidence; the M3 table records their scope.
 4. M4 now has provider-neutral contexts/results/session, checked KataGo JSON-line
    integration, isolated display/PVs/root ownership and a runnable consumer. The
-   table above maps local exit evidence. Final aggregate requirement review remains;
-   these checks do not establish live engine/model or untested device compatibility.
+   table above maps local exit evidence and the delivery audit closes the aggregate
+   review; these checks do not establish live engine/model or untested device compatibility.
 5. Registry ownership, intentional version promotion, third-party distribution
    notices, publication and hosting require a separate release task. The current
    local development version remains `0.1.0-dev.0`; this audit changes no versions.

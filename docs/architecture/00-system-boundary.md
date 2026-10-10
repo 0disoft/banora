@@ -1,6 +1,6 @@
 # System Boundary
 
-- Status: Planned
+- Status: Implemented boundaries with scoped [delivery evidence](../engineering/10-delivery-audit.md)
 - Decision: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 
 ## Ownership
@@ -34,7 +34,9 @@ Provide plain-browser integration in M1 and official optional React, Vue, and Sv
 adapters in M2, as defined in [ADR 0004](../adr/0004-framework-independent-adapters.md).
 Framework adapters bind the same public controller/renderer through their native
 lifecycle and state/event conventions; they do not own another rules or record model.
-A provider-neutral analysis contract can support a host-owned KataGo service later.
+A provider-neutral session and checked KataGo JSON adapter support an explicitly
+host-owned engine/service transport. The common analysis view owns only its isolated
+drawing/PV state; it does not add predictions to the source SGF.
 No credentials, provider endpoint, telemetry, database, or mandatory hosted product
 are built into the core.
 

@@ -1,6 +1,6 @@
 # Runtime Flow
 
-- Status: Planned
+- Status: Implemented flow; exact API/compatibility evidence owned by SDK contracts
 - Model: [Domain model](01-domain-model.md)
 
 ## Load a Record
@@ -44,7 +44,8 @@ Studio offers Export / Discard / Cancel before replacing or closing a dirty reco
 Export proceeds only after success, Discard permits the pending operation, and Cancel
 keeps the active record. For replacement, validate the new input before offering to
 discard changes. A browser download request does not verify disk persistence; the
-host acknowledgment API remains UNDECIDED. Autosave and recovery are deferred.
+host explicitly uses `prepareExport`/`acknowledgeExport` tickets to advance the
+baseline. Autosave and recovery are deferred.
 
 ## Analyze a Position (M4)
 
@@ -65,7 +66,8 @@ branch and emits answer feedback; restarting returns to the defined initial posi
 
 ## Dispose
 
-Unmounting detaches input listeners and subscriptions, cancels pending work, and
-invalidates late callbacks. Disposing a view must not delete a host-owned record
+Unmounting detaches input listeners/subscriptions, cancels owned pending work and
+invalidates view callbacks. Borrowed puzzle/analysis models may remain live for their
+host; they cannot annotate removed DOM. Disposing a view must not delete a host-owned record
 or dispose an externally supplied controller. Hosts decide when to close the record
 and handle its unsaved-change guard; removing a view alone does not close it.
