@@ -1,7 +1,8 @@
 # Analysis API
 
 This document owns the implemented headless analysis contract. The
-[KataGo adapter](katago.md) owns wire conversion; browser display remains pending.
+[KataGo adapter](katago.md) owns wire conversion; the separate
+[analysis view](analysis-view.md) owns display/PV interaction.
 
 ## Provider-Neutral Analysis Sessions
 
@@ -93,12 +94,13 @@ results. `setProvider` invalidates old work even for a reused provider ID. `canc
 clears pending/display state; `dispose` releases subscriptions, pending leases and
 owned analysis state without disposing the host record/provider. Later request/
 commands return `disposed`; state/subscription access throws.
+The live `controller` getter exposes its borrowed record for host/view composition;
+access throws after session disposal and grants no separate ownership.
 
 Arbitrary transport exceptions produce the public diagnostic `Analysis provider
 failed.` rather than leaking exception text. Providers can deliberately throw
 `AnalysisError(reason,message)` for a public message bounded to 4,096 characters.
 Errors remain confined to analysis; they do not disable play/edit/Undo/export.
 See [ADR 0009](../adr/0009-analysis-context-and-external-provider-contract.md). The
-KataGo adapter has separate protocol evidence. Display overlays and the runnable
-analysis consumer remain subsequent increments; their compatibility is not
-established by the headless coordinator.
+KataGo and the isolated display have separate contracts/evidence. Their compatibility
+is not established by the headless coordinator alone; see implementation status.

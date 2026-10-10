@@ -13,3 +13,4 @@ export * from './puzzle.js';
 export * from './puzzle-view.js';
 export * from './analysis.js';
 export * from './katago.js';
+export * from './analysis-view.js';

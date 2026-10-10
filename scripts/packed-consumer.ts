@@ -22,6 +22,8 @@ import type { ControllerState } from '@banora/sdk/controller';
 import { mountViewer } from '@banora/sdk/viewer';
 import {mountPuzzle} from '@banora/sdk/puzzle-view';
 import type {PuzzleView} from '@banora/sdk/puzzle-view';
+import {mountAnalysis} from '@banora/sdk/analysis-view';
+import type {AnalysisView} from '@banora/sdk/analysis-view';
 import { mountComparison } from '@banora/sdk/comparison';
 import { createShareLink, decodeShareLink } from '@banora/sdk/share';
 import { createStoneTexture } from '@banora/sdk/textures';
@@ -37,6 +39,9 @@ if (typeof mountViewer !== 'function') throw Error('Viewer artifact export faile
 const puzzleMount:typeof mountPuzzle=mountPuzzle;
 const puzzleView:PuzzleView|undefined=undefined;
 if (typeof puzzleMount!=='function') throw Error('Packed SSR-safe puzzle view import failed');
+const analysisMount:typeof mountAnalysis=mountAnalysis;
+const analysisView:AnalysisView|undefined=undefined;
+if (typeof analysisMount!=='function') throw Error('Packed SSR-safe analysis view import failed');
 const result = play(createPosition({ width: 9 }), { x: 4, y: 4 });
 if (!result.ok || stoneAt(result.position, { x: 4, y: 4 }) !== 'black') throw Error('Core artifact failed');
 if (opposite('black') !== 'white') throw Error('Core subpath failed');

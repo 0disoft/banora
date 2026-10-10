@@ -4,6 +4,7 @@ import type {AnalysisActionResult,AnalysisCompletion,AnalysisContextResult,Analy
 import {analysisFailure,createAnalysisContext,sameAnalysisContext} from './analysis-context.js';
 import {normalizeAnalysisResult} from './analysis-result.js';
 import {AnalysisToken} from './analysis-cancellation.js';
+import {analysisRequestLimits} from './analysis-request.js';
 export type * from './analysis-types.js';
 export {AnalysisError,createAnalysisContext,sameAnalysisContext,normalizeAnalysisResult};
 interface PendingAnalysis {
@@ -16,13 +17,6 @@ function providerSnapshot(provider:AnalysisProvider):AnalysisProvider {
   return Object.freeze({id:provider.id,analyze:provider.analyze.bind(provider)});
 }
 const settingsSnapshot=(settings:AnalysisSettings):AnalysisSettings => Object.freeze({...settings,...(settings?.scoring===undefined ? {} : {scoring:Object.freeze({...settings.scoring})})});
-function requestLimits(options:AnalysisRequestOptions):AnalysisRequest['limits'] {
-  if (!options || typeof options!=='object' || Array.isArray(options) || Object.keys(options).some(key => !['maxVisits','maxPvLength','includeOwnership'].includes(key))) throw new AnalysisError('invalid-request','Invalid analysis request options.');
-  const maxVisits=options.maxVisits===undefined ? 1000 : options.maxVisits,maxPvLength=options.maxPvLength===undefined ? 16 : options.maxPvLength,
-    includeOwnership=options.includeOwnership===undefined ? false : options.includeOwnership;
-  if (!Number.isInteger(maxVisits) || maxVisits<1 || maxVisits>1e6 || !Number.isInteger(maxPvLength) || maxPvLength<0 || maxPvLength>256 || typeof includeOwnership!=='boolean') throw new AnalysisError('invalid-request','Analysis request limits are invalid.');
-  return Object.freeze({maxVisits,maxPvLength,includeOwnership});
-}
 
 /** Explicit-only external analysis over a borrowed record controller. */
 export class AnalysisSession {
@@ -48,6 +42,8 @@ export class AnalysisSession {
     return this.#disposed ? analysisFailure('disposed','Analysis session is disposed.') : this.#notifying || this.#working ? analysisFailure('busy','Analysis session is notifying or cancelling.') : undefined;
   }
   getState():AnalysisState {this.#assertLive();return this.#state!;}
+  /** Borrowed source; disposing this session never disposes the record. */
+  get controller():RecordController {this.#assertLive();return this.#controller!;}
   subscribe(listener:(state:AnalysisState) => void):() => void {
     this.#assertLive();this.#listeners.add(listener);this.#working++;
     try {listener(this.#state!);} catch (error) {this.#listeners.delete(listener);throw error;} finally {this.#working--;}
@@ -90,7 +86,7 @@ export class AnalysisSession {
   request(options:AnalysisRequestOptions={}):Promise<AnalysisCompletion> {
     const guard=this.#guard();if (guard) return Promise.resolve(guard);
     this.#sync();if (this.#disposed) return Promise.resolve(analysisFailure('disposed','Analysis session is disposed.'));
-    let limits:AnalysisRequest['limits'];try {limits=requestLimits(options);} catch (error) {return Promise.resolve(error instanceof AnalysisError ? analysisFailure(error.reason,error.message) : analysisFailure('invalid-request','Invalid request options.'));}
+    let limits:AnalysisRequest['limits'];try {limits=analysisRequestLimits(options);} catch (error) {return Promise.resolve(error instanceof AnalysisError ? analysisFailure(error.reason,error.message) : analysisFailure('invalid-request','Invalid request options.'));}
     if (!this.#state!.context) return Promise.resolve(this.#state!.error!);
     if (this.#sequence>=Number.MAX_SAFE_INTEGER) return Promise.resolve(analysisFailure('limit','Analysis request identity limit reached.'));
     this.#abort('stale');this.#sync();if (this.#disposed) return Promise.resolve(analysisFailure('disposed','Analysis session is disposed.'));

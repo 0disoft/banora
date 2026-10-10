@@ -15,6 +15,7 @@ import {normalizeStoneTextures} from './stone-textures.js';
 import type {StoneTextures} from './stone-textures.js';
 import {mountPlacementAnimation,normalizePlacementAnimation} from './placement-animation.js';
 import type {PlacementAnimationOptions} from './placement-animation.js';
+import {BOARD_PADDING} from './board-layout.js';
 
 export type { BoardCrop, BoardTransform } from './geometry.js';
 export type { DiagramOptions } from './diagram-export.js';
@@ -50,7 +51,7 @@ export interface BoardView {
   dispose(): void;
 }
 const namespace = 'http://www.w3.org/2000/svg';
-const padding = 1.25;
+const padding = BOARD_PADDING;
 const letters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
 const columnLabel = (index: number) => letters[index] ?? String(index + 1);
 let boardSequence=0;
@@ -158,6 +159,7 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     if (options.drawing && !readOnly()) svg.setAttribute('aria-label', 'Go board ink tool. Drag to draw. Arrow keys move the cursor; Space adds a point; Enter finishes the stroke; Escape cancels.');
     else if (options.nodeId) svg.setAttribute('aria-label','Pinned read-only Go board. Arrow keys move the cursor; record navigation is controlled by the host.');
     else if (readOnly() && !options.onPoint) svg.setAttribute('aria-label', 'Read-only Go board. Arrow keys move the cursor; Page Up and Page Down navigate moves.');
+    else if (readOnly()) svg.setAttribute('aria-label','Interactive Go board. Arrow keys move the cursor; Enter activates the intersection; Page Up and Page Down navigate displayed moves.');
     else svg.setAttribute('aria-label', 'Go board. Arrow keys move the cursor; Enter places a stone or marker; Page Up and Page Down navigate moves.');
     const fragment = document.createDocumentFragment();
     const defs=element('defs');

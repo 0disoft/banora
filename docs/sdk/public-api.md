@@ -249,6 +249,8 @@ cancellation that rejects stale work. See the [analysis API contract](analysis.m
 for settings, provider DTOs, limits, errors and lifecycle.
 The selective headless `@banora/sdk/katago` entrypoint supplies host-owned JSON-line
 integration; see [KataGo integration](katago.md) for transport and supported contexts.
+`@banora/sdk/analysis-view` supplies an isolated interactive display; see the
+[analysis view](analysis-view.md) for candidate metrics, PVs, ownership and lifetime.
 
 ### Repetition Policies
 

@@ -22,7 +22,8 @@
     "./puzzle": {"types": "./dist/puzzle.d.ts", "import": "./dist/puzzle.js"},
     "./puzzle-view": {"types": "./dist/puzzle-view.d.ts", "import": "./dist/puzzle-view.js"},
     "./analysis": {"types": "./dist/analysis.d.ts", "import": "./dist/analysis.js"},
-    "./katago": {"types": "./dist/katago.d.ts", "import": "./dist/katago.js"}
+    "./katago": {"types": "./dist/katago.d.ts", "import": "./dist/katago.js"},
+    "./analysis-view": {"types": "./dist/analysis-view.d.ts", "import": "./dist/analysis-view.js"}
   },
   "engines": {"node": ">=24 <25"},
   "repository": {"type": "git", "url": "https://github.com/0disoft/banora.git", "directory": "packages/sdk"}

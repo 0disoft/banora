@@ -75,3 +75,11 @@ disconnect/disposal remove leases and cancellation subscriptions; action replies
 and unrelated IDs retain no state. The host owns writer backpressure, deadlines,
 stdout framing and actual engine resources. No transport latency benchmark or
 model-memory guarantee is implied by local protocol fixtures.
+
+Analysis display holds one private visible record, one selected PV and a separate
+bounded SVG prediction layer. PV steps reuse core transitions and do not retain a
+position for every candidate or write source branches. Ownership/ranks are bounded
+by board area and hidden on future PV positions. Completion leases detach their
+display callbacks on disposal. Cropped layers render visible points only; table
+rows remain bounded by the common candidate cap. No per-device render latency or
+screen-reader/browser floor has been measured by these structural limits.
