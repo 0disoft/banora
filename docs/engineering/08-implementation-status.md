@@ -111,7 +111,9 @@ An implemented slice does not complete its milestone or establish untested compa
   unmount/remount and repeated playback with bounded effects. Comparison stays
   static. Packed adapter declarations/SSR include the new option; no frame-rate
   or physical-device guarantee is claimed.
-- Fifty focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Fifty SDK behavior tests and three CLI completion-result tests pass with Bun
+  1.4.2; all browser scenarios require an exact return in the actual CLI JSON Result,
+  excluding echoed source/logs and partial execution. Strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.

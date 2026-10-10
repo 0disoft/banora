@@ -9,7 +9,7 @@
     "build:examples": "bun run build:adapters && vite build --config examples/vite.config.ts",
     "dev": "bun run build:adapters && vite --config examples/vite.config.ts",
     "typecheck": "tsc --noEmit",
-    "test": "bun test packages",
+    "test": "bun test packages scripts/scenario-result.test.ts",
     "docs": "bun scripts/check-docs.ts",
     "smoke": "bun run build && bun scripts/packed-consumer.ts",
     "smoke:adapters": "bun run build:adapters && bun scripts/packed-adapters.ts",

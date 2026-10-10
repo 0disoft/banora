@@ -90,4 +90,5 @@ async page => {
   });
   await page.screenshot({path:'output/playwright/extended-editor.png', fullPage:true});
   verify(failures.length === 0, failures.join('; '));
+  return 'banora-editing-complete';
 }

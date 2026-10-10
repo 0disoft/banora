@@ -57,5 +57,5 @@ async page => {
     view.dispose(); controller.dispose(); host.remove();
     return 'Eight rectangular/cropped transforms, logical pointer input, screen keyboard axes, label orientation and atomic configuration passed';
   });
-  return result;
+  return 'banora-presentation-complete';
 }

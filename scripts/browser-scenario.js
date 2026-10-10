@@ -128,4 +128,5 @@ async page => {
   } finally { await mobileContext.close(); }
   verify(errors.length === 0, `Browser errors: ${errors.join('; ')}`);
   verify(requests.every(request => request.method === 'GET' && new URL(request.url).origin === origin), 'Implicit external request or upload');
+  return 'banora-browser-complete';
 }

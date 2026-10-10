@@ -1,5 +1,6 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
+import { requireScenarioResult } from './scenario-result.js';
 
 const root = process.cwd();
 const output = resolve(root, 'output/playwright');
@@ -25,17 +26,19 @@ async function cli(...args: string[]): Promise<string> {
   if (code !== 0 || stdout.includes('### Error')) throw new Error(`Browser command failed:\n${stdout}\n${stderr}`);
   return stdout;
 }
+async function scenario(file: string, expected: string): Promise<void> {
+  const result = await cli('run-code', await readFile(resolve(root, `scripts/${file}-scenario.js`), 'utf8'));
+  requireScenarioResult(result, expected);
+}
 async function shareSmoke(): Promise<void> {
-  const result=await cli('run-code',await readFile(resolve(root,'scripts/share-scenario.js'),'utf8'));
-  if (!result.includes('banora-sharing-complete: studio react vue svelte')) throw new Error(`Sharing scenario did not reach completion:\n${result}`);
+  await scenario('share', 'banora-sharing-complete: studio react vue svelte');
   for (const name of ['studio','react','vue','svelte']) {
     const saved=await readFile(resolve(output,`${name}-share-before-open.sgf`),'utf8');
     if (!saved.includes('unsaved sharing note') || !saved.includes('XX[keep]') || !saved.includes('BPN[')) throw new Error(`${name} share guard export lost record content`);
   }
 }
 async function textureConsumers(): Promise<void> {
-  const result=await cli('run-code',await readFile(resolve(root,'scripts/texture-consumer-scenario.js'),'utf8'));
-  if (!result.includes('banora-texture-consumers-complete: studio react vue svelte')) throw new Error(`Texture consumers did not complete:\n${result}`);
+  await scenario('texture-consumer', 'banora-texture-consumers-complete: studio react vue svelte');
   for (const name of ['studio','react','vue','svelte']) {
     const png=await readFile(resolve(output,`${name}-texture.png`));
     const svg=await readFile(resolve(output,`${name}-texture.svg`),'utf8');
@@ -43,8 +46,7 @@ async function textureConsumers(): Promise<void> {
   }
 }
 async function animationConsumers(): Promise<void> {
-  const result=await cli('run-code',await readFile(resolve(root,'scripts/animation-consumer-scenario.js'),'utf8'));
-  if (!result.includes('banora-animation-consumers-complete: studio react vue svelte')) throw new Error(`Animation consumers did not complete:\n${result}`);
+  await scenario('animation-consumer', 'banora-animation-consumers-complete: studio react vue svelte');
   for (const name of ['studio','react','vue','svelte']) {
     const png=await readFile(resolve(output,`${name}-animation.png`));
     const svg=await readFile(resolve(output,`${name}-animation.svg`),'utf8');
@@ -58,44 +60,40 @@ try {
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
   if (process.argv.includes('--animation-only')) {
-    const result=await cli('run-code',await readFile(resolve(root,'scripts/animation-scenario.js'),'utf8'));
-    if (!result.includes('banora-animation-sdk-complete')) throw new Error('Animation scenario did not complete');
+    await scenario('animation', 'banora-animation-sdk-complete');
     await animationConsumers();
     console.log('Focused animation smoke passed.');
   } else if (process.argv.includes('--texture-only')) {
-    const result=await cli('run-code',await readFile(resolve(root,'scripts/texture-scenario.js'),'utf8'));
-    if (!result.includes('banora-textures-complete: SDK')) throw new Error('Texture scenario did not complete');
+    await scenario('texture', 'banora-textures-complete: SDK');
     await textureConsumers();
     console.log('Focused texture smoke passed.');
   } else if (process.argv.includes('--share-only')) {
     await shareSmoke();
     console.log('Focused share smoke passed.');
   } else if (process.argv.includes('--touch-only')) {
-    await cli('run-code',await readFile(resolve(root,'scripts/touch-scenario.js'),'utf8'));
+    await scenario('touch', 'banora-touch-complete');
     console.log('Focused touch smoke passed.');
   } else if (process.argv.includes('--comparison-only')) {
-    await cli('run-code',await readFile(resolve(root,'scripts/comparison-scenario.js'),'utf8'));
+    await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
-  const scenario = await readFile(resolve(root, 'scripts/browser-scenario.js'), 'utf8');
-  await cli('run-code', scenario);
-  const frameworks = await readFile(resolve(root, 'scripts/framework-scenario.js'), 'utf8');
+  await scenario('browser', 'banora-browser-complete');
   await cli('snapshot');
-  await cli('run-code', frameworks);
+  await scenario('framework', 'banora-frameworks-complete');
   console.log('Framework browser smoke passed: React Strict Mode, Vue refs, Svelte updates, callbacks, owned/shared controllers and unmount/remount.');
   await cli('snapshot');
-  await cli('run-code', await readFile(resolve(root, 'scripts/editing-scenario.js'), 'utf8'));
+  await scenario('editing', 'banora-editing-complete');
   const editing = await readFile(resolve(output, 'editing-roundtrip.sgf'), 'utf8');
   if (!editing.includes('XX[preserve]') || !editing.includes('AR[') || !editing.includes('LN[') || !editing.includes('AB[ef]')) throw new Error('Extended edits lost in SGF export');
   console.log('Extended editor smoke passed: setup/turn, line/arrow, inherited CSS tokens, SGF round-trip and branch remove/reorder Undo.');
   await cli('snapshot');
-  await cli('run-code', await readFile(resolve(root, 'scripts/global-scenario.js'), 'utf8'));
+  await scenario('global', 'banora-global-complete');
   console.log('Classic browser distribution passed: navigation, editing/Undo and external-controller remount without modules/frameworks.');
   await cli('snapshot');
-  await cli('run-code', await readFile(resolve(root, 'scripts/presentation-scenario.js'), 'utf8'));
+  await scenario('presentation', 'banora-presentation-complete');
   console.log('Presentation smoke passed: eight rectangular/cropped transforms, logical mouse input, screen keyboard axes, upright labels and atomic configuration.');
   await cli('snapshot');
-  await cli('run-code', await readFile(resolve(root, 'scripts/diagram-scenario.js'), 'utf8'));
+  await scenario('diagram', 'banora-diagrams-complete');
   for (const name of ['studio','react','vue','svelte']) {
     const bytes = await readFile(resolve(output,`${name}-diagram.png`));
     if (bytes.toString('hex',0,8) !== '89504e470d0a1a0a') throw new Error(`${name} exported an invalid PNG signature`);
@@ -104,25 +102,23 @@ try {
   }
   console.log('Diagram smoke passed: Studio and three adapters export real SVG/PNG; bounded standalone styles, failure and disposal handling preserve SGF dirty state.');
   await cli('snapshot');
-  await cli('run-code', await readFile(resolve(root, 'scripts/ink-scenario.js'), 'utf8'));
+  await scenario('ink', 'banora-ink-complete');
   console.log('Ink smoke passed: logical drag/touch/keyboard, cancellation, Undo/reopen, SVG/PNG pixels and React/Vue/Svelte propagation.');
   await cli('snapshot');
-  await cli('run-code',await readFile(resolve(root,'scripts/touch-scenario.js'),'utf8'));
+  await scenario('touch', 'banora-touch-complete');
   console.log('Touch smoke passed: magnification, release/confirmation, logical transforms, callbacks, cancellation and keyboard.');
   await cli('snapshot');
-  await cli('run-code',await readFile(resolve(root,'scripts/comparison-scenario.js'),'utf8'));
+  await scenario('comparison', 'banora-comparison-complete');
   console.log('Comparison smoke passed: pinned branches, highlighted differences, exports, generation/deletion handling and lifecycle.');
   await cli('snapshot');
   await shareSmoke();
   console.log('Sharing smoke passed: exact targets, position privacy, clipboard fallback, Export/Discard/Cancel, bounds and native lifecycle.');
   await cli('snapshot');
-  const textures=await cli('run-code',await readFile(resolve(root,'scripts/texture-scenario.js'),'utf8'));
-  if (!textures.includes('banora-textures-complete: SDK')) throw new Error('Texture scenario did not complete');
+  await scenario('texture', 'banora-textures-complete: SDK');
   await textureConsumers();
   console.log('Texture smoke passed: normalized files, reusable SVG paints, PNG pixels, bounds, cancellation and local-only resources.');
   await cli('snapshot');
-  const animations=await cli('run-code',await readFile(resolve(root,'scripts/animation-scenario.js'),'utf8'));
-  if (!animations.includes('banora-animation-sdk-complete')) throw new Error('Animation scenario did not complete');
+  await scenario('animation', 'banora-animation-sdk-complete');
   await animationConsumers();
   console.log('Animation smoke passed: adjacent placement, cancellation, reduced motion, stable redraws and final diagrams.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');

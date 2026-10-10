@@ -30,7 +30,7 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | --- | --- | --- |
 | typecheck | `bun run typecheck` | Strict TypeScript checks for implementation, tests and scripts |
 | typecheck (Svelte) | `bun run typecheck:svelte` | Native components and example checked with Svelte's supported isolated TypeScript toolchain |
-| test | `bun run test` | Focused SDK behavior tests using Bun's test runner |
+| test | `bun run test` | Focused SDK behavior and CLI completion-result tests using Bun's test runner |
 | docs | `bun run docs` | English documentation, LF endings and relative links |
 | smoke | `bun run smoke` | SDK build, isolated tarball install, strict ESM/headless/global declarations and Node public-export/classic VM execution |
 | smoke (adapters) | `bun run smoke:adapters` | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR |
@@ -45,6 +45,10 @@ are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
+Every browser scenario must return its exact completion string in the CLI's actual
+JSON `Result` section. Echoed code, console messages, missing/partial output and a
+successful command exit alone cannot establish completion. Both full and focused
+routes enforce this; result-parser regressions run with the behavior tests.
 After building examples/SDK, `bun scripts/browser-smoke.ts --touch-only` runs the
 focused real-touch scenario using the same oneshot server/session cleanup.
 `--comparison-only` similarly selects the comparison scenario without rerunning

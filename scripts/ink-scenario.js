@@ -177,6 +177,6 @@ async page => {
       await cdp.detach();
     } finally {await mobileContext.close();}
     verify(errors.length === 0,`Ink browser errors: ${errors.join('; ')}`);
-    return 'Ink drag/touch/keyboard, cancellation, logical transforms, Undo/reopen, SVG/PNG pixels and all three native adapters passed';
+    return 'banora-ink-complete';
   } finally {page.off('pageerror',onError);}
 }

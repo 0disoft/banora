@@ -20,4 +20,5 @@ async page => {
   await page.waitForFunction(() => document.querySelector('#state').textContent.includes('clean'));
   await page.screenshot({path:'output/playwright/classic-script.png', fullPage:true});
   if (failures.length) throw Error(failures.join('; '));
+  return 'banora-global-complete';
 }

@@ -54,5 +54,5 @@ async page => {
     controller.dispose(); host.remove();
     return 'Standalone SVG/PNG, inherited colors, transforms, text escaping, size limits, encoding failure and disposal cancellation passed';
   });
-  return result;
+  return 'banora-diagrams-complete';
 }

@@ -167,6 +167,6 @@ async page => {
       await mobile.screenshot({path:`output/playwright/${framework}-touch.png`,fullPage:true});
     }
     await cdp.detach();verify(errors.length===0,`Touch errors: ${errors.join('; ')}`);
-    return 'Magnified real touch drag, eight cropped transforms, confirmation, callbacks, cancellation, keyboard and disposal passed';
+    return 'banora-touch-complete';
   } finally {await context.close();}
 }

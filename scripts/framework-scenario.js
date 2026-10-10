@@ -67,4 +67,5 @@ async page => {
     await page.screenshot({ path: `output/playwright/${framework}-adapter.png`, fullPage: true });
   }
   verify(errors.length === 0, `Framework browser errors: ${errors.join('; ')}`);
+  return 'banora-frameworks-complete';
 }

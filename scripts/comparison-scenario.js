@@ -117,5 +117,5 @@ async page => {
     await page.locator('#compare').click();
     if (await page.locator('#comparison-host').count() || await page.locator('#state').innerText()!==before) throw Error(`${framework}: closing comparison edited the controller`);
   }
-  return result+'; Studio and React/Vue/Svelte comparison consumers passed';
+  return 'banora-comparison-complete';
 }
