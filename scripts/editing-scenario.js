@@ -71,6 +71,23 @@ async page => {
   await page.locator('#undo').click();
   verify(await page.locator('#tree button').nth(1).innerText() === 'Black A9', 'Reorder Undo failed');
   verify(await page.locator('#dirty').innerText() === 'No changes', 'Editing Undo did not restore export baseline');
+  await page.evaluate(async () => {
+    const {RecordController, mountViewer} = await import('/sdk/index.js');
+    const controller = new RecordController({sgf:'(;C[original])'});
+    const host = document.createElement('div'); document.body.append(host);
+    const view = mountViewer(host, {controller});
+    const end = controller.beginEditGroup();
+    controller.setComment('one'); view.dispose(); controller.setComment('two'); end();
+    controller.undo();
+    if (controller.getState().node.properties.C?.[0] !== 'original') throw Error('Read-only disposal split another editor group');
+    const editor = mountViewer(host, {controller, editable:true});
+    host.querySelector('textarea').focus(); controller.setComment('first editor');
+    const closeNewGroup = controller.beginEditGroup();
+    controller.setComment('new editor'); editor.dispose(); controller.setComment('new final'); closeNewGroup();
+    controller.undo();
+    if (controller.getState().node.properties.C?.[0] !== 'first editor') throw Error('Old viewer disposal split new editor group');
+    controller.dispose(); host.remove();
+  });
   await page.screenshot({path:'output/playwright/extended-editor.png', fullPage:true});
   verify(failures.length === 0, failures.join('; '));
 }

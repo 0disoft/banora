@@ -15,6 +15,8 @@ An implemented slice does not complete its milestone or establish untested compa
 - RecordController: shared immutable snapshots, path navigation, legal new moves,
   recorded-move playback, comments/markers, grouped edit Undo/Redo, semantic dirty
   comparison and explicit export tickets. Dirty replacement requires explicit discard.
+  Scoped edit-group cleanup prevents disposed/read-only views from ending another
+  editor's comment group; both headless and mounted-browser regressions are checked.
 - Extended editing: undoable subtree removal and sibling reordering, free setup/turn
   with separate setup nodes after moves, and node-local SGF lines/directed arrows.
   Studio exposes these tools and confirms continuation removal. Headless checks
@@ -36,7 +38,7 @@ An implemented slice does not complete its milestone or establish untested compa
   unknown properties, keyboard/touch emulation, crop, owned/external disposal and
   no implicit external requests/uploads. Screenshots are generated locally under
   `output/playwright/`, not shipped assets or evidence of real-device testing.
-- Twenty-nine focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Thirty focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.

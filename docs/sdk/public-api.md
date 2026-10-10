@@ -46,7 +46,7 @@ Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
 | `setSetup(stones, toPlay?)` | Patch free black/white/empty setup points and optional turn; after a move append a setup child rather than mixing move/setup properties |
 | `removeBranch(nodeId?)` | Remove a non-root node and descendants; a deleted selection moves to its surviving parent |
 | `reorderBranch(nodeId, index)` | Move a non-root node to a zero-based sibling slot without moving the current cursor |
-| `beginEditGroup()` / `endEditGroup()` | Group a comment session into one undo unit; navigation ends the group |
+| `beginEditGroup()` / `endEditGroup()` | Group comments into one undo unit; begin returns an idempotent cleanup scoped to that group; navigation/global end closes it |
 | `undo()` / `redo()` | Restore record edits and the cursor captured for that history entry |
 | `loadSgf(textOrBytes, { discardChanges? })` | Validate first; reject dirty replacement unless explicitly permitted; successful import resets editing history |
 | `prepareExport()` | Return an immutable `{ id, text }` ticket without changing dirty state |
@@ -62,6 +62,13 @@ are logged without rolling back committed commands. Root exports include all the
 `getState()` retains the same immutable snapshot identity until a committed state
 change. Failed commands, export preparation and selecting the already active node
 leave it unchanged. This contract supports external-store framework bindings.
+
+Keep the cleanup returned by `beginEditGroup()` when a view owns a comment session.
+It cannot end a newer group started by another editor. `endEditGroup()` remains an
+explicit controller-wide operation for host commands. Viewer blur/editability
+changes/hiding comments/disposal release only their own group; read-only viewer
+cleanup never changes another editor's grouping. Existing callers can continue
+ignoring the new cleanup return and explicitly call `endEditGroup()`.
 
 Branch/setup/connection commands use the same edit Undo/Redo and dirty baseline.
 Root removal/reordering and invalid sibling indices return `invalid-edit`; unknown

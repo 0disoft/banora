@@ -49,6 +49,7 @@ export class RecordController {
   #undo: EditEntry[] = [];
   #redo: EditEntry[] = [];
   #group = false;
+  #groupToken: symbol | undefined;
   #groupRecorded = false;
   #listeners = new Set<(state: ControllerState) => void>();
   #notifications: ControllerState[] = [];
@@ -144,8 +145,12 @@ export class RecordController {
   }
   #reindex(): void { this.#index = indexRecord(this.#record); this.#positionCache.clear(); }
   #refreshDirty(): void { this.#dirty = semanticRecord(this.#record) !== this.#baseline; }
-  beginEditGroup(): void { this.#assertLive(); this.endEditGroup(); this.#group = true; }
-  endEditGroup(): void { this.#group = false; this.#groupRecorded = false; }
+  beginEditGroup(): () => void {
+    this.#assertLive(); this.endEditGroup(); this.#group = true;
+    const token = this.#groupToken = Symbol('edit-group');
+    return () => { if (this.#groupToken === token) this.endEditGroup(); };
+  }
+  endEditGroup(): void { this.#group = false; this.#groupRecorded = false; this.#groupToken = undefined; }
 
   #newNodeId(): string {
     let id: string;
@@ -366,6 +371,7 @@ export class RecordController {
   cancelExport(id: number): void { this.#assertLive(); this.#tickets.delete(id); }
   dispose(): void {
     this.#disposed = true;
+    this.endEditGroup();
     this.#snapshot = undefined;
     this.#listeners.clear(); this.#notifications = []; this.#tickets.clear(); this.#positionCache.clear();
   }

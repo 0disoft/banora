@@ -3,6 +3,19 @@ import { RecordController } from '../src/controller.js';
 import { stoneAt } from '../src/core.js';
 
 describe('authoritative record editing', () => {
+  test('an old edit-group cleanup cannot split a newer editor session', () => {
+    const controller = new RecordController({sgf:'(;C[original])'});
+    const endFirst = controller.beginEditGroup();
+    controller.setComment('first');
+    const endSecond = controller.beginEditGroup();
+    controller.setComment('second');
+    endFirst(); controller.setComment('second final'); endSecond();
+    controller.undo();
+    expect(controller.getState().node.properties.C).toEqual(['first']);
+    controller.undo();
+    expect(controller.getState().node.properties.C).toEqual(['original']);
+    expect(controller.getState().dirty).toBe(false);
+  });
   test('snapshots are stable for unchanged state and change only after committed commands', () => {
     const controller = new RecordController();
     const before = controller.getState();

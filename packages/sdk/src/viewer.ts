@@ -33,6 +33,8 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   controller.getState();
   let options = { ...initial, board: { ...initial.board } };
   let disposed = false;
+  let closeCommentGroup: (() => void) | undefined;
+  const endCommentGroup = () => { closeCommentGroup?.(); closeCommentGroup = undefined; };
   const abort = new AbortController();
   const root = document.createElement('section'); root.className = 'banora-viewer';
   root.setAttribute('aria-label', 'Go record viewer');
@@ -144,8 +146,8 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     if (entry && tree.contains(entry)) report(controller.goTo(entry.dataset.node!));
   }, { signal: abort.signal });
   games.addEventListener('change', () => report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id)), { signal: abort.signal });
-  comment.addEventListener('focus', () => { if (options.editable) controller.beginEditGroup(); }, { signal: abort.signal });
-  comment.addEventListener('blur', () => controller.endEditGroup(), { signal: abort.signal });
+  comment.addEventListener('focus', () => { if (options.editable) closeCommentGroup = controller.beginEditGroup(); }, { signal: abort.signal });
+  comment.addEventListener('blur', endCommentGroup, { signal: abort.signal });
   comment.addEventListener('input', () => {
     if (!options.editable) return;
     const result = controller.setComment(comment.value); report(result);
@@ -158,12 +160,12 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       const merged = { ...options, ...next, board: { ...options.board, ...next.board } };
       board.update({ ...merged.board, readOnly: !merged.editable });
       options = merged;
-      if (previous.editable && !options.editable) controller.endEditGroup();
+      if ((previous.editable && !options.editable) || next.comments === false) endCommentGroup();
       render(controller.getState());
     },
     dispose() {
       if (disposed) return;
-      disposed = true; controller.endEditGroup(); abort.abort(); unsubscribe(); board.dispose(); root.remove();
+      disposed = true; endCommentGroup(); abort.abort(); unsubscribe(); board.dispose(); root.remove();
       if (owned) controller.dispose();
     },
   });
