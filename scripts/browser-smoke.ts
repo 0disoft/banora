@@ -39,7 +39,11 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--share-only')) {
+  if (process.argv.includes('--texture-only')) {
+    const result=await cli('run-code',await readFile(resolve(root,'scripts/texture-scenario.js'),'utf8'));
+    if (!result.includes('banora-textures-complete: SDK')) throw new Error('Texture scenario did not complete');
+    console.log('Focused texture smoke passed.');
+  } else if (process.argv.includes('--share-only')) {
     await shareSmoke();
     console.log('Focused share smoke passed.');
   } else if (process.argv.includes('--touch-only')) {
@@ -87,6 +91,10 @@ try {
   await cli('snapshot');
   await shareSmoke();
   console.log('Sharing smoke passed: exact targets, position privacy, clipboard fallback, Export/Discard/Cancel, bounds and native lifecycle.');
+  await cli('snapshot');
+  const textures=await cli('run-code',await readFile(resolve(root,'scripts/texture-scenario.js'),'utf8'));
+  if (!textures.includes('banora-textures-complete: SDK')) throw new Error('Texture scenario did not complete');
+  console.log('Texture smoke passed: normalized files, reusable SVG paints, PNG pixels, bounds, cancellation and local-only resources.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

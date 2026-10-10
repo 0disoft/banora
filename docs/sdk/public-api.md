@@ -193,6 +193,54 @@ plus `BoardRotation`, `BoardTransform`, `BoardSize` and `BoardCrop` types. Point
 conversion accepts finite fractional/outside points for annotations/margins; callers
 still validate legal moves against their logical board. Dimensions remain 2 to 52.
 
+### Custom Stone Textures
+
+`BoardOptions.stoneTextures` accepts `{ black?, white? }` of immutable
+`StoneTexture` values or null. Missing/null colors use ordinary CSS stone colors;
+setting the whole option to null clears textures. Presentation never enters SGF,
+edit history, export acknowledgments or share payloads. Viewer/comparison board
+configuration uses the same option. Tiles remain upright in display space when
+the logical board is rotated/reflected. Marks, move numbers, ink and comparison
+highlights render over the stones. Transparent tile pixels reveal the board.
+
+Root exports and headless `@banora/sdk/textures` expose `createStoneTexture(dataUrl)`,
+`StoneTexture`, `StoneTextures` and frozen `STONE_TEXTURE_LIMITS`. The factory
+accepts a ready static PNG data URL only, with canonical base64, a bounded PNG
+container and dimensions 1 through 512. It returns frozen `{ dataUrl, width, height }`.
+It validates the PNG container, not compressed pixels or CRCs; use the browser
+preparer for user-selected files. No DOM globals are accessed by this factory.
+Serialized ready tiles can be reconstructed with the factory. Board configuration
+defensively snapshots unregistered tile objects and rejects mismatched dimensions,
+external/blob URLs, SVG, malformed containers or invalid color options before
+changing the view. Ready PNG metadata is retained; the browser preparer strips it.
+
+`prepareStoneTexture(blob, { size?, signal? })` is exported from the root and
+`@banora/sdk/board`. This explicit browser operation decodes a host-selected PNG,
+JPEG or WebP Blob, center-crops its shorter dimension, and produces a square PNG
+tile (default 256, configured size 16 through 512). It performs no fetch/upload.
+Hosts own file selection or explicit authenticated fetching before passing a Blob.
+SVG and animated PNG are rejected; WebP is rasterized at its initially decoded frame.
+Files/ready PNGs are limited to 2 MiB; source dimensions are at most 4096 per axis.
+PNG source dimensions are checked before decode, JPEG/WebP after browser decoding.
+The browser's decoder therefore determines their initial decode cost. Malformed
+images, missing canvas, failed encoding and timeouts reject explicitly. AbortSignal
+rejects with `AbortError`; preparation releases object URLs/image/canvas resources
+on success, failure or cancellation. An in-progress Blob read may finish after
+abort, but it cannot start late decoding or apply a texture. Importing the browser
+helper is SSR-safe; calling it requires a browser document.
+
+```ts
+const tile = await prepareStoneTexture(selectedFile, { size: 256, signal });
+view.update({ stoneTextures: { black: tile } });
+// The selected record and its dirty state are unchanged.
+```
+
+Rendering embeds at most one reusable image pattern per configured color, not a
+copy per stone. SVG/PNG export includes those embedded images and rewrites only
+the renderer's valid local texture paint references. External/inherited unresolved
+paints still fail. Texture tiles are host-owned immutable values with no persistent
+asset handles to dispose; hosts decide their cache, provenance and distribution.
+
 ### Touch Aim and Confirmation
 
 `touch: {mode?: 'direct' | 'release' | 'confirm', magnifier?: boolean}` configures
@@ -351,7 +399,7 @@ throw or reject without modifying the record. Returned PNG blobs use `image/png`
 Diagrams capture the drawing at invocation, including the current theme, crop,
 transform, marks, arrows and move numbers. Computed colors/fonts are copied into
 the standalone SVG; hover previews/cursors/interaction and scripts are excluded.
-Inherited or external paint references are rejected rather than exporting a broken
+Unresolved inherited or external paint references are rejected rather than exporting a broken
 reference. Text uses the browser's installed fonts; font files are not embedded.
 XML-invalid control characters and lone surrogates become U+FFFD in diagram text
 only; valid Unicode pairs remain intact and SGF content/state is not changed.

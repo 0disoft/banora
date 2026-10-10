@@ -83,7 +83,15 @@ An implemented slice does not complete its milestone or establish untested compa
   to avoid changing the machine's clipboard. Export/Discard/Cancel, replacement
   download retention and abort on controller swap/unmount are checked; remount
   does not reopen the initial address. Nothing is uploaded or hosted.
-- Forty-five focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
+- Custom texture SDK: immutable bounded static PNG tiles, headless ready-tile
+  validation and explicit PNG/JPEG/WebP Blob preparation with cropping, raster
+  normalization and cancellation. Renderer/diagram export deduplicate one embedded
+  image per configured color. Chrome 154 checks eight cropped rectangular transforms
+  against actual PNG pixels, invalid-option atomicity, default restoration, 625-stone
+  image reuse, preparation failure/cancellation and object-URL cleanup. Presentation
+  and borrowed-controller disposal leave SGF state unchanged. Studio/framework
+  file-selection controls and native texture prop forwarding remain in progress.
+- Forty-seven focused behavior tests pass with Bun 1.4.2; strict TypeScript checks
   and Vite ESM/declaration builds pass. A separate tarball installation passes strict
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.
@@ -129,7 +137,7 @@ An implemented slice does not complete its milestone or establish untested compa
    The classic browser distribution also has package/client evidence.
    Freehand storage/input, rotation/reflection and SVG/PNG static diagrams are implemented.
    Magnified touch placement, position comparison and embedded sharing are implemented.
-   Animation and custom stone textures remain to be delivered.
+   Animation and custom-texture consumer controls remain to be delivered.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 

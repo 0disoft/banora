@@ -4,9 +4,25 @@ export interface DiagramOptions {
   readonly title?: string;
 }
 interface Diagram { readonly text: string; readonly width: number; readonly height: number }
-const allowed = new Set(['svg','g','defs','clipPath','circle','ellipse','line','rect','text','tspan','path','polygon','polyline','image','title']);
+const allowed = new Set(['svg','g','defs','pattern','clipPath','circle','ellipse','line','rect','text','tspan','path','polygon','polyline','image','title']);
 const styles = ['fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','font-family','font-size','font-weight','font-style','text-anchor','dominant-baseline','opacity'];
 const xmlText = (text: string) => text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF\p{Cs}]/gu,'\uFFFD');
+
+function paintFor(value:string, svg:SVGSVGElement): string {
+  if (!/url\s*\(/i.test(value)) return value;
+  const match=/^url\(["']?([^"'()]+)["']?\)$/.exec(value);
+  if (!match) throw new Error('External or inherited paint references cannot be exported');
+  const source=match[1]!;let id:string;
+  if (source.startsWith('#')) id=source.slice(1);
+  else {
+    const url=new URL(source,svg.ownerDocument.baseURI),page=new URL(svg.ownerDocument.URL);
+    id=url.hash.slice(1);url.hash='';page.hash='';
+    if (url.href!==page.href) throw new Error('External or inherited paint references cannot be exported');
+  }
+  const pattern=[...svg.querySelectorAll('defs > pattern')].find(node => node.id===id);
+  if (!pattern || !/^banora-texture-\d+-(black|white)$/.test(id) || pattern.children.length!==1 || pattern.firstElementChild?.tagName!=='image') throw new Error('External or inherited paint references cannot be exported');
+  return `url(#${id})`;
+}
 
 /** Snapshot a mounted SDK drawing; no DOM access occurs during module import. */
 export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOptions = {}): Diagram {
@@ -35,8 +51,7 @@ export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOption
     }
     const computed = window.getComputedStyle(original);
     for (const key of styles) {
-      const value = computed.getPropertyValue(key);
-      if (/url\s*\(/i.test(value)) throw new Error('External or inherited paint references cannot be exported');
+      const value = paintFor(computed.getPropertyValue(key),svg);
       if (value) cloned.setAttribute(key, value);
     }
   }

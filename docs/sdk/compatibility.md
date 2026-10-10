@@ -30,7 +30,7 @@ UNDECIDED and must not be claimed without consumer evidence.
 | Core and SGF | Browser and Node.js, no DOM required | Node 24.14.0 packed consumer and Chrome 154 browser flows; broader floors pending |
 | SVG renderer and Studio | Browsers with the required SVG/input APIs | Production flows checked on Windows Headless Chrome 154; broader matrix pending |
 | Classic browser script | Modern browser, global `Banora` namespace | Chrome 154 standalone viewer/edit/remount flows and packed global declarations checked |
-| SVG/PNG diagrams | Mounted browser board/viewer | Chrome 154 standalone XML, real PNG dimensions/pixels, errors and cancellation checked |
+| SVG/PNG diagrams | Mounted browser board/viewer | Chrome 154 standalone XML, real PNG dimensions/pixels, embedded textures, errors and cancellation checked |
 | Magnified touch placement | Browser Pointer Events/SVG; optional confirmation | Chrome 154 mobile touch emulation in Studio and React/Vue/Svelte; physical devices untested |
 | Position comparison | Common pinned SVG boards and native adapter composition | Chrome 154 Studio/React/Vue/Svelte flows; differences, exports, deletion/import generations and lifecycle checked |
 | React adapter | React 19, client effects and server host rendering | React/react-dom 19.3.0; production lifecycle/Strict Mode and packed types/SSR checked |
@@ -156,6 +156,17 @@ rejected atomically rather than treated as unknown data. Other valid unknown
 properties retain preservation. Version 1 keeps fractional logical points, stable
 node-local IDs and drawing order through Undo/export/reopen. Input and style limits
 bound SVG rendering and disallow URL paints. Pressure/smoothing are deferred.
+
+## Texture Compatibility
+
+Custom tiles use the bounded static-PNG contract in the
+[public API](public-api.md#custom-stone-textures). Ready-tile validation is headless;
+explicit Blob preparation uses browser image/2D canvas APIs and makes no fetch.
+The SDK does not accept texture URLs directly or extract them from SGF. PNG/JPEG/WebP
+preparation, eight cropped rectangular transforms, standalone PNG pixels, image
+deduplication, cancellation and object-URL cleanup have Chrome 154 evidence.
+Other browsers/devices and arbitrary image corpus coverage remain unclaimed.
+Animation is separate work; setting textures does not imply animated placement.
 
 ## Share Compatibility
 

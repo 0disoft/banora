@@ -6,3 +6,4 @@ export * from './board.js';
 export * from './viewer.js';
 export * from './comparison.js';
 export * from './share.js';
+export * from './textures.js';

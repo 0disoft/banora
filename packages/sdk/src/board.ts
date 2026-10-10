@@ -11,10 +11,14 @@ import { normalizeStrokeStyle, strokeLimits } from './annotations.js';
 import type { StrokeStyle } from './annotations.js';
 import { mountTouchUI, normalizeTouchOptions } from './touch-aim.js';
 import type { TouchOptions } from './touch-aim.js';
+import {normalizeStoneTextures} from './stone-textures.js';
+import type {StoneTextures} from './stone-textures.js';
 
 export type { BoardCrop, BoardTransform } from './geometry.js';
 export type { DiagramOptions } from './diagram-export.js';
 export type { TouchOptions } from './touch-aim.js';
+export {prepareStoneTexture} from './texture-loader.js';
+export type {TexturePreparationOptions} from './texture-loader.js';
 export interface BoardOptions {
   readonly controller?: RecordController;
   readonly readOnly?: boolean;
@@ -26,6 +30,7 @@ export interface BoardOptions {
   /** Opt-in freehand mode; null/undefined restores ordinary point activation. */
   readonly drawing?: StrokeStyle | null;
   readonly touch?: TouchOptions | null;
+  readonly stoneTextures?:StoneTextures|null;
   /** Pin a read-only board to a node in the current record generation. */
   readonly nodeId?: string | null;
   readonly compareTo?: string | null;
@@ -44,12 +49,15 @@ const namespace = 'http://www.w3.org/2000/svg';
 const padding = 1.25;
 const letters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
 const columnLabel = (index: number) => letters[index] ?? String(index + 1);
+let boardSequence=0;
 
 /** Browser globals are used only during mounting; importing this module is SSR-safe. */
 export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): BoardView {
   const document = container.ownerDocument;
+  const textureId=`banora-texture-${++boardSequence}`;
   let options = { ...initial, transform: normalizeBoardTransform(initial.transform),
-    drawing: initial.drawing ? normalizeStrokeStyle(initial.drawing) : null, touch: normalizeTouchOptions(initial.touch) };
+    drawing: initial.drawing ? normalizeStrokeStyle(initial.drawing) : null, touch: normalizeTouchOptions(initial.touch),
+    stoneTextures:normalizeStoneTextures(initial.stoneTextures) };
   const owned = !initial.controller;
   const controller = initial.controller ?? new RecordController();
   let disposed = false;
@@ -145,6 +153,13 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
     else if (readOnly() && !options.onPoint) svg.setAttribute('aria-label', 'Read-only Go board. Arrow keys move the cursor; Page Up and Page Down navigate moves.');
     else svg.setAttribute('aria-label', 'Go board. Arrow keys move the cursor; Enter places a stone or marker; Page Up and Page Down navigate moves.');
     const fragment = document.createDocumentFragment();
+    const defs=element('defs');
+    for (const color of ['black','white'] as const) {
+      const texture=options.stoneTextures[color];if (!texture) continue;
+      const pattern=element('pattern',{id:`${textureId}-${color}`,patternUnits:'objectBoundingBox',patternContentUnits:'objectBoundingBox',width:1,height:1});
+      pattern.append(element('image',{href:texture.dataUrl,x:0,y:0,width:1,height:1,preserveAspectRatio:'xMidYMid slice'}));defs.append(pattern);
+    }
+    if (defs.childNodes.length) fragment.append(defs);
     const add = (name: string, attrs: Record<string, string | number>, text?: string) => {
       const node = element(name, attrs, text); fragment.append(node); return node;
     };
@@ -204,7 +219,8 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       const color = board[y * width + x];
       if (!color) continue;
       const point = displayPoint({x,y});
-      add('circle', { cx: point.x, cy: point.y, r: 0.46, fill: `var(--banora-${color},${color === 'black' ? '#20272a' : '#fbfaf4'})`, stroke: color === 'black' ? '#101618' : '#716957', 'stroke-width': 0.023, 'data-stone': `${x},${y}` });
+      add('circle', { cx: point.x, cy: point.y, r: 0.46, fill: options.stoneTextures[color] ? `url(#${textureId}-${color})` : `var(--banora-${color},${color === 'black' ? '#20272a' : '#fbfaf4'})`, stroke: color === 'black' ? '#101618' : '#716957', 'stroke-width': 0.023, 'data-stone': `${x},${y}`,
+        ...(options.stoneTextures[color] ? {'data-texture':color} : {}) });
       if (numbers.has(y * width + x)) add('text', { x: point.x, y: point.y + 0.13,
         'text-anchor': 'middle', 'font-size': 0.34, fill: color === 'black' ? '#fff' : '#20272a', 'font-family': 'system-ui', 'data-move-number': numbers.get(y * width + x)! }, String(numbers.get(y * width + x)));
     }
@@ -473,7 +489,8 @@ export function mountBoard(container: HTMLElement, initial: BoardOptions = {}): 
       const previous = options;
       options = { ...options, ...next, transform: normalizeBoardTransform(Object.hasOwn(next, 'transform') ? next.transform : options.transform),
         drawing: Object.hasOwn(next, 'drawing') ? next.drawing ? normalizeStrokeStyle(next.drawing) : null : options.drawing,
-        touch: Object.hasOwn(next,'touch') ? normalizeTouchOptions(next.touch) : options.touch };
+        touch: Object.hasOwn(next,'touch') ? normalizeTouchOptions(next.touch) : options.touch,
+        stoneTextures:Object.hasOwn(next,'stoneTextures') ? normalizeStoneTextures(next.stoneTextures) : options.stoneTextures };
       try {cropFor(options.nodeId ? controller.inspectNode(options.nodeId) ?? controller.getState() : controller.getState());}
       catch (error) {options=previous;throw error;}
       if (next.referenceGeneration!==undefined || (Object.hasOwn(next,'nodeId') && next.nodeId!==previous.nodeId)) nodeGeneration=next.referenceGeneration ?? controller.getState().recordGeneration;
