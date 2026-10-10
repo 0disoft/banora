@@ -24,6 +24,11 @@ Core and SGF must not import DOM, React, Vue, Svelte, provider clients, or appli
 Views operate on authoritative snapshots; all game mutations use the same action
 path. Optional modules may depend on the core but the core must not depend on them.
 
+For host-controlled boards, that authoritative action path belongs to the host.
+The SDK accepts display snapshots and emits intentions with opaque state keys;
+it performs no local game transitions. See
+[ADR 0012](../adr/0012-host-controlled-board-and-presentation-boundary.md).
+
 Multiplayer hosts validate actions on an authoritative server. A client-side SDK
 legality check is not authorization or match authority. Record storage, URLs and
 remote analysis submission remain under the host's control.

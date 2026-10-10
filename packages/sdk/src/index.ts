@@ -3,6 +3,7 @@ export * from './geometry.js';
 export * from './sgf.js';
 export * from './controller.js';
 export * from './board.js';
+export * from './board-state.js';
 export * from './viewer.js';
 export * from './comparison.js';
 export * from './share.js';

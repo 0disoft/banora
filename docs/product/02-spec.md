@@ -60,6 +60,14 @@ AI responses belong to a separate integration.
 
 ## State and Rules Contract
 
+Hosts may keep rules, records and revisions in an external server/native engine.
+The additive [controlled-board decision](../adr/0012-host-controlled-board-and-presentation-boundary.md)
+defines a plain snapshot/intention integration without requiring a Banora record
+controller, SGF conversion or a selected transport. The host remains authoritative;
+display primitives and input handling are shared with the existing record boards.
+The contracts below describe Banora-managed records, not a requirement to migrate
+an external application's rules or persistence into the SDK.
+
 - One authoritative state transition path handles moves, setup, pass, history,
   and branch navigation. Renderers and framework adapters never implement rules.
 - Invalid actions return a structured reason and leave the active state unchanged.

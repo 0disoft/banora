@@ -45,6 +45,9 @@ the [specification](product/02-spec.md) for the initial editing/reopen workflow.
 
 ## Planned Versus Implemented
 
+The additive [host-controlled board guide](sdk/controlled-board.md) documents
+external snapshot/intention integration and its implementation status.
+
 Specifications and ADRs describe the complete direction. API documentation and
 implementation status distinguish available code/evidence from planned features.
 Mark unresolved details UNDECIDED and technical owners UNASSIGNED. Public project

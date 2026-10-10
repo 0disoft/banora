@@ -28,6 +28,9 @@ await writeFile(
 run([process.execPath, 'install', '--ignore-scripts'], directory);
 const consumer = `import { RecordController, createPosition, play, stoneAt } from '@banora/sdk';
 import { parseSgf } from '@banora/sdk/sgf';
+import {createBoardSnapshot} from '@banora/sdk/board-state';
+const externalBoard=createBoardSnapshot({key:'host/node/1',width:2,height:3,stones:Array(6).fill(null)});
+if (externalBoard.stones.length!==6 || 'rules' in externalBoard || !Object.isFrozen(externalBoard)) throw Error('Packed external board data failed');
 import { opposite, comparePositions } from '@banora/sdk/core';
 import type { ControllerState } from '@banora/sdk/controller';
 import { mountViewer } from '@banora/sdk/viewer';

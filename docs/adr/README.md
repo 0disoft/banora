@@ -17,6 +17,9 @@ mean its implementation or compatibility has been validated.
 | [0010](0010-katago-json-lines-and-supported-contexts.md)        | Accepted; local protocol fixtures          | Host-owned KataGo JSON lines, checked contexts, perspective conversion and scoped termination       |
 | [0011](0011-isolated-analysis-view-and-explicit-consumer.md)    | Accepted; installed and browser evidence   | Isolated PV/ownership display, explicit submission and common runnable analysis consumer            |
 
+The additive [host-controlled board decision](0012-host-controlled-board-and-presentation-boundary.md)
+defines external snapshot authority, input intentions and shared presentation.
+
 Update the owning ADR when a design changes and describe the consequences for
 consumers and validation. Keep unresolved choices explicit. Use the
 [ADR template](0000-template.md) for future decisions and link them here.

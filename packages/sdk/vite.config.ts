@@ -13,6 +13,7 @@ export default defineConfig({
         sgf: resolve(import.meta.dirname, 'src/sgf.ts'),
         controller: resolve(import.meta.dirname, 'src/controller.ts'),
         board: resolve(import.meta.dirname, 'src/board.ts'),
+        'board-state': resolve(import.meta.dirname, 'src/board-state.ts'),
         viewer: resolve(import.meta.dirname, 'src/viewer.ts'),
         comparison: resolve(import.meta.dirname, 'src/comparison.ts'),
         share: resolve(import.meta.dirname, 'src/share.ts'),
