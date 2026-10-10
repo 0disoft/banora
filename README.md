@@ -45,6 +45,10 @@ explicit Japanese/AGA/Tromp-Taylor counting, editable komi/handicap/adjustments 
 component totals. Mouse, keyboard and touch use the same headless calculator;
 scoring preserves the original SGF. Status must be agreed manually. See the
 [scoring contract](docs/sdk/public-api.md#manual-agreed-position-scoring).
+The [curated puzzle example](http://127.0.0.1:4317/puzzle/) plays locally authored
+answer trees with explicit responses, hints, restart and outcome events. The common
+headless session and complete puzzle mount require no framework or analysis engine.
+See the [puzzle contract](docs/sdk/public-api.md#curated-puzzle-sessions).
 
 ## Direction
 
@@ -68,7 +72,7 @@ shared game rules, SGF records, and optional integrations through clear boundari
 - Framework-independent TypeScript core shared by browsers and servers.
 - SVG board with themes, annotations, keyboard input, and mobile placement tools.
 - SGF import/export, comments, variations, and an embeddable game viewer.
-- Manual agreed-position scoring; puzzles and external AI analysis remain planned.
+- Manual agreed-position scoring and curated puzzles; external AI analysis remains planned.
 - Optional React, Vue, and Svelte adapters, selective imports, and a browser script build.
 
 The first release is driven by **Banora Studio**, a browser-based SGF review and

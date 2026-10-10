@@ -6,6 +6,12 @@ workspace. See the repository documentation
 for implementation status and the remaining milestones. No third-party runtime
 dependencies or external assets are included.
 
+`@banora/sdk/puzzle` exports headless curated `PuzzleSession`; the separate
+`@banora/sdk/puzzle-view` provides `mountPuzzle(container,{session})` or an owned
+`{definition}` mount with authored responses, hints and restart. Definitions use
+explicit `banora.puzzle/v1` answer trees and SGF context. Importing the view is
+SSR-safe; mounting requires a DOM. No AI engine or automatic problem grading.
+
 The build also supplies `dist/banora.global.js`, a self-contained classic browser
 script exposing the common API as `Banora`, and `dist/banora.global.d.ts` ambient
 namespace declarations. Copy the script alongside a page and load it with an

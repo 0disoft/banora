@@ -60,6 +60,12 @@ seki, negative komi/adjustments, AGA pass/handicap components and final-pass war
 invalid-input recovery, keyboard focus, navigation/edit/import reset and auxiliary
 view disposal. Emulated mobile touch/layout and identical before/after downloaded
 SGF are required. It runs in the full suite with the same strict completion Result.
+`--puzzle-only` selects the production curated puzzle consumer and public puzzle-view
+fixture. It checks authored capture/response/correct/incorrect/pass, illegal and
+unlisted retention, hints/restart, keyboard focus, safe author text, presentation/
+callback updates, downloaded SVG, failed mounting and owned/borrowed disposal/remount.
+Emulated mobile touch/layout also complete the same authored solution. Its explicit
+Result and actual diagram are required; it is included in the complete suite.
 `--drop-only` exercises Studio's production DOM file drag/drop boundary, metadata,
 handicap/setup and branch rendering, Cancel/Export & continue, actual export/reopen
 and retention after malformed bytes. It requires a completed Result and downloaded

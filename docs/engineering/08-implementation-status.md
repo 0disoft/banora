@@ -42,7 +42,12 @@ An implemented slice does not complete its milestone or establish untested compa
   terminal branches, unlisted retry, sequential hints and exact restart. Fixtures
   cover selected game/branch history, ko/superko/pass policies, immutable input/state,
   atomic rejection, metadata/tree limits and listener reentrancy/errors/disposal.
-  Browser view and runnable consumer remain the next increment.
+  Installed Node 24 headless types/runtime verify the selective `puzzle` subpath.
+  The public `mountPuzzle` view and runnable original exercises at `examples/puzzle`
+  now have Chrome keyboard/emulated-touch, authored response/capture/pass/outcome,
+  hint exhaustion/reset, restart, unlisted/illegal retention, safe text, dynamic
+  presentation/callback, diagram, failed-mount and owned/borrowed cleanup evidence.
+  These are common SDK APIs, without native framework Puzzle component exports.
 - SGF FF4 Go: collections, ordered branches, setup/compressed points, comments,
   metadata, labels/shape marks, unknown properties and unedited escaping preservation.
   Text and declared-encoding file input; UTF-8 export; bounded iterative parsing.
@@ -204,8 +209,9 @@ An implemented slice does not complete its milestone or establish untested compa
    separate; this evidence does not establish untested runtime compatibility.
 3. M3: Superko core policies and controller/consumer integration are implemented.
    Named play presets/pass accounting and headless scoring are implemented.
-   The Studio scoring consumer and headless authored puzzle sessions are implemented;
-   the puzzle browser view/runnable consumer remain.
+   The Studio scoring consumer and authored puzzle sessions/view/runnable consumer
+   are implemented with the exit evidence recorded in the milestone audit. Broader
+   browser/device and tournament/automatic objective-grading claims remain excluded.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 
 Publishing, hosting and external provider credentials remain separate operational

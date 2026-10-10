@@ -120,7 +120,10 @@ covered separately from successful downloads; image export never saves an SGF.
 `@banora/sdk/puzzle` is a selective headless authored-session entrypoint. Its
 definitions use `banora.puzzle/v1` plus SGF initial context and explicit logical
 answer-tree moves, rather than claiming automatic third-party puzzle compatibility.
-Framework/browser puzzle controls require their own consumer evidence.
+The separate `puzzle-view` entrypoint imports without runtime browser globals but
+mounts only in a DOM. Chrome 154 verifies the production common view/example,
+keyboard/emulated touch, safe text, updates and owned/borrowed lifecycle. Native
+framework Puzzle components and automatic third-party format inference are absent.
 
 Selective `@banora/sdk/rules` and `@banora/sdk/scoring` imports have installed Node
 24.14.0 runtime/declaration evidence with ES2022 libraries and no DOM types. Named

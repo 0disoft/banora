@@ -43,6 +43,11 @@ async function scoringSmoke(): Promise<void> {
   const after=await readFile(resolve(output,'scoring-after.sgf'),'utf8');
   if (before!==after || !after.includes('XX[score-preserve]')) throw new Error('Scoring changed the exported source record');
 }
+async function puzzleSmoke(): Promise<void> {
+  await scenario('puzzle', 'banora-puzzle-complete');
+  const diagram=await readFile(resolve(output,'puzzle.svg'),'utf8');
+  if (!diagram.includes('xmlns="http://www.w3.org/2000/svg"') || diagram.includes('data-cursor') || (diagram.match(/data-stone=/g) ?? []).length!==6) throw new Error('Puzzle diagram lost final stones or retained interactive cursor');
+}
 async function shareSmoke(): Promise<void> {
   await scenario('share', 'banora-sharing-complete: studio react vue svelte');
   for (const name of ['studio','react','vue','svelte']) {
@@ -72,7 +77,10 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--scoring-only')) {
+  if (process.argv.includes('--puzzle-only')) {
+    await puzzleSmoke();
+    console.log('Focused puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.');
+  } else if (process.argv.includes('--scoring-only')) {
     await scoringSmoke();
     console.log('Focused scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.');
   } else if (process.argv.includes('--rules-only')) {
@@ -150,6 +158,9 @@ try {
   await cli('snapshot');
   await scoringSmoke();
   console.log('Scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.');
+  await cli('snapshot');
+  await puzzleSmoke();
+  console.log('Puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

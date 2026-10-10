@@ -40,13 +40,14 @@
    characters, title to 256 characters, prompt/feedback/hint text to 4,096 characters,
    hints to 16 per node and aggregate authored text to 262,144 characters. SGF retains
    its existing parser bounds. Invalid definitions throw before session publication.
-7. State and events expose immutable positions, progress, attempts, revealed hints
+7. State and events expose immutable positions, progress, attempts, revealed hints,
+   remaining hint counts
    and the played line. Subscription starts with the current state; answer/hint/restart
    event listeners receive subsequent actions only. Notify after a complete transition.
    Commands during listener notification return `busy`; unsubscribe/dispose are safe
    and throwing listeners do not prevent the other listeners from receiving the event.
    Disposal detaches listeners and releases owned state; no host-owned record is edited.
-8. Ship a selective headless `puzzle` entrypoint. A later browser convenience view and
+8. Ship a selective headless `puzzle` entrypoint. A browser convenience view and
    runnable consumer compose public session/board exports, support keyboard/touch,
    hints, pass, restart, feedback and lifecycle without framework-specific puzzle rules.
    Client-bundled answers are inspectable data, not an anti-cheating boundary.

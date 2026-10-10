@@ -50,6 +50,7 @@ export interface PuzzleState {
   readonly path:readonly string[];
   readonly line:readonly PuzzleLineMove[];
   readonly hints:readonly PuzzleHint[];
+  readonly remainingHints:number;
   readonly lastAnswer:PuzzleAnswer|null;
 }
 export type PuzzleEvent=

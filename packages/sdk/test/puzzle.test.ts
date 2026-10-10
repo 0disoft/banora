@@ -23,7 +23,7 @@ test('authored solver/response steps share core capture semantics and notify onc
   expect(progressed.position.captures.black).toBe(1);expect(progressed.position.board[6]).toBeNull();
   expect(progressed.position.board[24]).toBe('white');expect(progressed.position.toPlay).toBe('black');
   expect(progressed.position.moveNumber).toBe(2);expect(progressed.path).toEqual(['start','capture','reply']);
-  expect(progressed.line.map(move => move.role)).toEqual(['solver','response']);expect(events).toHaveLength(1);expect(states).toHaveLength(2);
+  expect(progressed.line.map(move => move.role)).toEqual(['solver','response']);expect(progressed.remainingHints).toBe(1);expect(events).toHaveLength(1);expect(states).toHaveLength(2);
   expect(events[0]?.state).toBe(progressed);expect(progressed.lastAnswer?.responses[0]?.nodeId).toBe('reply');
   expect(initial.position.board[6]).toBe('white');expect(initial.attempts).toBe(0);
   const complete=state(session.play({x:1,y:3}));expect(complete.status).toBe('correct');expect(complete.lastAnswer?.outcome).toBe('correct');
@@ -44,9 +44,9 @@ test('illegal moves retain exact snapshots/events; legal unlisted answers permit
 });
 test('authored incorrect branches finish on their own diagram; hints are sequential and restart restores exact initial context', () => {
   const session=new PuzzleSession(fixture()),initial=session.getState(),events:PuzzleEvent[]=[];session.onEvent(event => events.push(event));
-  const hinted=state(session.requestHint());expect(hinted.hints[0]?.point).toEqual({x:1,y:2});
+  expect(initial.remainingHints).toBe(2);const hinted=state(session.requestHint());expect(hinted.hints[0]?.point).toEqual({x:1,y:2});expect(hinted.remainingHints).toBe(1);
   expect(hinted.position).toBe(initial.position);expect(hinted.attempts).toBe(0);expect(events[0]?.type).toBe('hint');
-  state(session.requestHint());const exhausted=session.getState();expect(session.requestHint()).toEqual({ok:false,reason:'no-hint'});expect(session.getState()).toBe(exhausted);
+  state(session.requestHint());const exhausted=session.getState();expect(exhausted.remainingHints).toBe(0);expect(session.requestHint()).toEqual({ok:false,reason:'no-hint'});expect(session.getState()).toBe(exhausted);
   const rejected=state(session.play({x:3,y:3}));expect(rejected.status).toBe('incorrect');expect(rejected.position.board[18]).toBe('black');
   expect(rejected.feedback).toContain('misses');expect(session.requestHint()).toEqual({ok:false,reason:'finished'});
   const restarted=state(session.restart());expect(restarted).toEqual(initial);expect(restarted.position).toBe(initial.position);
@@ -108,6 +108,9 @@ test('invalid or ambiguous authored definitions fail before exposing a session',
   invalid({tree:{...fixture().tree,children:new Array(1)}},'dense');
   const a:PuzzleNode={id:'a',move:{x:3,y:3},response:'b'},b:PuzzleNode={id:'b',move:{x:4,y:3},children:[a]};
   (a as unknown as {children:PuzzleNode[]}).children=[b];invalid({tree:{id:'root',children:[a]}},'cycle');
+  const shared:PuzzleNode={id:'shared',move:{x:2,y:2},result:'correct'};
+  invalid({tree:{id:'root',children:[{id:'p1',move:{x:3,y:3},response:'shared',children:[shared]},
+    {id:'p2',move:{x:4,y:3},response:'shared',children:[shared]}]}},'reused');
 });
 test('authoring enforces depth/node/aggregate-text bounds and applies the requested ko policy to every branch', () => {
   function chain(depth:number): PuzzleNode {

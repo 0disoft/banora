@@ -171,7 +171,8 @@ The existing SGF parser bounds also apply; see [ADR 0008](../adr/0008-curated-pu
 
 `getState()` returns the current deeply immutable snapshot: ID/title/prompt/player,
 current `nodeId`/`position`, `status:'active'|'correct'|'incorrect'`, attempts,
-feedback, authored ID path, played line, revealed hints and last answer. Each line
+feedback, authored ID path, played line, revealed hints, `remainingHints` count and
+last answer. Each line
 move exposes node ID, point/pass, color and solver/response role. Only played moves
 appear; unexplored choices are not injected into a renderer's variation tree.
 
@@ -199,8 +200,46 @@ events, each containing the committed state. Commands during notification return
 notification suppress later callbacks to detached listeners. `dispose()` is
 idempotent, releases owned state/listeners and emits no answer; later commands
 return `disposed`, while getState/subscription throws. No timers, workers, remote
-providers or progress storage are started. The browser view/consumer is the next
-increment and is tracked separately from the headless session.
+providers or progress storage are started.
+
+### Complete Puzzle View
+
+`@banora/sdk/puzzle-view` and root exports provide browser `mountPuzzle`, `PuzzleView`,
+`PuzzleViewOptions` and `PuzzleBoardOptions`. Import is SSR-safe; mounting requires a
+DOM. Supply exactly one `session` (borrowed) or `definition` (creates an owned session).
+The view includes title/prompt, board, authored feedback, revealed hints, status/attempt
+summary, Pass, Reveal next hint and Restart controls. Author text is rendered as text,
+never HTML. Point activation uses public session actions; keyboard/touch share the
+same legality/answer path. The view displays only the current position and played
+line's last move, with an optional revealed hint triangle. It does not expose an
+unplayed answer tree in the board's private display record.
+
+```ts
+import {mountPuzzle} from '@banora/sdk/puzzle-view';
+const view = mountPuzzle(container, {
+  session:puzzle, board:{theme:'flat', touch:{mode:'release'}},
+  onEvent:event => console.log(event.type, event.state.status)
+});
+view.dispose(); // A borrowed puzzle session remains live for remounting.
+```
+
+`board` accepts theme, coordinates, crop, transform, touch and ready stone textures.
+No host-supplied board controller, drawing mode, node pin, callback or animation can
+replace the session's answer path. `update({board,onEvent})` merges supported options,
+updates callbacks and preserves puzzle progress; remount to replace the session or
+definition. Invalid presentation updates retain prior settings. Buttons reflect
+finished status and remaining hints. Hint/response redraws retain the outer SVG and
+keyboard focus. SVG/PNG exports are final static diagrams through the normal board
+export contract; they do not persist puzzle progress or answer definitions.
+
+`dispose()` is idempotent: remove DOM/listeners/subscriptions, dispose the owned
+display controller/board, and dispose the puzzle session only when the view created
+it. A borrowed session survives view removal. Failed mounts leave no auxiliary DOM
+or disposed borrowed session. Later update/SVG export throws; PNG export rejects.
+`examples/puzzle` provides original local capture/continuation and pass exercises,
+theme updates, diagrams and borrowed-session unmount/remount. Native React/Vue/Svelte
+puzzle components are not yet exported; the same session/view can be used from their
+host lifecycle without a framework-specific puzzle engine.
 
 ### Repetition Policies
 

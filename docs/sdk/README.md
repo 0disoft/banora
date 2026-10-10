@@ -37,8 +37,10 @@ preservation across unmount/remount.
 `examples/browser` embeds the same viewer from the built classic global script.
 Official examples at `examples/react`, `examples/vue` and `examples/svelte` each
 consume their built public package/native components. Isolated tarball consumers
-also check dependency isolation, declarations and real SSR. Add puzzle/AI examples as their milestones
-ship. This second browser workflow prevents the SDK API from becoming editor-specific.
+also check dependency isolation, declarations and real SSR. `examples/puzzle`
+consumes the common headless session and complete puzzle view, including borrowed
+ownership across remount. An AI example remains planned for M4. These browser
+workflows prevent the SDK API from becoming editor-specific.
 
 All framework adapters are optional. Plain browser consumers require no framework;
 framework consumers share the same state/actions and rendering behavior. Each adapter

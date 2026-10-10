@@ -1,18 +1,19 @@
-# M1 and M2 Local Acceptance Audit
+# M1, M2 and M3 Local Acceptance Audit
 
 - Scope: the complete M1/M2 requirements and exit evidence in the
   [roadmap](../product/01-roadmap.md), plus the seven first-release acceptance
-  items in the [specification](../product/02-spec.md).
+  items in the [specification](../product/02-spec.md) and the separately recorded
+  M3 exit evidence below.
 - Result: M1/M2 local acceptance is verified in the declared matrix, including the
-  additional Studio file-drop fixture. This audit does not declare a release,
-  broader runtime support or completion of M3/M4.
+  additional Studio file-drop fixture. M3 local exit evidence is recorded below.
+  This audit does not declare a release, broader runtime support or completion of M4.
 - Matrix: Windows, Node 24.14.0, Bun 1.4.2, Headless Chrome 154; framework and
   compiler versions are recorded in [compatibility](../sdk/compatibility.md).
 
 ## Verification Basis
 
 The implementation, public exports and scenario assertions were inspected against
-each requirement. `bun run check` passed 53 tests with 699 assertions, strict root
+each requirement. At the original M1/M2 audit, `bun run check` passed 53 tests with 699 assertions, strict root
 and Svelte typechecks, package builds, documentation checks and an independently
 installed SDK tarball. The complete browser suite also passed with every scenario
 requiring its exact JSON `Result` return. Source echoes, console messages and a
@@ -72,6 +73,27 @@ placement and score calculation are not claimed by that probe.
 | Preserve original supported metadata/unknown properties while editing | Headless semantic round-trips and installed/Studio SGF reopens, including BPN ink and ordered branches | Verified for the compatibility contract |
 | Shared framework behavior, updates, mount/dispose and documented SSR boundary | All three real consumers, owned/shared controller retention, callbacks, swaps and remount; independent native artifact packaging | Verified; no separate adapter rules engine |
 
+## M3 Local Exit Evidence
+
+The M3 slices were added after the M1/M2 audit. Inspect their public contracts and
+focused fixtures separately; this does not change the older audit's test counts.
+The puzzle/view increment passed `bun run check`: 86 tests with 1,103 assertions,
+strict root/Svelte checks, builds, docs and installed headless/root/classic artifacts.
+Its `--puzzle-only` browser route completed the exact Result and produced the actual
+six-stone final SVG. Previously completed rule/scoring routes supply their own
+specific assertions and assets; the unrelated full browser matrix was not rerun
+for the isolated new puzzle view.
+
+| M3 requirement | Authoritative evidence | Boundary |
+| --- | --- | --- |
+| Superko and named profiles | Core/controller repetition fixtures, installed rule exports, mounted keyboard legality/rejection scenario; [ADR 0006](../adr/0006-explicit-repetition-and-rule-profile-boundaries.md) | Explicit policy coverage, no inferred `RU` or complete tournament adjudication |
+| Manual scoring/corrections | Scoring/pass fixtures, installed headless calculator, Studio group/input/preset scenario and identical before/after SGF downloads; [ADR 0007](../adr/0007-manual-scoring-and-named-profile-coverage.md) | Correct manual status/dame required; no automatic life/death or result persistence |
+| Authored accepted/rejected continuations and responses | Headless tree/legality tests, installed `puzzle` types/runtime and public `examples/puzzle` browser scenario | Explicit curated schema/response policy; unlisted legal moves permit retry without claiming objective failure |
+| Hints/restart/answer events and runnable consumer | Same puzzle scenario verifies real keyboard/touch, capture, pass, hints, outcomes, source retention, safe text, callbacks, diagrams and owned/borrowed lifecycle; [ADR 0008](../adr/0008-curated-puzzle-authoring-and-session.md) | Chrome 154/emulated mobile; no AI-generated responses or native framework Puzzle component claim |
+
+This provides M3 local exit evidence for the declared scope. M4 and release work
+remain open, and none of these checks establishes untested device compatibility.
+
 ## Remaining Work and Claim Boundaries
 
 1. Additional declared-encoding corpora remain useful follow-up evidence; current
@@ -85,9 +107,8 @@ placement and score calculation are not claimed by that probe.
    Named play/scoring presets and the headless manual scoring calculator now have
    focused and installed-artifact evidence. Studio's scoring consumer has Chrome
    group correction, counting/adjustment, mobile touch, context/lifecycle and unchanged
-   SGF download evidence. Headless authored puzzles now have targeted response,
-   hint/restart/event and invalid-definition evidence. Their browser view/runnable
-   consumer remains pending; these core slices do not close M3.
+   SGF download evidence. Headless authored puzzles and their view/runnable consumer
+   have targeted, installed and browser evidence; the M3 table records their scope.
 4. M4 remains unimplemented: provider-neutral/KataGo integration, display overlays,
    cancellation and complete position-context freshness checks.
 5. Registry ownership, intentional version promotion, third-party distribution

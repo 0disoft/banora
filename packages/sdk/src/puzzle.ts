@@ -18,7 +18,7 @@ export class PuzzleSession {
     const definition=this.#definition!,root=definition.nodes.get(definition.root)!;
     return Object.freeze({id:definition.id,title:definition.title,prompt:definition.prompt,player:definition.player,
       nodeId:root.id,position:definition.initial,status:'active',attempts:0,feedback:root.feedback,
-      path:Object.freeze([root.id]),line:Object.freeze([]),hints:Object.freeze([]),lastAnswer:null});
+      path:Object.freeze([root.id]),line:Object.freeze([]),hints:Object.freeze([]),remainingHints:root.hints.length,lastAnswer:null});
   }
   #assertLive(): void {if (this.#disposed) throw Error('PuzzleSession is disposed');}
   getState(): PuzzleState {this.#assertLive();return this.#state!;}
@@ -85,14 +85,14 @@ export class PuzzleSession {
       status:outcome==='correct' || outcome==='incorrect' ? outcome : 'active',attempts:before.attempts+1,
       feedback:outcome==='unlisted' ? 'This legal move is outside the authored answer tree. Try another move.' : feedback.join(' '),
       path:node ? Object.freeze(path) : before.path,line:node ? Object.freeze(line) : before.line,
-      hints:node ? Object.freeze([]) : before.hints,lastAnswer:answer});
+      hints:node ? Object.freeze([]) : before.hints,remainingHints:node ? node.hints.length : before.remainingHints,lastAnswer:answer});
     return this.#publish(state,Object.freeze({type:'answer',answer,state}));
   }
   requestHint(): PuzzleResult {
     const failure=this.#guard();if (failure) return {ok:false,reason:failure};
     const before=this.#state!,hint=this.#definition!.nodes.get(before.nodeId)!.hints[before.hints.length];
     if (!hint) return {ok:false,reason:'no-hint'};
-    const state=Object.freeze({...before,hints:Object.freeze([...before.hints,hint])});
+    const state=Object.freeze({...before,hints:Object.freeze([...before.hints,hint]),remainingHints:before.remainingHints-1});
     return this.#publish(state,Object.freeze({type:'hint',hint,state}));
   }
   restart(): PuzzleResult {
