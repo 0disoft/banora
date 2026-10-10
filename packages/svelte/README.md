@@ -52,3 +52,10 @@ confirmation on Board; use nested `board.touch` on Viewer. Release mode places o
 lift; null restores direct activation. Pending targets stay in the view, support
 keyboard refinement and cancel on configuration/context changes or unmount. They
 never enter SGF/diagrams. Ink takes priority; read-only views do not enter touch aiming.
+
+Compose two Board components with `nodeId`, `compareTo` and `referenceGeneration`
+(the snapshot's `recordGeneration`) for side-by-side comparisons. Pins display
+their own node/path without navigating/editing the shared controller. Missing/stale
+pins become unavailable and cannot export until restored/rebound. Viewer follows
+its cursor and accepts `board.compareTo`. The Svelte example demonstrates pinning,
+configuration updates, controller ownership and remounts.

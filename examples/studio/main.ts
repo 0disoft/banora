@@ -1,5 +1,5 @@
-import { RecordController, decodeSgf, mountBoard, parseSgf } from '@banora/sdk';
-import type { BoardRotation, CommandResult, ControllerState, MarkerKind, Point, SgfNode, TouchOptions } from '@banora/sdk';
+import { RecordController, decodeSgf, mountBoard, mountComparison, parseSgf } from '@banora/sdk';
+import type { BoardRotation, CommandResult, ComparisonView, ControllerState, MarkerKind, Point, SgfNode, TouchOptions } from '@banora/sdk';
 import sample from '../fixtures/study.sgf?raw';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -16,6 +16,7 @@ let filename = 'opening-study.sgf';
 let opening = false;
 let lastTreeState: { record: ControllerState['record']; id: string } | undefined;
 let connectionStart: { point: Point; node: string } | undefined;
+let comparison:ComparisonView|undefined;
 
 function report(result: CommandResult): void {
   if (!result.ok) status.textContent = result.diagnostics?.map(item => item.message).join('; ') ?? `Action rejected: ${result.reason.replaceAll('-', ' ')}.`;
@@ -208,10 +209,10 @@ function updateTouch() {
 }
 find('touch-mode').addEventListener('change',updateTouch);
 find('touch-magnifier').addEventListener('change',updateTouch);
-find<HTMLSelectElement>('theme').addEventListener('change', event => view.update({ theme: (event.target as HTMLSelectElement).value as 'wood' | 'flat' }));
-find<HTMLInputElement>('numbers').addEventListener('change', event => view.update({ moveNumbers: (event.target as HTMLInputElement).checked }));
-const transformView = () => view.update({transform:{rotation:Number(find<HTMLSelectElement>('rotation').value) as BoardRotation,
-  flipX:find<HTMLInputElement>('flip-x').checked}});
+find<HTMLSelectElement>('theme').addEventListener('change', event => {const theme=(event.target as HTMLSelectElement).value as 'wood'|'flat';view.update({theme});comparison?.update({board:{theme}});});
+find<HTMLInputElement>('numbers').addEventListener('change', event => {const moveNumbers=(event.target as HTMLInputElement).checked;view.update({moveNumbers});comparison?.update({board:{moveNumbers}});});
+const transformView = () => {const transform={rotation:Number(find<HTMLSelectElement>('rotation').value) as BoardRotation,
+  flipX:find<HTMLInputElement>('flip-x').checked};view.update({transform});comparison?.update({board:{transform}});};
 find('rotation').addEventListener('change', transformView);
 find('flip-x').addEventListener('change', transformView);
 async function exportDiagram(format: 'svg' | 'png') {
@@ -226,6 +227,19 @@ async function exportDiagram(format: 'svg' | 'png') {
 }
 find('svg-export').addEventListener('click', () => { void exportDiagram('svg'); });
 find('png-export').addEventListener('click', () => { void exportDiagram('png'); });
+find('compare').addEventListener('click',() => {
+  if (comparison) {comparison.dispose();comparison=undefined;find('comparison-panel').hidden=true;find('compare').textContent='Compare positions';}
+  else {
+    const state=controller.getState();find('comparison-panel').hidden=false;
+    comparison=mountComparison(find('comparison-board'),{controller,left:state.node.id,right:state.node.children[0]?.id ?? state.node.id,
+      board:{theme:find<HTMLSelectElement>('theme').value as 'wood'|'flat',moveNumbers:find<HTMLInputElement>('numbers').checked,
+        transform:{rotation:Number(find<HTMLSelectElement>('rotation').value) as BoardRotation,flipX:find<HTMLInputElement>('flip-x').checked}}});
+    find('compare').textContent='Close comparison';
+  }
+  find<HTMLButtonElement>('pin-left').disabled=find<HTMLButtonElement>('pin-right').disabled=!comparison;
+});
+find('pin-left').addEventListener('click',() => comparison?.update({left:controller.getState().node.id}));
+find('pin-right').addEventListener('click',() => comparison?.update({right:controller.getState().node.id}));
 games.addEventListener('change', () => report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id)));
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && connectionStart) { connectionStart = undefined; status.textContent = 'Connection cancelled.'; }
@@ -233,7 +247,7 @@ document.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); report(event.shiftKey ? controller.redo() : controller.undo()); }
 });
 window.addEventListener('beforeunload', event => { if (controller.getState().dirty) { event.preventDefault(); event.returnValue = ''; } });
-window.addEventListener('pagehide', event => { if (!event.persisted) { view.dispose(); unsubscribe(); controller.dispose(); } });
+window.addEventListener('pagehide', event => { if (!event.persisted) { comparison?.dispose();view.dispose(); unsubscribe(); controller.dispose(); } });
 let dragDepth = 0;
 document.addEventListener('dragover', event => { if (event.dataTransfer?.types.includes('Files')) event.preventDefault(); });
 document.addEventListener('dragenter', event => { if (event.dataTransfer?.types.includes('Files')) { dragDepth++; document.body.classList.add('dragging'); } });

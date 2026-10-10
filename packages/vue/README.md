@@ -52,3 +52,10 @@ Viewer for magnified touch aiming and confirmation. Release mode places on lift;
 null restores direct activation. Pending targets stay in the view, can be refined
 with keyboard arrows, and are cancelled by configuration/context changes or
 unmount. Ink takes priority; read-only views do not enter touch aiming.
+
+Compose two Board components with `nodeId`, `compareTo` and `referenceGeneration`
+(the snapshot's `recordGeneration`) for read-only side-by-side comparisons.
+Pins display their own node/path without navigating/editing the shared controller;
+missing/stale pins become unavailable and cannot export until restored/rebound.
+Viewer follows its cursor and accepts `board.compareTo`. The Vue example includes
+pinning, configuration updates, ownership and remounts using the public API.

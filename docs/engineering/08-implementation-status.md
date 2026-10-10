@@ -34,7 +34,10 @@ An implemented slice does not complete its milestone or establish untested compa
   boards with selectors/comments and added/removed/replaced highlights. Chrome 154
   checks eight crops/transforms, SVG/PNG pixels, atomic updates, missing-node recovery,
   import generations, deep selection beyond 500 nodes and borrowed-controller cleanup.
-  Studio and native adapter comparison controls are the next consumer increment.
+  Studio exposes comparison selectors, pin-current controls and shared presentation
+  settings. React/Vue/Svelte compose pinned native Boards and pass separate production
+  checks for selection, read-only input, transforms, main-cursor independence,
+  owner changes and unmount/remount. Packed component types/SSR include these props.
 - Freehand record model: node-local, immutable fractional strokes use the bounded
   version-1 BPN extension, with add/remove/clear, independent Undo units and SGF
   export/reopen. Headless checks cover unsafe/malformed imports, per-node limits,
@@ -112,8 +115,8 @@ An implemented slice does not complete its milestone or establish untested compa
    The classic browser distribution also has package/client evidence.
    Freehand storage/input, rotation/reflection and SVG/PNG static diagrams are implemented.
    Remaining teaching/presentation tools and sharing remain to be delivered;
-   Magnified touch placement is implemented; animation/textures and variation
-   comparison are still pending.
+   Magnified touch placement and position comparison are implemented;
+   animation/textures and node/record sharing are still pending.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 

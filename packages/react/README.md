@@ -48,6 +48,14 @@ Null restores direct activation. Pending targets are view-only, keyboard-refinab
 and cancelled by configuration/context changes or unmount; they never enter SGF
 or diagrams. Ink takes priority, and read-only views do not enter touch aiming.
 
+Compose two Board components with `nodeId`, `compareTo` and `referenceGeneration`
+from the controller snapshot's `recordGeneration` for side-by-side comparisons.
+Pinned boards display their own node/path and differences without navigating or
+editing the shared controller. Missing/stale pins become unavailable; their images
+cannot be exported until restored/rebound. Viewer follows its cursor and accepts
+`board.compareTo` for a reference overlay. The React example demonstrates pinning,
+configuration updates, controller ownership and remounts.
+
 The framework owns the empty container; the SDK owns its descendants. SSR emits
 only containers; board DOM mounts in client effects. Supply matching record content
 on server/client for state hydration. Rendered board HTML hydration is deferred.

@@ -32,6 +32,7 @@ UNDECIDED and must not be claimed without consumer evidence.
 | Classic browser script | Modern browser, global `Banora` namespace | Chrome 154 standalone viewer/edit/remount flows and packed global declarations checked |
 | SVG/PNG diagrams | Mounted browser board/viewer | Chrome 154 standalone XML, real PNG dimensions/pixels, errors and cancellation checked |
 | Magnified touch placement | Browser Pointer Events/SVG; optional confirmation | Chrome 154 mobile touch emulation in Studio and React/Vue/Svelte; physical devices untested |
+| Position comparison | Common pinned SVG boards and native adapter composition | Chrome 154 Studio/React/Vue/Svelte flows; differences, exports, deletion/import generations and lifecycle checked |
 | React adapter | React 19, client effects and server host rendering | React/react-dom 19.3.0; production lifecycle/Strict Mode and packed types/SSR checked |
 | Vue adapter | Vue 3, client mount and server host rendering | Vue 3.5.43; production refs/lifecycle and packed types/SSR checked |
 | Svelte adapter | Svelte 5, native components and server host rendering | Svelte 5.57.2; production lifecycle and native tarball types/SSR checked |
@@ -58,6 +59,13 @@ remain outside the current evidence.
 Framework-independent browser use and official framework wrappers are separate
 claims. A shared DOM mount API enables integration, but each wrapper's reactivity,
 cleanup, SSR boundary and packaging must be verified before claiming support.
+Comparison uses the common `mountComparison` view or native Board composition;
+it introduces no separate framework rules or record engine. The selective
+`@banora/sdk/comparison` export imports safely on Node and mounts only in a browser.
+All three native Board components forward node/reference/generation options, with
+independent installed-artifact types/SSR and real production comparison flows.
+Different-sized games are displayed without a diff. Selectors are bounded to 500
+nodes plus selections; missing/deleted nodes and recycled IDs are handled explicitly.
 React, Vue, and Svelte consumers must not load one another's framework dependencies.
 Keep native component packaging isolated from the core's TypeScript build; choose
 actual peer dependency metadata, artifact formats and compiler versions during M2.

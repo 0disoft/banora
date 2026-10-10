@@ -5,6 +5,8 @@
   import type { BoardRotation, BoardView, ControllerState, ViewerView } from '@banora/sdk';
   import { downloadDiagram } from '../diagram-download.js';
   import sample from '../fixtures/study.sgf?raw';
+  import { describeComparison,pinComparison,startComparison } from '../comparison-pair.js';
+  import type { ComparisonPair } from '../comparison-pair.js';
 
   const records = [new RecordController({ sgf: sample }), new RecordController({ sgf: '(;SZ[13]GN[Second record];B[dd];W[jj])' })];
   let controller = $state.raw(records[0]!);
@@ -16,6 +18,8 @@
   const drawing = $derived(ink ? {color:'#cc5522',width:0.12} : null);
   let confirmTouch=$state(false),magnifier=$state(true);
   const touch=$derived({mode:confirmTouch ? 'confirm' as const : 'release' as const,magnifier});
+  let comparison=$state.raw<ComparisonPair|null>(null);
+  const pair=$derived(comparison?.controller===controller ? comparison : null);
   const transform = $derived({rotation,flipX});
   let boardView = $state.raw<BoardView | ViewerView | null>(null), viewerView = $state.raw<BoardView | ViewerView | null>(null);
   let error = $state('');
@@ -58,10 +62,23 @@
     <button id="svg" disabled={!mounted || !viewerView} onclick={() => downloadDiagram(viewerView,'svg','svelte-viewer.svg').catch(result => error=String(result))}>Save viewer SVG</button>
   </div>
   {#if mounted}
+    <div class="controls">
+      <button id="compare" onclick={() => comparison=pair ? null : startComparison(controller)}>{pair ? 'Close comparison' : 'Compare positions'}</button>
+      <button id="pin-left" disabled={!pair} onclick={() => {if (pair) comparison=pinComparison(pair,'left');}}>Pin current on left</button>
+      <button id="pin-right" disabled={!pair} onclick={() => {if (pair) comparison=pinComparison(pair,'right');}}>Pin current on right</button>
+    </div>
     <div class="boards">
       <section id="board-host"><Board {controller} {readOnly} {transform} {drawing} {touch} theme={flat ? 'flat' : 'wood'} onStateChange={callbackB ? reportB : reportA} onView={bindBoard}/></section>
       <section id="viewer-host"><Viewer {controller} editable={!readOnly} onView={bindViewer} board={{ transform, drawing, touch, theme: flat ? 'flat' : 'wood' }}/></section>
     </div>
     <section id="owned-board" style="max-width:350px"><h2>Optional owned controller</h2><Board {readOnly} {transform} {drawing} {touch} theme={flat ? 'flat' : 'wood'}/></section>
+    {#if pair}
+      <section id="comparison-host"><h2>Position comparison</h2><p id="comparison-summary">{describeComparison(pair,$recordStore)}</p>
+        <div class="boards">
+          <section id="compare-left"><Board {controller} nodeId={pair.left} compareTo={pair.right} referenceGeneration={pair.generation} {transform} theme={flat ? 'flat' : 'wood'}/></section>
+          <section id="compare-right"><Board {controller} nodeId={pair.right} compareTo={pair.left} referenceGeneration={pair.generation} {transform} theme={flat ? 'flat' : 'wood'}/></section>
+        </div>
+      </section>
+    {/if}
   {:else}<p>Widgets unmounted. The controller remains active.</p>{/if}
 </main>
