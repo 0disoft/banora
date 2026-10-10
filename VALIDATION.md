@@ -34,7 +34,7 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | docs | `bun run docs` | English documentation, LF endings and relative links |
 | smoke | `bun run smoke` | SDK build, isolated tarball install, strict ESM/headless/global declarations and Node public-export/classic VM execution |
 | smoke (adapters) | `bun run smoke:adapters` | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR |
-| smoke (starter) | `bun run smoke:starter` | Copyable standalone app, isolated npm SDK/tools installation, independent strict types and production build |
+| smoke (starter) | `bun run smoke:starter` | Copyable standalone app, isolated npm SDK/tools installation, independent strict types/build, actual browser editing/download/reopen, guards and keyboard/emulated touch |
 | smoke (browser) | `bun run smoke:browser` | Studio/viewer and framework consumers; editing/ink round-trips, touch, comparisons, embedded sharing/guards/clipboard, transforms/input, diagrams, encoding/cancellation and lifecycle |
 | check | `bun run check` | SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
 
@@ -46,6 +46,13 @@ are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
+Standalone smoke is also separate: it copies `examples/standalone`, installs the
+SDK tarball and independent tools with npm lifecycle scripts disabled, then serves
+that consumer's production build through its own temporary localhost server.
+It requires `banora-standalone-complete` in the actual CLI Result, downloaded SGF
+preservation and outgoing Save & open content. For a focused rerun of an already
+built copy, `bun scripts/starter-browser-smoke.ts .tmp/standalone-consumer-<id>`
+uses the same server/session cleanup; it accepts only consumers under `.tmp`.
 After building, `bun scripts/browser-smoke.ts --rules-only` selects the mounted
 simple/none/positional/situational repetition fixture, actual keyboard play,
 rejection announcements, immutable state/events, setup epochs, recorded navigation

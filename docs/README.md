@@ -11,6 +11,10 @@
 5. [SDK contract](sdk/README.md): consumer-facing API and compatibility direction.
 6. [Development](../DEVELOPMENT.md): implementation and validation approach.
 
+To build an application, start with the
+[standalone record editor guide](../examples/standalone/README.md). It explains
+the unpublished SDK tarball installation and a complete editing/save/reopen flow.
+
 The first consumer is **Banora Studio**, implemented at `examples/studio`, plus a
 minimal read-only embedding example. Read the
 [first consumer decision](adr/0003-studio-first-consumer.md) for their role and

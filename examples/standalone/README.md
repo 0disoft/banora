@@ -4,6 +4,7 @@ A small TypeScript/Vite application using only Banora's public package exports.
 Copy this directory into your own project. It has its own package manifest,
 TypeScript configuration, styles and original SGF sample; no workspace aliases,
 parent configuration, framework or server service is required.
+Keep the included [MIT notice](LICENSE) when copying or redistributing this starter.
 
 ## Install the unpublished SDK
 
@@ -17,7 +18,9 @@ bun pm pack --cwd packages/sdk --filename .tmp/banora-sdk.tgz --ignore-scripts
 ```
 
 Create `.tmp` before packing if it does not exist. Alternatively, run
-`bun run smoke:starter` to produce a fully installed and built copy under `.tmp/`.
+`bun run smoke:starter` to produce a fully installed and built copy under `.tmp/`
+and exercise it in a compatible Playwright CLI browser. Browser installation is
+required for that smoke command, but not for this application's install/build.
 
 Copy this entire directory to a new folder outside the Banora repository and
 copy the resulting SDK tarball into that folder as `sdk.tgz`. Then, from the copy:
@@ -69,3 +72,15 @@ Use the selective `controller`, `sgf` and `viewer` exports to keep unrelated
 puzzle, scoring and analysis modules out of this app. See the
 [public API](../../docs/sdk/public-api.md) for the exact contracts. React, Vue and
 Svelte remain optional; this example does not change their existing support.
+
+## Recorded validation
+
+The standalone npm installation passes its own strict typecheck and production
+build on Node 24.14.0, TypeScript 7.0.2 and Vite 8.3.4. Chrome browser verification
+uses only the built application and public UI: opening SGF with setup/Unicode,
+selecting original variations, keyboard continuation, comment Undo/Redo, actual
+download and reopen, read-only navigation, all replacement choices, malformed
+SGF/encoding and oversized input retention. Mobile touch/layout is emulated.
+Screenshots and outgoing SGF content are inspected; the exact completed scenario
+Result is required. This is local consumer evidence, not physical-device or broad
+browser support. Source SGF fixtures are locally authored.

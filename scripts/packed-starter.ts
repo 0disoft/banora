@@ -1,11 +1,15 @@
 import {copyFile, mkdir, mkdtemp, readFile, realpath} from 'node:fs/promises';
 import {resolve, sep} from 'node:path';
+import {smokeStarter} from './starter-browser-smoke.js';
 
 const root = resolve(import.meta.dirname, '..');
 await mkdir(resolve(root, '.tmp'), {recursive: true});
 const directory = await mkdtemp(resolve(root, '.tmp/standalone-consumer-'));
-const files = ['package.json', 'tsconfig.json', 'vite.config.ts', 'index.html', 'main.ts', 'style.css', 'sample.sgf', 'README.md'];
+const files = ['package.json', 'tsconfig.json', 'vite.config.ts', 'index.html', 'main.ts', 'style.css', 'sample.sgf', 'README.md', 'LICENSE'];
 for (const file of files) await copyFile(resolve(root, 'examples/standalone', file), resolve(directory, file));
+if (await readFile(resolve(directory, 'LICENSE'), 'utf8') !== await readFile(resolve(root, 'LICENSE'), 'utf8')) {
+  throw Error('Copyable starter lost its original MIT notice');
+}
 
 async function run(command: string[], cwd: string): Promise<void> {
   const child = Bun.spawn(command, {cwd, stdout: 'pipe', stderr: 'pipe'});
@@ -36,3 +40,4 @@ await run(['npm', 'run', 'build'], directory);
 const html = await readFile(resolve(directory, 'dist/index.html'), 'utf8');
 if (!html.includes('My Go record editor') || !html.includes('./assets/')) throw Error('Standalone build did not emit relative static assets');
 console.log(`Standalone installed SDK, local tools, strict types and production build passed: ${directory}`);
+if (process.argv.includes('--browser')) await smokeStarter(directory);

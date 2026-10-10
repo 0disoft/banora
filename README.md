@@ -17,7 +17,8 @@ implementation, consumer evidence and remaining release/compatibility boundaries
 To start your own app, use the [standalone record editor](examples/standalone/README.md).
 It provides an independent TypeScript/Vite project and explicit local-tarball install
 instructions while the SDK is unpublished. `bun run smoke:starter` installs a copy
-with npm and checks its own types and production build without workspace aliases.
+with npm and checks its own types, production build and browser editing/reopen flow
+without workspace aliases. Browser checks require a compatible Playwright CLI browser.
 
 Use Bun 1.x and Node 24.x. Run `bun install`, then `bun run check` for strict
 typechecking, behavior tests, documentation checks and an ESM/declaration build.

@@ -257,6 +257,16 @@ prove browser/framework compatibility. Future increments update this evidence ta
 
 ## Browser Limitations
 
+The post-delivery [standalone starter](../../examples/standalone/README.md) provides
+a copyable application with independent manifest/config/styles/SGF and selective
+public imports. Its isolated npm tarball/tool install, strict TypeScript and static
+production build pass; Chrome verifies real file opening, original/new branches,
+comments/Undo, download/reopen, read-only mode, Cancel/Save/Discard guards and
+invalid SGF/encoding/size retention. Keyboard and emulated mobile touch/layout pass,
+with inspected screenshots and downloaded content. `smoke:starter` requires the
+exact completed CLI Result and closes its own server/session. Actual physical
+devices, live KataGo and package publication remain separate.
+
 Studio's custom Export/Discard/Cancel dialog applies to its record replacement
 actions. Tab closing/reloading uses the browser's native unsaved-change warning;
 the browser controls that dialog and may suppress it. Download initiation updates
