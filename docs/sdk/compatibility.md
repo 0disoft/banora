@@ -30,7 +30,7 @@ UNDECIDED and must not be claimed without consumer evidence.
 | React adapter | Client-mounted React applications | React 19 target; peer minimums and consumer evidence pending |
 | Vue adapter | Client-mounted Vue applications | Vue 3 target; peer minimums and consumer evidence pending |
 | Svelte adapter | Client-mounted Svelte applications | Svelte 5 target; compiler/artifact details and consumer evidence pending |
-| Bun | Development/package scripts | Tool version UNDECIDED; consumer runtime support unclaimed |
+| Bun | Development/package scripts | Bun 1.x; checked with 1.4.2; consumer runtime support unclaimed |
 | AI adapter | Host-selected engine/service transport | Protocol/version matrix UNDECIDED |
 
 Headless imports must not reference browser globals at module initialization.
@@ -80,5 +80,6 @@ ships. Verify client-only DOM creation, update propagation, remount cleanup and 
 types/artifacts rather than inferring compatibility from the plain-browser example.
 Scope checks and releases to changed packages and affected consumers; common SDK
 changes may require adapter checks, but unrelated edits do not require a full matrix.
-Record the actual runtime versions tested. No release version or automatic bump applies while this
-repository contains only its design scaffold.
+Record actual tested runtime versions in the [implementation status](../engineering/08-implementation-status.md).
+The common package is `0.1.0-dev.0`; no automatic version bump or publication is
+configured. Version changes belong to an intentional release task.

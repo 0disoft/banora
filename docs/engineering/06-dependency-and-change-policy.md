@@ -1,6 +1,6 @@
 # Dependency and Change Policy
 
-- Status: Planned policy; no SDK dependency graph exists yet
+- Status: Active policy; common SDK has no runtime dependencies
 - Contract: [Compatibility](../sdk/compatibility.md)
 - Technical owner: UNASSIGNED
 
@@ -16,7 +16,8 @@ framework's adapter. Resolve peer/compiler metadata with real consumer builds.
 Use explicit compatible major-version ranges and accept stable updates within a
 supported major line. Lockfiles record exact build inputs. Promote a new major
 intentionally after the affected consumer examples and compatibility checks pass.
-Exact initial dependency versions are UNDECIDED until tooling is added.
+Tooling currently follows Bun 1.x, TypeScript 7.x and Vite 8.x. Root devDependencies
+and bun.lock record the build graph; framework dependencies will remain isolated.
 
 ## Changes and Releases
 

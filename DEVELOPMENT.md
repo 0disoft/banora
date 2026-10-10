@@ -1,6 +1,6 @@
 # Development
 
-- Status: Implementation plan; no executable development workflow configured
+- Status: Active SDK implementation; local checks configured in [VALIDATION.md](VALIDATION.md)
 - Technical owner: UNASSIGNED
 
 ## Sources of Truth
@@ -20,8 +20,9 @@ for library/demo builds, and Bun for dependency installation and package scripts
 Use one common SDK package in M1 and three separate optional React, Vue and Svelte
 adapter packages in M2, all in this repository. Initial compatibility targets are
 Node 24 LTS, React 19, Vue 3 and Svelte 5; actual consumer evidence is still pending.
-Exact tool versions, test runner, npm names/exports, adapter artifact details and
-executable commands remain UNDECIDED until implementation starts.
+The common SDK uses the local development name `@banora/sdk`; it is unpublished.
+Bun's test runner and root scripts are configured. Adapter names/exports and native
+artifact details remain UNDECIDED until their implementation starts.
 
 Keep the workflow usable on Windows and Unix-like environments. Provide package
 scripts for actual development/build/validation tasks; Make is not required.
@@ -72,13 +73,14 @@ or implemented by this decision.
   only the CI jobs needed for actual consumer and release risks.
 - Review dependency major upgrades against relevant examples and packed consumers.
 
-The current ssealed runner is `none`. Stable validation names in VALIDATION.md
-are reporting vocabulary, not executable scripts. Unconfigured checks must be
-reported as skipped rather than treated as passing.
+Use the root Bun scripts in VALIDATION.md. Tooling is Bun 1.x, TypeScript 7.x and
+Vite 8.x, with Node 24.x as the initial headless consumer target. No hosted CI
+has been configured. Unconfigured checks are skipped, not reported as passing.
 
 ## Release Readiness
 
 Before publishing, establish MIT licensing and asset provenance, actual package
 exports/types, tested runtime versions, consumer examples and migration policy.
-No source implementation, package publication or hosted service is authorized
-by a design-document update alone.
+The user's implementation delegation authorizes SDK and example development.
+Package publication and hosted deployment are separate actions. See the
+[implementation status](docs/engineering/08-implementation-status.md) for evidence.

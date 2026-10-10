@@ -1,0 +1,19 @@
+{
+  "name": "banora-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "vite build --config packages/sdk/vite.config.ts && tsc -p packages/sdk/tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test packages",
+    "docs": "bun scripts/check-docs.ts",
+    "check": "bun run typecheck && bun run test && bun run docs && bun run build"
+  },
+  "devDependencies": {
+    "@types/bun": "1.x",
+    "typescript": "7.x",
+    "vite": "8.x"
+  },
+  "engines": {"node": ">=24 <25"}
+}

@@ -1,6 +1,6 @@
 # Banora SDK
 
-- Status: Planned contract; no package published or API implemented by this design
+- Status: Headless core implemented; other contracts planned; no package published
 - Technical owner: UNASSIGNED
 
 ## Sources of Truth

@@ -3,9 +3,17 @@
 A modular TypeScript SDK for building Go (Baduk/Weiqi) boards, game viewers,
 editors, puzzles, and analysis interfaces.
 
-**Status: design stage.** This repository currently contains design documents,
-not a working SDK. The capabilities below are planned; installation instructions,
-published packages, and supported runtime versions are not yet available.
+**Status: early implementation.** A headless TypeScript rules engine is implemented;
+Studio, SGF editing and framework adapters are in progress. Nothing is published yet.
+The capabilities below describe the complete direction, not shipped support claims.
+See [implementation status](docs/engineering/08-implementation-status.md).
+
+## Local Development
+
+Use Bun 1.x and Node 24.x. Run `bun install`, then `bun run check` for strict
+typechecking, behavior tests, documentation checks and an ESM/declaration build.
+The common SDK lives at `packages/sdk`; current exports are documented in the
+[public API](docs/sdk/public-api.md). No framework or remote service is required.
 
 ## Direction
 
@@ -51,9 +59,9 @@ targets; tested support has not yet been established.
 
 ## Open Source Direction
 
-The intended license for original SDK code and bundled assets is MIT. A license
-file and asset provenance must be established before distribution; this design
-statement does not itself license any files or third-party components.
+Original SDK code and documentation use the [MIT license](LICENSE). Current assets
+are authored in this repository; there are no bundled textures, fonts or third-party
+runtime assets. Audit additional asset provenance before distribution.
 
 Hosted analysis, storage, and collaborative review are possible future services.
 The SDK's local board, rules, and record functionality should work independently

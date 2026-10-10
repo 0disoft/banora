@@ -1,11 +1,29 @@
 # SDK Public API
 
-- Status: Proposed API responsibilities; exact symbols/signatures UNDECIDED
+- Status: Core API implemented; remaining surfaces proposed
 - Product contract: [Specification](../product/02-spec.md)
 - Architecture: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 - Initial contracts: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
 
-## Logical API Surfaces
+## Implemented Core Exports
+
+After `bun run build`, `@banora/sdk/core` and the root export expose:
+
+- `createPosition({ width?, height?, toPlay?, rules? })`: immutable position;
+  dimensions are integers from 2 to 52, defaulting to 19 square. Invalid options throw.
+- `play(position, { x, y }, color?)`, `pass(position, color?)` and
+  `setup(position, stones, toPlay?)`: structured `MoveResult`, with a new immutable
+  position on success and a typed reason on failure. Setup is atomic and clears ko.
+- `stoneAt(position, point)`, `isOnBoard(position, point)` and `opposite(color)`.
+- `Color`, `Point`, `RulePolicy`, `Position`, `PositionOptions`, `SetupStone`,
+  `MoveResult` and `MoveFailure` types, with declarations included in the build.
+
+Rules currently expose `suicide: 'forbid' | 'allow'` and `ko: 'simple' | 'none'`.
+The defaults forbid suicide and enforce simple ko. Named profiles, superko and
+scoring are not implemented. Snapshots freeze their board, captures and rule policy.
+Move color defaults to the current turn; a mismatched color is rejected.
+
+## Planned Logical API Surfaces
 
 | Surface | Responsibility |
 | --- | --- |
@@ -18,7 +36,8 @@
 | Puzzles | Authored answers, scripted responses, hints, restart and feedback |
 | Analysis | Provider requests/results, cancellation, freshness and overlay normalization |
 
-These are responsibilities, not finalized npm subpaths or exported type names.
+Except for the implemented core above, these are responsibilities, not finalized
+npm subpaths or exported type names.
 Resolve names while implementing the first consumer example, then document actual
 signatures here before publication.
 

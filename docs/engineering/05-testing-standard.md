@@ -1,6 +1,6 @@
 # Testing Standard
 
-- Status: Planned evidence; test tooling and commands are not configured
+- Status: Core behavior tests configured; later milestone evidence remains planned
 - Validation names: [VALIDATION.md](../../VALIDATION.md)
 - Required behavior: [Product specification](../product/02-spec.md)
 
@@ -37,6 +37,6 @@ batch validated pushes/releases to avoid redundant runner usage.
 
 ## Current Scaffold State
 
-Runner `none` provides no executable test/lint/typecheck/build jobs. Record manual
-documentation checks as manual evidence. Report automated validation names as
-skipped until their commands are genuinely configured; do not invent passing jobs.
+Root Bun scripts configure `test`, `typecheck`, `docs` and `check`, including the
+SDK build. See VALIDATION.md for commands. `lint` and browser `smoke` are not yet
+configured. Report only checks actually run; later-stage coverage remains required.

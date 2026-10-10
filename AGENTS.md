@@ -4,9 +4,11 @@
 
 Scope: general
 
-This repository owns product, architecture, ADR, engineering, and operational design scaffolds.
+This repository owns the Banora SDK, consumer examples, and their product,
+architecture, engineering and operational contracts.
 
-This scaffold does not generate implementation source code; any existing source remains project-owned.
+Implementation is authorized by the user's full delegation. Deliver the documented
+milestones in cohesive increments; do not describe planned capabilities as shipped.
 
 ## Repository Shape
 
@@ -26,7 +28,8 @@ This scaffold does not generate implementation source code; any existing source 
 
 ## Hard Rules
 
-- Do not generate or infer application source code from this scaffold.
+- Implement against docs/product/02-spec.md and the recorded ADRs. Update the
+  owning contract when selecting previously unresolved implementation details.
 - Do not invent technology choices. Use UNDECIDED when a decision is not known.
 - Do not create fake credentials, tokens, secrets, or private values.
 - Do not rely on generated, cache, or build output as source truth.
@@ -47,7 +50,7 @@ This scaffold does not generate implementation source code; any existing source 
 
 ## Out of Scope
 
-- Application source scaffolding.
+- Unrelated applications or features outside the documented SDK/example scope.
 - Runtime infrastructure such as Docker, Kubernetes, Terraform, or framework apps.
 - Project-specific credentials or deployment secrets.
 

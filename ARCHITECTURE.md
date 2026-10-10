@@ -1,6 +1,6 @@
 # Architecture
 
-- Status: Planned architecture; implementation not started
+- Status: Architecture baseline; headless core implemented, other surfaces pending
 - Decision: [ADR 0001](docs/adr/0001-initial-architecture-boundaries.md)
 - Framework support: [ADR 0004](docs/adr/0004-framework-independent-adapters.md)
 - Initial contracts: [ADR 0005](docs/adr/0005-initial-api-record-and-package-contracts.md)
@@ -19,7 +19,8 @@
 | AI integration | Provider adapter; external KataGo JSON analysis candidate | Analysis display without bundling an AI engine |
 
 Initial compatibility targets are Node 24 LTS, React 19, Vue 3 and Svelte 5; tested
-support remains pending. Exact tooling versions and exported symbols remain UNDECIDED.
+support remains pending. Tooling uses Bun 1.x, TypeScript 7.x and Vite 8.x.
+Core exports are documented; later public symbols remain UNDECIDED.
 Bun is a development choice,
 not a required runtime for SDK consumers. Make is not required for the planned
 developer workflow.

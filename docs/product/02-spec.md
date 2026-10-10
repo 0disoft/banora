@@ -1,6 +1,6 @@
 # Product Specification
 
-- Status: Planned design baseline; no capabilities implemented yet
+- Status: Design baseline with partial implementation; see [current evidence](../engineering/08-implementation-status.md)
 - Technical owner: UNASSIGNED
 - Delivery sequence: [Roadmap](01-roadmap.md)
 - Architecture decisions: [ADR index](../adr/README.md)
