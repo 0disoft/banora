@@ -11,5 +11,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["packages/**/*.ts", "scripts/**/*.ts", "examples/**/*.ts"]
+  "include": ["packages/**/*.ts", "scripts/**/*.ts", "examples/**/*.ts"],
+  "exclude": ["**/dist/**", "packages/svelte/src"]
 }

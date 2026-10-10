@@ -1,0 +1,29 @@
+<script lang="ts">
+  import { untrack } from 'svelte';
+  import { mountBoard, mountViewer } from '@banora/sdk';
+  import type { BoardOptions, BoardView, RecordController, ViewerOptions, ViewerView } from '@banora/sdk';
+  import type { ContainerProps } from './types.js';
+
+  interface Props extends ContainerProps {
+    kind: 'board' | 'viewer';
+    controller?: RecordController;
+    options: BoardOptions | ViewerOptions;
+  }
+  let { kind, controller, options, onStateChange, class: className, style, ariaLabel }: Props = $props();
+  let container = $state<HTMLElement>();
+  let view = $state.raw<BoardView | ViewerView | null>(null);
+  $effect(() => {
+    const selectedController = controller;
+    const mode = kind;
+    const target = container;
+    if (!target) return;
+    const mounted = untrack(() => mode === 'board' ? mountBoard(target, { ...options as BoardOptions, controller: selectedController }) :
+      mountViewer(target, { ...options as ViewerOptions, controller: selectedController }));
+    const unsubscribe = untrack(() => mounted.controller.subscribe(state => onStateChange?.(state)));
+    view = mounted;
+    return () => { unsubscribe(); mounted.dispose(); view = null; };
+  });
+  $effect(() => { view?.update(options); });
+</script>
+
+<div bind:this={container} class={className} {style} aria-label={ariaLabel}></div>

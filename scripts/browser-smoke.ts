@@ -33,6 +33,10 @@ try {
   await cli('snapshot');
   const scenario = await readFile(resolve(root, 'scripts/browser-scenario.js'), 'utf8');
   await cli('run-code', scenario);
+  const frameworks = await readFile(resolve(root, 'scripts/framework-scenario.js'), 'utf8');
+  await cli('snapshot');
+  await cli('run-code', frameworks);
+  console.log('Framework browser smoke passed: React Strict Mode, Vue refs, Svelte updates, callbacks, owned/shared controllers and unmount/remount.');
   const exported = await readFile(resolve(output, 'browser-roundtrip.sgf'), 'utf8');
   if (!exported.includes('XG[Banora original sample]')) throw new Error('Unknown property lost in browser export');
   console.log('Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.');

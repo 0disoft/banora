@@ -1,6 +1,6 @@
 # SDK Compatibility
 
-- Status: Planned policy; initial targets selected, tested support not established
+- Status: Initial ESM/headless, browser and framework consumer evidence; broader matrix pending
 - Decision: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
 
 ## Distribution Direction
@@ -12,24 +12,26 @@ Optional analysis, puzzle and renderer code must be excluded when the consumer
 does not import it.
 
 M1 validates the ESM/type package through Studio, a read-only browser example, and
-a headless consumer. React, Vue, and Svelte adapters and browser script distribution
-follow in M2; they must not block the first Studio release.
+a headless consumer. React, Vue, and Svelte adapters have an implemented M2 slice;
+browser script distribution remains pending.
 
 Use one repository with one common SDK package and three separate optional adapter
 packages: React, Vue and Svelte. Logical core/record/renderer modules may use selective
-entrypoints within the common SDK; they are not separate release units. Exact npm
-names, entrypoints and exported symbols remain UNDECIDED. CommonJS support is
+entrypoints within the common SDK; they are not separate release units. Development
+names are `@banora/sdk`, `@banora/react`, `@banora/vue` and `@banora/svelte`; none
+is published and these names do not claim registry ownership. Actual symbols are
+listed in the [public API](public-api.md). CommonJS support is
 UNDECIDED and must not be claimed without consumer evidence.
 
 ## Runtime Boundaries
 
 | Surface | Intended environment | Support status |
 | --- | --- | --- |
-| Core and SGF | Browser and Node.js, no DOM required | Initial Node 24 LTS target; browser floors and tested evidence pending |
+| Core and SGF | Browser and Node.js, no DOM required | Node 24.14.0 packed consumer and Chrome 154 browser flows; broader floors pending |
 | SVG renderer and Studio | Browsers with the required SVG/input APIs | Production flows checked on Windows Headless Chrome 154; broader matrix pending |
-| React adapter | Client-mounted React applications | React 19 target; peer minimums and consumer evidence pending |
-| Vue adapter | Client-mounted Vue applications | Vue 3 target; peer minimums and consumer evidence pending |
-| Svelte adapter | Client-mounted Svelte applications | Svelte 5 target; compiler/artifact details and consumer evidence pending |
+| React adapter | React 19, client effects and server host rendering | React/react-dom 19.3.0; production lifecycle/Strict Mode and packed types/SSR checked |
+| Vue adapter | Vue 3, client mount and server host rendering | Vue 3.5.43; production refs/lifecycle and packed types/SSR checked |
+| Svelte adapter | Svelte 5, native components and server host rendering | Svelte 5.57.2; production lifecycle and native tarball types/SSR checked |
 | Bun | Development/package scripts | Bun 1.x; checked with 1.4.2; consumer runtime support unclaimed |
 | AI adapter | Host-selected engine/service transport | Protocol/version matrix UNDECIDED |
 
@@ -46,6 +48,31 @@ cleanup, SSR boundary and packaging must be verified before claiming support.
 React, Vue, and Svelte consumers must not load one another's framework dependencies.
 Keep native component packaging isolated from the core's TypeScript build; choose
 actual peer dependency metadata, artifact formats and compiler versions during M2.
+
+## Framework Artifact Evidence
+
+Adapters peer-depend on `@banora/sdk` (`>=0.1.0-dev.0 <1`) and only their own
+framework major (`19.x`, `3.x`, `5.x` respectively). Framework runtimes are not
+bundled into adapter artifacts. Independent tarball installations verify that the
+other two frameworks are absent, declarations resolve and license/README files ship.
+React/Vue ESM builds use Vite 8.x and root TypeScript 7.x declarations. Svelte native
+components use `@sveltejs/package` 3.0.0, `svelte-check` 4.7.6 and isolated TypeScript
+6.0.3 because those tools' peer contracts do not yet accept TypeScript 7. Their
+isolation preserves the root/core toolchain. The examples use the Svelte Vite plugin
+7.3.1. These are actual checked versions, not proof of every version within a major.
+
+`bun run smoke:adapters` uses npm from Node 24 to install isolated tarballs and
+checks each framework's actual server rendering without DOM globals. Bun 1.4.2
+attempts a registry lookup when resolving the unpublished SDK peer from simultaneous
+local tarballs; npm correctly binds the supplied artifact. Workspace installation
+and build remain Bun-based. Svelte SSR is compiled with its native Vite plugin;
+plain Node cannot directly execute `.svelte` files.
+
+Production examples verify shared and owned state, configuration changes, latest
+callbacks, controller replacement, unsubscribe/remount and edit Undo. React's
+consumer enables Strict Mode; Vue's consumer intentionally uses an ordinary ref.
+No board HTML/hydration, full SSR framework deployment, real-device, Firefox,
+Safari or additional framework-major support is claimed by these checks.
 
 ## Record Compatibility
 

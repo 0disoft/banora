@@ -51,7 +51,8 @@ milestones in cohesive increments; do not describe planned capabilities as shipp
 ## Out of Scope
 
 - Unrelated applications or features outside the documented SDK/example scope.
-- Runtime infrastructure such as Docker, Kubernetes, Terraform, or framework apps.
+- Unrelated deployment infrastructure such as Docker, Kubernetes or Terraform.
+  Framework consumer examples required by the SDK roadmap are in scope.
 - Project-specific credentials or deployment secrets.
 
 ## Final Response Requirements

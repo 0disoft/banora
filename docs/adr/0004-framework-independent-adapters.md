@@ -1,6 +1,6 @@
 # ADR 0004: Framework-Independent SDK and Official Adapters
 
-- Status: Recorded design baseline; implementation pending
+- Status: Implemented baseline; broader support matrix pending
 - Date: 2026-10-10
 - Technical owner: UNASSIGNED
 - Product scope: [Specification](../product/02-spec.md)
@@ -45,7 +45,8 @@ consumer and the read-only example guards its general embedding surface.
 Three wrappers add lifecycle/compiler/version maintenance. Limit them to shared
 functionality and focused real-consumer checks. ADR 0005 records initial framework
 major targets and the headless-server/client-board boundary. Exact exported
-components/hooks, peer/compiler minimums and tested compatibility remain pending.
+components/hooks, peers/artifacts and current evidence are now recorded in
+[public API](../sdk/public-api.md) and [compatibility](../sdk/compatibility.md).
 Web Components or additional framework adapters are not required by this decision.
 
 ## Official Integration References

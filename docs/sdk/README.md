@@ -1,6 +1,6 @@
 # Banora SDK
 
-- Status: Core, SGF, controller, board and complete viewer implemented; unpublished
+- Status: Common SDK and optional React/Vue/Svelte adapters implemented; unpublished
 - Technical owner: UNASSIGNED
 
 ## Sources of Truth
@@ -34,8 +34,9 @@ The read-only example at `examples/readonly` and an isolated tarball/headless co
 are implemented. Browser flows have production-build evidence on Chrome 154.
 `examples/viewer` demonstrates the complete viewer, optional editing and ownership
 preservation across unmount/remount.
-Add official React, Vue, and Svelte adapter examples in M2, with each
-consuming its actual public package/component artifacts. Add puzzle/AI examples as their milestones
+Official examples at `examples/react`, `examples/vue` and `examples/svelte` each
+consume their built public package/native components. Isolated tarball consumers
+also check dependency isolation, declarations and real SSR. Add puzzle/AI examples as their milestones
 ship. This second browser workflow prevents the SDK API from becoming editor-specific.
 
 All framework adapters are optional. Plain browser consumers require no framework;
@@ -45,10 +46,11 @@ versions, component packaging and SSR behavior require framework-specific eviden
 
 ## Release Boundary
 
-Plan one common SDK package and three separate optional adapter packages in this
+Use one common SDK package and three separate optional adapter packages in this
 repository. Initial targets are Node 24 LTS, React 19, Vue 3 and Svelte 5; tested
 support outside the recorded evidence is pending. The common SDK's development
-name/exports are implemented; adapter symbols/names, browser floors and framework
-peer/compiler minimums remain UNDECIDED. No installation snippet should imply an available package until a
+name/exports and three adapter APIs are implemented; actual peers/artifacts and
+tested versions are listed in compatibility. Broader browser floors remain pending.
+No installation snippet should imply an available package until a
 release exists. Published packages must include type declarations, license files,
 asset notices, documented exports and actual consumer validation.

@@ -19,10 +19,13 @@ Use TypeScript for the SDK and SGF model, SVG/CSS for the initial renderer, Vite
 for library/demo builds, and Bun for dependency installation and package scripts.
 Use one common SDK package in M1 and three separate optional React, Vue and Svelte
 adapter packages in M2, all in this repository. Initial compatibility targets are
-Node 24 LTS, React 19, Vue 3 and Svelte 5; actual consumer evidence is still pending.
+Node 24 LTS, React 19, Vue 3 and Svelte 5; current consumer evidence is documented
+in [compatibility](docs/sdk/compatibility.md).
 The common SDK uses the local development name `@banora/sdk`; it is unpublished.
-Bun's test runner and root scripts are configured. Adapter names/exports and native
-artifact details remain UNDECIDED until their implementation starts.
+Bun's test runner and root scripts are configured. The optional `@banora/react`,
+`@banora/vue` and `@banora/svelte` packages export Board/Viewer and state bindings.
+Svelte ships native component artifacts with isolated TypeScript 6.x packaging;
+the SDK and root continue using TypeScript 7.x.
 
 Keep the workflow usable on Windows and Unix-like environments. Provide package
 scripts for actual development/build/validation tasks; Make is not required.
@@ -31,8 +34,10 @@ Do not publish command examples that refer to missing scripts or packages.
 ## First Implementation Slice
 
 The initial Studio workflow is now runnable with `bun run dev`. `bun run check`
-validates the headless SDK and packed consumer; `bun run smoke:browser` validates
-production Studio/read-only flows, including touch emulation. See
+validates packages, types and the SDK packed consumer; `bun run smoke:browser`
+validates production Studio/viewer and framework flows, including touch emulation.
+`bun run smoke:adapters` verifies independently installed tarballs and each
+framework's server rendering of host containers/state text. See
 [implementation evidence](docs/engineering/08-implementation-status.md) for scope
 and the remaining release work. SDK changes require rebuilding its artifacts before
 the examples consume them; the examples do not alias SDK exports to source files.

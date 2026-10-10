@@ -29,18 +29,24 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | Name | Command | Evidence |
 | --- | --- | --- |
 | typecheck | `bun run typecheck` | Strict TypeScript checks for implementation, tests and scripts |
+| typecheck (Svelte) | `bun run typecheck:svelte` | Native components and example checked with Svelte's supported isolated TypeScript toolchain |
 | test | `bun run test` | Focused SDK behavior tests using Bun's test runner |
 | docs | `bun run docs` | English documentation, LF endings and relative links |
 | smoke | `bun run smoke` | SDK build, isolated tarball install, strict consumer typecheck and Node public-export execution |
-| smoke (browser) | `bun run smoke:browser` | Production examples, SGF round-trip, guarded replacement, keyboard/touch, read-only lifecycle and local-only requests |
-| check | `bun run check` | Typecheck, tests, documentation and packed-consumer smoke |
+| smoke (adapters) | `bun run smoke:adapters` | Separate npm tarball installs, framework dependency isolation, strict declarations and real React/Vue/Svelte SSR |
+| smoke (browser) | `bun run smoke:browser` | Production Studio/viewer plus three framework consumers; SGF round-trip, guards, keyboard/touch, lifecycle and local-only requests |
+| check | `bun run check` | SDK/adapter builds, root/Svelte typechecks, tests, docs and SDK packed-consumer smoke |
 
-`bun run build` builds the common SDK. `lint`, `format`, `contract`, `migration-check`
+`bun run build` builds the common SDK; `bun run build:adapters` also builds the
+three adapters. `lint`, `format`, `contract`, `migration-check`
 are not yet configured; report them as skipped when relevant. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 
-Browser smoke is an explicit oneshot check, separate from the fast default `check`.
-`check` builds the SDK first because consumers resolve its public built declarations;
+Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
+Use them for adapter/common-renderer changes; documentation-only edits need docs
+and whitespace review. Adapter packed checks require npm (supplied by Node 24),
+install with lifecycle scripts disabled and do not use workspace source aliases.
+`check` builds packages first because consumers resolve public built declarations;
 it works from a fresh checkout after installing dependencies. Headless packed subpaths
 are checked without DOM type libraries; the root/renderer/viewer exports are also
 verified to import without runtime browser globals.

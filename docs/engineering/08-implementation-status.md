@@ -34,6 +34,15 @@ An implemented slice does not complete its milestone or establish untested compa
   consumer typechecking and runs core/SGF/edit/export/reopen on Node 24.14.0.
   The headless subpaths also typecheck with only ES2022 libraries and no DOM types.
   Immutable snapshot identity is stable between state changes for framework stores.
+- Separate optional `@banora/react`, `@banora/vue` and `@banora/svelte` packages
+  expose Board/Viewer and native state bindings. Public-artifact examples independently
+  verify configuration/callback updates, shared/owned controllers, read-only behavior,
+  controller replacement, unmount/remount and comment Undo in Chrome 154.
+  React 19.3.0 runs Strict Mode, Vue 3.5.43 exercises deep refs, and Svelte 5.57.2
+  consumes native components. Isolated npm tarball consumers pass strict types and
+  real server rendering of containers/state text on Node 24.14.0, with no DOM or
+  unrelated framework dependencies. Board HTML/hydration support is deferred.
+  Svelte package/check tools use isolated TypeScript 6.0.3; root/core remain on 7.x.
 - Tooling uses Bun 1.x, TypeScript 7.x and Vite 8.x, with the lockfile capturing
   resolved versions. Core has zero runtime dependencies. No hosted CI is configured.
 - Root and package MIT license files cover original code/documentation.
@@ -44,8 +53,9 @@ An implemented slice does not complete its milestone or establish untested compa
    The final release audit remains; no package is published.
    Additional encoding/browser/screen-reader fixtures and performance baselines
    remain outside the current narrow compatibility evidence.
-2. M2: Separate official React/Vue/Svelte packages, browser script, extended editing,
-   teaching, transforms, diagrams and sharing. Not implemented.
+2. M2: The three framework adapters and their consumer evidence are implemented.
+   Browser script, extended editing, teaching, transforms, diagrams and sharing
+   remain to be delivered.
 3. M3: Explicit superko/profiles, scoring and authored puzzles. Not implemented.
 4. M4: External analysis adapter, freshness/cancellation and overlays. Not implemented.
 

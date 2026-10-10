@@ -1,0 +1,11 @@
+{
+  "name": "@banora/vue",
+  "version": "0.1.0-dev.0",
+  "type": "module",
+  "license": "MIT",
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "exports": {".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"}},
+  "peerDependencies": {"@banora/sdk": ">=0.1.0-dev.0 <1", "vue": "3.x"},
+  "devDependencies": {"@banora/sdk": "workspace:*", "vue": "3.x"}
+}

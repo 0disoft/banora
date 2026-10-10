@@ -1,6 +1,6 @@
 # SDK Public API
 
-- Status: Core, SGF, controller, board and complete viewer implemented; adapters remain planned
+- Status: Core, SGF, controller, board, viewer and three optional framework adapters implemented
 - Product contract: [Specification](../product/02-spec.md)
 - Architecture: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 - Initial contracts: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
@@ -116,6 +116,39 @@ view.update({ board: { theme: 'flat' }, comments: true });
 // Call view.dispose() when the host unmounts the container.
 ```
 
+## Optional Framework Adapters
+
+Build the separate `@banora/react`, `@banora/vue` and `@banora/svelte` development
+packages with `bun run build:adapters`. They are not published. Each exports `Board`
+and `Viewer` components, binding the same SDK controller and renderer. Create a
+`RecordController({ sgf })` to initialize a shared record; adapter viewers omit the
+plain mount's initial `sgf` option. All other rendering/editability options are shared.
+
+| Package | State binding | Container and events |
+| --- | --- | --- |
+| React | `useRecordState(controller): ControllerState` via `useSyncExternalStore` | `className`, React `style`, `ariaLabel`, `onStateChange(state)` |
+| Vue | `useRecordState(controllerOrRefOrGetter)` in setup, returning a read-only snapshot ref | Forwarded attributes and `stateChange(state)` emission |
+| Svelte | `createRecordStore(controller)` returning a readable snapshot store | `class`, CSS text `style`, `ariaLabel`, `onStateChange(state)` |
+
+Configuration updates preserve record state. Replacing the controller remounts the
+view; unmounting removes its listeners/subscriptions and retains a host controller.
+Without a controller each component owns a separate record, disposed on unmount.
+Subscriptions immediately report the current snapshot, including on remount;
+React development Strict Mode may mount/clean up/mount effects before normal use.
+The framework owns the empty container and the SDK its descendants.
+
+Vue adapters accept deep refs by unwrapping their controller handle; prefer
+`shallowRef` and use `toRaw` before directly calling a controller stored in a deep
+ref. React hooks must follow React's hook rules; Vue bindings run inside setup.
+Use a Svelte `$derived(createRecordStore(controller))` for a replaceable raw handle.
+
+Server rendering produces host containers/state text without creating board DOM.
+Client effects mount the SVG. Match server/client record content for state hydration;
+rendered board HTML hydration is deferred. Svelte ships native components and their
+declarations for a Svelte-aware compiler. Each isolated package consumer validates
+types and SSR separately; production examples validate client lifecycle/configuration.
+See [compatibility](compatibility.md), package READMEs and framework examples.
+
 ## Logical API Surfaces and Remaining Work
 
 | Surface | Responsibility |
@@ -129,7 +162,7 @@ view.update({ board: { theme: 'flat' }, comments: true });
 | Puzzles | Authored answers, scripted responses, hints, restart and feedback |
 | Analysis | Provider requests/results, cancellation, freshness and overlay normalization |
 
-Except for the implemented core/records/controller/board/viewer above, these are responsibilities, not finalized
+Except for the implemented core/records/controller/board/viewer/adapters above, these are responsibilities, not finalized
 npm subpaths or exported type names.
 Resolve names while implementing the first consumer example, then document actual
 signatures here before publication.
@@ -164,7 +197,7 @@ One controller owns the current record, selected node/cursor and edit history.
 Consumers send commands and subscribe to read-only state/change events. Views
 release their own renderer, listeners and subscriptions on disposal; an externally
 supplied controller remains available. Implemented names and acknowledgment semantics
-are listed above; framework components remain pending.
+are listed above, including optional framework components.
 
 Previous/next and branch selection are navigation operations, separate from edit
 Undo/Redo. Variation creation, comments and marker changes are undoable edits.
@@ -195,8 +228,8 @@ Verify headless imports, browser mounting, SGF download/reopen and selective imp
 in M1. In M2, exercise React, Vue, and Svelte configuration updates, state/event
 bindings, remount/dispose, type/component packaging and SSR/client-mount behavior
 in separate consumer examples. No shared smoke check establishes all three frameworks'
-compatibility. [Initial major targets](compatibility.md) are selected; exact exported
-components/hooks and peer/compiler minimums remain open.
+compatibility. [Initial major targets and current evidence](compatibility.md) identify
+the selected peer lines, actual component packaging and tested versions.
 Once analysis ships, include delayed responses,
 context changes and cancellation. Migration examples must accompany breaking
 changes to actions, coordinates, events, serialization or ownership semantics.
