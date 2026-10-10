@@ -14,6 +14,11 @@ implementation, consumer evidence and remaining release/compatibility boundaries
 
 ## Local Development
 
+To start your own app, use the [standalone record editor](examples/standalone/README.md).
+It provides an independent TypeScript/Vite project and explicit local-tarball install
+instructions while the SDK is unpublished. `bun run smoke:starter` installs a copy
+with npm and checks its own types and production build without workspace aliases.
+
 Use Bun 1.x and Node 24.x. Run `bun install`, then `bun run check` for strict
 typechecking, behavior tests, documentation checks and an ESM/declaration build.
 Run `bun run dev` and open [Banora Studio](http://127.0.0.1:4317/studio/) or the

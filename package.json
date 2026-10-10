@@ -13,6 +13,7 @@
     "docs": "bun scripts/check-docs.ts",
     "smoke": "bun run build && bun scripts/packed-consumer.ts",
     "smoke:adapters": "bun run build:adapters && bun scripts/packed-adapters.ts",
+    "smoke:starter": "bun run build && bun scripts/packed-starter.ts",
     "smoke:browser": "bun run build:examples && bun scripts/browser-smoke.ts",
     "typecheck:svelte": "bun run --cwd packages/svelte typecheck",
     "check": "bun run build:adapters && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts"

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Go record editor</title>
+  </head>
+  <body>
+    <main>
+      <h1>My Go record editor</h1>
+      <p>Open a record, explore its variations and save your own continuation.</p>
+      <div class="toolbar" aria-label="File controls">
+        <button id="open" type="button">Open SGF</button>
+        <button id="sample" type="button">Open sample</button>
+        <button id="new" type="button">New record</button>
+        <button id="save" type="button">Save SGF</button>
+        <label><input id="editing" type="checkbox" checked /> Allow editing</label>
+      </div>
+      <input id="file" type="file" accept=".sgf,application/x-go-sgf" hidden />
+      <p id="record-state" aria-live="polite"></p>
+      <div id="viewer"></div>
+      <p id="status" role="status">The sample is ready. Files stay in this browser.</p>
+      <p class="note">Click an empty point or focus the board and press Enter to play.
+        On touch screens, tap and release to place a stone. Edits are saved only
+        when you download an SGF file.</p>
+    </main>
+    <dialog id="unsaved" aria-labelledby="unsaved-title">
+      <h2 id="unsaved-title">Keep your changes?</h2>
+      <p>Download the current record or discard your changes before opening another.</p>
+      <form method="dialog" class="toolbar">
+        <button value="cancel" autofocus>Cancel</button>
+        <button value="export">Save &amp; open</button>
+        <button value="discard">Discard &amp; open</button>
+      </form>
+    </dialog>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

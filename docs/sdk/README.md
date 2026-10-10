@@ -24,6 +24,13 @@
 
 ## Consumer Examples
 
+The [standalone record editor](../../examples/standalone/README.md) is a copyable
+plain TypeScript/Vite application with its own manifest, configuration, styles
+and original sample. It imports selective public SDK exports and owns file
+selection, replacement approval and SGF download. `bun run smoke:starter` installs
+the SDK tarball and tools into a separate npm consumer and checks its own strict
+types and production build. It does not imply an available registry package.
+
 Start with Banora Studio at `examples/studio`: an SGF review/basic editing
 application and future hosted demo, consuming only built public SDK exports. Verify the
 load/navigate/create-variation/comment/mark/download/reopen workflow against the
