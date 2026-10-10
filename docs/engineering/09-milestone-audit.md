@@ -3,9 +3,9 @@
 - Scope: the complete M1/M2 requirements and exit evidence in the
   [roadmap](../product/01-roadmap.md), plus the seven first-release acceptance
   items in the [specification](../product/02-spec.md).
-- Result: the tested local workflows and M2 feature slices pass. M1 drag-and-drop
-  is implemented but lacks a browser interaction fixture; its evidence remains
-  incomplete. This audit does not declare a release or completion of M3/M4.
+- Result: M1/M2 local acceptance is verified in the declared matrix, including the
+  additional Studio file-drop fixture. This audit does not declare a release,
+  broader runtime support or completion of M3/M4.
 - Matrix: Windows, Node 24.14.0, Bun 1.4.2, Headless Chrome 154; framework and
   compiler versions are recorded in [compatibility](../sdk/compatibility.md).
 
@@ -17,6 +17,11 @@ and Svelte typechecks, package builds, documentation checks and an independently
 installed SDK tarball. The complete browser suite also passed with every scenario
 requiring its exact JSON `Result` return. Source echoes, console messages and a
 successful CLI exit cannot stand in for completed execution.
+The focused file-drop scenario also passed, checking production DOM file events,
+metadata/setup/branches, replacement guards, a downloaded SGF reopened in Studio
+and retention after malformed UTF-8 bytes. Browser-created File/DataTransfer/
+DragEvent objects exercise the file-drop boundary; native operating-system drag
+automation is not claimed.
 
 The adapter implementation/artifacts are unchanged from their independently
 installed React/Vue/Svelte type and real SSR checks. Those checks establish host
@@ -31,7 +36,7 @@ The commands and result parsing are owned by [VALIDATION.md](../../VALIDATION.md
 | Headless board, captures, suicide, simple ko, pass, setup and history | `core.ts`, `record-runtime.ts`, `controller.ts`; core/controller tests and installed headless SDK; browser capture/rejection and Undo | Verified for the documented policies |
 | SVG sizes, coordinates, themes, marks, crops, preview and keyboard/pointer input | `board.ts`; geometry tests and production browser/presentation/touch scenarios | Verified in the declared matrix |
 | FF4 Go records, UTF-8 output, metadata, comments, variations and unknown properties | `sgf.ts`; bounded parse/encoding/preservation tests; exported files reopened in Studio and the installed SDK | Verified for the documented subset |
-| Studio, responsive board, controls, tree, comments, local/example loading and download | `examples/studio`; browser scenario verifies desktop and 390x844 mobile layout, local file input, editing/export/reopen and guards | Partial: drag/drop handler is inspected, but its browser interaction has no fixture |
+| Studio, responsive board, controls, tree, comments, local/example loading and download | `examples/studio`; browser scenario verifies desktop and 390x844 mobile layout, local file input, editing/export/reopen and guards; file-drop scenario verifies the production DOM drop path and actual downloaded content | Verified in the declared matrix |
 | Continuations, comments, labels and shape markers | Controller edit methods and board tools; controller/editing tests and Studio editing scenarios preserve the original branch | Verified |
 | Separate navigation/edit history, grouped comments, dirty/export baselines and replacement guards | Controller tests, browser editing/guard checks and actual export/reopen assets; cancellation and failed imports retain records | Verified; download initiation cannot prove disk persistence |
 | Minimal read-only embedding | `examples/readonly`; browser checks navigation, rejected editing and shared-controller unmount/remount | Verified |
@@ -47,7 +52,7 @@ placement and score calculation are not claimed by that probe.
 
 | Specification item | Concrete evidence | Result |
 | --- | --- | --- |
-| 1. Open an SGF/example and display the record | Bundled/local files, metadata/sidebar and branch/comment/marker rendering in Studio; SGF preservation tests | Verified via file selection; drag/drop evidence remains open above |
+| 1. Open an SGF/example and display the record | Bundled/local files, metadata/sidebar and branch/comment/marker rendering in Studio; SGF preservation tests and the file-drop fixture | Verified |
 | 2. Navigate/select a branch and retain the original continuation | Studio keyboard-created branch, branch selection and the original White C3 branch after reopen | Verified |
 | 3. Edit with consistent captures, rejection and Undo/Redo | Browser capture/occupied rejection, grouped comment Undo/Redo and marker edit; headless policy tests | Verified |
 | 4. Download/reopen without losing supported content | Actual `browser-roundtrip.sgf`, extended editing exports and installed SDK parse/edit/export/reparse | Verified |
@@ -69,8 +74,7 @@ placement and score calculation are not claimed by that probe.
 
 ## Remaining Work and Claim Boundaries
 
-1. Add a Studio browser fixture for file drag/drop before closing M1 acceptance.
-   Additional declared-encoding corpora remain useful follow-up evidence; current
+1. Additional declared-encoding corpora remain useful follow-up evidence; current
    UTF-8/Latin-1 and explicit encoding-failure checks do not prove every decoder.
 2. Keep broader browser floors, physical devices, screen readers and measured
    latency/frame-rate/memory budgets open. These are not implied by the declared

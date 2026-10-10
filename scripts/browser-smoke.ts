@@ -30,6 +30,13 @@ async function scenario(file: string, expected: string): Promise<void> {
   const result = await cli('run-code', await readFile(resolve(root, `scripts/${file}-scenario.js`), 'utf8'));
   requireScenarioResult(result, expected);
 }
+async function dropSmoke(): Promise<void> {
+  await scenario('drop', 'banora-drop-complete');
+  const saved = await readFile(resolve(output, 'drop-preserved.sgf'), 'utf8');
+  for (const value of ['CA[UTF-8]', 'HA[2]', 'KM[6.5]', 'XX[drop-preserve]', 'Unsaved drop note', 'Black & 日本', 'LB[ee:A]']) {
+    if (!saved.includes(value)) throw new Error(`Dropped SGF export lost ${value}`);
+  }
+}
 async function shareSmoke(): Promise<void> {
   await scenario('share', 'banora-sharing-complete: studio react vue svelte');
   for (const name of ['studio','react','vue','svelte']) {
@@ -59,7 +66,10 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--animation-only')) {
+  if (process.argv.includes('--drop-only')) {
+    await dropSmoke();
+    console.log('Focused file-drop smoke passed.');
+  } else if (process.argv.includes('--animation-only')) {
     await scenario('animation', 'banora-animation-sdk-complete');
     await animationConsumers();
     console.log('Focused animation smoke passed.');
@@ -78,6 +88,8 @@ try {
     console.log('Focused comparison smoke passed.');
   } else {
   await scenario('browser', 'banora-browser-complete');
+  await dropSmoke();
+  console.log('File-drop smoke passed: metadata/setup, branch selection, guards, encoding failures and actual export/reopen.');
   await cli('snapshot');
   await scenario('framework', 'banora-frameworks-complete');
   console.log('Framework browser smoke passed: React Strict Mode, Vue refs, Svelte updates, callbacks, owned/shared controllers and unmount/remount.');

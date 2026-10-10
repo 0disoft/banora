@@ -51,6 +51,11 @@ successful command exit alone cannot establish completion. Both full and focused
 routes enforce this; result-parser regressions run with the behavior tests.
 After building examples/SDK, `bun scripts/browser-smoke.ts --touch-only` runs the
 focused real-touch scenario using the same oneshot server/session cleanup.
+`--drop-only` exercises Studio's production DOM file drag/drop boundary, metadata,
+handicap/setup and branch rendering, Cancel/Export & continue, actual export/reopen
+and retention after malformed bytes. It requires a completed Result and downloaded
+SGF content. This uses browser-created File/DataTransfer/DragEvent objects; it does
+not claim native operating-system file-drag automation.
 `--comparison-only` similarly selects the comparison scenario without rerunning
 unrelated browser flows during implementation.
 `--share-only` selects production link opening/creation, clipboard fallback,

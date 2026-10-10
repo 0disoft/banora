@@ -64,6 +64,9 @@ An implemented slice does not complete its milestone or establish untested compa
 - Studio and read-only examples consume built public exports. The bundled original
   SGF supports local open/drop, navigation/branch creation, comments/markers,
   Undo/Redo, UTF-8 download/reopen and Export/Discard/Cancel record replacement.
+  A separate production DOM file-drop fixture checks UTF-8 metadata, handicap/setup,
+  branch selection, Cancel/Export & continue and actual downloaded SGF reopening.
+  Malformed dropped bytes retain the active record. Native OS file dragging is untested.
 - Production browser smoke passes on Windows Headless Chrome 154, including
   illegal-move rejection/capture, editing/reopen, preserved original branches and
   unknown properties, keyboard/touch emulation, crop, owned/external disposal and
@@ -152,7 +155,7 @@ An implemented slice does not complete its milestone or establish untested compa
 
 1. M1: The initial end-to-end workflow and complete viewer have local evidence.
    The [local acceptance audit](09-milestone-audit.md) maps every requirement;
-   Studio's drag/drop interaction still needs a browser fixture. No package is published.
+   the file-drop fixture closes the remaining local acceptance gap. No package is published.
    Additional encoding/browser/screen-reader fixtures and performance baselines
    remain outside the current narrow compatibility evidence.
 2. M2: The three framework adapters and their consumer evidence are implemented.
