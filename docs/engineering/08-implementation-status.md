@@ -7,6 +7,18 @@ local exit evidence; the implementation scope is complete within that coverage.
 
 ## Current Evidence
 
+- Agent/terminal automation: DOM-free `@banora/sdk/automation` checked JSON requests,
+  immutable discovery schema, isolated record batches and external snapshot
+  normalization. Existing controller/rules/scoring APIs own all transitions.
+  The optional unpublished `@banora/cli` package exposes an installed `banora` bin
+  with structured stdout, bounded stdin/files, exit codes and explicit protected
+  file output. Isolated npm artifacts and actual Node 24 Windows processes verify
+  schema discovery, edit/reopen/portable selection, snapshot normalization,
+  invalid/illegal requests, exclusive/forced output and unchanged inputs.
+  Packed headless imports typecheck without DOM libraries. No vision, browser,
+  new external dependency or automatic live-application control is required.
+  See the [automation contract](../sdk/automation.md) and [CLI guide](../../packages/cli/README.md).
+
 - Additive host-controlled display boundary: immutable plain snapshots and keyed
   point/navigation/stroke/menu intentions; external hosts retain state/rules/history
   authority without creating a `RecordController`. Shared SVG painting/input now
@@ -18,7 +30,7 @@ local exit evidence; the implementation scope is complete within that coverage.
   replacement, read-only, remount, actual SVG/PNG and mobile confirmation/cleanup
   on Chrome 154. Full existing browser flows passed after the shared surface
   refactor; focused native consumers passed after adding wrappers/examples.
-  The final unit suite has 118 tests and 1,472 assertions. See the
+  That delivery's unit suite had 118 tests and 1,472 assertions. See the
   [contract](../sdk/controlled-board.md) and [examples](../../examples/controlled/README.md).
   No external application is adopted; native bridges, physical devices, hydration
   and broader browser/transport support remain separate evidence requirements.

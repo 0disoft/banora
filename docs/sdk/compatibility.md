@@ -72,6 +72,13 @@ actual peer dependency metadata, artifact formats and compiler versions during M
 
 ## Framework Artifact Evidence
 
+Agent automation is available through DOM-free `@banora/sdk/automation` and the
+optional Node 24.x `@banora/cli` package. Installed SDK declarations/runtime and
+the actual CLI tarballs/bin have Windows Node 24 evidence for machine-readable
+requests/results, error codes, input limits and file preservation. This is
+headless record/snapshot automation, not browser/native app remote control or a
+headless SVG/PNG claim. No CLI macOS/Linux executable evidence is recorded yet.
+
 Host-controlled boards additionally expose headless `@banora/sdk/board-state`
 DTO normalization and the SSR-safe `@banora/sdk/controlled-board` DOM mount.
 The latter mounts only in a browser and creates no record/rules controller.

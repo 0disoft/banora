@@ -116,6 +116,7 @@ export function executeAutomation(input: unknown) {
         });
     }
     const results: unknown[] = [];
+    let legalPointBudget = 8192;
     for (const [index, operation] of (request.operations ?? []).entries()) {
       operationIndex = index;
       let result: CommandResult;
@@ -188,6 +189,14 @@ export function executeAutomation(input: unknown) {
         case 'legal-points': {
           const position = controller.getState().position,
             points: Point[] = [];
+          legalPointBudget -= position.width * position.height;
+          if (legalPointBudget < 0)
+            return failure({
+              code: 'command-failed',
+              message: 'Legal-point queries exceed the per-request 8192-cell budget.',
+              operationIndex: index,
+              reason: 'limit',
+            });
           for (let y = 0; y < position.height; y++)
             for (let x = 0; x < position.width; x++)
               if (play(position, { x, y }).ok) points.push({ x, y });

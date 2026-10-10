@@ -59,6 +59,15 @@ assets nor substitute protocol fixtures for engine output. See the
 
 ## Code Quality Tooling
 
+`bun run build:cli` builds the SDK and optional Node executable; `bun run cli`
+runs its local artifact. `bun run smoke:cli` builds and independently installs
+SDK/CLI tarballs with npm, then checks the actual installed bin and Node JSON,
+stdin/files, editing/reopen, snapshots, schema/errors/limits and output protection.
+The default `check` also builds the CLI and runs that installed consumer after SDK
+smoke. Runtime CLI operations require no browser, framework or remote service.
+Each request is isolated; live app/engine bridges and headless diagram rendering
+are not implied. `llms.txt` points agents to discovery and owning contracts.
+
 Oxlint 1.x and Oxfmt 0.x are root development dependencies, with resolved versions
 in `bun.lock`. Use `bun install --frozen-lockfile` to reproduce a reviewed graph.
 Review formatter changes when updating its lock entry: a pre-1.0 minor release

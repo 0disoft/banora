@@ -1,6 +1,6 @@
 # Terminal and Agent Automation
 
-- Status: Headless JSON command API implemented; optional CLI consumer follows
+- Status: Headless JSON command API and optional CLI implemented; installed Node executable checked
 - Decision: [ADR 0013](../adr/0013-machine-readable-terminal-automation.md)
 
 `@banora/sdk/automation` (also the root/global export) exposes
@@ -17,6 +17,8 @@ geometric relationships, strokes, labels and game legality have further SDK chec
 Record text is at most 5 MiB of characters (the SGF parser also enforces its byte
 limit), batches at most 256 operations, dimensions 2 through 52, and paths at most
 128 child indices. No field executes code, shell commands or remote tools.
+Legal-point scans share a per-request budget of 8,192 candidate cells; larger
+query batches fail with reason `limit` instead of running unbounded repeated scans.
 
 ```ts
 import {executeAutomation} from '@banora/sdk/automation';
@@ -66,3 +68,26 @@ An application can explicitly expose this public boundary over its own CLI/RPC,
 with its own permissions, active-document/revision checks and subscriptions.
 Terminal record automation and live application authority are separate boundaries.
 Browser-only textures, placement motion and SVG/PNG view exports remain DOM APIs.
+
+## Terminal Consumer
+
+The optional [CLI package guide](../../packages/cli/README.md) documents the
+installed `banora` executable. In this repository, `bun run build:cli` builds it,
+and `bun run cli schema` discovers the operation schema. `run` accepts a full JSON
+request file/stdin; `create`, `inspect`, `edit` and `snapshot` are convenience
+commands. Exact flags, exit codes and file preservation are discoverable through
+`banora --help`. Calling the executable directly writes only one JSON document
+per process, including errors; package-manager banners are outside that contract.
+
+Output files are explicit and saved only after success. Complete temporary files
+are published exclusively by default; `--force` replaces existing output, while
+input paths/realpath aliases remain protected. Input reads are bounded to 8 MiB,
+with existing SGF byte/structure limits inside the SDK. No interactive prompts,
+browser launch, automatic transport or application adoption occurs.
+
+`bun run smoke:cli` installs actual SDK/CLI tarballs with npm, tests the installed
+bin and runs Node processes on Windows for JSON/stdin, record edit/reopen, snapshot
+normalization, schema/error/limit handling and file preservation. Headless SDK
+types/runtime/global distribution have separate packed consumer evidence.
+CLI native-engine/puzzle/analysis-session commands and headless SVG/PNG rendering
+are absent; use their existing public SDK APIs/explicit engine example instead.

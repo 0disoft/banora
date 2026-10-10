@@ -6,6 +6,12 @@ workspace. See the repository documentation
 for implementation status and the remaining milestones. No third-party runtime
 dependencies or external assets are included.
 
+`@banora/sdk/automation` exposes DOM-free `executeAutomation` and immutable
+`AUTOMATION_SCHEMA` for checked JSON record commands and external snapshots.
+The optional `@banora/cli` executable exposes the same operations through terminal
+files/stdin and structured responses. See the
+[agent guide](https://github.com/0disoft/banora/blob/main/packages/cli/README.md).
+
 `@banora/sdk/puzzle` exports headless curated `PuzzleSession`; the separate
 `@banora/sdk/puzzle-view` provides `mountPuzzle(container,{session})` or an owned
 `{definition}` mount with authored responses, hints and restart. Definitions use

@@ -35,6 +35,13 @@ remote analysis submission remain under the host's control.
 
 ## Integrations
 
+The headless automation boundary accepts checked versioned JSON, delegates
+record operations to an isolated controller and returns structured state/SGF or
+failure without a partial record. The optional CLI owns bounded filesystem/stdin
+I/O and explicit output publication; the SDK automation API has no I/O or shell
+execution. This does not attach to an existing application. See
+[ADR 0013](../adr/0013-machine-readable-terminal-automation.md).
+
 Provide plain-browser integration in M1 and official optional React, Vue, and Svelte
 adapters in M2, as defined in [ADR 0004](../adr/0004-framework-independent-adapters.md).
 Framework adapters bind the same public controller/renderer through their native

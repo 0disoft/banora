@@ -8,6 +8,9 @@
   "scripts": {
     "build": "vite build --config packages/sdk/vite.config.ts && tsc -p packages/sdk/tsconfig.build.json && bun scripts/build-browser.ts",
     "build:adapters": "bun run build && bun scripts/build-adapters.ts",
+    "build:cli": "bun run build && bun scripts/build-cli.ts",
+    "cli": "node packages/cli/dist/main.js",
+    "smoke:cli": "bun run build:cli && bun scripts/packed-cli.ts",
     "build:examples": "bun run build:adapters && vite build --config examples/vite.config.ts",
     "dev": "bun run build:adapters && vite --config examples/vite.config.ts",
     "typecheck": "tsc --noEmit",
@@ -25,7 +28,7 @@
     "smoke:katago:node": "bun run build && bun build scripts/live-katago.ts --target=node --packages=external --outfile .tmp/live-katago-runner.mjs && node .tmp/live-katago-runner.mjs",
     "smoke:browser": "bun run build:examples && bun scripts/browser-smoke.ts",
     "typecheck:svelte": "bun run --cwd packages/svelte typecheck",
-    "check": "bun run lint && bun run format && bun run build:adapters && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts"
+    "check": "bun run lint && bun run format && bun run build:adapters && bun scripts/build-cli.ts && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts && bun scripts/packed-cli.ts"
   },
   "devDependencies": {
     "@banora/react": "workspace:*",

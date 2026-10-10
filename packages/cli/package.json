@@ -1,0 +1,26 @@
+{
+  "name": "@banora/cli",
+  "version": "0.1.0-dev.0",
+  "description": "Machine-readable terminal commands for the Banora Go SDK",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "banora": "./dist/main.js"
+  },
+  "peerDependencies": {
+    "@banora/sdk": ">=0.1.0-dev.0 <1"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0disoft/banora.git",
+    "directory": "packages/cli"
+  }
+}

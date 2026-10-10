@@ -1,6 +1,6 @@
 # ADR 0013: Machine-Readable Terminal Automation
 
-- Status: Accepted; headless implementation, CLI consumer follows
+- Status: Accepted; headless implementation and installed Node CLI evidence
 
 ## Decision
 

@@ -3,6 +3,7 @@ import { executeAutomation, AUTOMATION_SCHEMA } from '../src/automation.js';
 
 test('automation exposes discoverable JSON commands and rejects malformed batches before edits', () => {
   expect(JSON.stringify(AUTOMATION_SCHEMA)).toContain('reorder-branch');
+  expect(Object.isFrozen(AUTOMATION_SCHEMA.oneOf[0])).toBe(true);
   for (const operations of [
     [{ op: 'shell', command: 'echo bad' }],
     [{ op: 'play', point: { x: 0.5, y: 1 } }],
@@ -131,4 +132,19 @@ test('external snapshots normalize without replay or changing input ownership', 
       state: { ...state, width: 1 },
     }).ok,
   ).toBe(false);
+});
+
+test('repeated legal-point queries stop at the batch computation budget', () => {
+  const result = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    size: 9,
+    operations: Array(102).fill({ op: 'legal-points' }),
+  });
+  expect(result.ok).toBe(false);
+  if (!result.ok) {
+    expect(result.error.reason).toBe('limit');
+    expect(result.error.operationIndex).toBe(101);
+  }
+  expect('sgf' in result).toBe(false);
 });

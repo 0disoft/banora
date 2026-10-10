@@ -14,6 +14,12 @@ implementation, consumer evidence and remaining release/compatibility boundaries
 
 ## Local Development
 
+For terminal/LLM workflows, see the [CLI guide](packages/cli/README.md) and
+[JSON automation contract](docs/sdk/automation.md). Build with `bun run build:cli`,
+then use `bun run cli schema` to discover exact commands. Agents can inspect/edit
+SGF, navigate branches, query legal points/score and inspect external snapshots
+without a browser or vision. `bun run smoke:cli` checks the installed executable.
+
 To start your own app, use the [standalone record editor](examples/standalone/README.md).
 It provides an independent TypeScript/Vite project and explicit local-tarball install
 instructions while the SDK is unpublished. `bun run smoke:starter` installs a copy
