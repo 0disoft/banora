@@ -6,6 +6,7 @@ export interface DiagramOptions {
 interface Diagram { readonly text: string; readonly width: number; readonly height: number }
 const allowed = new Set(['svg','g','defs','clipPath','circle','ellipse','line','rect','text','tspan','path','polygon','polyline','image','title']);
 const styles = ['fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','font-family','font-size','font-weight','font-style','text-anchor','dominant-baseline','opacity'];
+const xmlText = (text: string) => text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF\p{Cs}]/gu,'\uFFFD');
 
 /** Snapshot a mounted SDK drawing; no DOM access occurs during module import. */
 export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOptions = {}): Diagram {
@@ -24,6 +25,7 @@ export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOption
     const original = originals[index]!, cloned = copies[index]!;
     if (!allowed.has(original.tagName) || original.hasAttribute('data-cursor') || original.hasAttribute('data-preview')) { cloned.remove(); continue; }
     cloned.removeAttribute('style'); cloned.removeAttribute('class');
+    for (const child of cloned.childNodes) if (child.nodeType === 3) child.nodeValue = xmlText(child.nodeValue ?? '');
     for (const attribute of [...cloned.attributes]) {
       if (/^on/i.test(attribute.name)) cloned.removeAttribute(attribute.name);
       if (attribute.localName === 'href') {
@@ -42,7 +44,7 @@ export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOption
   copy.setAttribute('width', String(width)); copy.setAttribute('height', String(height));
   copy.removeAttribute('tabindex'); copy.removeAttribute('aria-roledescription');
   copy.setAttribute('role', 'img');
-  const title = options.title ?? 'Go position diagram';
+  const title = xmlText(options.title ?? 'Go position diagram');
   copy.setAttribute('aria-label', title);
   const caption = svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'title');
   caption.textContent = title; copy.prepend(caption);

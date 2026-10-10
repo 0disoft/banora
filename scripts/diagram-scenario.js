@@ -11,7 +11,7 @@ async page => {
   const result = await page.evaluate(async () => {
     const sdk = await import('/sdk/index.js');
     const host = document.createElement('div'); host.style.width='520px'; host.style.setProperty('--banora-black','#123456'); document.body.append(host);
-    const controller = new sdk.RecordController({sgf:'(;SZ[5:9]AB[bc][de]LB[bc:A<&B]AR[bc:de])'});
+    const controller = new sdk.RecordController({sgf:'(;SZ[5:9]AB[bc][de]LB[bc:A<&B][aa:Bad\u0000\ud800💠]AR[bc:de])'});
     const view = sdk.mountBoard(host,{controller, transform:{rotation:90,flipX:true}});
     const baseline = controller.getState();
     host.querySelector('svg').focus();
@@ -20,6 +20,9 @@ async page => {
     if (parsed.querySelector('parsererror') || parsed.documentElement.getAttribute('width') !== '420' || parsed.documentElement.getAttribute('height') !== '260') throw Error('Standalone SVG dimensions/XML failed');
     if (parsed.querySelector('[data-cursor],[data-preview],script,foreignObject') || text.includes('var(')) throw Error('Diagram retained interaction/unresolved styles');
     if (parsed.querySelector('title').textContent !== 'Caption <&"' || parsed.querySelector('[data-marker]').textContent !== 'A<&B') throw Error('SVG text escaping failed');
+    const oddText = new DOMParser().parseFromString(view.exportSvg({title:'Bad\u0000\ud800💠'}),'image/svg+xml');
+    if (oddText.querySelector('parsererror') || oddText.querySelector('title').textContent !== 'Bad��💠' || oddText.querySelector('[data-marker="0,0"]').textContent !== 'Bad��💠') throw Error('XML-invalid text or paired Unicode handling failed');
+    if (controller.getState() !== baseline || !baseline.markers.some(marker => marker.label?.includes('\u0000'))) throw Error('Diagram text normalization edited SGF content');
     const pendingSnapshot = view.exportPng({width:420});
     controller.setSetup([{x:3,y:4,color:'white'}]);
     const blob = await pendingSnapshot;

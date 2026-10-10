@@ -135,6 +135,9 @@ transform, marks, arrows and move numbers. Computed colors/fonts are copied into
 the standalone SVG; hover previews/cursors/interaction and scripts are excluded.
 Inherited or external paint references are rejected rather than exporting a broken
 reference. Text uses the browser's installed fonts; font files are not embedded.
+XML-invalid control characters and lone surrogates become U+FFFD in diagram text
+only; valid Unicode pairs remain intact and SGF content/state is not changed.
+This follows the [XML 1.0 character range](https://www.w3.org/TR/xml/#charsets).
 PNG uses a temporary SVG image and 2D canvas for encoding, not a second live board
 renderer. Encoding/decode errors reject; pending PNG exports reject with `AbortError`
 when the view is disposed, and release temporary URLs/canvas resources. Decoding
