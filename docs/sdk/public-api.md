@@ -734,6 +734,9 @@ Studio's Save SVG/PNG actions and all three framework examples exercise this con
 
 ## Complete Viewer
 
+The [record playback contract](playback.md) describes the optional headless
+coordinator, timer lifetime and recorded-node navigation without game edits.
+
 `@banora/sdk/viewer` and the root export expose `mountViewer(container, options?)`.
 `ViewerOptions` accepts either a shared `controller` or initial `sgf` text/bytes,
 `editable` (default false), `comments`, `variations` and nested `board` options.

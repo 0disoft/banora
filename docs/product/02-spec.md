@@ -60,6 +60,12 @@ AI responses belong to a separate integration.
 
 ## State and Rules Contract
 
+Record consumers support opt-in timed forward replay at 0.5 through 5 seconds per
+recorded node. Replay never creates stones/moves, stops at the end and pauses on
+manual navigation, edits or record replacement. Shared navigation shortcuts must
+preserve editable-field behavior and the board's existing cursor/ink keyboard
+controls. See the [playback contract](../sdk/playback.md).
+
 Agents can operate on records and inspect external snapshots through a DOM-free,
 versioned JSON request/response boundary and an optional terminal executable.
 The [automation decision](../adr/0013-machine-readable-terminal-automation.md)

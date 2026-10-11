@@ -3,6 +3,7 @@ export * from './geometry.js';
 export * from './sgf.js';
 export * from './controller.js';
 export * from './automation.js';
+export * from './playback.js';
 export * from './board.js';
 export * from './board-state.js';
 export * from './controlled-board.js';

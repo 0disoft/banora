@@ -35,6 +35,10 @@
       "types": "./dist/automation.d.ts",
       "import": "./dist/automation.js"
     },
+    "./playback": {
+      "types": "./dist/playback.d.ts",
+      "import": "./dist/playback.js"
+    },
     "./board": {
       "types": "./dist/board.d.ts",
       "import": "./dist/board.js"

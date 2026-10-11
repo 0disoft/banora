@@ -13,6 +13,7 @@ export default defineConfig({
         sgf: resolve(import.meta.dirname, 'src/sgf.ts'),
         controller: resolve(import.meta.dirname, 'src/controller.ts'),
         automation: resolve(import.meta.dirname, 'src/automation.ts'),
+        playback: resolve(import.meta.dirname, 'src/playback.ts'),
         board: resolve(import.meta.dirname, 'src/board.ts'),
         'board-state': resolve(import.meta.dirname, 'src/board-state.ts'),
         'controlled-board': resolve(import.meta.dirname, 'src/controlled-board.ts'),
