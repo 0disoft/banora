@@ -1,6 +1,11 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const japaneseUi = {
+  'Board menu': '盤面メニュー',
+  'Close menu': 'メニューを閉じる',
+  Back: '戻る',
+  Share: '共有',
+  Animation: 'アニメーション',
   'PNG / JPEG / WebP · max 2 MiB': 'PNG / JPEG / WebP · 最大 2 MiB',
   'SGF download started.': 'SGF のダウンロードを開始',
   'Diagram download started.': '画像のダウンロードを開始',

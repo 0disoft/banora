@@ -1,4 +1,9 @@
 export const koreanUi = {
+  'Board menu': '바둑판 메뉴',
+  'Close menu': '메뉴 닫기',
+  Back: '뒤로',
+  Share: '공유',
+  Animation: '애니메이션',
   'PNG / JPEG / WebP · max 2 MiB': 'PNG / JPEG / WebP · 최대 2 MiB',
   'SGF download started.': 'SGF 저장 시작',
   'Diagram download started.': '이미지 저장 시작',

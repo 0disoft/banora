@@ -63,7 +63,9 @@ async (page) => {
   await page.getByRole('button', { name: 'New record', exact: true }).click();
   await page.getByRole('button', { name: 'Discard', exact: true }).click();
   await page.waitForFunction(
-    () => document.querySelector('svg').getAttribute('data-board-width') === '19',
+    () =>
+      document.querySelector('#board svg[role="application"]').getAttribute('data-board-width') ===
+      '19',
   );
   await page.locator('#comment').fill('Export before replace');
   await page.getByRole('button', { name: 'Example game', exact: true }).click();
@@ -71,7 +73,9 @@ async (page) => {
   await page.getByRole('button', { name: 'Export & continue', exact: true }).click();
   await (await guardedDownload).saveAs('output/playwright/browser-guard.sgf');
   await page.waitForFunction(
-    () => document.querySelector('svg').getAttribute('data-board-width') === '9',
+    () =>
+      document.querySelector('#board svg[role="application"]').getAttribute('data-board-width') ===
+      '9',
   );
   await page.locator('#file').setInputFiles('output/playwright/browser-guard.sgf');
   await page.waitForFunction(
@@ -93,7 +97,9 @@ async (page) => {
     buffer: Buffer.from('(;SZ[3]AB[ab][ba][cb]AW[bb])'),
   });
   await page.waitForFunction(
-    () => document.querySelector('svg').getAttribute('data-board-width') === '3',
+    () =>
+      document.querySelector('#board svg[role="application"]').getAttribute('data-board-width') ===
+      '3',
   );
   await page.getByRole('combobox', { name: 'Tool', exact: true }).selectOption('play');
   const captureBoard = page.getByRole('application');

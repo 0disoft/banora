@@ -61,6 +61,14 @@ Single-select dropdowns in Studio, shared widgets and examples place their chevr
 They remain native controls, with system appearance restored in forced-colors mode.
 SDK styles are scoped to owned widgets; host dropdowns and listboxes are unaffected.
 
+Studio's board header includes a menu icon for tools, view/export, stone textures,
+touch settings, animation, comparison, sharing and scoring. A viewport-bounded,
+nonmodal popover exposes the existing controls beside the board without scrolling
+to their lower-page sections. Controls are moved temporarily and restored on
+Back, outside click, Escape or close; values, handlers and record history are shared.
+Comparison/scoring open on selection without resetting an already-open session.
+The menu follows all four Studio languages and restores keyboard focus on close.
+
 Studio control separators leave clearance on both sides: 16px on desktop and
 14px on narrow screens. Board, playback and workspace boundaries add the missing
 clearance before their separator; consecutive control rows use their existing

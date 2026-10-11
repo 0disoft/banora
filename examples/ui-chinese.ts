@@ -1,6 +1,11 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const chineseUi = {
+  'Board menu': '棋盘菜单',
+  'Close menu': '关闭菜单',
+  Back: '返回',
+  Share: '分享',
+  Animation: '动画',
   'PNG / JPEG / WebP · max 2 MiB': 'PNG / JPEG / WebP · 最大 2 MiB',
   'SGF download started.': '开始下载 SGF',
   'Diagram download started.': '开始下载图片',

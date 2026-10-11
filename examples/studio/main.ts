@@ -33,6 +33,7 @@ import sample from '../fixtures/study.sgf?raw';
 import { mountSharing } from '../sharing-controls.js';
 import { mountTextureControls } from '../texture-controls.js';
 import { mountScoringControls } from '../scoring-controls.js';
+import { mountBoardMenu } from './board-menu.js';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const boardSize = find<HTMLSelectElement>('board-size');
@@ -587,6 +588,7 @@ window.addEventListener('pagehide', (event) => {
   if (!event.persisted) {
     disposeLanguage();
     disposeStaticLanguage();
+    disposeBoardMenu();
     disposeScoring();
     disposeTextures();
     disposeSharing();
@@ -637,6 +639,7 @@ const disposeSharing = mountSharing(find('sharing-host'), controller, {
     ),
 });
 const disposeScoring = mountScoringControls(find('scoring-host'), controller);
+const disposeBoardMenu = mountBoardMenu();
 
 const localizedTitles: Record<BanoraLocale, string> = {
   en: 'Banora Studio — Go record workspace',

@@ -636,3 +636,77 @@ body.dragging::after {
 #status:empty {
   display: none;
 }
+
+#board-menu {
+  display: inline-grid;
+  place-items: center;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 8px;
+}
+.board-menu-panel {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: min(380px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: #253a34;
+  box-shadow: 0 12px 40px #203f3133;
+  overflow: auto;
+}
+.board-menu-panel[data-section='comparison'],
+.board-menu-panel[data-section='scoring'] {
+  width: min(740px, calc(100vw - 24px));
+}
+.board-menu-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.board-menu-heading h2 {
+  flex: 1;
+}
+.board-menu-heading .button {
+  min-width: 40px;
+  min-height: 40px;
+}
+.board-menu-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.board-menu-choices .button {
+  text-align: left;
+  min-height: 44px;
+}
+.board-menu-content > .editing-tools:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.board-menu-content .texture-controls,
+.board-menu-content .sharing-controls,
+.board-menu-content .scoring {
+  margin: 0;
+}
+.board-menu-content .score-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.board-menu-content .card {
+  padding: 12px;
+}
+.board-menu-content .sharing-controls {
+  padding: 12px;
+}
+.board-menu-content input,
+.board-menu-content select {
+  max-width: 100%;
+}
