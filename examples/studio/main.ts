@@ -1,4 +1,11 @@
-import { RecordController, decodeSgf, mountBoard, mountComparison, parseSgf } from '@banora/sdk';
+import {
+  RecordController,
+  decodeSgf,
+  mountBoard,
+  mountComparison,
+  mountPlaybackControls,
+  parseSgf,
+} from '@banora/sdk';
 import type {
   BoardRotation,
   CommandResult,
@@ -85,6 +92,12 @@ const view = mountBoard(find('board'), {
       report(controller.setMarker(point, kind, find<HTMLInputElement>('label-text').value || 'A'));
     }
   },
+});
+
+const playbackControls = mountPlaybackControls(find('playback'), {
+  controller,
+  scope: document.body,
+  onAction: report,
 });
 
 function nodeTitle(node: SgfNode, depth: number, width: number, height: number): string {
@@ -485,11 +498,13 @@ window.addEventListener('beforeunload', (event) => {
   }
 });
 window.addEventListener('pagehide', (event) => {
+  playbackControls.playback.pause();
   if (!event.persisted) {
     disposeScoring();
     disposeTextures();
     disposeSharing();
     comparison?.dispose();
+    playbackControls.dispose();
     view.dispose();
     unsubscribe();
     controller.dispose();

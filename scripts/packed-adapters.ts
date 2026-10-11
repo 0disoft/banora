@@ -99,7 +99,7 @@ function App() {
   const state = useRecordState(controller);
   return createElement('main', null, createElement('p', null, 'Move ' + state.position.moveNumber),
     createElement(Board, {controller, nodeId:controller.getState().path[0],compareTo:controller.getState().node.id,referenceGeneration:controller.getState().recordGeneration, transform:{rotation:90}, drawing:{color:'#cc5522',width:0.12}, touch:{mode:'confirm',magnifier:true},stoneTextures,placementAnimation, onView, theme:'flat', onStateChange: state => void state.strokes}),
-    createElement(Viewer, {controller, onView, editable:false,board:{touch:{mode:'release'},stoneTextures,placementAnimation}}),
+    createElement(Viewer, {controller, onView, editable:false,playback:{intervalMs:500},board:{touch:{mode:'release'},stoneTextures,placementAnimation}}),
     createElement(ControlledBoard,{state:hostSnapshot,onIntent,onView:onControlledView,contextMenu:true,labels:{board:'Host board'},touch:{mode:'confirm'}}));
 }
 const html = renderToString(createElement(App));
@@ -114,7 +114,7 @@ const App = defineComponent({setup() {
   const state = useRecordState(selected);
   return () => h('main', [h('p', 'Move ' + state.value.position.moveNumber),
     h(Board, {controller:selected.value, nodeId:controller.getState().path[0],compareTo:controller.getState().node.id,referenceGeneration:controller.getState().recordGeneration, transform:{rotation:90}, drawing:{color:'#cc5522',width:0.12}, touch:{mode:'confirm',magnifier:true},stoneTextures,placementAnimation, onView, theme:'flat', onStateChange: state => void state.strokes}),
-    h(Viewer, {controller:selected.value, onView, editable:false,board:{touch:{mode:'release'},stoneTextures,placementAnimation}}),
+    h(Viewer, {controller:selected.value, onView, editable:false,playback:{intervalMs:500},board:{touch:{mode:'release'},stoneTextures,placementAnimation}}),
     h(ControlledBoard,{state:hostSnapshot,onIntent,onView:onControlledView,contextMenu:true,labels:{board:'Host board'},touch:{mode:'confirm'}})]);
 }});
 const html = await renderToString(createSSRApp(App));
@@ -150,7 +150,7 @@ const record = $derived(createRecordStore(controller));
 </script>
 <main><p>Move {$record.position.moveNumber}</p>
 <Board {controller} {onView} {stoneTextures} {placementAnimation} nodeId={controller.getState().path[0]} compareTo={controller.getState().node.id} referenceGeneration={controller.getState().recordGeneration} transform={{rotation:90}} drawing={{color:'#cc5522',width:0.12}} touch={{mode:'confirm',magnifier:true}} theme="flat" ariaLabel="Banora board" onStateChange={state => void state.strokes}/>
-<Viewer {controller} {onView} editable={false} board={{touch:{mode:'release'},stoneTextures,placementAnimation}} ariaLabel="Banora viewer"/>
+<Viewer {controller} {onView} editable={false} playback={{intervalMs:500}} board={{touch:{mode:'release'},stoneTextures,placementAnimation}} ariaLabel="Banora viewer"/>
 <ControlledBoard state={hostSnapshot} {onIntent} onView={onControlledView} contextMenu={true} touch={{mode:"confirm"}} labels={{board:"Host board"}}/></main>
 `,
     );

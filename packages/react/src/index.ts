@@ -123,9 +123,10 @@ export function Viewer(props: ViewerProps) {
       editable: props.editable,
       comments: props.comments,
       variations: props.variations,
+      playback: props.playback,
       board: props.board,
     }),
-    [props.editable, props.comments, props.variations, props.board],
+    [props.editable, props.comments, props.variations, props.playback, props.board],
   );
   useMount('viewer', container, props.controller, options, props.onStateChange, props.onView);
   // oxlint-disable-next-line react/refs -- createElement forwards the ref object; render never reads current.

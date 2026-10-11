@@ -55,6 +55,7 @@ const viewerProps = {
   editable: Boolean,
   comments: { type: Boolean, default: true },
   variations: { type: Boolean, default: true },
+  playback: Object as PropType<ViewerOptions['playback']>,
   board: Object as PropType<ViewerOptions['board']>,
 };
 const emits = {
@@ -156,6 +157,7 @@ export const Viewer = defineComponent({
       editable: props.editable,
       comments: props.comments,
       variations: props.variations,
+      playback: props.playback,
       board: props.board,
     });
     const mount = () => {
@@ -177,6 +179,8 @@ export const Viewer = defineComponent({
         props.editable,
         props.comments,
         props.variations,
+        props.playback,
+        props.playback?.intervalMs,
         props.board?.coordinates,
         props.board?.theme,
         props.board?.moveNumbers,

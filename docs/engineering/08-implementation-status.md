@@ -7,6 +7,18 @@ local exit evidence; the implementation scope is complete within that coverage.
 
 ## Current Evidence
 
+- Recorded-game replay: a DOM-free borrowed-controller coordinator and shared
+  Studio/Viewer Play/Pause/interval controls, default 1 second and bounded 0.5–5
+  second intervals. Scoped Left/Right and board Alt+Left/Right preserve editable
+  fields and cursor/ink input. Actual timer unit tests verify leaf stopping,
+  cancellation, reentrant changes and unchanged SGF. Production Chrome checks
+  Studio's original long 162-move fixture, common Viewer, React/Vue/Svelte and
+  classic script, keyboard/dialog guards, interval changes, import and remount.
+  Native Viewer props and the public playback handle share the same coordinator.
+  Headless installed types/runtime evidence is separate from browser evidence.
+  See the [contract](../sdk/playback.md). No new move generation, engine transport,
+  background catch-up or automatic replay on mount is introduced.
+
 - Agent/terminal automation: DOM-free `@banora/sdk/automation` checked JSON requests,
   immutable discovery schema, isolated record batches and external snapshot
   normalization. Existing controller/rules/scoring APIs own all transitions.

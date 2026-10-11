@@ -34,6 +34,11 @@ static production examples. The [complete viewer](http://127.0.0.1:4317/viewer/)
 demonstrates the convenience mount and optional editing. `bun run smoke:browser`
 checks production browser flows, including the [React](http://127.0.0.1:4317/react/),
 [Vue](http://127.0.0.1:4317/vue/) and [Svelte](http://127.0.0.1:4317/svelte/) examples.
+Studio and the complete Viewers offer Play/Pause with 0.5–5 second replay intervals.
+Left/Right navigate outside text/select controls and the board; with board focus,
+use Alt+Left/Right to preserve cursor/ink keys. Replay stops at the end or on
+manual interaction/import and leaves SGF unchanged. See the
+[playback contract](docs/sdk/playback.md).
 The [classic browser example](http://127.0.0.1:4317/browser/) uses one built script
 and the same complete viewer without a framework or module loader.
 `bun run smoke:adapters` verifies independently installed adapter types and SSR.

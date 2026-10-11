@@ -6,6 +6,13 @@ workspace. See the repository documentation
 for implementation status and the remaining milestones. No third-party runtime
 dependencies or external assets are included.
 
+`@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
+intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.
+The separate DOM `playback-controls` mount is shared by Studio and every complete
+Viewer; native Viewer props forward `playback:{intervalMs}`. Board cursor arrows
+remain intact, with scoped record arrows and Alt+Left/Right for board focus. See
+the [playback guide](https://github.com/0disoft/banora/blob/main/docs/sdk/playback.md).
+
 `@banora/sdk/automation` exposes DOM-free `executeAutomation` and immutable
 `AUTOMATION_SCHEMA` for checked JSON record commands and external snapshots.
 The optional `@banora/cli` executable exposes the same operations through terminal

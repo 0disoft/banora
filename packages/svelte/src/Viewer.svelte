@@ -6,6 +6,7 @@
     editable,
     comments,
     variations,
+    playback,
     board,
     onStateChange,
     onView,
@@ -18,7 +19,7 @@
 <Mount
   kind="viewer"
   {controller}
-  options={{ editable, comments, variations, board }}
+  options={{ editable, comments, variations, playback, board }}
   {onStateChange}
   {onView}
   class={className}

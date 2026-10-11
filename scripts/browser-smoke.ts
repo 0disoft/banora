@@ -151,13 +151,28 @@ async function controlledConsumers(): Promise<void> {
       );
   }
 }
+async function playbackSmoke(): Promise<void> {
+  await scenario('playback', 'banora-playback-complete: studio viewer react vue svelte browser');
+  const sgf = await readFile(resolve(output, 'playback-preserved.sgf'), 'utf8');
+  if (
+    !sgf.includes('XX[retain]') ||
+    !sgf.includes('0.47 0.53 -0.5 v=1015') ||
+    (sgf.match(/;[BW]\[/g) ?? []).length !== 162
+  )
+    throw new Error('Timed playback changed the original SGF or recorded moves');
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--controlled-only')) {
+  if (process.argv.includes('--playback-only')) {
+    await playbackSmoke();
+    console.log(
+      'Playback smoke passed: speed/pause/end, keyboard guards, import, SGF preservation and six consumer lifecycles.',
+    );
+  } else if (process.argv.includes('--controlled-only')) {
     await scenario('controlled', 'banora-controlled-complete');
     await controlledConsumers();
     console.log(
@@ -202,8 +217,10 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await playbackSmoke();
     await scenario('controlled', 'banora-controlled-complete');
     await controlledConsumers();
+    await cli('goto', `${address}/studio/`);
     console.log(
       'Controlled-board smoke passed: external state, immutable intentions, masks/overlays, transforms, diagrams and lifecycle.',
     );

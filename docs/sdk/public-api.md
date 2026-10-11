@@ -739,18 +739,21 @@ coordinator, timer lifetime and recorded-node navigation without game edits.
 
 `@banora/sdk/viewer` and the root export expose `mountViewer(container, options?)`.
 `ViewerOptions` accepts either a shared `controller` or initial `sgf` text/bytes,
-`editable` (default false), `comments`, `variations` and nested `board` options.
+`editable` (default false), `comments`, `variations`, `playback:{intervalMs?}` and
+nested `board` options. Playback defaults to 1 second with Play/Pause and a
+0.5–5 second interval selector; it advances recorded nodes only.
 Supplying both controller and SGF throws. The viewer includes game selection,
 move controls, branch selection, player information/captures and comments.
 
-The returned `ViewerView` exposes `controller`, `update(options)`, board-only diagram
+The returned `ViewerView` exposes `controller`, `playback`, `update(options)`, board-only diagram
 exports and idempotent `dispose()`. Updating presentation/editability retains the same controller and
 record. Enable editing for legal board moves/pass, grouped comments and Undo/Redo.
 Hosts can supply `board.onPoint` for other editing/inspection modes. Hosts still
 own unsaved-change confirmation and file export transport.
 
 Viewer disposal removes only its own DOM/listeners and preserves an external
-controller. An internally created controller is disposed with the viewer. The
+controller. Playback timers/controls are disposed with the viewer. An internally
+created controller is disposed with the viewer. The
 variation tree has the same 500-node display bound as Studio; all nodes remain
 accessible through controller navigation. Comments and metadata are rendered as
 text. Mounting requires a DOM; importing the package on the server is safe.

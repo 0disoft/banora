@@ -4,6 +4,9 @@ import { RecordController } from './controller.js';
 import type { CommandResult, ControllerState } from './controller.js';
 import { pointFromSgf } from './sgf.js';
 import type { SgfNode } from './sgf.js';
+import { mountPlaybackControls } from './playback-controls.js';
+import { normalizePlaybackInterval } from './playback.js';
+import type { PlaybackOptions, RecordPlayback } from './playback.js';
 
 export interface ViewerOptions {
   readonly controller?: RecordController;
@@ -11,10 +14,12 @@ export interface ViewerOptions {
   readonly editable?: boolean;
   readonly comments?: boolean;
   readonly variations?: boolean;
+  readonly playback?: PlaybackOptions;
   readonly board?: Omit<BoardOptions, 'controller' | 'readOnly' | 'nodeId'>;
 }
 export interface ViewerView {
   readonly controller: RecordController;
+  readonly playback: RecordPlayback;
   update(options: Omit<ViewerOptions, 'controller' | 'sgf'>): void;
   exportSvg(options?: DiagramOptions): string;
   exportPng(options?: DiagramOptions): Promise<Blob>;
@@ -30,6 +35,7 @@ const stylesheet = `
 export function mountViewer(container: HTMLElement, initial: ViewerOptions = {}): ViewerView {
   if (initial.controller && initial.sgf !== undefined)
     throw new TypeError('Supply a controller or SGF, not both');
+  const initialInterval = normalizePlaybackInterval(initial.playback?.intervalMs);
   const document = container.ownerDocument;
   const owned = !initial.controller;
   const controller = initial.controller ?? new RecordController({ sgf: initial.sgf });
@@ -124,6 +130,12 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     throw error;
   }
   let lastTree: { record: ControllerState['record']; selected: string } | undefined;
+  const playbackControls = mountPlaybackControls(nav, {
+    controller,
+    scope: root,
+    intervalMs: initialInterval,
+    onAction: report,
+  });
 
   function nodeName(node: SgfNode, state: ControllerState): string {
     const value = node.properties.B?.[0] ?? node.properties.W?.[0];
@@ -235,14 +247,20 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   );
   return Object.freeze({
     controller,
+    playback: playbackControls.playback,
     exportSvg: (config?: DiagramOptions) => board.exportSvg(config),
     exportPng: (config?: DiagramOptions) => board.exportPng(config),
     update(next: Omit<ViewerOptions, 'controller' | 'sgf'>) {
       if (disposed) throw new Error('Viewer is disposed');
       const previous = options;
+      const interval =
+        next.playback === undefined
+          ? undefined
+          : normalizePlaybackInterval(next.playback.intervalMs);
       const merged = { ...options, ...next, board: { ...options.board, ...next.board } };
       board.update({ ...merged.board, readOnly: !merged.editable, nodeId: null });
       options = merged;
+      if (interval !== undefined) playbackControls.playback.setInterval(interval);
       if ((previous.editable && !options.editable) || next.comments === false) endCommentGroup();
       render(controller.getState());
     },
@@ -252,6 +270,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       endCommentGroup();
       abort.abort();
       unsubscribe();
+      playbackControls.dispose();
       board.dispose();
       root.remove();
       if (owned) controller.dispose();
