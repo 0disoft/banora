@@ -65,17 +65,17 @@ This Windows WebKit build reports a Safari/macOS-style user agent; neither that
 string nor these results prove a real macOS Safari or iOS device was tested.
 
 The opt-in `--desktop-only` profile additionally passed all 19 scopes on Windows
-Playwright WebKit 26.6: editing/SGF preservation, file drop, rules, recovery/
+Firefox 156 and Playwright WebKit 26.6: editing/SGF preservation, file drop, rules, recovery/
 preferences, four-language UI, playback, common controlled board, classic script,
 presentation, real SVG/PNG diagrams, sharing and React/Vue/Svelte framework,
 texture and animation consumer flows, plus the earlier accessibility/tree/support/
-search scopes. The React texture screenshot was inspected. A texture fixture
+search scopes. React texture screenshots were inspected on both engines. A texture fixture
 initially observed its preparation status before React committed the board update;
 waiting for the actual main/viewer/owned surfaces retained every forwarding,
-record-preservation, cancellation and diagram assertion. This is not full WebKit
+record-preservation, cancellation and diagram assertion. This is not full Firefox/WebKit
 feature coverage: CDP/touch/zoom/performance, native controlled-consumer input,
-scoring, puzzle and analysis scopes remain excluded. Firefox has only the focused
-coverage stated above, not an executed 19-scope result.
+scoring, puzzle and analysis scopes remain excluded. The Firefox profile executed
+against clean source `f726c4d` with no further runtime or fixture correction.
 
 `scripts/browser-smoke.ts` accepts a single
 `--browser=chrome|msedge|firefox|webkit` alongside its existing focused flags.

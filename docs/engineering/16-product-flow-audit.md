@@ -222,6 +222,31 @@ remains scoped to its recorded commits. Test-hardening, refactor, SDK, ops-chang
 and Playwright procedures applied. Full Firefox and physical-device coverage
 remain unverified.
 
+## October 12: Firefox Desktop Execution
+
+Executed `bun scripts/browser-smoke.ts --desktop-only --browser=firefox` against
+clean source `f726c4d`. The engine guard and actual user agent identify Windows
+x64 Firefox 156. All 19 existing public-page scopes and their downloaded artifact
+assertions passed, including preferences/IndexedDB recovery, locale/playback,
+editing/SGF preservation, diagrams, sharing and React/Vue/Svelte texture/animation
+consumers. The React texture screenshot was inspected. No additional SDK, adapter
+or fixture correction was required after the earlier WebKit render-wait fix.
+
+The validation owner, compatibility scope and readiness review now record the
+executed Firefox profile rather than claiming only three focused routes. The
+profile still excludes CDP/touch/zoom/performance, native controlled-consumer input,
+scoring, puzzle and analysis; full default Chrome evidence remains separate.
+No physical-device or browser-floor certification follows. GitHub was rechecked:
+the repository remains private with Issues enabled and the existing draft PR #2;
+there is still no demonstrated external reporting/publication channel.
+
+This evidence-only increment changes no runtime API, database, dependencies,
+repository hygiene, runner or CI workflow. Documentation, format and whitespace
+checks cover the changed files. Root `check`, installed consumers and Chrome/
+WebKit suites were not rerun because only executed coverage documentation changes;
+their earlier results remain tied to their sources. SDK, test-hardening,
+ops-change and Playwright procedures applied.
+
 ## October 12: Workflow and Promise Review
 
 Reviewed current Studio import/replacement/export and search/support controls,

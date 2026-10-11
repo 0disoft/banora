@@ -130,8 +130,8 @@ These statements replace stale work plans, not the outstanding distribution gate
 
 ## Completion Rule
 
-Browser coverage now includes all 19 opt-in desktop scopes on Windows Playwright
-WebKit 26.6, including recovery, editing/export and React/Vue/Svelte texture/
+Browser coverage now includes all 19 opt-in desktop scopes on Windows Firefox 156
+and Playwright WebKit 26.6, including recovery, editing/export and React/Vue/Svelte texture/
 animation consumers. The original texture fixture race was reproduced and fixed
 by awaiting actual rendered surfaces, without changing SDK runtime or loosening
 preservation checks. [Compatibility](../sdk/compatibility.md#executed-browser-scope)

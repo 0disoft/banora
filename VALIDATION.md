@@ -102,6 +102,12 @@ This profile excludes CDP touch/zoom and performance, native controlled-consumer
 input, scoring, puzzle and analysis scopes. It does not replace full Chrome smoke
 or certify physical devices; browser selection remains explicit and CI is unchanged.
 
+All 19 desktop scopes have executed successfully on Windows Firefox 156 and
+Playwright WebKit 26.6. The default complete Chrome 154 suite also passed after
+the shared-helper/fixture changes. Exact engine and source boundaries are recorded
+in [execution evidence](docs/engineering/16-product-flow-audit.md); another browser
+flag or a passing subset must not be reported as complete-suite coverage.
+
 `scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
 modified/extra files, directory links, source-preserving isolated restaging, actual
 Git source guards and failed/timed-out check processes. `bun run release prepare`
