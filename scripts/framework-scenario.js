@@ -11,7 +11,10 @@ async (page) => {
   };
   for (const framework of ['react', 'vue', 'svelte']) {
     await page.goto(`${origin}/${framework}/`);
-    await page.waitForFunction(() => document.querySelectorAll('svg').length === 3);
+    // Comment icons are SVG too; only board surfaces participate in this lifecycle check.
+    await page.waitForFunction(
+      () => document.querySelectorAll('svg[role="application"]').length === 3,
+    );
     const board = page.locator('#board-host').getByRole('application');
     const viewer = page.locator('#viewer-host');
     const owned = page.locator('#owned-board').getByRole('application');
@@ -32,7 +35,7 @@ async (page) => {
     await page.locator('#rotate').click();
     await page.locator('#reflect').click();
     await page.waitForFunction(() =>
-      [...document.querySelectorAll('svg')].every(
+      [...document.querySelectorAll('svg[role="application"]')].every(
         (svg) => svg.dataset.rotation === '90' && svg.dataset.flipX === 'true',
       ),
     );
@@ -75,7 +78,10 @@ async (page) => {
     const after = Number((await page.locator('#events').innerText()).match(/Events (\d+)/)[1]);
     verify(after === before + 1, `${framework}: duplicate or stale state callback`);
     await page.locator('#toggle').click();
-    verify((await page.locator('svg').count()) === 0, `${framework}: unmount leaked renderer`);
+    verify(
+      (await page.locator('svg[role="application"]').count()) === 0,
+      `${framework}: unmount leaked renderer`,
+    );
     verify(
       (await page.locator('#png').isDisabled()) && (await page.locator('#svg').isDisabled()),
       `${framework}: disposed view handle retained`,
@@ -93,7 +99,9 @@ async (page) => {
       `${framework}: unmounted callback still subscribed`,
     );
     await page.locator('#toggle').click();
-    await page.waitForFunction(() => document.querySelectorAll('svg').length === 3);
+    await page.waitForFunction(
+      () => document.querySelectorAll('svg[role="application"]').length === 3,
+    );
     await page.waitForFunction(
       () => document.querySelector('#view-handles').textContent === 'View handles 2',
     );

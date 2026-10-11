@@ -317,7 +317,7 @@ async (page) => {
     for (const framework of ['react', 'vue', 'svelte']) {
       await page.goto(`${origin}/${framework}/`);
       const widget = page.locator('#board-host svg'),
-        viewer = page.locator('#viewer-host svg');
+        viewer = page.locator('#viewer-host svg[role="application"]');
       await widget.waitFor();
       await page.locator('#ink').click();
       await page.locator('#rotate').click();

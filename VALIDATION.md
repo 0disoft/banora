@@ -95,6 +95,8 @@ The formatting baseline is committed separately from the tooling/lint changes.
 Both read-only checks run first in `bun run check`.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
+Framework lifecycle and transform checks count SVG board applications, excluding
+comment indicator icons from renderer counts.
 Standalone smoke is also separate: it copies `examples/standalone`, installs the
 SDK tarball and independent tools with npm lifecycle scripts disabled, then serves
 that consumer's production build through its own temporary localhost server.
