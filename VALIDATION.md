@@ -139,7 +139,8 @@ After building examples/SDK, `bun scripts/browser-smoke.ts --touch-only` runs th
 focused real-touch scenario using the same oneshot server/session cleanup.
 `--scoring-only` selects Studio's manual group controls, all four counting presets,
 seki, negative komi/adjustments, AGA pass/handicap components and final-pass warning,
-invalid-input recovery, keyboard focus, navigation/edit/import reset and auxiliary
+invalid-input recovery, keyboard focus, navigation/setup/import reset, preservation
+across comment/annotation edits and their Undo, and auxiliary
 view disposal. Emulated mobile touch/layout and identical before/after downloaded
 SGF are required. It runs in the full suite with the same strict completion Result.
 `--puzzle-only` selects the production curated puzzle consumer and public puzzle-view

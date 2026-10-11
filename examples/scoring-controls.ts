@@ -7,7 +7,14 @@ import {
   recordNodeAt,
   serializeSgf,
 } from '@banora/sdk';
-import type { BoardView, ControllerState, Point, Position, RecordLocator } from '@banora/sdk';
+import type {
+  BoardView,
+  ControllerState,
+  Point,
+  Position,
+  RecordLocator,
+  SgfNode,
+} from '@banora/sdk';
 import { RULE_PROFILES, getRuleProfile } from '@banora/sdk/rules';
 import type { RuleProfileId } from '@banora/sdk/rules';
 import { scorePosition } from '@banora/sdk/scoring';
@@ -54,6 +61,19 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
     display: RecordController | undefined,
     view: BoardView | undefined,
     report: ScoreSummary | undefined;
+  let context = '';
+  function scoringContext(state: ControllerState): string {
+    let node = state.record.games[state.gameIndex]!;
+    const properties = (node: SgfNode) =>
+      ['B', 'W', 'AB', 'AW', 'AE', 'PL'].map((key) => node.properties[key]);
+    const path = [properties(node)];
+    for (const id of state.path.slice(1)) {
+      node = node.children.find((child) => child.id === id)!;
+      path.push(properties(node));
+    }
+    const root = state.record.games[state.gameIndex]!.properties;
+    return JSON.stringify([root.SZ, root.KM, root.HA, path]);
+  }
   const number = (id: string) => find<HTMLInputElement>(id).valueAsNumber;
   function clearView() {
     view?.dispose();
@@ -221,6 +241,7 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
   }
   function bind(state: ControllerState) {
     bound = state;
+    context = scoringContext(state);
     scoringPosition = undefined;
     dead = [];
     seki = [];
@@ -275,7 +296,15 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
   for (const id of ['score-komi', 'score-handicap', 'score-black-adjust', 'score-white-adjust'])
     find(id).addEventListener('input', calculate, { signal: abort.signal });
   const unsubscribe = source.subscribe((state) => {
-    if (opened && (bound?.record !== state.record || bound.node.id !== state.node.id)) bind(state);
+    if (!opened) return;
+    if (
+      !bound ||
+      bound.recordGeneration !== state.recordGeneration ||
+      bound.node.id !== state.node.id ||
+      (bound.record !== state.record && context !== scoringContext(state))
+    )
+      bind(state);
+    else bound = state;
   });
   return () => {
     disposed = true;

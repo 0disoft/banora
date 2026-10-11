@@ -175,14 +175,30 @@ async (page) => {
     await page.locator('#last').click();
     await page.locator('#score-profile').selectOption('japanese-territory');
     await mark(page, '0,1');
+    await page.locator('#score-komi').fill('7.5');
     await page.locator('#comment').fill('Context changed');
     await page.locator('#comment').blur();
-    verify((await component('deadPrisoners')) === 0, 'Record edit retained stale score context');
+    verify(
+      (await component('deadPrisoners')) === 2 && (await component('komi', 'white')) === 7.5,
+      'Comment edit reset independent scoring settings or marks',
+    );
     await page.locator('#undo').click();
     verify(
       (await page.locator('#dirty').innerText()) === 'No changes',
       'Scoring changed source Undo semantics',
     );
+    verify((await component('deadPrisoners')) === 2, 'Comment Undo erased scoring marks');
+    await page.locator('#tool').selectOption('triangle');
+    await page.locator('#board svg').focus();
+    await page.keyboard.press('Enter');
+    verify((await component('deadPrisoners')) === 2, 'Annotation edit erased scoring marks');
+    await page.locator('#undo').click();
+    await page.locator('#tool').selectOption('setup-empty');
+    await page.locator('#board svg').focus();
+    await page.keyboard.press('Enter');
+    verify((await component('deadPrisoners')) === 0, 'Setup edit retained stale scoring marks');
+    await page.locator('#undo').click();
+    await page.locator('#tool').selectOption('play');
     await mark(page, '0,1');
     await open(page, '(;SZ[3]GN[Replacement]KM[0]AB[bb])', 'replacement.sgf');
     verify(

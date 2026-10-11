@@ -179,6 +179,9 @@ record. Keep the original record available if an import fails.
 Separate score calculation for an agreed dead-stone selection from prediction of
 ownership, life/death, or the likely final result. Users can correct suggested
 dead stones. Document treatment of seki and rule-specific edge cases.
+Studio preserves manual scoring marks and adjustments across comment/annotation
+edits and their Undo. Navigation, import, move/setup history, board dimensions or
+komi/handicap metadata changes rebind scoring to the current position.
 
 AI computation is supplied by an external engine/service. Display overlays are
 SDK features; they do not mean the SDK can independently find strong moves.
