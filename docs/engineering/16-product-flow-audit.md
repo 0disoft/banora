@@ -83,3 +83,33 @@ presentation boundary. The preceding full root check is complemented by current
 typecheck, lint, format and docs checks; full browser, engine and packed adapter
 runs were not repeated for the catalog fallback. Bugfix, test-hardening and
 Playwright procedures applied. Other engines and physical devices remain unverified.
+
+## October 12: Workflow and Promise Review
+
+Reviewed current Studio import/replacement/export and search/support controls,
+the public controlled-board, automation, analysis and recovery contracts, the
+standalone/analysis guides, README, operational backup/observability procedures
+and actual production scenario routes. Updated readiness rows 25-72 from stale
+implementation plans to concrete behavior, executed evidence and remaining limits.
+The source review found the two locale defects above; they have independent
+before-failure/after-success browser evidence and committed fixes.
+
+The existing completed production run at 3355418 covers search/apply/Undo/export,
+reload/two-tab recovery/quotas, native framework host decisions, keyboard/narrow
+dialogs, menu/scoring/comparison/sharing and provider cancellation. Current locale
+changes have focused rebuilt-browser coverage rather than a repeated unrelated
+full suite. Historical starter/SSR/engine/release/performance checks remain named
+historical evidence, not assertions that those commands ran again today.
+Source review distinguishes private/unpublished distribution, authored illustrative
+analysis and manual transport from SDK functionality. It does not establish a
+public feedback channel, security policy approval, hosted execution, physical
+assistive devices or service reliability. These are still explicit readiness gates.
+
+The next three priorities are external feedback/security access and approved
+policy; hosted CI plus a fresh reviewed release candidate; additional browser/
+device and large-record paint/memory measurements. Accounts, remote collaboration,
+schedulers and service dashboards remain host integrations, since adding them to
+the local SDK would create new authority and operations obligations. No runtime,
+public API, schema/DB, dependency, hygiene or runner was changed by this review.
+Documentation validation, format and whitespace checks cover this increment;
+runtime checks were not repeated for evidence-table changes.
