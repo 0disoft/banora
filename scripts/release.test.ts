@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
   inventory,
@@ -14,8 +14,15 @@ import {
 import type { ReleaseManifest } from './release-artifacts.js';
 import { releaseSource, runReleaseCheck } from './release.js';
 import { publicationOptions, publicationPlan } from './publication-plan.js';
-import { parsePublicationRequest, publishRelease, PublicationError } from './publication.js';
+import {
+  parsePublicationRequest,
+  publishRelease,
+  PublicationError,
+  publicRegistryIO,
+} from './publication.js';
 import type { PublicationIO } from './publication.js';
+import { downloadRegistryArchive, registryHealth, RegistryHealthError } from './registry-health.js';
+import type { RegistryHealthIO } from './registry-health.js';
 
 async function fixture(prepared = false) {
   await mkdir('.tmp', { recursive: true });
@@ -347,6 +354,251 @@ test('source gate checks the actual workspace/Git state and check execution fail
   expect(child.exitCode).toBe(1);
   expect(child.stderr.toString()).toBe('');
   expect(JSON.parse(child.stdout.toString()).error.code).toBe('usage');
+});
+
+async function registryFixture() {
+  const { root, bundle, manifest } = await fixture(true);
+  const request = {
+    bundle,
+    manifestSha256: createHash('sha256')
+      .update(await readFile(resolve(bundle, 'manifest.json')))
+      .digest('hex'),
+    sourceCommit: manifest.source.commit,
+    tag: 'dev',
+    execute: false,
+  };
+  const plan = await publishRelease(root, request);
+  if (plan.operation !== 'preview') throw Error('Expected preview fixture');
+  const calls: { argv: readonly string[]; cwd: string }[] = [];
+  const checks: { args: string[]; label: string }[] = [],
+    downloads: string[] = [];
+  // Authored metadata and copied integrity bytes; these fixtures do not simulate npm ownership or executable archives.
+  const io: RegistryHealthIO = {
+    run(argv, cwd) {
+      calls.push({ argv, cwd });
+      const item = plan.packages.find((item) => `${item.name}@${item.version}` === argv[2]);
+      if (argv[0] !== 'npm' || argv[1] !== 'view' || !item)
+        throw Error('Unexpected fixture command');
+      return {
+        status: 0,
+        stdout: JSON.stringify({
+          name: item.name,
+          version: item.version,
+          dist: {
+            integrity: item.registryIntegrity,
+            tarball: `https://registry.npmjs.org/${item.name}/-/${item.name.split('/')[1]}-${item.version}.tgz`,
+          },
+          'dist-tags': { dev: item.version },
+        }),
+      };
+    },
+    async download(url, destination, bytes) {
+      expect(calls.length).toBe(5);
+      const item = plan.packages.find((item) =>
+        url.includes(`/${item.name.split('/')[1]}-${item.version}.tgz`),
+      )!;
+      expect(bytes).toBe(manifest.files.find((file) => file.path === item.archive)!.bytes);
+      downloads.push(url);
+      await copyFile(resolve(bundle, item.archive), destination);
+    },
+    async check(args, label) {
+      checks.push({ args, label });
+    },
+  };
+  return { root, bundle, manifest, request, io, calls, checks, downloads };
+}
+test('actual npm configuration cannot inherit ancestor project settings or use a project npmrc in the isolated working directory', async () => {
+  await mkdir('.tmp', { recursive: true });
+  const root = await mkdtemp(resolve('.tmp/npm-config-isolation-')),
+    child = resolve(root, 'isolated');
+  await mkdir(child);
+  await writeFile(
+    resolve(root, 'package.json'),
+    JSON.stringify({ name: 'authored-config-fixture', private: true }),
+  );
+  // Innocuous authored registry setting; no credential or private value is created.
+  await writeFile(resolve(root, '.npmrc'), 'registry=https://example.org/\n');
+  const io = publicRegistryIO(root),
+    before = await readFile(resolve(root, '.npmrc'));
+  const read = io.run(['npm', 'config', 'get', 'registry'], child);
+  expect(read.status).toBe(0);
+  expect(read.stdout.trim()).toBe('https://registry.npmjs.org/');
+  await writeFile(resolve(child, '.npmrc'), 'registry=https://example.org/\n');
+  expect(() => io.run(['npm', 'config', 'get', 'registry'], child)).toThrow('authority');
+  expect(await readFile(resolve(root, '.npmrc'))).toEqual(before);
+});
+test('registry health binds all identities and downloaded bytes before isolated consumer checks and preserves original artifacts', async () => {
+  const { root, bundle, request, io, calls, checks, downloads } = await registryFixture();
+  const before = await inventory(bundle);
+  const result = await registryHealth(root, request, io);
+  expect(result.checks).toEqual(['registry-sdk', 'registry-cli', 'registry-adapters']);
+  expect(result.packages.map((item) => item.name)).toEqual(Object.values(RELEASE_PACKAGE_NAMES));
+  expect(downloads).toHaveLength(5);
+  expect(calls).toHaveLength(10);
+  expect(
+    calls.every((call) => call.argv[1] === 'view' && call.argv.includes('--prefer-online')),
+  ).toBe(true);
+  expect(checks.map((check) => check.args[0])).toEqual([
+    'scripts/packed-consumer.ts',
+    'scripts/packed-cli.ts',
+    'scripts/packed-adapters.ts',
+  ]);
+  expect(
+    checks.every((check) => check.args[1] === '--release-bundle' && check.args[2] !== bundle),
+  ).toBe(true);
+  expect((await verifyRelease(checks[0]!.args[2]!)).manifest.source).toEqual(result.source);
+  expect(await inventory(bundle)).toEqual(before);
+  expect(await readFile(resolve(checks[0]!.args[2]!, 'packages/sdk.tgz'))).toEqual(
+    await readFile(resolve(bundle, 'packages/sdk.tgz')),
+  );
+  const invalid = await registryFixture();
+  await expect(
+    registryHealth(
+      invalid.root,
+      { ...invalid.request, manifestSha256: '0'.repeat(64) },
+      invalid.io,
+    ),
+  ).rejects.toThrow('integrity');
+  expect(invalid.calls).toHaveLength(0);
+  await expect(
+    registryHealth(invalid.root, { ...invalid.request, execute: true }, invalid.io),
+  ).rejects.toThrow('usage');
+  const cli = Bun.spawnSync(
+    [process.execPath, 'scripts/release.ts', 'registry-check', '--execute'],
+    { stdout: 'pipe', stderr: 'pipe' },
+  );
+  expect(cli.exitCode).toBe(1);
+  expect(JSON.parse(cli.stdout.toString()).error.code).toBe('usage');
+  expect(cli.stderr.toString()).toBe('');
+});
+test('registry preflight rejects provider failures, unsafe URLs and late-package integrity or channel conflicts before any download', async () => {
+  for (const failure of [
+    'registry-metadata',
+    'registry-integrity',
+    'registry-channel',
+    'unsafe-url',
+  ] as const) {
+    const fixture = await registryFixture(),
+      read = fixture.io.run;
+    const io = {
+      ...fixture.io,
+      run(argv: readonly string[], cwd: string) {
+        const result = read(argv, cwd);
+        if (fixture.calls.length !== 5) return result;
+        if (failure === 'registry-metadata')
+          return { status: 1, stdout: 'Authored provider failure detail.' };
+        const value = JSON.parse(result.stdout);
+        if (failure === 'registry-integrity') value.dist.integrity = 'sha512-mismatch';
+        if (failure === 'registry-channel') value['dist-tags'].dev = '0.0.0-stage';
+        if (failure === 'unsafe-url') value.dist.tarball = 'https://example.org/unreviewed.tgz';
+        return { status: 0, stdout: JSON.stringify(value) };
+      },
+    };
+    await expect(registryHealth(fixture.root, fixture.request, io)).rejects.toMatchObject({
+      code: failure === 'unsafe-url' ? 'registry-metadata' : failure,
+    });
+    expect(fixture.downloads).toHaveLength(0);
+    expect(fixture.checks).toHaveLength(0);
+  }
+});
+test('registry health refuses corrupt downloads, stops on consumer failure and rechecks the channel after installing', async () => {
+  const damaged = await registryFixture(),
+    copy = damaged.io.download;
+  await expect(
+    registryHealth(damaged.root, damaged.request, {
+      ...damaged.io,
+      async download(url, destination, bytes) {
+        await copy(url, destination, bytes);
+        if (damaged.downloads.length === 3)
+          await writeFile(destination, 'Authored corrupt download.');
+      },
+    }),
+  ).rejects.toMatchObject({
+    code: 'registry-integrity',
+    completed: ['@0disoft/banora', '@0disoft/banora-cli'],
+  });
+  expect(damaged.checks).toHaveLength(0);
+  const failed = await registryFixture(),
+    check = failed.io.check;
+  await expect(
+    registryHealth(failed.root, failed.request, {
+      ...failed.io,
+      async check(args, label) {
+        await check(args, label);
+        if (label === 'registry-cli') throw Error('Authored consumer failure detail.');
+      },
+    }),
+  ).rejects.toMatchObject({
+    code: 'registry-consumer',
+    lastCheck: 'registry-cli',
+    completed: Object.values(RELEASE_PACKAGE_NAMES),
+  });
+  expect(failed.checks).toHaveLength(2);
+  const changed = await registryFixture(),
+    read = changed.io.run;
+  await expect(
+    registryHealth(changed.root, changed.request, {
+      ...changed.io,
+      run(argv, cwd) {
+        const result = read(argv, cwd);
+        if (changed.calls.length > 5) {
+          const value = JSON.parse(result.stdout);
+          value['dist-tags'].dev = '0.0.0-stage';
+          return { ...result, stdout: JSON.stringify(value) };
+        }
+        return result;
+      },
+    }),
+  ).rejects.toMatchObject({
+    code: 'registry-channel',
+    lastCheck: 'registry-confirmation',
+    completed: Object.values(RELEASE_PACKAGE_NAMES),
+  });
+  expect(changed.checks).toHaveLength(3);
+});
+test('fresh HTTPS download bounds actual streamed bytes, denies redirects/foreign hosts and preserves existing destinations', async () => {
+  await mkdir('.tmp', { recursive: true });
+  const directory = await mkdtemp(resolve('.tmp/registry-stream-test-'));
+  const address = 'https://registry.npmjs.org/@0disoft/banora/-/banora-0.1.0-dev.0.tgz';
+  const destination = resolve(directory, 'archive.tgz');
+  const fetcher = async (url: string, init: RequestInit) => {
+    expect(url).toBe(address);
+    expect(init.redirect).toBe('error');
+    expect(init.cache).toBe('no-store');
+    return new Response(
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new Uint8Array([1, 2]));
+          controller.enqueue(new Uint8Array([3, 4]));
+          controller.close();
+        },
+      }),
+      { headers: { 'content-length': '4' } },
+    );
+  };
+  await downloadRegistryArchive(address, destination, 4, fetcher);
+  expect(await readFile(destination)).toEqual(Buffer.from([1, 2, 3, 4]));
+  await expect(downloadRegistryArchive(address, destination, 4, fetcher)).rejects.toBeInstanceOf(
+    RegistryHealthError,
+  );
+  expect(await readFile(destination)).toEqual(Buffer.from([1, 2, 3, 4]));
+  await expect(
+    downloadRegistryArchive(
+      'https://example.org/archive.tgz',
+      resolve(directory, 'foreign.tgz'),
+      4,
+      fetcher,
+    ),
+  ).rejects.toMatchObject({ code: 'registry-download' });
+  for (const [name, response] of [
+    ['long', new Response(new Uint8Array([1, 2, 3, 4, 5]))],
+    ['short', new Response(new Uint8Array([1, 2, 3]))],
+    ['redirect', new Response(null, { status: 302 })],
+    ['header', new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'content-length': '5' } })],
+  ] as const)
+    await expect(
+      downloadRegistryArchive(address, resolve(directory, name + '.tgz'), 4, async () => response),
+    ).rejects.toMatchObject({ code: 'registry-download' });
 });
 
 test('offline publication handoff works without external commands and preserves prepared bytes', async () => {

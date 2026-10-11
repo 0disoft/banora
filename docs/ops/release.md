@@ -153,7 +153,10 @@ candidate during publication.
 
 Execution exclusively restages the verified bundle, preserves all original
 manifest fields/inventories and uses empty isolated npm configuration with static
-token/config environment overrides removed. No package lifecycle scripts run.
+token/config environment overrides removed. npm's project prefix is forced to
+the isolated working directory and its own `.npmrc` is refused, so ancestor
+project settings cannot supply a token or override. Temporary config parents must
+be regular directories within the repository. No package lifecycle scripts run.
 Before the first upload it checks all five existing public package identities,
 versions, SHA-512 values and the selected channel. Establish each new registry
 identity and trusted publisher separately: any metadata failure, including 404,
@@ -168,8 +171,50 @@ child logs in receipts. Any failed/timed-out upload or inconclusive post-check s
 later packages as `publication-uncertain`, returning confirmed package progress
 and the attempted name/version. Do not blindly retry: inspect registry state and
 retain the reviewed bytes. A later approved run may resume confirmed matching
-versions. Fresh registry-installed consumers and actual previous-version rollback
-remain separate required evidence after publication.
+versions. Fresh registry-installed consumers have the separate command below;
+actual execution and previous-version rollback remain required evidence after publication.
+
+### Check Fresh Registry Downloads
+
+After an authorized publication, run this read-only registry/installed-consumer
+check from the corresponding source with root setup dependencies available:
+
+```sh
+bun run release registry-check --bundle DIR \
+  --manifest-sha256 REVIEWED_MANIFEST_SHA256 \
+  --source-commit REVIEWED_FULL_SHA --tag dev
+```
+
+This command requires the exact prepared current-family bundle/source/hash/channel
+binding. It rejects `--execute`; it never publishes, changes tags or selects a
+host deployment. Public metadata queries use isolated empty npm configuration and
+no static npm token. All five names, versions, canonical registry tarball URLs,
+SHA-512 integrity values and the selected channel must match before any download.
+404, transport/auth errors, foreign URLs and conflicts stop as fixed JSON codes.
+
+Each tarball is fetched afresh over credential-free HTTPS from the canonical npm
+registry URL, with redirects denied, a 60s deadline and streaming capped at the
+reviewed archive's exact length (at most 64 MiB). Both SHA-256 and SHA-512 plus
+length/regular-file checks must match before code is executed. Partial downloads
+remain isolated and never qualify as health evidence. The original reviewed
+bundle is preserved; only its exclusive verified copy receives downloaded bytes.
+There is no package rebuild or reliance on a previously cached npm tarball.
+
+Existing `packed-consumer`, `packed-cli` and `packed-adapters` commands execute
+serially against those downloaded tarballs, using their independent installations,
+disabled lifecycle scripts, declarations, Node/classic runtime and native
+framework type/SSR checks. Each retains the existing ten-minute process deadline
+and process-tree cleanup. Child output is drained; the receipt lists completed
+check names rather than inventing inner test counts. The channel is queried again
+after installation, and both the original and copied manifests remain verified.
+
+`registry-metadata`, `registry-channel`, `registry-integrity`, `registry-download`
+and `registry-consumer` errors stop without registry mutation. Receipts retain
+confirmed downloaded names and a failed consumer/final-confirmation label where
+available, without raw provider messages, file paths or credentials. Downloading
+and restaging write only isolated local files. A passing check establishes tested
+registry bytes/consumers; it is not host health, live rollback or release approval.
+Missing Banora publication/settings still prevent live end-to-end execution.
 
 ### Manual Workflow and Approval Boundary
 

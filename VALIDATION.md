@@ -129,6 +129,17 @@ late-package conflicts, registry failure and uncertain partial-upload stop/recei
 Simulation does not establish live npm publication or permission. The separate
 actual SDK tarball npm `--dry-run` checked its name/version/SHA-512 without upload.
 
+`registry-check --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG`
+queries only public npm metadata, fetches fresh bounded canonical HTTPS tarballs,
+verifies the exact reviewed bytes and executes existing independent SDK/CLI/native
+framework consumers against downloaded files. It never rebuilds or publishes.
+Release regressions distinguish metadata/channel/byte/transport/consumer failures,
+preserve originals, stop before executing corrupt bytes and recheck final channels.
+Stream fixtures cover bounds, headers, redirect/foreign-host refusal and exclusive
+destinations. Simulated metadata/transport cannot prove live npm publication;
+actual public-package transport and retained-byte consumer integration are separate
+evidence, with their precise scope recorded in readiness.
+
 The manual `.github/workflows/publish.yml` defaults to read-only preview of a
 successful matching preparation run's immutable artifact ID. Candidate regressions
 reject stale/foreign/failed runs, expired/wrong/extra artifacts and missing real

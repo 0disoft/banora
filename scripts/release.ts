@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { lstat, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { relative, resolve } from 'node:path';
@@ -14,8 +14,11 @@ import {
   verifyRelease,
 } from './release-artifacts.js';
 import type { ReleaseManifest } from './release-artifacts.js';
+import { runReleaseCheck } from './release-check.js';
+export { runReleaseCheck } from './release-check.js';
 import { publicationOptions, publicationPlan } from './publication-plan.js';
 import { parsePublicationRequest, publishRelease, PublicationError } from './publication.js';
+import { registryHealth, RegistryHealthError } from './registry-health.js';
 
 function git(root: string, args: string[]) {
   const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 5000 });
@@ -36,62 +39,6 @@ export function releaseSource(root: string) {
     commit: git(root, ['rev-parse', 'HEAD']),
     tree: git(root, ['rev-parse', 'HEAD^{tree}']),
   };
-}
-export async function runReleaseCheck(
-  root: string,
-  args: string[],
-  label: string,
-  milliseconds = 600_000,
-) {
-  if (!Number.isInteger(milliseconds) || milliseconds < 1 || milliseconds > 600_000)
-    throw new ReleaseError('usage');
-  process.stderr.write(`Release check: ${label}\n`);
-  const child = spawn(process.execPath, args, {
-    cwd: root,
-    windowsHide: true,
-    detached: process.platform !== 'win32',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  child.stdout.resume();
-  child.stderr.resume(); // Drain without retaining raw logs/paths/content.
-  let expired = false;
-  const timer = setTimeout(() => {
-    expired = true;
-    if (!child.pid || child.exitCode !== null || child.signalCode !== null) return;
-    if (process.platform === 'win32')
-      spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], {
-        windowsHide: true,
-        stdio: 'ignore',
-        timeout: 5000,
-      });
-    else {
-      try {
-        process.kill(-child.pid, 'SIGKILL');
-      } catch {
-        child.kill('SIGKILL');
-      }
-    }
-  }, milliseconds);
-  try {
-    await new Promise<void>((resolve, reject) => {
-      child.once('error', () => reject(new ReleaseError('check')));
-      child.once('close', (code) =>
-        code === 0 && !expired ? resolve() : reject(new ReleaseError('check')),
-      );
-    });
-  } finally {
-    clearTimeout(timer);
-    if (expired && (label === 'browser-bundle' || label === 'starter-archive') && child.pid) {
-      const session =
-        label === 'browser-bundle' ? `banora-smoke-${child.pid}` : `banora-starter-${child.pid}`;
-      spawnSync(process.execPath, ['run', 'playwright-cli', `-s=${session}`, 'close'], {
-        cwd: root,
-        windowsHide: true,
-        stdio: 'ignore',
-        timeout: 10_000,
-      });
-    }
-  }
 }
 export async function prepareRelease(root: string) {
   const source = releaseSource(root);
@@ -192,6 +139,7 @@ if (import.meta.main) {
           'restore --bundle DIR',
           'publication-plan --bundle DIR --workflow FILE [--environment NAME] [--tag TAG]',
           'publish --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG [--execute]',
+          'registry-check --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG',
         ],
         scope:
           'Local preparation and offline preview by default. Explicit publish --execute requires the reviewed public GitHub OIDC job context; no host deployment or data migration.',
@@ -213,6 +161,13 @@ if (import.meta.main) {
         schemaVersion: 'banora.release-command/v1',
         ok: true,
         publication: await publishRelease(root, parsePublicationRequest(args)),
+      };
+    } else if (action === 'registry-check') {
+      if (args.includes('--execute')) throw new ReleaseError('usage');
+      result = {
+        schemaVersion: 'banora.release-command/v1',
+        ok: true,
+        health: await registryHealth(root, parsePublicationRequest(args)),
       };
     } else if (action === 'publication-plan') {
       const parsed = publicationOptions(args);
@@ -249,7 +204,17 @@ if (import.meta.main) {
         ok: false,
         error: {
           code:
-            error instanceof ReleaseError || error instanceof PublicationError ? error.code : 'io',
+            error instanceof ReleaseError ||
+            error instanceof PublicationError ||
+            error instanceof RegistryHealthError
+              ? error.code
+              : 'io',
+          ...(error instanceof RegistryHealthError
+            ? {
+                downloaded: error.completed,
+                ...(error.lastCheck ? { lastCheck: error.lastCheck } : {}),
+              }
+            : {}),
           ...(error instanceof PublicationError
             ? {
                 completed: error.completed,

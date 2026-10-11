@@ -356,3 +356,41 @@ This evidence update changes no SDK API, database, dependency, hygiene or runner
 docs/format/whitespace checks cover it. A later main commit requires a newly
 reviewed matching candidate before execution; do not rerun unchanged full suites
 or use synthetic accounts/contact values to substitute for missing owner decisions.
+
+### October 12: Fresh Registry Health Tooling
+
+`release registry-check` now binds reviewed prepared bytes, reads every public
+identity/version/channel/integrity before download, fetches fresh bounded canonical
+HTTPS tarballs and executes existing independent SDK/CLI/framework consumers only
+after SHA-256/SHA-512 and length checks. It preserves original artifacts and
+rechecks channels after installation. This read-only tool does not publish or
+roll back a registry tag or application. Existing check deadlines/process cleanup
+were extracted into one shared runner without changing preparation behavior.
+
+An actual innocuous ancestor `.npmrc` reproduction showed npm inheriting parent
+project configuration inside an isolated subdirectory. The shared npm runner now
+forces an explicit working-directory prefix, refuses a local `.npmrc`, strips
+static-token/config environment overrides and validates its temporary config parent.
+Actual npm config regressions pass without creating credentials or private values.
+
+Focused release/CI checks passed 20 tests / 262 assertions. Local `check` passed
+215 tests / 3,027 assertions, quality/boundaries/builds, root/Svelte types, 122 docs /
+492 relative links, installed SDK/classic and 297 installed CLI checks. File signals
+passed 363 files. Fresh HTTP transport downloaded the existing public
+`@0disoft/service-catalog-generator@1.0.2` archive (440,625 bytes) with matching
+registry SHA-512; no downloaded package code was executed. HEAD did not provide
+the required size measurement, so npm's read-only pack dry-run supplied its bound.
+The transport implementation supports a missing content-length header while
+enforcing the reviewed streaming length. This proves public transport, not Banora
+publication or registry availability.
+
+The retained `52f7c3f` Banora tarballs separately passed actual SDK/CLI/native
+framework installations through the new orchestration with simulated metadata
+and copied transport bytes. Simulation does not establish live npm distribution.
+An actual Banora `registry-check` stopped at `registry-metadata`, with exit 1 and
+zero downloaded packages; the registry result is not healthy or namespace authority.
+No registry changes, package versions, SDK APIs, database, dependencies or hygiene
+changed. Automatic workflow wiring and live post-publication/rollback evidence
+remain separate; root policy/private reporting and provider/visibility decisions
+are still pending. Browser suites were not repeated for private release tooling;
+the earlier exact-source hosted preparation retains its own browser evidence.

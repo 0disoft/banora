@@ -1,7 +1,14 @@
 import { createHash } from 'node:crypto';
-import { createReadStream, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import {
+  createReadStream,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  writeFileSync,
+} from 'node:fs';
 import { readFile, lstat } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { publicationPlan } from './publication-plan.js';
 import { restoreRelease, verifyRelease, ReleaseError } from './release-artifacts.js';
@@ -84,16 +91,30 @@ export interface PublicationIO {
   readonly context: ReturnType<typeof publicationContext>;
   run(argv: readonly string[], cwd: string): { status: number | null; stdout: string };
 }
-function productionIO(root: string): PublicationIO {
+export function publicRegistryIO(root: string): PublicationIO {
   let configDirectory: string | undefined;
   return {
     get context() {
       return publicationContext();
     },
     run(argv, cwd) {
+      try {
+        lstatSync(resolve(cwd, '.npmrc'));
+        throw new PublicationError('authority');
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      }
       if (!configDirectory) {
         mkdirSync(resolve(root, '.tmp'), { recursive: true });
-        configDirectory = mkdtempSync(resolve(root, '.tmp/npm-publication-'));
+        const parent = resolve(root, '.tmp'),
+          info = lstatSync(parent);
+        if (
+          !info.isDirectory() ||
+          info.isSymbolicLink() ||
+          !realpathSync(parent).startsWith(realpathSync(root) + sep)
+        )
+          throw new ReleaseError('linked');
+        configDirectory = mkdtempSync(resolve(realpathSync(parent), 'npm-publication-'));
         for (const file of ['user.npmrc', 'global.npmrc'])
           writeFileSync(resolve(configDirectory, file), '', { flag: 'wx', mode: 0o600 });
       }
@@ -104,7 +125,8 @@ function productionIO(root: string): PublicationIO {
             !['npm_token', 'node_auth_token'].includes(key.toLowerCase()),
         ),
       );
-      const result = spawnSync(argv[0]!, argv.slice(1), {
+      // npm otherwise searches ancestors for package.json/.npmrc, even inside an isolated bundle.
+      const result = spawnSync(argv[0]!, [...argv.slice(1), '--prefix', cwd], {
         cwd,
         encoding: 'utf8',
         shell: false,
@@ -136,7 +158,7 @@ function object(value: unknown): value is Record<string, unknown> {
 export async function publishRelease(
   root: string,
   request: PublicationRequest,
-  io: PublicationIO = productionIO(root),
+  io: PublicationIO = publicRegistryIO(root),
 ) {
   const approved = await verifyRelease(resolve(request.bundle));
   const approvedBytes = await readFile(resolve(approved.directory, 'manifest.json'));

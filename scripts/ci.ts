@@ -96,7 +96,7 @@ export function planChecks(paths: readonly string[] | null): CheckPlan {
       if (match) browser.add(match[1]);
       else if (path.startsWith('packages/sdk/src/katago')) browser.add('--analysis-only');
       else if (
-        /^(scripts\/(ci|security|repository-policy|development|operations|performance|release|publication|publication-plan|publication-candidate)(\.test)?\.ts|config\/|\.github\/dependabot\.yml)/.test(
+        /^(scripts\/(ci|security|repository-policy|development|operations|performance|release|release-check|registry-health|publication|publication-plan|publication-candidate)(\.test)?\.ts|config\/|\.github\/dependabot\.yml)/.test(
           path,
         )
       ) {
