@@ -44,8 +44,16 @@ returned its exact manifest hash, `dev` channel and the five current package
 identities. The supplied `publish.yml` workflow does not exist, accurately
 reported as `workflowFileExists: false`; no npm/GitHub settings or publication
 were attempted. Plan implementation is subsequent local tooling and does not
-change the prepared package or example bytes. No new hosted CI, physical device,
-external authority or deployed rollback claim follows from this local evidence.
+change the prepared package or example bytes. Physical device, external authority
+and deployed rollback claims do not follow from this local evidence.
+
+After the batched push, hosted Linux main
+[run 38172034065](https://github.com/0disoft/banora/actions/runs/38172034065) passed
+at ec13a69: current-name installed SDK/CLI/framework consumers, 202 tests/2,816
+assertions, the complete Chrome 155 browser suite and independent starter. Its
+3m58s Ubuntu job used Bun 1.4.3 and Node 24.21.0. This separately verifies hosted
+source compatibility; it neither uploads nor authenticates the retained Windows
+candidate, configures npm trusted publishers or changes public access.
 
 ## Implementation and Initial Checks
 

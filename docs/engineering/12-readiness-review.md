@@ -223,7 +223,8 @@ restaged SDK/CLI consumers passed. The offline publication-plan command inspecte
 that candidate and emits its manifest hash, per-package archive hashes, SDK-first
 argument arrays, prerelease-safe channel and expected package-specific OIDC
 settings. It does not install a publisher workflow, contact a registry or assert
-approval/authentication. Hosted execution for the renamed source remains unverified.
+approval/authentication. Hosted execution for the renamed source subsequently
+passed at ec13a69, as recorded below.
 
 The subsequent local root check including the publication command passed 202
 tests/2,816 assertions and 297 installed CLI checks. Eight focused release tests
@@ -231,3 +232,21 @@ passed 72 assertions, including the actual offline process with an empty executa
 search path. File/permission signals passed 356 files. No new SDK/example behavior
 was changed after preparing cb53a96, so its retained browser/archive evidence is
 not replaced by another preparation just to include later operational documentation.
+
+### October 12: Renamed Packages Passed on Hosted Linux Main
+
+[Run 38172034065](https://github.com/0disoft/banora/actions/runs/38172034065) completed
+successfully at `ec13a69c3fe6b8534cc3aed9de49226c05fcd78c` after a single batched
+main push. Its one Ubuntu job took 3m58s with Bun 1.4.3, Node 24.21.0 and actual
+Headless Chrome 155. Change selection chose `code` and the complete browser route.
+
+Hosted logs confirm frozen setup, lint/format/boundaries/builds/types, 202 tests/
+2,816 assertions, installed SDK/classic declarations and 297 installed CLI checks.
+All three independently installed adapters passed types/SSR, the complete browser
+suite passed, and the independently installed starter passed production open/edit/
+download/reopen, keyboard and emulated-touch flows. File/permission signals passed
+356 files; the dependency audit found no advisory in its 165-package scope.
+The schedule-only step correctly skipped; the ordinary full route executed both
+security gates. No publishing job, credentials, visibility or branch protection
+was configured by this push. Physical-device, registry and policy approvals remain
+separate gates. This result proves the renamed source, not a published SDK or demo.
