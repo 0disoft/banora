@@ -54,12 +54,13 @@ export function mountTextureControls(
     const legend = document.createElement('legend');
     setUiText(legend, `${color === 'black' ? 'Black' : 'White'} stones`);
     const label = document.createElement('label');
-    setUiText(label, 'Choose an image ');
+    const labelText = document.createElement('span');
+    setUiText(labelText, 'Choose an image ');
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/png,image/jpeg,image/webp';
     input.dataset.textureFile = color;
-    label.append(input);
+    label.append(labelText, input);
     const demo = document.createElement('button');
     demo.type = 'button';
     setUiText(demo, 'Use demo tile');

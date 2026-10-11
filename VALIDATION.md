@@ -211,7 +211,9 @@ localized board accessibility, authored content/selection/dirty-state preservati
 Studio labels, sharing, manual scoring, SGF export, saved language preference,
 Chinese/Japanese browser-language detection and saved-selection precedence, and
 comment indicators (blank/whitespace, add/clear, Undo/Redo and localized accessible descriptions), plus
-390px/1440px layouts. It runs in the full browser suite. Existing role-based
+390px/1440px layouts. Language changes inside the board menu also preserve both
+texture file inputs, their actual PNG upload handlers and clean record history.
+It runs in the full browser suite. Existing role-based
 fixtures explicitly select English; they do not rely on the runner machine's
 browser language. Headless locale helpers are tested through an isolated packed
 SDK install without DOM types. Physical devices are not implied by viewport checks.

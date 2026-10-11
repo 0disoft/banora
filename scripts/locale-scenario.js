@@ -229,6 +229,41 @@ async (page) => {
   if ((await page.locator('#language').inputValue()) !== 'ja')
     throw Error('Language preference not retained');
   await page.locator('#language').selectOption('en');
+  await page.locator('#board-menu').click();
+  await page.locator('[data-board-menu-section="textures"]').click();
+  for (const locale of ['ko', 'zh', 'ja', 'en']) {
+    await page.locator('#language').selectOption(locale);
+    if (
+      (await page.locator('#board-menu-panel input[data-texture-file]').count()) !== 2 ||
+      !(await page
+        .locator('#board-menu-panel')
+        .evaluate((element) => element.matches(':popover-open')))
+    )
+      throw Error(`Language ${locale} removed borrowed texture inputs`);
+  }
+  const png = await page.evaluate(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 64;
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#123456';
+    context.fillRect(0, 0, 64, 64);
+    return canvas.toDataURL('image/png').split(',')[1];
+  });
+  await page.locator('[data-texture-file="black"]').setInputFiles({
+    name: 'localized-texture.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(png, 'base64'),
+  });
+  await page.waitForFunction(
+    () => !document.querySelector('[data-texture-reset="black"]').disabled,
+  );
+  await page.locator('#board-menu-panel [data-close]').click();
+  await page.locator('#next').click();
+  if ((await page.locator('#board [data-texture="black"]').count()) !== 1)
+    throw Error('Texture input lost its upload handler across language switches');
+  await page.locator('[data-texture-reset="black"]').click();
+  if ((await page.locator('#dirty').textContent()) !== 'No changes')
+    throw Error('Localized texture upload changed record history');
   const context = await page
     .context()
     .browser()
