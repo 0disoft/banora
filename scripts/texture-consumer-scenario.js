@@ -51,6 +51,22 @@ async (page) => {
         .querySelector('[data-texture-status="white"]')
         .textContent.startsWith('Custom texture active'),
     );
+    // Preparation status precedes committed React/Vue/Svelte adapter effects.
+    // Wait for the actual public surfaces, retaining all forwarding assertions below.
+    await page.waitForFunction(
+      (studio) => {
+        const main = document.querySelector(studio ? '#board svg' : '#board-host svg');
+        return (
+          main.querySelectorAll('[data-texture="black"]').length === 2 &&
+          main.querySelectorAll('[data-texture="white"]').length === 1 &&
+          (studio ||
+            (document.querySelectorAll('#viewer-host [data-texture]').length === 3 &&
+              document.querySelectorAll('#owned-board pattern image').length === 2))
+        );
+      },
+      studio,
+      { timeout: 10_000 },
+    );
     const uploaded = await main.locator('pattern').first().locator('image').getAttribute('href');
     verify(
       (await main.locator('[data-texture="black"]').count()) === 2 &&

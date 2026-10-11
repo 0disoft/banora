@@ -323,6 +323,62 @@ async function searchSmoke() {
   )
     throw Error('Search batch SGF export lost content');
 }
+async function editingSmoke(): Promise<void> {
+  await scenario('editing', 'banora-editing-complete');
+  const editing = await readFile(resolve(output, 'editing-roundtrip.sgf'), 'utf8');
+  if (
+    !editing.includes('XX[preserve]') ||
+    !editing.includes('AR[') ||
+    !editing.includes('LN[') ||
+    !editing.includes('AB[ef]')
+  )
+    throw new Error('Extended edits lost in SGF export');
+}
+async function diagramSmoke(): Promise<void> {
+  await scenario('diagram', 'banora-diagrams-complete');
+  for (const name of ['studio', 'react', 'vue', 'svelte']) {
+    const bytes = await readFile(resolve(output, `${name}-diagram.png`));
+    if (bytes.toString('hex', 0, 8) !== '89504e470d0a1a0a')
+      throw new Error(`${name} exported an invalid PNG signature`);
+    const svg = await readFile(resolve(output, `${name}-diagram.svg`), 'utf8');
+    if (!svg.includes('xmlns="http://www.w3.org/2000/svg"') || svg.includes('data-cursor'))
+      throw new Error(`${name} exported invalid/interactive SVG`);
+  }
+}
+async function desktopSmoke(address: string): Promise<void> {
+  // Preserve each scenario and its artifact assertions; CDP input scopes stay in full smoke.
+  const checks: readonly [string, () => Promise<void>][] = [
+    ['accessibility', () => scenario('accessibility', 'banora-accessibility-complete')],
+    ['tree', treeNavigation],
+    ['support', supportSmoke],
+    ['search', searchSmoke],
+    ['preferences', preferencesSmoke],
+    ['recovery', recoverySmoke],
+    ['locale', localeSmoke],
+    ['playback', playbackSmoke],
+    ['controlled', () => scenario('controlled', 'banora-controlled-complete')],
+    ['drop', dropSmoke],
+    ['rules', () => scenario('rules', 'banora-rules-complete')],
+    ['frameworks', () => scenario('framework', 'banora-frameworks-complete')],
+    ['editing', editingSmoke],
+    ['classic', () => scenario('global', 'banora-global-complete')],
+    ['presentation', () => scenario('presentation', 'banora-presentation-complete')],
+    ['diagrams', diagramSmoke],
+    ['sharing', shareSmoke],
+    ['texture-consumers', textureConsumers],
+    ['animation-consumers', animationConsumers],
+  ];
+  for (const [name, run] of checks) {
+    await cli('goto', `${address}/studio/`);
+    await cli(
+      'run-code',
+      'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
+    );
+    await run();
+    console.log(`Desktop ${name} passed.`);
+  }
+  console.log(`Desktop browser smoke passed: ${checks.length} scopes on ${engine}.`);
+}
 async function supportSmoke() {
   await scenario('support', 'banora-support-complete');
   const json = await readFile(resolve(output, 'support-diagnostics.json'), 'utf8');
@@ -358,6 +414,8 @@ try {
   );
   if (process.argv.includes('--performance-only')) {
     await browserPerformance();
+  } else if (process.argv.includes('--desktop-only')) {
+    await desktopSmoke(address);
   } else if (process.argv.includes('--tree-only')) {
     await treeNavigation();
     console.log(
@@ -478,15 +536,7 @@ try {
       'Framework browser smoke passed: React Strict Mode, Vue refs, Svelte updates, callbacks, owned/shared controllers and unmount/remount.',
     );
     await cli('snapshot');
-    await scenario('editing', 'banora-editing-complete');
-    const editing = await readFile(resolve(output, 'editing-roundtrip.sgf'), 'utf8');
-    if (
-      !editing.includes('XX[preserve]') ||
-      !editing.includes('AR[') ||
-      !editing.includes('LN[') ||
-      !editing.includes('AB[ef]')
-    )
-      throw new Error('Extended edits lost in SGF export');
+    await editingSmoke();
     console.log(
       'Extended editor smoke passed: setup/turn, line/arrow, inherited CSS tokens, SGF round-trip and branch remove/reorder Undo.',
     );
@@ -501,15 +551,7 @@ try {
       'Presentation smoke passed: eight rectangular/cropped transforms, logical mouse input, screen keyboard axes, upright labels and atomic configuration.',
     );
     await cli('snapshot');
-    await scenario('diagram', 'banora-diagrams-complete');
-    for (const name of ['studio', 'react', 'vue', 'svelte']) {
-      const bytes = await readFile(resolve(output, `${name}-diagram.png`));
-      if (bytes.toString('hex', 0, 8) !== '89504e470d0a1a0a')
-        throw new Error(`${name} exported an invalid PNG signature`);
-      const svg = await readFile(resolve(output, `${name}-diagram.svg`), 'utf8');
-      if (!svg.includes('xmlns="http://www.w3.org/2000/svg"') || svg.includes('data-cursor'))
-        throw new Error(`${name} exported invalid/interactive SVG`);
-    }
+    await diagramSmoke();
     console.log(
       'Diagram smoke passed: Studio and three adapters export real SVG/PNG; bounded standalone styles, failure and disposal handling preserve SGF dirty state.',
     );

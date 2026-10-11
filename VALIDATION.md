@@ -90,6 +90,18 @@ does not assert that every scenario or device-emulation feature supports it.
 Current executed engine/scenario coverage belongs to
 [compatibility](docs/sdk/compatibility.md#executed-browser-scope).
 
+After building examples, `bun scripts/browser-smoke.ts --desktop-only --browser=webkit`
+runs 19 existing public-page scopes serially: accessibility, variation tree, support,
+search, preferences, recovery, locale, playback, common controlled board, file drop,
+rules, frameworks, editing, classic script, presentation, diagrams, sharing, texture
+consumers and animation consumers. Each scope retains its completion and downloaded
+artifact assertions and begins on the English Studio page. Texture preparation
+status can precede a framework's committed board update; its fixture waits for the
+actual main/viewer/owned surfaces before checking forwarding and record preservation.
+This profile excludes CDP touch/zoom and performance, native controlled-consumer
+input, scoring, puzzle and analysis scopes. It does not replace full Chrome smoke
+or certify physical devices; browser selection remains explicit and CI is unchanged.
+
 `scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
 modified/extra files, directory links, source-preserving isolated restaging, actual
 Git source guards and failed/timed-out check processes. `bun run release prepare`

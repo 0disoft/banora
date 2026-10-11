@@ -55,6 +55,9 @@ For an additional browser, install it explicitly with
 `bun run build:examples`, then run a focused scenario such as
 `bun scripts/browser-smoke.ts --search-only --browser=firefox`.
 The runner verifies the actual launched engine; Chrome remains the default.
+For the broader desktop profile, run
+`bun scripts/browser-smoke.ts --desktop-only --browser=firefox` against the same
+build. Its 19 scopes and exclusions are defined in [validation](VALIDATION.md).
 See [executed browser scope](docs/sdk/compatibility.md#executed-browser-scope) for
 tested routes and the limits of other engine/device combinations.
 

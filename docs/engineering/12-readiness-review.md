@@ -130,6 +130,14 @@ These statements replace stale work plans, not the outstanding distribution gate
 
 ## Completion Rule
 
+Browser coverage now includes all 19 opt-in desktop scopes on Windows Playwright
+WebKit 26.6, including recovery, editing/export and React/Vue/Svelte texture/
+animation consumers. The original texture fixture race was reproduced and fixed
+by awaiting actual rendered surfaces, without changing SDK runtime or loosening
+preservation checks. [Compatibility](../sdk/compatibility.md#executed-browser-scope)
+records the exact exclusions; these results do not establish full Firefox,
+actual Safari/iOS, physical touch or assistive-device coverage.
+
 The current d1ee675 candidate has executed all nine local preparation gates and
 verified/restaged its 149 retained files; copied SDK/CLI consumers also execute.
 This removes the old-source artifact gap. The requirement-by-requirement rows

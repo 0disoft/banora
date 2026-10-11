@@ -185,6 +185,43 @@ ops-change procedures applied. Full Firefox, WebKit/Safari, physical devices, ar
 and real assistive technology remain unverified; these passing focused routes
 must not be expanded into a general browser-support claim.
 
+## October 12: Broader WebKit Desktop Execution
+
+Added an opt-in 19-scope desktop profile that reuses existing production scenarios
+and their downloaded artifact checks. It begins each scope on English Studio and
+leaves the full Chrome/CDP route intact. All 19 scopes passed on Windows x64
+Playwright WebKit 26.6 against the built public-package examples. They include
+editing/export, preferences/IndexedDB recovery, locale/playback, file drop/rules,
+common controlled-board, classic/presentation/diagrams and all three framework
+sharing/texture/animation consumers, alongside accessibility/tree/support/search.
+The React texture screenshot was inspected.
+
+The first run passed 17 scopes and then exposed a fixture race: React's preparation
+status changed while its white textured-stone count was still zero. A separate
+actual-page reproduction observed black/white counts 2/0 immediately and 2/1 after
+the committed render. The fixture now waits for exact main/viewer/owned surface
+counts before its existing forwarding assertions. Every SGF/state, cancellation,
+remount and PNG/SVG assertion remains enabled; no SDK or adapter runtime changed.
+
+This adds no CI job or automatic browser installation. WebKit's Safari/macOS-style
+user agent on Windows does not establish actual Safari/iOS testing. The desktop
+profile excludes CDP touch/zoom/performance, native controlled-consumer input,
+scoring, puzzle and analysis. See [validation](../../VALIDATION.md) and
+[compatibility](../sdk/compatibility.md#executed-browser-scope) for the exact boundary.
+
+After the fixture correction and shared editing/diagram helper extraction, the
+complete default production suite also passed on Windows Headless Chrome 154,
+including its touch, ink, native controlled-consumer, scoring, puzzle and analysis
+checks. Lint, format, root typecheck, five focused runner/result tests (39 assertions),
+documentation and whitespace checks passed. The validation owner, compatibility,
+development/testing guides and readiness review now record the profile and limits.
+SDK/API, database, dependency, repository hygiene and CI workflow contracts did
+not change. Full root `check`, installed-package and release preparation gates
+were not repeated for this tooling/fixture-only increment; their earlier evidence
+remains scoped to its recorded commits. Test-hardening, refactor, SDK, ops-change
+and Playwright procedures applied. Full Firefox and physical-device coverage
+remain unverified.
+
 ## October 12: Workflow and Promise Review
 
 Reviewed current Studio import/replacement/export and search/support controls,

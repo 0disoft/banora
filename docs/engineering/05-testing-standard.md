@@ -59,3 +59,11 @@ keyboard focus, Escape cancellation and unchanged authored state/selection at
 desktop and narrow layout widths. Studio covers four languages; framework sharing
 consumers cover their actual English UI. This is browser accessibility-tree and
 keyboard evidence, not a claim of physical assistive-device testing.
+
+The opt-in `--desktop-only` production profile reuses 19 existing browser scopes
+and their exported artifact assertions, including framework texture/animation
+consumers. Preparation status is not a render-completion signal: wait for the
+public board/viewer/owned texture surfaces before checking their exact forwarding.
+Do not replace that wait with a fixed delay or remove the preservation assertions.
+The full Chrome route retains CDP and other scopes excluded from this profile;
+see [validation](../../VALIDATION.md) for the explicit boundary.
