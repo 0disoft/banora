@@ -92,8 +92,9 @@ Read-only checks after preparing that candidate found:
 - GitHub still reports private visibility with Issues enabled. All observed CI
   runs are terminal, and no open bot update PR is present.
 - `npm whoami --registry https://registry.npmjs.org/` returns `ENEEDAUTH`.
-  This machine's authenticated publisher and `@banora` namespace access are not
-  established. No login, token creation or publish operation was attempted.
+  This only establishes that the local CLI is unauthenticated. It does not test
+  GitHub Actions trusted-publisher authority or require local login for OIDC
+  publication. No login, token creation or publish operation was attempted.
 - The public-registry lookup for `@banora/sdk` returns `E404`. This does not
   establish namespace availability/ownership or distinguish absence from restricted
   access; development package names are not a reservation or publication grant.
@@ -112,9 +113,33 @@ with short-lived OIDC authority after account/package ownership is established;
 see [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
 Neither provider configuration nor extra CI write authority has been applied.
 
+### Owner Package Inventory and Existing OIDC Workflow
+
+The owner supplied an npm account inventory showing existing `@0disoft` packages
+and several GitHub Actions publications. That inventory establishes the intended
+publisher context; a publisher label alone does not identify its authentication
+method or grant a new package's workflow authority.
+
+The local `ssealed` release workflow was inspected separately. It requests
+`id-token: write` on a GitHub-hosted runner and publishes its verified tarball
+with `npm publish --access public --provenance`, without an npm token environment
+variable. It is configured for OIDC publication. This inspection did not execute
+that workflow or inspect npm's package settings.
+
+Recommend the existing personal scope for Banora: `@0disoft/banora`,
+`@0disoft/banora-cli`, `@0disoft/banora-react`, `@0disoft/banora-vue` and
+`@0disoft/banora-svelte`. These remain proposed public names; the current
+`@banora/*` development packages and retained candidate have not been renamed.
+Existing `@0disoft` packages do not authorize publishing new Banora packages.
+Each package still needs the matching repository/workflow trusted-publisher
+configuration and verified publishing permission. npm documents that `npm whoami`
+is not a trusted-publishing permission check in its
+[trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
+
 The next actionable handoff is the existing policy approval/private-channel
-decision, publication destination/visibility approval, and real registry
-authentication/namespace verification. Never request credentials in a public
+decision, publication destination/visibility approval, public package naming,
+and package-specific publishing authority. Local npm login is not a prerequisite
+for the proposed Actions OIDC route. Never request credentials in a public
 issue or invent an address/account to close a readiness row. No full local suite
 needs repeating while these external prerequisites remain unchanged.
 

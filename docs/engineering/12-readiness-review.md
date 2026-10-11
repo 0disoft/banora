@@ -166,10 +166,15 @@ required in-scope implementation is complete.
 
 The latest [publication access preflight](../ops/release.md#october-12-executed-access-preflight)
 confirmed private GitHub visibility, terminal CI and no open bot update PR.
-Registry identity returns ENEEDAUTH; the repository Pages lookup returns 404.
+Local npm identity returns ENEEDAUTH; this does not test Actions OIDC publishing
+permission. The repository Pages lookup returns 404.
 The policy candidate/diff remains prepared but unapplied. Publication destination/
-visibility and a real private reporting channel await owner decisions; account/
-namespace authority is not established. These are actual remaining prerequisites,
+visibility and a real private reporting channel await owner decisions. The owner
+has supplied an existing `@0disoft` package inventory; inspection of the local
+`ssealed` release workflow confirms it is configured for token-free OIDC
+publication. Using that scope is proposed for Banora, while public naming and
+Banora package-specific publishing authority remain unconfirmed. These are
+actual remaining prerequisites,
 not another reason to rerun already-passing SDK suites or prepare unchanged bytes.
 
 [Executed increments and their evidence](13-readiness-execution-evidence.md) retain
