@@ -84,6 +84,29 @@ typecheck, lint, format and docs checks; full browser, engine and packed adapter
 runs were not repeated for the catalog fallback. Bugfix, test-hardening and
 Playwright procedures applied. Other engines and physical devices remain unverified.
 
+## October 12: Hosted Search Verification Race
+
+The first private pull-request CI run at `0ad8ccb` executed on Ubuntu with Bun
+1.4.3. Root validation and installed CLI checks passed; production browser checks
+stopped at the search scenario's stale-result assertion. See
+[the failed run](https://github.com/0disoft/banora/actions/runs/38160110648).
+
+Source inspection confirms each result handler captures its original record
+generation. The scenario instead treated file selection as completed import,
+although Studio awaits `File.arrayBuffer()`. It could click the previous record's
+still-valid result before replacement committed. The corrected scenario waits
+for a distinct newly imported authored title, verifies that the previous result
+is detached, then invokes its navigation and selection callbacks. The new record
+must remain at move zero with an empty root comment and no old selections.
+
+Focused production search smoke passed locally after this test-only correction,
+including paging, preview/apply/Undo, bounds, locales and narrow-layout coverage.
+Lint and format passed. Hosted success still requires a subsequent actual run;
+the initial run is not reported as green. Runtime/API/storage/DB/dependency,
+repository hygiene and runner definitions are unchanged. Bugfix, test-hardening
+and Playwright procedures applied; validation/testing-standard owners record
+observable import completion rather than arbitrary delays.
+
 ## October 12: Workflow and Promise Review
 
 Reviewed current Studio import/replacement/export and search/support controls,

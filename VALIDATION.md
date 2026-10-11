@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; hosted CI configured, hosted execution unverified
+- Status: Active local validation; first hosted CI executed, browser failure under review
 
 ## Validation Source of Truth
 
@@ -70,6 +70,13 @@ collection/language/import changes, comment indicator Undo and actual SGF export
 reopen. `--tree-only` selects it; full functional browser smoke includes it. The
 browser benchmark additionally verifies move/clean/row/stone state and rejects
 controller/Studio source changes during its measurement window.
+
+Production file-import scenarios must await an observable newly loaded record,
+not merely `setInputFiles`: Studio reads file bytes asynchronously. Search uses
+distinct authored titles, then exercises detached navigation/selection controls
+to verify imports reject old results and clear selections without changing the
+new record. No fixed sleep or relaxed stale-result assertion substitutes for
+import completion.
 
 `scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
 modified/extra files, directory links, source-preserving isolated restaging, actual

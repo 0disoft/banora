@@ -7,6 +7,12 @@
 
 ## Risk-Based Coverage
 
+Browser file-import checks await an observable new record before testing dependent
+behavior. File selection only starts an asynchronous read; it is not an import
+completion signal. Use a distinct fixture title or another specific loaded-state
+condition. Search additionally verifies detached old navigation/selection controls
+cannot affect the newly loaded record.
+
 | Changed responsibility         | Focused evidence                                                                                                                                                                                |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Rules                          | Captures, suicide, declared ko/repetition policy, pass, setup and undo/redo                                                                                                                     |

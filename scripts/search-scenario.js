@@ -17,16 +17,23 @@ async (rootPage) => {
     await page.locator('#search-query').fill(value);
     await page.locator('#search-form button[type="submit"]').click();
   };
-  const upload = async (sgf) =>
-    page.locator('#file').setInputFiles({
+  const upload = async (sgf, expectedTitle) => {
+    await page.locator('#file').setInputFiles({
       name: 'search.sgf',
       mimeType: 'application/x-go-sgf',
       buffer: Buffer.from(sgf),
     });
+    // Selecting a file does not await Studio's asynchronous read and import.
+    await page.waitForFunction(
+      (title) => document.getElementById('game-name')?.textContent === title,
+      expectedTitle,
+    );
+  };
   try {
     await page.goto(`${origin}/studio/`);
     await upload(
       `(;SZ[5]GN[Authored <tag>]XX[keep];B[aa]C[needle original](;W[bb]C[needle second])(;W[cc]C[needle branch]))(;SZ[9]${';B[];W[]'.repeat(300)};C[needle late]MN[700])`,
+      'Authored <tag>',
     );
     await open();
     await page.locator('#search-field').selectOption('comments');
@@ -158,11 +165,21 @@ async (rootPage) => {
     await query('Edited');
     await page.locator('#search-select-page').click();
     const staleButton = await page.locator('.search-result button').first().elementHandle();
+    const staleCheckbox = await page.locator('.search-result input').first().elementHandle();
     await close();
-    await upload(`(;SZ[5]${';C[cap]'.repeat(300)})`);
-    await staleButton.evaluate((element) => element.click());
+    await upload(`(;SZ[5]GN[Cap review]${';C[cap]'.repeat(300)})`, 'Cap review');
     check(
-      (await page.locator('#comment').inputValue()) === '',
+      await staleButton.evaluate((element) => !element.isConnected),
+      'Import did not discard the old search result',
+    );
+    await staleButton.evaluate((element) => element.click());
+    await staleCheckbox.evaluate((element) => {
+      element.checked = true;
+      element.dispatchEvent(new Event('change'));
+    });
+    check(
+      (await page.locator('#comment').inputValue()) === '' &&
+        (await page.locator('#move').textContent()) === 'Move 0',
       'A stale result navigated the newly imported record',
     );
     await open();
