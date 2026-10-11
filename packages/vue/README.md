@@ -12,8 +12,8 @@ receives null on unmount. See the
 ```vue
 <script setup lang="ts">
 import {shallowRef} from 'vue';
-import {RecordController} from '@banora/sdk';
-import {Board, Viewer, useRecordState} from '@banora/vue';
+import {RecordController} from '@0disoft/banora';
+import {Board, Viewer, useRecordState} from '@0disoft/banora-vue';
 const controller = shallowRef(new RecordController({sgf: '(;SZ[9];B[aa])'}));
 const state = useRecordState(controller);
 </script>

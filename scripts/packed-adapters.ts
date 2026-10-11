@@ -48,8 +48,8 @@ for (const framework of ['react', 'vue', 'svelte'] as const) {
       resolve(root, 'packages', framework),
     );
   const dependencies = {
-    '@banora/sdk': './sdk.tgz',
-    [`@banora/${framework}`]: './adapter.tgz',
+    '@0disoft/banora': './sdk.tgz',
+    [`@0disoft/banora-${framework}`]: './adapter.tgz',
     '@types/node': '24.x',
     ...(framework === 'react'
       ? { react: '19.x', 'react-dom': '19.x', '@types/react': '19.x', '@types/react-dom': '19.x' }
@@ -81,19 +81,19 @@ for (const framework of ['react', 'vue', 'svelte'] as const) {
     }
     if (present) throw new Error(`${framework} consumer unexpectedly installed ${other}`);
   }
-  const installed = resolve(consumer, 'node_modules/@banora', framework);
+  const installed = resolve(consumer, 'node_modules/@0disoft', `banora-${framework}`);
   for (const file of ['LICENSE', 'README.md', 'dist/index.d.ts'])
     await readFile(resolve(installed, file));
   if (framework !== 'svelte') {
     const module = await readFile(resolve(installed, 'dist/index.js'), 'utf8');
-    if (!module.includes('@banora/sdk/controlled-board'))
+    if (!module.includes('@0disoft/banora/controlled-board'))
       throw new Error('Adapter bundled its own SDK surface instead of using its peer');
   }
   const metadata = JSON.parse(await readFile(resolve(installed, 'package.json'), 'utf8'));
   if (metadata.dependencies && Object.keys(metadata.dependencies).length)
     throw new Error('Adapters must use peers, not bundled framework dependencies');
-  const prelude = `import { RecordController, createStoneTexture } from '@banora/sdk';
-import type {BoardView, ViewerView, BoardSnapshot, BoardIntent, ControlledBoardView} from '@banora/sdk';
+  const prelude = `import { RecordController, createStoneTexture } from '@0disoft/banora';
+import type {BoardView, ViewerView, BoardSnapshot, BoardIntent, ControlledBoardView} from '@0disoft/banora';
 const hostSnapshot:BoardSnapshot={key:'host/ssr/node/1',width:5,height:3,stones:Array(15).fill(null)};
 const onIntent=(_intent:BoardIntent)=>{throw Error('SSR emitted a host intention');};
 const onControlledView=(_view:ControlledBoardView|null)=>{bindings++;};
@@ -108,7 +108,7 @@ const onView = (view: BoardView | ViewerView | null) => { bindings++; view?.expo
       ? `${prelude}
 import {createElement} from 'react';
 import {renderToString} from 'react-dom/server';
-import {Board, Viewer, ControlledBoard, useRecordState} from '@banora/react';
+import {Board, Viewer, ControlledBoard, useRecordState} from '@0disoft/banora-react';
 function App() {
   const state = useRecordState(controller);
   return createElement('main', null, createElement('p', null, 'Move ' + state.position.moveNumber),
@@ -122,7 +122,7 @@ const html = renderToString(createElement(App));
         ? `${prelude}
 import {createSSRApp, defineComponent, h, ref} from 'vue';
 import {renderToString} from 'vue/server-renderer';
-import {Board, Viewer, ControlledBoard, useRecordState} from '@banora/vue';
+import {Board, Viewer, ControlledBoard, useRecordState} from '@0disoft/banora-vue';
 const App = defineComponent({setup() {
   const selected = ref(controller);
   const state = useRecordState(selected);
@@ -157,8 +157,8 @@ controller.dispose(); console.log('${framework} packed types and SSR host render
     await writeFile(
       resolve(consumer, 'App.svelte'),
       `<script lang="ts">
-import {Board, Viewer, ControlledBoard, createRecordStore} from '@banora/svelte';
-import type {BoardView, PlacementAnimationOptions, RecordController, StoneTextures, ViewerView, BoardSnapshot, BoardIntent, ControlledBoardView} from '@banora/sdk';
+import {Board, Viewer, ControlledBoard, createRecordStore} from '@0disoft/banora-svelte';
+import type {BoardView, PlacementAnimationOptions, RecordController, StoneTextures, ViewerView, BoardSnapshot, BoardIntent, ControlledBoardView} from '@0disoft/banora';
 let {controller,onView,stoneTextures,placementAnimation,hostSnapshot,onIntent,onControlledView}: {controller:RecordController,stoneTextures:StoneTextures,placementAnimation:PlacementAnimationOptions, onView:(view:BoardView | ViewerView | null) => void,hostSnapshot:BoardSnapshot,onIntent:(intent:BoardIntent)=>void,onControlledView:(view:ControlledBoardView|null)=>void} = $props();
 const record = $derived(createRecordStore(controller));
 </script>
@@ -193,7 +193,7 @@ const record = $derived(createRecordStore(controller));
       configFile: false,
       root: consumer,
       plugins: [svelte({ configFile: false })],
-      ssr: { noExternal: ['@banora/svelte', '@banora/sdk'] },
+      ssr: { noExternal: ['@0disoft/banora-svelte', '@0disoft/banora'] },
       build: {
         ssr: resolve(consumer, 'consumer.ts'),
         outDir: resolve(consumer, 'dist'),

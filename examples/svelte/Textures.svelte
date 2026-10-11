@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import type { Color, StoneTexture, StoneTextures } from '@banora/sdk';
+  import type { Color, StoneTexture, StoneTextures } from '@0disoft/banora';
   import { mountTextureControls } from '../texture-controls.js';
   let {
     textures,

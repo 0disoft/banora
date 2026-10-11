@@ -1,7 +1,7 @@
 import { createElement, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { mountControlledBoard } from '@banora/sdk/controlled-board';
-import type { ControlledBoardOptions, ControlledBoardView } from '@banora/sdk/controlled-board';
+import { mountControlledBoard } from '@0disoft/banora/controlled-board';
+import type { ControlledBoardOptions, ControlledBoardView } from '@0disoft/banora/controlled-board';
 
 export interface ControlledBoardProps extends ControlledBoardOptions {
   readonly className?: string;

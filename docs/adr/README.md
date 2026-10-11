@@ -53,3 +53,7 @@ defines isolated backup validation/drills, safe reports and concrete local runbo
 
 The [retained release decision](0022-retained-release-artifacts.md) defines clean-source
 artifact preparation, exact-byte consumer checks and isolated restaging without publication.
+
+The [publisher identity decision](0023-existing-publisher-package-identity.md)
+uses the existing personal npm scope throughout local packages and consumers while
+preserving verification/restaging of retained pre-rename release bundles.

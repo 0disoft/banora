@@ -49,7 +49,7 @@ content and must not be copied into diagnostic logs or implicit telemetry.
 ## Delivery and Evidence
 
 SDK search and controller preview/apply/set methods ship in this increment;
-`@banora/sdk/record-search` is a selective headless entrypoint. Unit coverage checks
+`@0disoft/banora/record-search` is a selective headless entrypoint. Unit coverage checks
 collections/branches, metadata/labels, literal/case behavior, move counts, bounds,
 4,000-move traversal without replay, one-step Undo, stable selection/export/groups,
 failed/no-op atomicity, stale/foreign/forged previews and unchanged-subtree sharing.

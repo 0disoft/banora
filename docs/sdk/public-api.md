@@ -7,7 +7,7 @@
 
 ## Explicit Local Diagnostics
 
-Root and selective `@banora/sdk/diagnostics` exports expose `DiagnosticJournal`,
+Root and selective `@0disoft/banora/diagnostics` exports expose `DiagnosticJournal`,
 `describeDiagnosticFailure` and their readonly input/event/environment/report types.
 The journal records explicitly submitted closed operation/status/code data, gives
 each occurrence a local ID and returns frozen bounded snapshots/retained summaries.
@@ -35,7 +35,7 @@ For a host-owned engine/server state, use the additive
 [controlled-board API](controlled-board.md): checked immutable snapshots, shared
 SVG presentation and intentions without creating a Banora record controller.
 
-After `bun run build`, `@banora/sdk/core` and the root export expose:
+After `bun run build`, `@0disoft/banora/core` and the root export expose:
 
 - `createPosition({ width?, height?, toPlay?, rules? })`: immutable position;
   dimensions are integers from 2 to 52, defaulting to 19 square. Invalid options throw.
@@ -68,7 +68,7 @@ Move color defaults to the current turn; a mismatched color is rejected.
 
 ### Named Rule Presets
 
-`@banora/sdk/rules` and root exports provide `RULE_PROFILES`, `getRuleProfile(id)`,
+`@0disoft/banora/rules` and root exports provide `RULE_PROFILES`, `getRuleProfile(id)`,
 `RuleProfileId`, `RuleProfile` and `ScoringPolicy`. Unknown IDs throw `TypeError`;
 presets and their nested policies are frozen. Explicitly supply a preset's `play`
 to `createPosition` or `RecordController.rules`; existing SGF RU metadata is preserved
@@ -90,7 +90,7 @@ basis and exact boundaries. Full tournament conformity is not claimed.
 
 ### Manual Agreed-Position Scoring
 
-`@banora/sdk/scoring` and root exports provide `scorePosition(position, options)`
+`@0disoft/banora/scoring` and root exports provide `scorePosition(position, options)`
 and `ScoreOptions`, `ScoreResult`, `ScoreSummary`, `ScoreBreakdown`, `ScoreFailure`
 and `ScoreWarning`. These import without DOM types/globals or framework dependencies.
 Supply `profile` and optional `komi`, `handicap`, `deadStones`, `sekiStones` and
@@ -151,13 +151,13 @@ the same headless calculator, but do not yet include this panel.
 
 ### Curated Puzzle Sessions
 
-`@banora/sdk/puzzle` and root exports provide headless `PuzzleSession` and the
+`@0disoft/banora/puzzle` and root exports provide headless `PuzzleSession` and the
 `PuzzleDefinition`, `PuzzleNode`, `PuzzleHint`, `PuzzleState`, `PuzzleLineMove`,
 `PuzzleAnswer`, `PuzzleOutcome`, `PuzzleEvent`, `PuzzleResult` and `PuzzleFailure`
 types. This is an authored answer-tree player, without AI or DOM dependencies.
 
 ```ts
-import {PuzzleSession} from '@banora/sdk/puzzle';
+import {PuzzleSession} from '@0disoft/banora/puzzle';
 const puzzle = new PuzzleSession({
   schemaVersion:'banora.puzzle/v1', id:'first-capture', title:'Find the last liberty',
   prompt:'Black to play and capture the white stone.',
@@ -234,7 +234,7 @@ providers or progress storage are started.
 
 ### Complete Puzzle View
 
-`@banora/sdk/puzzle-view` and root exports provide browser `mountPuzzle`, `PuzzleView`,
+`@0disoft/banora/puzzle-view` and root exports provide browser `mountPuzzle`, `PuzzleView`,
 `PuzzleViewOptions` and `PuzzleBoardOptions`. Import is SSR-safe; mounting requires a
 DOM. Supply exactly one `session` (borrowed) or `definition` (creates an owned session).
 The view includes title/prompt, board, authored feedback, revealed hints, status/attempt
@@ -245,7 +245,7 @@ line's last move, with an optional revealed hint triangle. It does not expose an
 unplayed answer tree in the board's private display record.
 
 ```ts
-import {mountPuzzle} from '@banora/sdk/puzzle-view';
+import {mountPuzzle} from '@0disoft/banora/puzzle-view';
 const view = mountPuzzle(container, {
   session:puzzle, board:{theme:'flat', touch:{mode:'release'}},
   onEvent:event => console.log(event.type, event.state.status)
@@ -273,13 +273,13 @@ host lifecycle without a framework-specific puzzle engine.
 
 ### Provider-Neutral Analysis Sessions
 
-The selective headless `@banora/sdk/analysis` entrypoint provides explicit external
+The selective headless `@0disoft/banora/analysis` entrypoint provides explicit external
 requests, exact context matching, validated Black-perspective metrics and advisory
 cancellation that rejects stale work. See the [analysis API contract](analysis.md)
 for settings, provider DTOs, limits, errors and lifecycle.
-The selective headless `@banora/sdk/katago` entrypoint supplies host-owned JSON-line
+The selective headless `@0disoft/banora/katago` entrypoint supplies host-owned JSON-line
 integration; see [KataGo integration](katago.md) for transport and supported contexts.
-`@banora/sdk/analysis-view` supplies an isolated interactive display; see the
+`@0disoft/banora/analysis-view` supplies an isolated interactive display; see the
 [analysis view](analysis-view.md) for candidate metrics, PVs, ownership and lifetime.
 
 ### Repetition Policies
@@ -309,7 +309,7 @@ The setup/playback choices and profile boundaries are recorded in
 
 ## Implemented Records and Controller
 
-`@banora/sdk/sgf` exports `parseSgf(text, limits?)`, `decodeSgf(bytes, limits?)`,
+`@0disoft/banora/sgf` exports `parseSgf(text, limits?)`, `decodeSgf(bytes, limits?)`,
 `serializeSgf(record)`, `createSgfNode`, point helpers, immutable record types and
 `DEFAULT_SGF_LIMITS`. `RecordLocator` is `{ gameIndex, path }`, where path is a
 readonly array of zero-based child indices from that game's root; `recordNodeAt`
@@ -317,7 +317,7 @@ returns the matching node or null. This differs from snapshot `path`, which hold
 record-local string IDs. Parsing returns a structured success/diagnostic result.
 See [compatibility](compatibility.md#record-compatibility) for the supported subset.
 
-`@banora/sdk/controller` exports `RecordController` and related state/command types.
+`@0disoft/banora/controller` exports `RecordController` and related state/command types.
 Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
 `createCheckpoint()` returns portable working/baseline SGF, selection and rules
 without marking an export complete. `loadCheckpoint(unknown, {discardChanges?})`
@@ -328,7 +328,7 @@ limits, diagnostics, storage ownership and session-local Undo.
 ### Whole-Record Search and Comment Batches
 
 `searchRecord(record, options)` is exported by root and the headless
-`@banora/sdk/record-search` entrypoint. Pass a validated immutable SGF record and
+`@0disoft/banora/record-search` entrypoint. Pass a validated immutable SGF record and
 `{query, properties?, caseSensitive?, gameIndex?, offset?, limit?}`. Default fields
 are `C`, `N`, `GN`, `PB`, `PW` and `LB`; an empty query lists their nonblank values.
 Matching is literal, case-insensitive by default, without board replay or mutation.
@@ -482,7 +482,7 @@ and reopen retain the annotations; this is an extension, not universal SGF marku
 
 ## Implemented Board Mounting
 
-`@banora/sdk/board` and the root export expose `mountBoard(container, options?)`.
+`@0disoft/banora/board` and the root export expose `mountBoard(container, options?)`.
 The returned `BoardView` exposes `controller`, `update(options)`, `exportSvg`,
 `exportPng` and idempotent `dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
 `coordinates`, `moveNumbers`, integer `crop`, `transform`, `drawing`, `touch`,
@@ -538,7 +538,7 @@ board/markers and is included in both diagrams. Rotation/reflection/crop affect
 presentation only; saved points remain logical. Framework Board components forward
 `drawing`; Viewer components accept it in their nested `board` options.
 
-`@banora/sdk/geometry` and root exports provide headless `toDisplayPoint`,
+`@0disoft/banora/geometry` and root exports provide headless `toDisplayPoint`,
 `toLogicalPoint`, `displayBoardSize`, `displayCrop` and `normalizeBoardTransform`,
 plus `BoardRotation`, `BoardTransform`, `BoardSize` and `BoardCrop` types. Point
 conversion accepts finite fractional/outside points for annotations/margins; callers
@@ -554,7 +554,7 @@ configuration uses the same option. Tiles remain upright in display space when
 the logical board is rotated/reflected. Marks, move numbers, ink and comparison
 highlights render over the stones. Transparent tile pixels reveal the board.
 
-Root exports and headless `@banora/sdk/textures` expose `createStoneTexture(dataUrl)`,
+Root exports and headless `@0disoft/banora/textures` expose `createStoneTexture(dataUrl)`,
 `StoneTexture`, `StoneTextures` and frozen `STONE_TEXTURE_LIMITS`. The factory
 accepts a ready static PNG data URL only, with canonical base64, a bounded PNG
 container and dimensions 1 through 512. It returns frozen `{ dataUrl, width, height }`.
@@ -566,7 +566,7 @@ external/blob URLs, SVG, malformed containers or invalid color options before
 changing the view. Ready PNG metadata is retained; the browser preparer strips it.
 
 `prepareStoneTexture(blob, { size?, signal? })` is exported from the root and
-`@banora/sdk/board`. This explicit browser operation decodes a host-selected PNG,
+`@0disoft/banora/board`. This explicit browser operation decodes a host-selected PNG,
 JPEG or WebP Blob, center-crops its shorter dimension, and produces a square PNG
 tile (default 256, configured size 16 through 512). It performs no fetch/upload.
 Hosts own file selection or explicit authenticated fetching before passing a Blob.
@@ -700,7 +700,7 @@ different dimensions report `different-size` with no intersections compared.
 its controller's cursor and accepts `board.compareTo`, but does not accept `nodeId`.
 
 `mountComparison(container, {controller, left?, right?, board?})` is exported from
-the root and `@banora/sdk/comparison`. It borrows one controller, composes two pinned
+the root and `@0disoft/banora/comparison`. It borrows one controller, composes two pinned
 boards, shows node selectors/comments and a left-to-right change count. Omitted
 nodes default to the current node. `board` accepts only theme, coordinates, move
 numbers, crop, transform and stone textures, applied to both panes. Updates validate before changing
@@ -719,7 +719,7 @@ the entire record. Server imports are safe; mounting requires a browser DOM.
 
 ## Embedded Share Links
 
-Root exports and `@banora/sdk/share` expose headless `createShareLink(state,
+Root exports and `@0disoft/banora/share` expose headless `createShareLink(state,
 baseUrl, { kind?, includeComment?, maxLength? })`, `decodeShareLink(urlOrFragment,
 { maxLength? })`, `MAX_SHARE_URL_LENGTH`, and their readonly result/types.
 Creation defaults to `kind: 'node'`; both functions return `{ ok, value }` on
@@ -823,7 +823,7 @@ message overrides, native props and localized board accessibility labels.
 The [record playback contract](playback.md) describes the optional headless
 coordinator, timer lifetime and recorded-node navigation without game edits.
 
-`@banora/sdk/viewer` and the root export expose `mountViewer(container, options?)`.
+`@0disoft/banora/viewer` and the root export expose `mountViewer(container, options?)`.
 `ViewerOptions` accepts either a shared `controller` or initial `sgf` text/bytes,
 `editable` (default false), `comments`, `variations`, `playback:{intervalMs?}` and
 nested `board` options. Playback defaults to 1 second with Play/Pause and a
@@ -857,7 +857,7 @@ text. Mounting requires a DOM; importing the package on the server is safe.
 This local-workspace example assumes an existing `#record` container and built SDK:
 
 ```ts
-import { mountViewer } from '@banora/sdk/viewer';
+import { mountViewer } from '@0disoft/banora/viewer';
 
 const view = mountViewer(document.querySelector<HTMLElement>('#record')!, {
   sgf: '(;FF[4]GM[1]SZ[9];B[gc];W[cg])',
@@ -868,7 +868,7 @@ view.update({ board: { theme: 'flat' }, comments: true });
 
 ## Optional Framework Adapters
 
-Build the separate `@banora/react`, `@banora/vue` and `@banora/svelte` development
+Build the separate `@0disoft/banora-react`, `@0disoft/banora-vue` and `@0disoft/banora-svelte` development
 packages with `bun run build:adapters`. They are not published. Each exports `Board`
 and `Viewer` components, binding the same SDK controller and renderer. Create a
 `RecordController({ sgf })` to initialize a shared record; adapter viewers omit the

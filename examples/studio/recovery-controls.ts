@@ -1,5 +1,5 @@
-import type { RecordController } from '@banora/sdk/controller';
-import { parseRecordCheckpoint } from '@banora/sdk/checkpoint';
+import type { RecordController } from '@0disoft/banora/controller';
+import { parseRecordCheckpoint } from '@0disoft/banora/checkpoint';
 import { DraftAutosave } from './draft-session.js';
 import type { AutosaveStatus } from './draft-session.js';
 import {
@@ -12,7 +12,7 @@ import {
 import type { DraftEntry, StudioDraft } from './draft-store.js';
 import { localizeUi, setUiText, getUiLocale } from '../ui-language.js';
 import type { StudioDiagnostics } from './diagnostics.js';
-import { describeDiagnosticFailure } from '@banora/sdk/diagnostics';
+import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
 
 const statusText: Record<AutosaveStatus, string> = {
   idle: '',

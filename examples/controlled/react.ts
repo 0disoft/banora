@@ -1,6 +1,6 @@
 import { createElement, StrictMode, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ControlledBoard } from '@banora/react';
+import { ControlledBoard } from '@0disoft/banora-react';
 import { createHost } from './host.js';
 import { attachControls } from './controls.js';
 

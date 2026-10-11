@@ -1,11 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { RecordController } from '@banora/sdk/controller';
-import { parseSgf, serializeSgf } from '@banora/sdk/sgf';
-import type { SgfRecord, SgfResult } from '@banora/sdk/sgf';
-import { createPosition, play, pass } from '@banora/sdk/core';
-import { searchRecord } from '@banora/sdk/record-search';
+import { RecordController } from '@0disoft/banora/controller';
+import { parseSgf, serializeSgf } from '@0disoft/banora/sgf';
+import type { SgfRecord, SgfResult } from '@0disoft/banora/sgf';
+import { createPosition, play, pass } from '@0disoft/banora/core';
+import { searchRecord } from '@0disoft/banora/record-search';
 import { saveOutput } from '../packages/cli/src/io.js';
 import metadata from '../packages/sdk/package.json';
 

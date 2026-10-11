@@ -33,7 +33,7 @@ await writeFile(
   JSON.stringify({
     private: true,
     type: 'module',
-    dependencies: { '@banora/sdk': './sdk.tgz', '@banora/cli': './cli.tgz' },
+    dependencies: { '@0disoft/banora': './sdk.tgz', '@0disoft/banora-cli': './cli.tgz' },
   }),
 );
 run(['npm', 'install', '--ignore-scripts', '--no-audit', '--no-fund'], directory);
@@ -42,7 +42,7 @@ const check = (value: unknown, message: string) => {
   if (!value) throw Error(message);
   checks++;
 };
-const cliPath = resolve(directory, 'node_modules/@banora/cli/dist/main.js');
+const cliPath = resolve(directory, 'node_modules/@0disoft/banora-cli/dist/main.js');
 function cli(args: string[], exit = 0, input?: string) {
   const result = spawnSync('node', [cliPath, ...args], {
     cwd: directory,
@@ -731,11 +731,11 @@ check(
   ).error.code === 'invalid-request',
   'Unknown command accepted',
 );
-await readFile(resolve(directory, 'node_modules/@banora/cli/LICENSE'));
+await readFile(resolve(directory, 'node_modules/@0disoft/banora-cli/LICENSE'));
 check(
-  (await readFile(resolve(directory, 'node_modules/@banora/cli/README.md'), 'utf8')).includes(
-    'banora schema',
-  ),
+  (
+    await readFile(resolve(directory, 'node_modules/@0disoft/banora-cli/README.md'), 'utf8')
+  ).includes('banora schema'),
   'Packaged guide missing',
 );
 console.log(

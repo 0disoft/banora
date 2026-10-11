@@ -499,7 +499,7 @@ types, 110 documents / 351 links, packed SDK and 169 installed CLI checks. After
 the unsupported-input recovery refinement, focused tests passed 4 cases / 110
 assertions and final typecheck/lint/build/packed SDK smoke passed. Independent
 Node consumers execute root/selective/no-DOM declarations and classic VM reports.
-`@banora/sdk/diagnostics` is additive; no controller/automation return contract,
+`@0disoft/banora/diagnostics` is additive; no controller/automation return contract,
 DB, storage schema, dependency or hygiene change. Packed consumer runner and source
 boundary classification include the new headless entrypoint.
 

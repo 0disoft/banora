@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { syntheticReview, measure } from './performance.js';
-import { RecordController } from '@banora/sdk/controller';
+import { RecordController } from '@0disoft/banora/controller';
 
 test('authored workload follows legal opening/pass transitions and preserves its declared move count', () => {
   for (const count of [1, 300, 5000]) {

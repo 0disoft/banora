@@ -1,4 +1,4 @@
-import type { BanoraLocale } from '@banora/sdk/locale';
+import type { BanoraLocale } from '@0disoft/banora/locale';
 
 export interface StudioPreferences {
   locale: BanoraLocale;

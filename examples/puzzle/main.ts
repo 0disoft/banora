@@ -1,6 +1,6 @@
-import { mountPuzzle } from '@banora/sdk/puzzle-view';
-import type { PuzzleView } from '@banora/sdk/puzzle-view';
-import { PuzzleSession } from '@banora/sdk/puzzle';
+import { mountPuzzle } from '@0disoft/banora/puzzle-view';
+import type { PuzzleView } from '@0disoft/banora/puzzle-view';
+import { PuzzleSession } from '@0disoft/banora/puzzle';
 import { puzzles } from '../fixtures/puzzles.js';
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const choice = find<HTMLSelectElement>('puzzle'),

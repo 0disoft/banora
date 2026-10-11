@@ -20,7 +20,10 @@ for (const name of ['react', 'vue']) {
       },
       rolldownOptions: {
         external: (id) =>
-          id === 'react' || id === 'vue' || id === '@banora/sdk' || id.startsWith('@banora/sdk/'),
+          id === 'react' ||
+          id === 'vue' ||
+          id === '@0disoft/banora' ||
+          id.startsWith('@0disoft/banora/'),
       },
     },
   });

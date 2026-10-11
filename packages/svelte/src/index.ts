@@ -1,5 +1,5 @@
 import { readable } from 'svelte/store';
-import type { RecordController } from '@banora/sdk';
+import type { RecordController } from '@0disoft/banora';
 
 export { default as Board } from './Board.svelte';
 export { default as Viewer } from './Viewer.svelte';

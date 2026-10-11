@@ -1,4 +1,4 @@
-import type { DiagnosticOperation, DiagnosticRecovery } from '@banora/sdk/diagnostics';
+import type { DiagnosticOperation, DiagnosticRecovery } from '@0disoft/banora/diagnostics';
 import type { StudioDiagnostics } from './diagnostics.js';
 import {
   getUiLocale,

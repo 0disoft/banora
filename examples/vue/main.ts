@@ -10,8 +10,8 @@ import {
   watch,
 } from 'vue';
 import type { PropType } from 'vue';
-import { Board, Viewer, useRecordState } from '@banora/vue';
-import { RecordController } from '@banora/sdk';
+import { Board, Viewer, useRecordState } from '@0disoft/banora-vue';
+import { RecordController } from '@0disoft/banora';
 import type {
   BoardRotation,
   BoardView,
@@ -20,7 +20,7 @@ import type {
   StoneTexture,
   StoneTextures,
   ViewerView,
-} from '@banora/sdk';
+} from '@0disoft/banora';
 import { downloadDiagram } from '../diagram-download.js';
 import sample from '../fixtures/study.sgf?raw';
 import { describeComparison, pinComparison, startComparison } from '../comparison-pair.js';

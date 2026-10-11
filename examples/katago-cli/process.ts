@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { StringDecoder } from 'node:string_decoder';
-import { KataGoProvider } from '@banora/sdk/katago';
-import type { KataGoPerspective } from '@banora/sdk/katago';
+import { KataGoProvider } from '@0disoft/banora/katago';
+import type { KataGoPerspective } from '@0disoft/banora/katago';
 
 export interface LocalKataGoOptions {
   readonly binary: string;

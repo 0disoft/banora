@@ -1,4 +1,4 @@
-import type { RecordCheckpoint } from '@banora/sdk/checkpoint';
+import type { RecordCheckpoint } from '@0disoft/banora/checkpoint';
 
 export const DRAFT_DATABASE = 'banora.studio.drafts';
 export const DRAFT_LIMIT = 20;

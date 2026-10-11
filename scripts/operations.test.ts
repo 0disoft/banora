@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { RecordController } from '@banora/sdk/controller';
+import { RecordController } from '@0disoft/banora/controller';
 import { verifyRecovery, drillRecovery } from './operations.js';
 
 test('recovery checks round-trip collections, dirty baselines, branch selection and policy without outputting authored data', () => {

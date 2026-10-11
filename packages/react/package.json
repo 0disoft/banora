@@ -1,5 +1,5 @@
 {
-  "name": "@banora/react",
+  "name": "@0disoft/banora-react",
   "version": "0.1.0-dev.0",
   "type": "module",
   "license": "MIT",
@@ -16,12 +16,20 @@
     }
   },
   "peerDependencies": {
-    "@banora/sdk": ">=0.1.0-dev.0 <1",
+    "@0disoft/banora": ">=0.1.0-dev.0 <1",
     "react": "19.x"
   },
   "devDependencies": {
-    "@banora/sdk": "workspace:*",
+    "@0disoft/banora": "workspace:*",
     "react": "19.x",
     "@types/react": "19.x"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0disoft/banora.git",
+    "directory": "packages/react"
   }
 }

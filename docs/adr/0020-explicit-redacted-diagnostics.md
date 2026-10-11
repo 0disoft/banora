@@ -5,7 +5,7 @@
 ## Decision
 
 Expose `DiagnosticJournal` and `describeDiagnosticFailure` through root and
-selective `@banora/sdk/diagnostics` exports. Hosts explicitly record completed
+selective `@0disoft/banora/diagnostics` exports. Hosts explicitly record completed
 operations; no controller observation, error interception, environment detection,
 clock, timer, persistence, console output or telemetry occurs automatically.
 Diagnostics must not change a record, selected position, export baseline or Undo.

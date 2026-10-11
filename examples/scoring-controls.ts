@@ -6,7 +6,7 @@ import {
   pointToSgf,
   recordNodeAt,
   serializeSgf,
-} from '@banora/sdk';
+} from '@0disoft/banora';
 import type {
   BoardView,
   ControllerState,
@@ -14,11 +14,11 @@ import type {
   Position,
   RecordLocator,
   SgfNode,
-} from '@banora/sdk';
-import { RULE_PROFILES, getRuleProfile } from '@banora/sdk/rules';
-import type { RuleProfileId } from '@banora/sdk/rules';
-import { scorePosition } from '@banora/sdk/scoring';
-import type { ScoreBreakdown, ScoreSummary } from '@banora/sdk/scoring';
+} from '@0disoft/banora';
+import { RULE_PROFILES, getRuleProfile } from '@0disoft/banora/rules';
+import type { RuleProfileId } from '@0disoft/banora/rules';
+import { scorePosition } from '@0disoft/banora/scoring';
+import type { ScoreBreakdown, ScoreSummary } from '@0disoft/banora/scoring';
 import './scoring-controls.css';
 
 /** Public-package reference consumer; scoring never edits the supplied record. */

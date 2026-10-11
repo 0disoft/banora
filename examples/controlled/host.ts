@@ -1,6 +1,6 @@
-import { createBoardSnapshot } from '@banora/sdk/board-state';
-import type { BoardIntent } from '@banora/sdk/board-state';
-import type { ControlledBoardOptions, ControlledBoardView } from '@banora/sdk/controlled-board';
+import { createBoardSnapshot } from '@0disoft/banora/board-state';
+import type { BoardIntent } from '@0disoft/banora/board-state';
+import type { ControlledBoardOptions, ControlledBoardView } from '@0disoft/banora/controlled-board';
 
 /** A deliberately small host simulator, not a Go rules engine or a transport client. */
 export function createHost() {

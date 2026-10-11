@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { AUTOMATION_SCHEMA, executeAutomation } from '@banora/sdk/automation';
-import { decodeSgf, serializeSgf } from '@banora/sdk/sgf';
+import { AUTOMATION_SCHEMA, executeAutomation } from '@0disoft/banora/automation';
+import { decodeSgf, serializeSgf } from '@0disoft/banora/sgf';
 import { CliError, json, readInput, saveOutput } from './io.js';
 import metadata from '../package.json';
 import { diagnose, diagnosticError } from './diagnostics.js';

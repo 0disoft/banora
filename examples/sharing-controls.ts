@@ -1,7 +1,7 @@
 import { localizeUi, setUiText } from './ui-language.js';
-import { createShareLink, decodeShareLink } from '@banora/sdk/share';
-import type { ShareKind, SharedRecord } from '@banora/sdk/share';
-import type { RecordController, SgfRecord } from '@banora/sdk';
+import { createShareLink, decodeShareLink } from '@0disoft/banora/share';
+import type { ShareKind, SharedRecord } from '@0disoft/banora/share';
+import type { RecordController, SgfRecord } from '@0disoft/banora';
 import './sharing-controls.css';
 
 // One initial address per document, not every controller swap/widget remount.

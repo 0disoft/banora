@@ -1,5 +1,5 @@
 {
-  "name": "@banora/cli",
+  "name": "@0disoft/banora-cli",
   "version": "0.1.0-dev.0",
   "description": "Machine-readable terminal commands for the Banora Go SDK",
   "type": "module",
@@ -13,7 +13,7 @@
     "banora": "./dist/main.js"
   },
   "peerDependencies": {
-    "@banora/sdk": ">=0.1.0-dev.0 <1"
+    "@0disoft/banora": ">=0.1.0-dev.0 <1"
   },
   "engines": {
     "node": ">=24 <25"
@@ -22,5 +22,8 @@
     "type": "git",
     "url": "https://github.com/0disoft/banora.git",
     "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

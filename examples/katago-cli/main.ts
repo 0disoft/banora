@@ -1,7 +1,7 @@
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { RecordController } from '@banora/sdk/controller';
-import { AnalysisSession } from '@banora/sdk/analysis';
+import { RecordController } from '@0disoft/banora/controller';
+import { AnalysisSession } from '@0disoft/banora/analysis';
 import { startLocalKataGo } from './process.js';
 
 const [binary, model] = process.argv.slice(2);

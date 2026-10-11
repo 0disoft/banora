@@ -1,10 +1,10 @@
-import { RecordController, mountBoard } from '@banora/sdk';
-import type { BoardView } from '@banora/sdk';
-import { AnalysisSession } from '@banora/sdk/analysis';
-import { mountAnalysis } from '@banora/sdk/analysis-view';
-import type { AnalysisView } from '@banora/sdk/analysis-view';
-import { KataGoProvider } from '@banora/sdk/katago';
-import type { KataGoQuery } from '@banora/sdk/katago';
+import { RecordController, mountBoard } from '@0disoft/banora';
+import type { BoardView } from '@0disoft/banora';
+import { AnalysisSession } from '@0disoft/banora/analysis';
+import { mountAnalysis } from '@0disoft/banora/analysis-view';
+import type { AnalysisView } from '@0disoft/banora/analysis-view';
+import { KataGoProvider } from '@0disoft/banora/katago';
+import type { KataGoQuery } from '@0disoft/banora/katago';
 import { analysisFixtures, illustrativeKataGoResponse } from '../fixtures/analysis.js';
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const position = find<HTMLSelectElement>('position'),

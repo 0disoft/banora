@@ -5,7 +5,7 @@
 
 ## Distribution Direction
 
-Selective `@banora/sdk/diagnostics`, root and classic exports expose an optional
+Selective `@0disoft/banora/diagnostics`, root and classic exports expose an optional
 headless local journal. Type-only SDK reason dependencies import no runtime
 controller/DOM/provider code. Unit fixtures verify actual failure projection,
 cross-realm data, bounded immutable reports and no raw-text retention; packed
@@ -31,9 +31,11 @@ the classic browser script distribution also has a runnable consumer.
 
 Use one repository with one common SDK package and three separate optional adapter
 packages: React, Vue and Svelte. Logical core/record/renderer modules may use selective
-entrypoints within the common SDK; they are not separate release units. Development
-names are `@banora/sdk`, `@banora/react`, `@banora/vue` and `@banora/svelte`; none
-is published and these names do not claim registry ownership. Actual symbols are
+entrypoints within the common SDK; they are not separate release units. Package
+names are `@0disoft/banora`, `@0disoft/banora-react`, `@0disoft/banora-vue` and
+`@0disoft/banora-svelte`, with optional `@0disoft/banora-cli`. None is published;
+local naming does not reserve registry names or establish publication authority.
+See [ADR 0023](../adr/0023-existing-publisher-package-identity.md). Actual symbols are
 listed in the [public API](public-api.md). CommonJS support is
 UNDECIDED and must not be claimed without consumer evidence.
 
@@ -124,7 +126,7 @@ claims. A shared DOM mount API enables integration, but each wrapper's reactivit
 cleanup, SSR boundary and packaging must be verified before claiming support.
 Comparison uses the common `mountComparison` view or native Board composition;
 it introduces no separate framework rules or record engine. The selective
-`@banora/sdk/comparison` export imports safely on Node and mounts only in a browser.
+`@0disoft/banora/comparison` export imports safely on Node and mounts only in a browser.
 All three native Board components forward node/reference/generation options, with
 independent installed-artifact types/SSR and real production comparison flows.
 Different-sized games are displayed without a diff. Selectors are bounded to 500
@@ -135,7 +137,7 @@ actual peer dependency metadata, artifact formats and compiler versions during M
 
 ## Framework Artifact Evidence
 
-Recorded playback has a separate DOM-free `@banora/sdk/playback` coordinator and
+Recorded playback has a separate DOM-free `@0disoft/banora/playback` coordinator and
 SSR-safe `playback-controls` mount. Studio and every complete Viewer share these
 controls; optional native Viewer props forward the same bounded interval option.
 Chrome 154 verifies Studio/common/React/Vue/Svelte/classic-script timing, end,
@@ -145,14 +147,14 @@ during SSR without starting timers. Background timer precision, physical devices
 and other browser engines remain unclaimed. See the [contract](playback.md).
 
 [Checkpoint recovery](recovery.md) additionally exposes a DOM-free
-`@banora/sdk/checkpoint` parser/schema and controller creation/restore methods.
+`@0disoft/banora/checkpoint` parser/schema and controller creation/restore methods.
 Packed SDK declarations/runtime and installed Node CLI resume checks cover this
 additive format; Undo remains session-local. Studio's IndexedDB autosave/backup
 consumer has Chrome 154 checks for separate tabs, close/reopen, quotas, guards,
 corrupt input and actual files. Broader storage/OS durability is not claimed;
 see the [recovery limits](recovery.md#studio-local-drafts).
 
-Whole-record search has a selective headless `@banora/sdk/record-search` entrypoint.
+Whole-record search has a selective headless `@0disoft/banora/record-search` entrypoint.
 The controller's comment preview/apply/set additions share the existing edit/Undo
 and export contracts, adding `stale-preview` as a failure reason. Unit cases include
 collections/branches, 4,000-move paths, bounds, stale/foreign preview refusal and
@@ -167,15 +169,15 @@ stale preview/result refusal, aggregate bounds, four languages and 320px/menu us
 This browser evidence covers the Studio consumer; it does not imply a new search UI
 in the separate read-only viewer or framework adapters.
 
-Agent automation is available through DOM-free `@banora/sdk/automation` and the
-optional Node 24.x `@banora/cli` package. Installed SDK declarations/runtime and
+Agent automation is available through DOM-free `@0disoft/banora/automation` and the
+optional Node 24.x `@0disoft/banora-cli` package. Installed SDK declarations/runtime and
 the actual CLI tarballs/bin have Windows Node 24 evidence for machine-readable
 requests/results, error codes, input limits and file preservation. This is
 headless record/snapshot automation, not browser/native app remote control or a
 headless SVG/PNG claim. No CLI macOS/Linux executable evidence is recorded yet.
 
-Host-controlled boards additionally expose headless `@banora/sdk/board-state`
-DTO normalization and the SSR-safe `@banora/sdk/controlled-board` DOM mount.
+Host-controlled boards additionally expose headless `@0disoft/banora/board-state`
+DTO normalization and the SSR-safe `@0disoft/banora/controlled-board` DOM mount.
 The latter mounts only in a browser and creates no record/rules controller.
 All three optional packages export native `ControlledBoard` components; React/Vue
 artifacts retain SDK subpath peer imports rather than bundling another SVG surface.
@@ -187,7 +189,7 @@ checks masks, overlays, keyboard/ink/menu intentions and eight transforms.
 See the [host-controlled contract](controlled-board.md). External/native transports,
 physical devices, other browser engines and hydration remain outside this evidence.
 
-Adapters peer-depend on `@banora/sdk` (`>=0.1.0-dev.0 <1`) and only their own
+Adapters peer-depend on `@0disoft/banora` (`>=0.1.0-dev.0 <1`) and only their own
 framework major (`19.x`, `3.x`, `5.x` respectively). Framework runtimes are not
 bundled into adapter artifacts. Independent tarball installations verify that the
 other two frameworks are absent, declarations resolve and license/README files ship.
@@ -219,7 +221,7 @@ it to ESM. CommonJS support remains unclaimed.
 The standalone script includes the complete package MIT notice in a preserved banner;
 the tarball check verifies that notice as well as the separate LICENSE file.
 
-Headless `@banora/sdk/geometry` is checked without DOM type libraries. Rotation and
+Headless `@0disoft/banora/geometry` is checked without DOM type libraries. Rotation and
 reflection preserve logical coordinates and crop bounds on rectangular boards;
 production checks cover all eight combinations and framework configuration updates.
 
@@ -232,11 +234,11 @@ covered separately from successful downloads; image export never saves an SGF.
 
 ## Record Compatibility
 
-`@banora/sdk/analysis` is a selective headless coordinator, without DOM cancellation
+`@0disoft/banora/analysis` is a selective headless coordinator, without DOM cancellation
 types or bundled engine/transport dependencies. Requests need explicit profile or
 custom scoring settings and preserve real setup-epoch history/counts. Illegal
 recorded epochs cannot be silently rewritten for analysis; local SGF browsing/editing
-still work. The selective headless `@banora/sdk/katago` module has original protocol
+still work. The selective headless `@0disoft/banora/katago` module has original protocol
 fixtures and installed Node 24/ES2022-only type/runtime evidence. It has no automatic
 process/network transport, rejects unsupported contexts and requires declared engine
 perspective/capability. No actual engine/model/version was run.
@@ -249,7 +251,7 @@ data is explicitly illustrative; manual JSON is host-controlled. No native Analy
 component exports or broader engine/browser/device support is implied. See the
 [analysis view contract](analysis-view.md).
 
-`@banora/sdk/puzzle` is a selective headless authored-session entrypoint. Its
+`@0disoft/banora/puzzle` is a selective headless authored-session entrypoint. Its
 definitions use `banora.puzzle/v1` plus SGF initial context and explicit logical
 answer-tree moves, rather than claiming automatic third-party puzzle compatibility.
 The separate `puzzle-view` entrypoint imports without runtime browser globals but
@@ -257,7 +259,7 @@ mounts only in a DOM. Chrome 154 verifies the production common view/example,
 keyboard/emulated touch, safe text, updates and owned/borrowed lifecycle. Native
 framework Puzzle components and automatic third-party format inference are absent.
 
-Selective `@banora/sdk/rules` and `@banora/sdk/scoring` imports have installed Node
+Selective `@0disoft/banora/rules` and `@0disoft/banora/scoring` imports have installed Node
 24.14.0 runtime/declaration evidence with ES2022 libraries and no DOM types. Named
 presets expose explicit agreed-position coverage. Score calculations are headless,
 require manually correct status and do not certify prior rule legality or player

@@ -8,11 +8,11 @@ dependencies or external assets are included.
 
 `RecordController.createCheckpoint()` / `loadCheckpoint()` preserve a working
 record, export baseline, selected location and rules without selecting a storage
-service. `@banora/sdk/checkpoint` supplies checked parsing and schema discovery;
+service. `@0disoft/banora/checkpoint` supplies checked parsing and schema discovery;
 terminal automation can emit/resume the same recovery data. Undo is session-local,
 and hosts own storage, privacy, retention and concurrent writes.
 
-`@banora/sdk/record-search` searches every game/variation with bounded literal
+`@0disoft/banora/record-search` searches every game/variation with bounded literal
 property queries and portable result targets, without replay/navigation. Controller
 `previewComments`, `applyComments` and `setComments` validate multi-node changes
 and apply them as one Undo unit while retaining selection/export semantics.
@@ -22,7 +22,7 @@ preview-only diffs and optional exact-source guards. Studio demonstrates record-
 search, navigation and selected comment preview/application through these public
 exports, with session-local selection and one-step Undo.
 
-`@banora/sdk/diagnostics` exposes an explicit `DiagnosticJournal` and safe failure
+`@0disoft/banora/diagnostics` exposes an explicit `DiagnosticJournal` and safe failure
 projection. It retains at most 256 fixed operation/code events and produces frozen
 local summaries/support reports, without recording authored data, raw exceptions,
 fingerprint strings or arbitrary metadata. Hosts own opt-in, reviewed sharing and
@@ -30,34 +30,34 @@ clear/retention; the SDK adds no automatic collection, persistence or remote cal
 Studio Help separately demonstrates session-only opt-in, inspected JSON/download,
 clear/reload and diagnostic freshness without changing authored/export state.
 
-`diagnoseAutomation` from root/`@banora/sdk/automation` runs a canonical request
+`diagnoseAutomation` from root/`@0disoft/banora/automation` runs a canonical request
 once and returns bounded diagnostic evidence with no authored output. Optional
 `banora diagnose` adds reviewed JSON file publication and safe Node environment/
 execution timing. See the [terminal diagnostic contract](../../docs/sdk/diagnostics.md#terminal-and-automation-consumer).
 
-`@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
+`@0disoft/banora/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.
 The separate DOM `playback-controls` mount is shared by Studio and every complete
 Viewer; native Viewer props forward `playback:{intervalMs}`. Board cursor arrows
 remain intact, with scoped record arrows and Alt+Left/Right for board focus. See
 the [playback guide](https://github.com/0disoft/banora/blob/main/docs/sdk/playback.md).
 
-`@banora/sdk/automation` exposes DOM-free `executeAutomation` and immutable
+`@0disoft/banora/automation` exposes DOM-free `executeAutomation` and immutable
 `AUTOMATION_SCHEMA` for checked JSON record commands and external snapshots.
-The optional `@banora/cli` executable exposes the same operations through terminal
+The optional `@0disoft/banora-cli` executable exposes the same operations through terminal
 files/stdin and structured responses. See the
 [agent guide](https://github.com/0disoft/banora/blob/main/packages/cli/README.md).
 
-`@banora/sdk/puzzle` exports headless curated `PuzzleSession`; the separate
-`@banora/sdk/puzzle-view` provides `mountPuzzle(container,{session})` or an owned
+`@0disoft/banora/puzzle` exports headless curated `PuzzleSession`; the separate
+`@0disoft/banora/puzzle-view` provides `mountPuzzle(container,{session})` or an owned
 `{definition}` mount with authored responses, hints and restart. Definitions use
 explicit `banora.puzzle/v1` answer trees and SGF context. Importing the view is
 SSR-safe; mounting requires a DOM. No AI engine or automatic problem grading.
 
-`@banora/sdk/analysis` supplies explicit provider-neutral `AnalysisSession` requests,
-exact context/result matching and cancellation. `@banora/sdk/katago` bridges host-owned
+`@0disoft/banora/analysis` supplies explicit provider-neutral `AnalysisSession` requests,
+exact context/result matching and cancellation. `@0disoft/banora/katago` bridges host-owned
 KataGo JSON lines with checked rules/history/komi and declared reporting perspective.
-`@banora/sdk/analysis-view` exports `mountAnalysis` for candidate metrics, isolated
+`@0disoft/banora/analysis-view` exports `mountAnalysis` for candidate metrics, isolated
 legal PVs and root ownership. It never edits the borrowed source record or submits
 on mount. These imports bundle no model, credentials or automatic transport; the
 view mounts only in a browser. Read the repository's analysis contracts for limits,
@@ -100,7 +100,7 @@ Read another branch with `controller.inspectNode(id)` without moving the cursor.
 `comparePositions(before.position, after.position)` reports visible-stone changes.
 Use `mountComparison(container,{controller,left:leftId,right:rightId})` for two
 read-only boards, node selectors, comments and highlighted differences; it is also
-available from `@banora/sdk/comparison`. The view exports either side as SVG/PNG
+available from `@0disoft/banora/comparison`. The view exports either side as SVG/PNG
 and borrows the controller, preserving it on disposal. Different board sizes are
 displayed without diffing. Imported records reset the comparison to their new root.
 For custom layouts, Board accepts `nodeId`, `compareTo` and `referenceGeneration`

@@ -33,21 +33,21 @@ await writeFile(
     name: 'banora-packed-consumer',
     private: true,
     type: 'module',
-    dependencies: { '@banora/sdk': './sdk.tgz' },
+    dependencies: { '@0disoft/banora': './sdk.tgz' },
   }),
 );
 run([process.execPath, 'install', '--ignore-scripts'], directory);
-const consumer = `import { RecordController, createPosition, play, stoneAt } from '@banora/sdk';
-import { parseSgf } from '@banora/sdk/sgf';
-import { searchRecord } from '@banora/sdk/record-search';
-import {DiagnosticJournal,describeDiagnosticFailure} from '@banora/sdk/diagnostics';
-import {DiagnosticJournal as RootDiagnosticJournal, diagnoseAutomation as rootDiagnose} from '@banora/sdk';
-import {diagnoseAutomation} from '@banora/sdk/automation';
+const consumer = `import { RecordController, createPosition, play, stoneAt } from '@0disoft/banora';
+import { parseSgf } from '@0disoft/banora/sgf';
+import { searchRecord } from '@0disoft/banora/record-search';
+import {DiagnosticJournal,describeDiagnosticFailure} from '@0disoft/banora/diagnostics';
+import {DiagnosticJournal as RootDiagnosticJournal, diagnoseAutomation as rootDiagnose} from '@0disoft/banora';
+import {diagnoseAutomation} from '@0disoft/banora/automation';
 if (rootDiagnose!==diagnoseAutomation || diagnoseAutomation({}).diagnostics.events[0]?.failure?.code!=='invalid-request') throw Error('Packed diagnostic execution exports failed');
 const diagnosticJournal=new DiagnosticJournal({capacity:2});
 diagnosticJournal.record({operation:'import',status:'failure',failure:describeDiagnosticFailure('sgf','syntax')});
 if (RootDiagnosticJournal!==DiagnosticJournal || diagnosticJournal.createReport({runtime:'node',runtimeMajor:24}).events[0]?.failure?.code!=='syntax') throw Error('Packed diagnostic exports failed');
-import type { CommentChange, CommentBatchPreview } from '@banora/sdk/controller';
+import type { CommentChange, CommentBatchPreview } from '@0disoft/banora/controller';
 const batchController=new RecordController({sgf:'(;SZ[5]C[root];B[aa]C[target])'});
 const batchHit=searchRecord(batchController.getState().record,{query:'target'}).hits[0]!;
 const batchChanges:readonly CommentChange[]=[{nodeId:batchHit.nodeId,text:'updated',expectedText:'target'}];
@@ -56,27 +56,27 @@ if (!batchResult.ok) throw Error('Packed batch preview failed');
 const batchPreview:CommentBatchPreview=batchResult.preview;
 if (!batchController.applyComments(batchPreview).ok || !batchController.undo().ok || batchController.getState().dirty || searchRecord(batchController.getState().record,{query:'target'}).total!==1) throw Error('Packed record tools failed');
 batchController.dispose();
-import {createBoardSnapshot} from '@banora/sdk/board-state';
-import {mountControlledBoard} from '@banora/sdk/controlled-board';
-import type {ControlledBoardView, ControlledBoardOptions} from '@banora/sdk/controlled-board';
+import {createBoardSnapshot} from '@0disoft/banora/board-state';
+import {mountControlledBoard} from '@0disoft/banora/controlled-board';
+import type {ControlledBoardView, ControlledBoardOptions} from '@0disoft/banora/controlled-board';
 const controlledConfig:ControlledBoardOptions={state:{key:'host/1',width:2,height:2,stones:Array(4).fill(null)}};
 const controlledView:ControlledBoardView|undefined=undefined;
 if (typeof mountControlledBoard!=='function') throw Error('Packed controlled mount import was not SSR-safe');
 const externalBoard=createBoardSnapshot({key:'host/node/1',width:2,height:3,stones:Array(6).fill(null)});
 if (externalBoard.stones.length!==6 || 'rules' in externalBoard || !Object.isFrozen(externalBoard)) throw Error('Packed external board data failed');
-import { opposite, comparePositions } from '@banora/sdk/core';
-import type { ControllerState } from '@banora/sdk/controller';
-import { mountViewer } from '@banora/sdk/viewer';
-import {mountPuzzle} from '@banora/sdk/puzzle-view';
-import type {PuzzleView} from '@banora/sdk/puzzle-view';
-import {mountAnalysis} from '@banora/sdk/analysis-view';
-import type {AnalysisView} from '@banora/sdk/analysis-view';
-import { mountComparison } from '@banora/sdk/comparison';
-import { createShareLink, decodeShareLink } from '@banora/sdk/share';
-import { createStoneTexture } from '@banora/sdk/textures';
-import { prepareStoneTexture } from '@banora/sdk/board';
-import type { ComparisonView } from '@banora/sdk/comparison';
-import type {PlacementAnimationOptions, BoardOptions} from '@banora/sdk/board';
+import { opposite, comparePositions } from '@0disoft/banora/core';
+import type { ControllerState } from '@0disoft/banora/controller';
+import { mountViewer } from '@0disoft/banora/viewer';
+import {mountPuzzle} from '@0disoft/banora/puzzle-view';
+import type {PuzzleView} from '@0disoft/banora/puzzle-view';
+import {mountAnalysis} from '@0disoft/banora/analysis-view';
+import type {AnalysisView} from '@0disoft/banora/analysis-view';
+import { mountComparison } from '@0disoft/banora/comparison';
+import { createShareLink, decodeShareLink } from '@0disoft/banora/share';
+import { createStoneTexture } from '@0disoft/banora/textures';
+import { prepareStoneTexture } from '@0disoft/banora/board';
+import type { ComparisonView } from '@0disoft/banora/comparison';
+import type {PlacementAnimationOptions, BoardOptions} from '@0disoft/banora/board';
 const placementAnimation:PlacementAnimationOptions={durationMs:160};
 const animationConfig:BoardOptions={placementAnimation};
 const diagram: ComparisonView['exportSvg'] | undefined = undefined;
@@ -137,14 +137,14 @@ await writeFile(
 run([process.execPath, 'run', 'typecheck', '--project', resolve(directory, 'tsconfig.json')], root);
 await writeFile(
   resolve(directory, 'headless.ts'),
-  `import {createPosition, play} from '@banora/sdk/core';
-import {createBoardSnapshot} from '@banora/sdk/board-state';
+  `import {createPosition, play} from '@0disoft/banora/core';
+import {createBoardSnapshot} from '@0disoft/banora/board-state';
 const external=createBoardSnapshot({key:'headless/host',width:2,height:3,stones:Array(6).fill(null)});
-import {executeAutomation, diagnoseAutomation as headlessDiagnose, AUTOMATION_SCHEMA} from '@banora/sdk/automation';
+import {executeAutomation, diagnoseAutomation as headlessDiagnose, AUTOMATION_SCHEMA} from '@0disoft/banora/automation';
 if (headlessDiagnose({}).ok) throw Error('Headless diagnostic execution failed');
-import {createUiMessages, createBoardLabels, formatUiMessage} from '@banora/sdk/locale';
+import {createUiMessages, createBoardLabels, formatUiMessage} from '@0disoft/banora/locale';
 if (formatUiMessage(createUiMessages({locale:'ko'}).move,{number:23})!=='23\uC218' || createBoardLabels({locale:'ko'}).black!=='\uD751') throw Error('Packed headless localization failed');
-import {createRecordPlayback} from '@banora/sdk/playback';
+import {createRecordPlayback} from '@0disoft/banora/playback';
 const playbackController=new RecordController({sgf:'(;SZ[9];B[aa])'});
 const playback=createRecordPlayback(playbackController,{intervalMs:500});
 playback.play(); playback.pause();
@@ -153,37 +153,37 @@ playback.dispose(); playbackController.dispose();
 const automated=executeAutomation({schemaVersion:'banora.automation/v1',kind:'record',size:9,operations:[{op:'play',point:{x:4,y:4}}]});
 if (!automated.ok || automated.snapshot.stones[40]!=='black' || !JSON.stringify(AUTOMATION_SCHEMA).includes('legal-points')) throw Error('Packed headless automation failed');
 if ('rules' in external || external.stones.length!==6) throw Error('Headless external snapshot failed');
-import type {RepetitionHistory, RulePolicy} from '@banora/sdk/core';
-import {getRuleProfile} from '@banora/sdk/rules';
-import {scorePosition} from '@banora/sdk/scoring';
-import type {ScoreSummary} from '@banora/sdk/scoring';
-import {PuzzleSession} from '@banora/sdk/puzzle';
-import type {PuzzleDefinition,PuzzleEvent} from '@banora/sdk/puzzle';
-import {AnalysisSession} from '@banora/sdk/analysis';
-import type {AnalysisProvider,AnalysisCancellation} from '@banora/sdk/analysis';
-import {KataGoProvider,createKataGoQuery} from '@banora/sdk/katago';
-import type {KataGoTransport} from '@banora/sdk/katago';
-import {toDisplayPoint, toLogicalPoint} from '@banora/sdk/geometry';
-import {parseSgf} from '@banora/sdk/sgf';
-import {RecordController} from '@banora/sdk/controller';
-import {parseRecordCheckpoint, CHECKPOINT_SCHEMA} from '@banora/sdk/checkpoint';
-import {searchRecord as searchHeadless} from '@banora/sdk/record-search';
-import {DiagnosticJournal as HeadlessDiagnosticJournal,describeDiagnosticFailure as safeFailure} from '@banora/sdk/diagnostics';
+import type {RepetitionHistory, RulePolicy} from '@0disoft/banora/core';
+import {getRuleProfile} from '@0disoft/banora/rules';
+import {scorePosition} from '@0disoft/banora/scoring';
+import type {ScoreSummary} from '@0disoft/banora/scoring';
+import {PuzzleSession} from '@0disoft/banora/puzzle';
+import type {PuzzleDefinition,PuzzleEvent} from '@0disoft/banora/puzzle';
+import {AnalysisSession} from '@0disoft/banora/analysis';
+import type {AnalysisProvider,AnalysisCancellation} from '@0disoft/banora/analysis';
+import {KataGoProvider,createKataGoQuery} from '@0disoft/banora/katago';
+import type {KataGoTransport} from '@0disoft/banora/katago';
+import {toDisplayPoint, toLogicalPoint} from '@0disoft/banora/geometry';
+import {parseSgf} from '@0disoft/banora/sgf';
+import {RecordController} from '@0disoft/banora/controller';
+import {parseRecordCheckpoint, CHECKPOINT_SCHEMA} from '@0disoft/banora/checkpoint';
+import {searchRecord as searchHeadless} from '@0disoft/banora/record-search';
+import {DiagnosticJournal as HeadlessDiagnosticJournal,describeDiagnosticFailure as safeFailure} from '@0disoft/banora/diagnostics';
 const headlessEvidence=new HeadlessDiagnosticJournal();
 headlessEvidence.record({operation:'analysis',status:'failure',failure:safeFailure('analysis','private provider error')});
 if (headlessEvidence.createReport().events[0]?.failure?.code!=='unknown') throw Error('Packed no-DOM diagnostics failed');
 const searchController=new RecordController({sgf:'(;C[headless])'});
 if (searchHeadless(searchController.getState().record,{query:'headless'}).total!==1 || !searchController.setComments([{nodeId:searchController.getState().node.id,text:'headless edited'}]).ok || !searchController.undo().ok) throw Error('Packed no-DOM record tools failed');
 searchController.dispose();
-import type {RecordCheckpoint} from '@banora/sdk/checkpoint';
+import type {RecordCheckpoint} from '@0disoft/banora/checkpoint';
 const draftController=new RecordController({size:5});
 draftController.play({x:2,y:2});draftController.setComment('unfinished');
 const checkpoint:RecordCheckpoint=draftController.createCheckpoint();
 const draftRestored=new RecordController();
 if (!parseRecordCheckpoint(checkpoint).ok || !draftRestored.loadCheckpoint(checkpoint).ok || !draftRestored.getState().dirty || draftRestored.getState().node.properties.C?.[0]!=='unfinished' || !Object.isFrozen(CHECKPOINT_SCHEMA)) throw Error('Packed headless checkpoint recovery failed');
 draftController.dispose();draftRestored.dispose();
-import {createShareLink, decodeShareLink} from '@banora/sdk/share';
-import {createStoneTexture} from '@banora/sdk/textures';
+import {createShareLink, decodeShareLink} from '@0disoft/banora/share';
+import {createStoneTexture} from '@0disoft/banora/textures';
 if (!play(createPosition(), {x:0,y:0}).ok || !parseSgf('(;SZ[9])').ok) throw Error('Headless imports failed');
 const controller = new RecordController();
 if (createStoneTexture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a0ioAAAAASUVORK5CYII=').height !== 1) throw Error('Headless texture factory failed');
@@ -253,22 +253,22 @@ run(['node', resolve(directory, 'headless.ts')], directory);
 // installed tarball rather than source files or workspace symlinks.
 console.log(run(['node', resolve(directory, 'consumer.ts')], directory).trim());
 const installed = JSON.parse(
-  await readFile(resolve(directory, 'node_modules/@banora/sdk/package.json'), 'utf8'),
+  await readFile(resolve(directory, 'node_modules/@0disoft/banora/package.json'), 'utf8'),
 );
 if (installed.dependencies && Object.keys(installed.dependencies).length)
   throw new Error('Unexpected SDK runtime dependencies');
-await readFile(resolve(directory, 'node_modules/@banora/sdk/LICENSE'));
-const globalDirectory = resolve(directory, 'node_modules/@banora/sdk/dist');
+await readFile(resolve(directory, 'node_modules/@0disoft/banora/LICENSE'));
+const globalDirectory = resolve(directory, 'node_modules/@0disoft/banora/dist');
 const browserSource = await readFile(resolve(globalDirectory, 'banora.global.js'), 'utf8');
 const browserLicense = await readFile(
-  resolve(directory, 'node_modules/@banora/sdk/LICENSE'),
+  resolve(directory, 'node_modules/@0disoft/banora/LICENSE'),
   'utf8',
 );
 if (!browserSource.includes(browserLicense.trim()))
   throw new Error('Standalone browser distribution lost its MIT notice');
 await writeFile(
   resolve(directory, 'global-consumer.ts'),
-  `/// <reference path="./node_modules/@banora/sdk/dist/banora.global.d.ts" />
+  `/// <reference path="./node_modules/@0disoft/banora/dist/banora.global.d.ts" />
 const model = new Banora.RecordController({size:9});
 model.setConnection({x:0,y:0}, {x:1,y:1}, 'arrow');
 const viewer: typeof Banora.mountViewer = Banora.mountViewer;

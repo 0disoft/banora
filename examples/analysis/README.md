@@ -2,7 +2,7 @@
 
 Run the repository's `bun run dev`, then open `/analysis/`. For a static build use
 `bun run build:examples`; this page is emitted under `dist/examples/analysis/`.
-It imports only built public `@banora/sdk` entrypoints. No account, credentials,
+It imports only built public `@0disoft/banora` entrypoints. No account, credentials,
 engine asset or remote endpoint is required for the offline mode.
 
 ## Offline Protocol Illustrations

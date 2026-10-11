@@ -6,6 +6,7 @@ import {
   isReleaseManifest,
   RELEASE_CHECKS,
   RELEASE_PACKAGES,
+  RELEASE_PACKAGE_NAMES,
   restoreRelease,
   verifyRelease,
 } from './release-artifacts.js';
@@ -38,7 +39,7 @@ async function fixture(prepared = false) {
     source: { commit: 'a'.repeat(40), tree: 'b'.repeat(40) },
     tools: { bun: '1.4.2', node: '24.14.0' },
     packages: RELEASE_PACKAGES.map((name) => ({
-      name: `@banora/${name}`,
+      name: RELEASE_PACKAGE_NAMES[name],
       version: '0.1.0-dev.0',
       archive: `packages/${name}.tgz`,
     })),
@@ -85,6 +86,30 @@ test('integrity verifies complete bytes and rejects extra or changed files witho
   await writeFile(resolve(bundle, 'examples/unexpected.js'), 'Unexpected fixture');
   await expect(verifyRelease(bundle)).rejects.toThrow('integrity');
   expect(await readFile(file)).toEqual(original);
+});
+
+test('retained legacy package identities stay verifiable and restorable but cannot mix with current identities', async () => {
+  const { root, bundle, manifest } = await fixture(true);
+  const legacy: ReleaseManifest = {
+    ...manifest,
+    packages: manifest.packages.map((item, index) => ({
+      ...item,
+      name: `@banora/${RELEASE_PACKAGES[index]}`,
+    })),
+  };
+  await writeFile(resolve(bundle, 'manifest.json'), JSON.stringify(legacy));
+  const originalManifest = await readFile(resolve(bundle, 'manifest.json'));
+  expect((await verifyRelease(bundle)).manifest.packages).toEqual(legacy.packages);
+  const restored = resolve(root, await restoreRelease(root, bundle));
+  expect((await verifyRelease(restored)).manifest.packages).toEqual(legacy.packages);
+  expect(await readFile(resolve(bundle, 'manifest.json'))).toEqual(originalManifest);
+  for (const base of [manifest, legacy]) {
+    const other = base === manifest ? legacy : manifest;
+    for (let index = 0; index < RELEASE_PACKAGES.length; index++) {
+      const packages = base.packages.map((item, i) => (i === index ? other.packages[i]! : item));
+      expect(isReleaseManifest({ ...base, packages })).toBe(false);
+    }
+  }
 });
 test('release restaging copies verified immutable bytes, preserves source and rejects directory links', async () => {
   const { root, bundle, manifest } = await fixture(true);

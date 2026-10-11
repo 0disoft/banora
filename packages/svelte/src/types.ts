@@ -4,7 +4,7 @@ import type {
   ControllerState,
   ViewerOptions,
   ViewerView,
-} from '@banora/sdk';
+} from '@0disoft/banora';
 
 export interface ContainerProps {
   readonly class?: string;
@@ -15,9 +15,10 @@ export interface ContainerProps {
 }
 export type BoardProps = BoardOptions & ContainerProps;
 export type ViewerProps = Omit<ViewerOptions, 'sgf'> & ContainerProps;
-export type ControlledBoardProps = import('@banora/sdk/controlled-board').ControlledBoardOptions &
-  Omit<ContainerProps, 'onStateChange' | 'onView'> & {
-    readonly onView?: (
-      view: import('@banora/sdk/controlled-board').ControlledBoardView | null,
-    ) => void;
-  };
+export type ControlledBoardProps =
+  import('@0disoft/banora/controlled-board').ControlledBoardOptions &
+    Omit<ContainerProps, 'onStateChange' | 'onView'> & {
+      readonly onView?: (
+        view: import('@0disoft/banora/controlled-board').ControlledBoardView | null,
+      ) => void;
+    };

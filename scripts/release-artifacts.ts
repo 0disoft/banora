@@ -4,6 +4,13 @@ import { dirname, relative, resolve, sep } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 
 export const RELEASE_PACKAGES = ['sdk', 'cli', 'react', 'vue', 'svelte'] as const;
+export const RELEASE_PACKAGE_NAMES = {
+  sdk: '@0disoft/banora',
+  cli: '@0disoft/banora-cli',
+  react: '@0disoft/banora-react',
+  vue: '@0disoft/banora-vue',
+  svelte: '@0disoft/banora-svelte',
+} as const;
 export const RELEASE_CHECKS = [
   'check',
   'security-files',
@@ -91,12 +98,14 @@ export function isReleaseManifest(input: unknown): input is ReleaseManifest {
     )
       return false;
     const packages = input.packages;
+    // Retained pre-rename bundles remain verifiable/restorable without rewriting bytes.
+    const legacy = packages[0]?.name === '@banora/sdk';
     if (
       !RELEASE_PACKAGES.every((name, index) => {
         const item: unknown = packages[index];
         return (
           plain(item, ['name', 'version', 'archive']) &&
-          item.name === `@banora/${name}` &&
+          item.name === (legacy ? `@banora/${name}` : RELEASE_PACKAGE_NAMES[name]) &&
           item.archive === `packages/${name}.tgz` &&
           typeof item.version === 'string' &&
           /^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(item.version) &&

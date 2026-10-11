@@ -1,12 +1,12 @@
 # Local Diagnostics
 
-`@banora/sdk/diagnostics` is headless and optional; root/classic exports also expose
+`@0disoft/banora/diagnostics` is headless and optional; root/classic exports also expose
 `DiagnosticJournal` and `describeDiagnosticFailure`. Recording is explicit. No
 network, storage, environment detection, global exception capture, timer, controller
 subscription or implicit analytics is included.
 
 ```ts
-import { DiagnosticJournal, describeDiagnosticFailure } from '@banora/sdk/diagnostics';
+import { DiagnosticJournal, describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
 
 const diagnostics = new DiagnosticJournal({ capacity: 64 });
 // Run an actual action first; record only when the user enables diagnostics.
@@ -112,7 +112,7 @@ Hosted collection remains host-owned.
 
 ## Terminal and Automation Consumer
 
-`diagnoseAutomation(input, environment?)` is exported from `@banora/sdk/automation`,
+`diagnoseAutomation(input, environment?)` is exported from `@0disoft/banora/automation`,
 root and classic builds. It runs the same checked automation engine once on isolated
 state and returns frozen `banora.automation-diagnostics/v1` with `ok`, optional
 zero-based failed `operationIndex` and `diagnostics`. It returns no authored result,

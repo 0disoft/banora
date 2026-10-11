@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { RecordController } from '@banora/sdk';
+  import type { RecordController } from '@0disoft/banora';
   import { mountSharing } from '../sharing-controls.js';
   let { controller }: { controller: RecordController } = $props();
   let host = $state<HTMLDivElement>();

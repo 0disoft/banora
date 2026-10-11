@@ -1,8 +1,8 @@
 import { defineComponent, h, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue';
 import type { PropType } from 'vue';
-import { mountControlledBoard } from '@banora/sdk/controlled-board';
-import type { ControlledBoardOptions, ControlledBoardView } from '@banora/sdk/controlled-board';
-import type { BoardSnapshot, BoardIntent } from '@banora/sdk/board-state';
+import { mountControlledBoard } from '@0disoft/banora/controlled-board';
+import type { ControlledBoardOptions, ControlledBoardView } from '@0disoft/banora/controlled-board';
+import type { BoardSnapshot, BoardIntent } from '@0disoft/banora/board-state';
 
 export const ControlledBoard = defineComponent({
   name: 'BanoraControlledBoard',

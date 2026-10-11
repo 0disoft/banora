@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { ControlledBoard } from '@banora/svelte';
+  import { ControlledBoard } from '@0disoft/banora-svelte';
   import type { Host } from './host.js';
   let { host }: { host: Host } = $props();
   let session = $state.raw(untrack(() => host.getState()));

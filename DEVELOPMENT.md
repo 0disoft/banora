@@ -67,9 +67,9 @@ Use one common SDK package in M1 and three separate optional React, Vue and Svel
 adapter packages in M2, all in this repository. Initial compatibility targets are
 Node 24 LTS, React 19, Vue 3 and Svelte 5; current consumer evidence is documented
 in [compatibility](docs/sdk/compatibility.md).
-The common SDK uses the local development name `@banora/sdk`; it is unpublished.
-Bun's test runner and root scripts are configured. The optional `@banora/react`,
-`@banora/vue` and `@banora/svelte` packages export Board/Viewer and state bindings.
+The common SDK uses the local development name `@0disoft/banora`; it is unpublished.
+Bun's test runner and root scripts are configured. The optional `@0disoft/banora-react`,
+`@0disoft/banora-vue` and `@0disoft/banora-svelte` packages export Board/Viewer and state bindings.
 Svelte ships native component artifacts with isolated TypeScript 6.x packaging;
 the SDK and root continue using TypeScript 7.x.
 Common build also emits a self-contained classic script and its ambient declaration.

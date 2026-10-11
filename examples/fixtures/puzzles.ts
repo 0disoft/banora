@@ -1,5 +1,5 @@
-import type { PuzzleDefinition } from '@banora/sdk/puzzle';
-import { getRuleProfile } from '@banora/sdk/rules';
+import type { PuzzleDefinition } from '@0disoft/banora/puzzle';
+import { getRuleProfile } from '@0disoft/banora/rules';
 /** Original local exercises, authored for SDK behavior rather than engine grading. */
 export const puzzles: readonly PuzzleDefinition[] = [
   {

@@ -1,7 +1,7 @@
 import { createElement as h, StrictMode, useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Board, Viewer, useRecordState } from '@banora/react';
-import { RecordController } from '@banora/sdk';
+import { Board, Viewer, useRecordState } from '@0disoft/banora-react';
+import { RecordController } from '@0disoft/banora';
 import type {
   BoardRotation,
   BoardView,
@@ -10,7 +10,7 @@ import type {
   StoneTexture,
   StoneTextures,
   ViewerView,
-} from '@banora/sdk';
+} from '@0disoft/banora';
 import { downloadDiagram } from '../diagram-download.js';
 import sample from '../fixtures/study.sgf?raw';
 import { describeComparison, pinComparison, startComparison } from '../comparison-pair.js';

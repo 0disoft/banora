@@ -5,10 +5,10 @@
     "": {
       "name": "banora-workspace",
       "devDependencies": {
-        "@banora/react": "workspace:*",
-        "@banora/sdk": "workspace:*",
-        "@banora/svelte": "workspace:*",
-        "@banora/vue": "workspace:*",
+        "@0disoft/banora": "workspace:*",
+        "@0disoft/banora-react": "workspace:*",
+        "@0disoft/banora-svelte": "workspace:*",
+        "@0disoft/banora-vue": "workspace:*",
         "@playwright/cli": "0.x",
         "@sveltejs/vite-plugin-svelte": "7.x",
         "@types/bun": "1.x",
@@ -25,61 +25,71 @@
       },
     },
     "packages/cli": {
-      "name": "@banora/cli",
+      "name": "@0disoft/banora-cli",
       "version": "0.1.0-dev.0",
       "bin": {
         "banora": "./dist/main.js",
       },
       "peerDependencies": {
-        "@banora/sdk": ">=0.1.0-dev.0 <1",
+        "@0disoft/banora": ">=0.1.0-dev.0 <1",
       },
     },
     "packages/react": {
-      "name": "@banora/react",
+      "name": "@0disoft/banora-react",
       "version": "0.1.0-dev.0",
       "devDependencies": {
-        "@banora/sdk": "workspace:*",
+        "@0disoft/banora": "workspace:*",
         "@types/react": "19.x",
         "react": "19.x",
       },
       "peerDependencies": {
-        "@banora/sdk": ">=0.1.0-dev.0 <1",
+        "@0disoft/banora": ">=0.1.0-dev.0 <1",
         "react": "19.x",
       },
     },
     "packages/sdk": {
-      "name": "@banora/sdk",
+      "name": "@0disoft/banora",
       "version": "0.1.0-dev.0",
     },
     "packages/svelte": {
-      "name": "@banora/svelte",
+      "name": "@0disoft/banora-svelte",
       "version": "0.1.0-dev.0",
       "devDependencies": {
-        "@banora/sdk": "workspace:*",
+        "@0disoft/banora": "workspace:*",
         "@sveltejs/package": "3.x",
         "svelte": "5.x",
         "svelte-check": "4.x",
         "typescript": "6.x",
       },
       "peerDependencies": {
-        "@banora/sdk": ">=0.1.0-dev.0 <1",
+        "@0disoft/banora": ">=0.1.0-dev.0 <1",
         "svelte": "5.x",
       },
     },
     "packages/vue": {
-      "name": "@banora/vue",
+      "name": "@0disoft/banora-vue",
       "version": "0.1.0-dev.0",
       "devDependencies": {
-        "@banora/sdk": "workspace:*",
+        "@0disoft/banora": "workspace:*",
         "vue": "3.x",
       },
       "peerDependencies": {
-        "@banora/sdk": ">=0.1.0-dev.0 <1",
+        "@0disoft/banora": ">=0.1.0-dev.0 <1",
         "vue": "3.x",
       },
     },
   },
   "packages": {
+    "@0disoft/banora": ["@0disoft/banora@workspace:packages/sdk"],
+
+    "@0disoft/banora-cli": ["@0disoft/banora-cli@workspace:packages/cli"],
+
+    "@0disoft/banora-react": ["@0disoft/banora-react@workspace:packages/react"],
+
+    "@0disoft/banora-svelte": ["@0disoft/banora-svelte@workspace:packages/svelte"],
+
+    "@0disoft/banora-vue": ["@0disoft/banora-vue@workspace:packages/vue"],
+
     "@babel/helper-string-parser": ["@babel/helper-string-parser@7.29.7", "", {}, "sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw=="],
 
     "@babel/helper-validator-identifier": ["@babel/helper-validator-identifier@7.29.7", "", {}, "sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg=="],
@@ -87,16 +97,6 @@
     "@babel/parser": ["@babel/parser@7.29.9", "", { "dependencies": { "@babel/types": "^7.29.8" }, "bin": "./bin/babel-parser.js" }, "sha512-CjXrNHTnvqBVqHgdBysY3vk2T8tpJHb5/RMeHJBTyVa9xgugCB0CJTx/3oO8RV2QRQP391RWpB7D6hLjm8V9uA=="],
 
     "@babel/types": ["@babel/types@7.29.8", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg=="],
-
-    "@banora/cli": ["@banora/cli@workspace:packages/cli"],
-
-    "@banora/react": ["@banora/react@workspace:packages/react"],
-
-    "@banora/sdk": ["@banora/sdk@workspace:packages/sdk"],
-
-    "@banora/svelte": ["@banora/svelte@workspace:packages/svelte"],
-
-    "@banora/vue": ["@banora/vue@workspace:packages/vue"],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
@@ -420,7 +420,7 @@
 
     "zimmerframe": ["zimmerframe@1.1.5", "", {}, "sha512-msJxIvYDYcoNL+PJsu+7qmpDWsYmAxTY+2TNYXXF0hzBzBk0BMecOqDOG/EckUoKCuKwObfbugIl8QpqHDXeFA=="],
 
-    "@banora/svelte/typescript": ["typescript@6.0.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw=="],
+    "@0disoft/banora-svelte/typescript": ["typescript@6.0.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw=="],
 
     "@vue/compiler-sfc/magic-string": ["magic-string@0.30.21", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
 

@@ -8,6 +8,13 @@ successful remote-main CI and Firefox/WebKit desktop verification. Its exact
 evidence is recorded at the end of this document; older snapshots below remain
 historical and do not describe current GitHub or candidate state.
 
+After [ADR 0023](../adr/0023-existing-publisher-package-identity.md), current source
+uses `@0disoft/banora*` identities. The retained fdea584 bundle still uses the
+previous `@banora/*` identities and cannot be published under the new names.
+Its 149 files verified successfully with the updated verifier; originals were
+not rewritten. A newly prepared candidate is required for current package names.
+Use the recorded source commit for executable legacy-bundle consumers.
+
 ## Implementation and Initial Checks
 
 The repository `release` command prepares a clean commit's five packages and

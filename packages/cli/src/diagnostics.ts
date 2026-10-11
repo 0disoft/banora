@@ -1,10 +1,10 @@
-import { diagnoseAutomation } from '@banora/sdk/automation';
-import { DiagnosticJournal, describeDiagnosticFailure } from '@banora/sdk/diagnostics';
+import { diagnoseAutomation } from '@0disoft/banora/automation';
+import { DiagnosticJournal, describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
 import type {
   DiagnosticDomain,
   DiagnosticEnvironment,
   DiagnosticReport,
-} from '@banora/sdk/diagnostics';
+} from '@0disoft/banora/diagnostics';
 
 export function diagnosticEnvironment(): DiagnosticEnvironment {
   const major = Number(process.versions.node.split('.')[0]);

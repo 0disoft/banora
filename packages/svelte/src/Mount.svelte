@@ -1,13 +1,13 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { mountBoard, mountViewer } from '@banora/sdk';
+  import { mountBoard, mountViewer } from '@0disoft/banora';
   import type {
     BoardOptions,
     BoardView,
     RecordController,
     ViewerOptions,
     ViewerView,
-  } from '@banora/sdk';
+  } from '@0disoft/banora';
   import type { ContainerProps } from './types.js';
 
   interface Props extends ContainerProps {

@@ -3,7 +3,7 @@
 - Status: Portable SDK/terminal checkpoints and Studio local drafts implemented
 - Decision: [ADR 0016](../adr/0016-portable-record-recovery.md)
 
-`@banora/sdk/checkpoint` and the root export provide `RecordCheckpoint`,
+`@0disoft/banora/checkpoint` and the root export provide `RecordCheckpoint`,
 `RecordCheckpointResult`, immutable `CHECKPOINT_SCHEMA` and
 `parseRecordCheckpoint(unknown, limits?)`. The parser returns either diagnostics
 or owned immutable data plus the parsed working record, baseline record and
@@ -11,7 +11,7 @@ selected node. It validates shape, both SGFs, rules, locator and selected-path
 replay without storage access or active-controller mutation.
 
 ```ts
-import { RecordController } from '@banora/sdk/controller';
+import { RecordController } from '@0disoft/banora/controller';
 
 const editor = new RecordController({ sgf: '(;SZ[9];B[aa])' });
 editor.next();

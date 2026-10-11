@@ -69,7 +69,7 @@ export function inspectSource(file: string, source: string): PolicyResult {
       if (
         /^(examples\/|packages\/(react|vue|svelte|cli)\/src\/)/.test(file) &&
         (/packages\/sdk\/(src|dist)\//.test(target) ||
-          /^@banora\/sdk\/(src|dist)\//.test(dependency))
+          /^@0disoft\/banora\/(src|dist)\//.test(dependency))
       )
         errors.push(`${file}: consumers must use public SDK exports: ${dependency}`);
       const adapter = /^packages\/(react|vue|svelte)\/src\//.exec(file);

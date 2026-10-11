@@ -1,5 +1,5 @@
 {
-  "name": "@banora/sdk",
+  "name": "@0disoft/banora",
   "version": "0.1.0-dev.0",
   "description": "Framework-independent Go board, rules and SGF toolkit",
   "type": "module",
@@ -123,5 +123,8 @@
     "type": "git",
     "url": "https://github.com/0disoft/banora.git",
     "directory": "packages/sdk"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

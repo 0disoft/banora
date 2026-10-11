@@ -1,5 +1,5 @@
 import { createApp, defineComponent, h, onBeforeUnmount, ref } from 'vue';
-import { ControlledBoard } from '@banora/vue';
+import { ControlledBoard } from '@0disoft/banora-vue';
 import { createHost } from './host.js';
 import { attachControls } from './controls.js';
 

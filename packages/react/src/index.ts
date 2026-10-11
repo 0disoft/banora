@@ -9,7 +9,7 @@ import {
 import type { CSSProperties, RefObject } from 'react';
 export { ControlledBoard } from './ControlledBoard.js';
 export type { ControlledBoardProps } from './ControlledBoard.js';
-import { mountBoard, mountViewer } from '@banora/sdk';
+import { mountBoard, mountViewer } from '@0disoft/banora';
 import type {
   BoardOptions,
   BoardView,
@@ -17,7 +17,7 @@ import type {
   RecordController,
   ViewerOptions,
   ViewerView,
-} from '@banora/sdk';
+} from '@0disoft/banora';
 
 interface ContainerProps {
   readonly className?: string;

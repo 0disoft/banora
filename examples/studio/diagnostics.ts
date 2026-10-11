@@ -1,10 +1,10 @@
-import { DiagnosticJournal } from '@banora/sdk/diagnostics';
+import { DiagnosticJournal } from '@0disoft/banora/diagnostics';
 import type {
   DiagnosticInput,
   DiagnosticOperation,
   DiagnosticReport,
   DiagnosticFailure,
-} from '@banora/sdk/diagnostics';
+} from '@0disoft/banora/diagnostics';
 
 type Completion =
   | { readonly status: 'success' | 'cancelled' }

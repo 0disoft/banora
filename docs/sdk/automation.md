@@ -3,7 +3,7 @@
 - Status: Headless JSON command API and optional CLI implemented; installed Node executable checked
 - Decision: [ADR 0013](../adr/0013-machine-readable-terminal-automation.md)
 
-`@banora/sdk/automation` (also the root/global export) exposes
+`@0disoft/banora/automation` (also the root/global export) exposes
 `executeAutomation(unknown)`, `AUTOMATION_SCHEMA`, `AutomationRequest`,
 `AutomationOperation`, `AutomationResponse`, `AutomationError`, `diagnoseAutomation`
 and `AutomationDiagnosticResponse`. Importing and
@@ -27,7 +27,7 @@ Whole-record `search` and `comment-batch` operations share eight calls per reque
 each obeys the [record tools bounds](public-api.md#whole-record-search-and-comment-batches).
 
 ```ts
-import {executeAutomation} from '@banora/sdk/automation';
+import {executeAutomation} from '@0disoft/banora/automation';
 const result = executeAutomation({
   schemaVersion: 'banora.automation/v1', kind: 'record', size: 9,
   operations: [{op:'play', point:{x:4,y:4}}, {op:'comment', text:'Reviewed by an agent'}],

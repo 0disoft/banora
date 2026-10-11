@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { RecordController } from '@banora/sdk/controller';
+import { RecordController } from '@0disoft/banora/controller';
 import { DraftAutosave } from '../examples/studio/draft-session.js';
 import { DraftError } from '../examples/studio/draft-store.js';
 import type { StudioDraft } from '../examples/studio/draft-store.js';

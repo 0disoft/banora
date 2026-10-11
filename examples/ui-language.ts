@@ -1,4 +1,4 @@
-import type { BanoraLocale } from '@banora/sdk/locale';
+import type { BanoraLocale } from '@0disoft/banora/locale';
 import { koreanUi } from './ui-korean.js';
 import { chineseUi } from './ui-chinese.js';
 import { japaneseUi } from './ui-japanese.js';

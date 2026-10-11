@@ -4,8 +4,8 @@
 
 ## Decision
 
-Expose a selective, DOM-free `@banora/sdk/automation` JSON command boundary and an
-optional `@banora/cli` Node executable. Agents discover the versioned request JSON
+Expose a selective, DOM-free `@0disoft/banora/automation` JSON command boundary and an
+optional `@0disoft/banora-cli` Node executable. Agents discover the versioned request JSON
 Schema and operate on logical coordinates, portable record locators and structured
 responses. No vision, browser, LLM vendor integration, credentials or extra runtime
 dependencies are required.

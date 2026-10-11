@@ -1,4 +1,4 @@
-import type { KataGoQuery } from '@banora/sdk/katago';
+import type { KataGoQuery } from '@0disoft/banora/katago';
 /** Repository-authored illustrations, not computed or recorded engine predictions. */
 export const analysisFixtures = Object.freeze([
   {

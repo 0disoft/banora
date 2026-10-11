@@ -19,10 +19,10 @@ local exit evidence; the implementation scope is complete within that coverage.
   See the [contract](../sdk/playback.md). No new move generation, engine transport,
   background catch-up or automatic replay on mount is introduced.
 
-- Agent/terminal automation: DOM-free `@banora/sdk/automation` checked JSON requests,
+- Agent/terminal automation: DOM-free `@0disoft/banora/automation` checked JSON requests,
   immutable discovery schema, isolated record batches and external snapshot
   normalization. Existing controller/rules/scoring APIs own all transitions.
-  The optional unpublished `@banora/cli` package exposes an installed `banora` bin
+  The optional unpublished `@0disoft/banora-cli` package exposes an installed `banora` bin
   with structured stdout, bounded stdin/files, exit codes and explicit protected
   file output. Isolated npm artifacts and actual Node 24 Windows processes verify
   schema discovery, edit/reopen/portable selection, snapshot normalization,
@@ -46,7 +46,7 @@ local exit evidence; the implementation scope is complete within that coverage.
   [contract](../sdk/controlled-board.md) and [examples](../../examples/controlled/README.md).
   No external application is adopted; native bridges, physical devices, hydration
   and broader browser/transport support remain separate evidence requirements.
-- Common SDK: `packages/sdk`, local package name `@banora/sdk`, version `0.1.0-dev.0`.
+- Common SDK: `packages/sdk`, local package name `@0disoft/banora`, version `0.1.0-dev.0`.
   Names are development identifiers, not a claim of npm ownership/publication.
 - Immutable headless board transitions: dimensions 2 through 52, rectangular boards,
   play, captures, pass, explicit suicide policy, simple ko and atomic setup.
@@ -241,7 +241,7 @@ local exit evidence; the implementation scope is complete within that coverage.
   movement along screen axes. Studio and all three adapter consumers expose transform
   updates without resetting owned/shared records or changing dirty state.
   Immutable snapshot identity is stable between state changes for framework stores.
-- Separate optional `@banora/react`, `@banora/vue` and `@banora/svelte` packages
+- Separate optional `@0disoft/banora-react`, `@0disoft/banora-vue` and `@0disoft/banora-svelte` packages
   expose Board/Viewer and native state bindings. Public-artifact examples independently
   verify configuration/callback updates, shared/owned controllers, read-only behavior,
   controller replacement, unmount/remount and comment Undo in Chrome 154.

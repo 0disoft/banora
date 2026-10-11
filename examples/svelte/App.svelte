@@ -1,14 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Board, Viewer, createRecordStore } from '@banora/svelte';
-  import { RecordController } from '@banora/sdk';
+  import { Board, Viewer, createRecordStore } from '@0disoft/banora-svelte';
+  import { RecordController } from '@0disoft/banora';
   import type {
     BoardRotation,
     BoardView,
     ControllerState,
     StoneTextures,
     ViewerView,
-  } from '@banora/sdk';
+  } from '@0disoft/banora';
   import { downloadDiagram } from '../diagram-download.js';
   import sample from '../fixtures/study.sgf?raw';
   import { describeComparison, pinComparison, startComparison } from '../comparison-pair.js';

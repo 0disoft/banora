@@ -6,14 +6,14 @@ This document owns the implemented headless analysis contract. The
 
 ## Provider-Neutral Analysis Sessions
 
-`@banora/sdk/analysis` and root exports provide `AnalysisSession`,
+`@0disoft/banora/analysis` and root exports provide `AnalysisSession`,
 `createAnalysisContext`, `sameAnalysisContext`, `normalizeAnalysisResult`,
 `AnalysisError` and their `Analysis*` input/context/request/result/state/provider
 types. The selective module imports without DOM types/globals or an engine dependency.
 It coordinates external prediction; it does not compute strong moves itself.
 
 ```ts
-import {AnalysisSession} from '@banora/sdk/analysis';
+import {AnalysisSession} from '@0disoft/banora/analysis';
 // The host owns controller and configuredProvider, including any transport consent.
 const analysis = new AnalysisSession(controller, configuredProvider, {
   profile:'japanese-territory'

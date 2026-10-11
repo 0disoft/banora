@@ -39,11 +39,11 @@ This is an ownership decision, not evidence that such a service exists.
 | 1   | Reproducible tools and initial setup             | [mise.toml](../../mise.toml), frozen setup and tool doctor implemented. Windows doctor passed Bun 1.4.2/Node 24.14.0 and 17 dependencies; fresh hosted Ubuntu setup/tool checks passed Bun 1.4.3/Node 24.21.0 at fed716a. Physical fresh-machine and other OS coverage remain unclaimed.                                                                                                       |
 | 2   | Common run/build/check/cleanup commands          | Root script discovery reads actual package metadata; safe cleanup previews fixed generated paths, validates links before deleting and preserves retained release bundles. Current command discovery includes migration-check.                                                                                                                                                                  |
 | 3   | Module responsibility and dependency enforcement | [Source policy](../../scripts/repository-policy.ts) classifies core/headless/browser dependencies and consumer/framework isolation; current boundaries and no-DOM packed consumers pass.                                                                                                                                                                                                       |
-| 4   | Design decisions and rejected alternatives       | [ADR index](../adr/README.md) includes decisions 0001-0022 and rejected alternatives; source owners and implemented/planned distinctions are recorded. New decisions must update their owning contract.                                                                                                                                                                                        |
+| 4   | Design decisions and rejected alternatives       | [ADR index](../adr/README.md) includes decisions 0001-0023 and rejected alternatives; source owners and implemented/planned distinctions are recorded. New decisions must update their owning contract.                                                                                                                                                                                        |
 | 5   | Interface types, documents and compatibility     | Source-generated declarations, frozen automation/checkpoint schemas and actual installed SDK/CLI/framework consumers exist. Root validation and installed types/SSR consumers now pass on Windows and hosted Ubuntu. Broader runtime/browser floors remain unclaimed.                                                                                                                          |
 | 6   | Validated configuration and safe secrets         | [Configuration](../ops/config-and-env.md) records actual defaults/validation/reload ownership; [secrets](../ops/secrets.md) separates CI/host credentials and authored-data privacy. No SDK environment loader or embedded secret is introduced.                                                                                                                                               |
 | 7   | Normal/error/boundary development fixtures       | [Fixture index](../../examples/fixtures/README.md) connects authored normal/error/boundary cases to actual regressions and safe resets; installed recipes execute and preserve isolated state.                                                                                                                                                                                                 |
-| 8   | Fast regression checks with repro cases          | Current local root check passed 198 tests/2,770 assertions and 297 installed CLI checks; [VALIDATION](../../VALIDATION.md) exposes focused files, named migration checks and browser scopes. Fixtures reproduce actual failures; browser option process checks fail before launch rather than silently testing another engine.                                                                 |
+| 8   | Fast regression checks with repro cases          | Current local root check passed 199 tests/2,783 assertions and 297 installed CLI checks; [VALIDATION](../../VALIDATION.md) exposes focused files, named migration checks and browser scopes. Fixtures reproduce actual failures; browser option process checks fail before launch rather than silently testing another engine.                                                                 |
 | 9   | Change-aware CI and caching                      | [CI source](../../.github/workflows/ci.yml) configures one cached, cancellable, change-aware job. [Main run 38164778251](https://github.com/0disoft/banora/actions/runs/38164778251) passed root/installed consumers, full production browser, dependency audit and standalone editor at fed716a in 3m46s; monthly-only step correctly skipped. See [flow evidence](16-product-flow-audit.md). |
 | 10  | Stable updates within supported majors           | Bun major ranges, frozen lockfile and grouped monthly update configuration exist. The remote default-main Dependabot blob matches reviewed source after the validated push; [update policy](../ops/ci.md) keeps promotions reviewed. No auto-merge or successful hosted bot-update execution is claimed.                                                                                       |
 | 11  | Format/static/forbidden-pattern/size rules       | Oxlint/Oxfmt, import boundaries, forbidden authority/secret signals and 40 KB source review candidates run in check; current lint/format/boundaries pass. Size is a review signal, not an arbitrary functional failure.                                                                                                                                                                        |
@@ -172,9 +172,11 @@ The policy candidate/diff remains prepared but unapplied. Publication destinatio
 visibility and a real private reporting channel await owner decisions. The owner
 has supplied an existing `@0disoft` package inventory; inspection of the local
 `ssealed` release workflow confirms it is configured for token-free OIDC
-publication. Using that scope is proposed for Banora, while public naming and
-Banora package-specific publishing authority remain unconfirmed. These are
-actual remaining prerequisites,
+publication. [ADR 0023](../adr/0023-existing-publisher-package-identity.md) now
+applies that scope to local package metadata, imports and installed consumers.
+The retained fdea584 bundle keeps its original development identities and cannot
+be published under the new names. Banora package-specific publishing authority
+remains unconfirmed. These are actual remaining prerequisites,
 not another reason to rerun already-passing SDK suites or prepare unchanged bytes.
 
 [Executed increments and their evidence](13-readiness-execution-evidence.md) retain
@@ -184,3 +186,32 @@ replace the final current-state, requirement-by-requirement completion audit.
 
 [Retained release evidence](15-release-preparation-evidence.md) separately records
 the local artifact preparation exercise and its publication/rollback boundaries.
+
+### October 12: Existing Publisher Package Identity
+
+Local packaging now follows [ADR 0023](../adr/0023-existing-publisher-package-identity.md):
+the common SDK is `@0disoft/banora`, with separate CLI/React/Vue/Svelte packages.
+Imports, peer/workspace dependencies, build externalization, declaration consumers,
+standalone installation checks and current SDK documentation use those identities.
+All five package manifests declare public package access and the matching repository
+directory. These are local metadata, not uploaded packages or OIDC settings.
+
+Executed on Windows with Bun 1.4.2 and Node 24.14.0:
+
+- Frozen setup and root check passed: lint/format/boundaries, SDK/adapter/CLI builds,
+  root/Svelte types, 199 tests/2,783 assertions, installed SDK/classic/declarations
+  and 297 installed CLI checks.
+- Independent installed React/Vue/Svelte artifacts, peers, declarations and SSR
+  rendering passed without resolving their SDK through the workspace.
+- Independent starter install, strict types, production build and actual browser
+  open/edit/download/reopen, invalid-input preservation, keyboard and emulated
+  touch passed using the renamed SDK. Browser automation uses Playwright CLI.
+- File/permission signals passed 355 files; this is not a complete security scan.
+- The new verifier accepted the retained fdea584 bundle and all 149 file hashes.
+  New release regressions preserve complete legacy identities through restaging,
+  leave the original manifest unchanged and reject ten mixed-family combinations.
+
+Hosted Linux/main CI, the complete Studio browser matrix and a new retained
+candidate have not been rerun for this naming increment. Their previous results
+describe pre-rename source. External publication, visibility and private-report
+decisions remain pending; no registry upload or credential change occurred.

@@ -1,5 +1,5 @@
-import { comparePositions } from '@banora/sdk';
-import type { ControllerState, RecordController } from '@banora/sdk';
+import { comparePositions } from '@0disoft/banora';
+import type { ControllerState, RecordController } from '@0disoft/banora';
 
 export interface ComparisonPair {
   readonly controller: RecordController;

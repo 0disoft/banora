@@ -1,6 +1,6 @@
 # KataGo Integration
 
-`@banora/sdk/katago` and root exports provide `KataGoProvider`,
+`@0disoft/banora/katago` and root exports provide `KataGoProvider`,
 `createKataGoQuery`, `decodeKataGoResult` and their `KataGo*` public types.
 This headless module has no runtime dependencies or DOM types/globals. It connects
 the [analysis session](analysis.md) to KataGo's asynchronous analysis JSON protocol;
@@ -9,8 +9,8 @@ it does not bundle or start an engine/model or contact a default service.
 ## Host-Owned Transport
 
 ```ts
-import {AnalysisSession} from '@banora/sdk/analysis';
-import {KataGoProvider} from '@banora/sdk/katago';
+import {AnalysisSession} from '@0disoft/banora/analysis';
+import {KataGoProvider} from '@0disoft/banora/katago';
 
 // The host starts/configures the engine and splits its stdout into complete lines.
 // This writer must preserve call order, reject failed writes, and append one LF.

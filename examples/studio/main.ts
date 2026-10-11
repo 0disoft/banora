@@ -1,5 +1,5 @@
-import { createUiMessages, createBoardLabels, formatUiMessage } from '@banora/sdk/locale';
-import type { BanoraLocale } from '@banora/sdk/locale';
+import { createUiMessages, createBoardLabels, formatUiMessage } from '@0disoft/banora/locale';
+import type { BanoraLocale } from '@0disoft/banora/locale';
 import {
   getUiLocale,
   setUiLocale,
@@ -16,7 +16,7 @@ import {
   mountPlaybackControls,
   parseSgf,
   parseRecordCheckpoint,
-} from '@banora/sdk';
+} from '@0disoft/banora';
 import type {
   BoardRotation,
   CommandResult,
@@ -29,7 +29,7 @@ import type {
   SgfRecord,
   StoneTextures,
   TouchOptions,
-} from '@banora/sdk';
+} from '@0disoft/banora';
 import sample from '../fixtures/study.sgf?raw';
 import { mountSharing } from '../sharing-controls.js';
 import { mountTextureControls } from '../texture-controls.js';
@@ -42,8 +42,8 @@ import { applyPreferenceInputs, mountPreferenceControls } from './preference-con
 import { mountSearchControls } from './search-controls.js';
 import { StudioDiagnostics } from './diagnostics.js';
 import { mountSupportControls } from './support-controls.js';
-import { describeDiagnosticFailure } from '@banora/sdk/diagnostics';
-import type { DiagnosticOperation } from '@banora/sdk/diagnostics';
+import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
+import type { DiagnosticOperation } from '@0disoft/banora/diagnostics';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 let preferenceStorage: Storage | undefined;

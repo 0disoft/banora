@@ -1,5 +1,5 @@
-import { mountControlledBoard } from '@banora/sdk/controlled-board';
-import type { ControlledBoardView } from '@banora/sdk/controlled-board';
+import { mountControlledBoard } from '@0disoft/banora/controlled-board';
+import type { ControlledBoardView } from '@0disoft/banora/controlled-board';
 import { createHost } from './host.js';
 import { attachControls } from './controls.js';
 

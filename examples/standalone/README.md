@@ -31,7 +31,7 @@ npm run build
 npm run dev
 ```
 
-Use Node 24.x (which includes npm). The install adds `@banora/sdk` as a local
+Use Node 24.x (which includes npm). The install adds `@0disoft/banora` as a local
 tarball dependency and installs TypeScript 7.x and Vite 8.x. Keep the tarball and
 the generated lockfile with your private project for reproducible installation.
 The template deliberately has no registry SDK dependency before this step.

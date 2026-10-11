@@ -1,5 +1,5 @@
-import { mountBoard, RecordController } from '@banora/sdk';
-import type { BoardView } from '@banora/sdk';
+import { mountBoard, RecordController } from '@0disoft/banora';
+import type { BoardView } from '@0disoft/banora';
 
 const controller = new RecordController({
   sgf: '(;SZ[9]C[An original embedding example.];B[gc];W[cg];B[cc];W[gg])',

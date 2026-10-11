@@ -126,10 +126,14 @@ with `npm publish --access public --provenance`, without an npm token environmen
 variable. It is configured for OIDC publication. This inspection did not execute
 that workflow or inspect npm's package settings.
 
-Recommend the existing personal scope for Banora: `@0disoft/banora`,
+The local packaging decision now uses the existing personal scope: `@0disoft/banora`,
 `@0disoft/banora-cli`, `@0disoft/banora-react`, `@0disoft/banora-vue` and
-`@0disoft/banora-svelte`. These remain proposed public names; the current
-`@banora/*` development packages and retained candidate have not been renamed.
+`@0disoft/banora-svelte`; see [ADR 0023](../adr/0023-existing-publisher-package-identity.md).
+Source imports, package metadata and current consumer instructions use those names.
+The retained fdea584 candidate still contains the previous `@banora/*` names and
+is not a candidate for publication under the new identities. Its manifest and
+files remain unchanged and verifiable/restorable. Run legacy executable consumers
+from that bundle's recorded source commit rather than current renamed consumers.
 Existing `@0disoft` packages do not authorize publishing new Banora packages.
 Each package still needs the matching repository/workflow trusted-publisher
 configuration and verified publishing permission. npm documents that `npm whoami`
@@ -137,7 +141,7 @@ is not a trusted-publishing permission check in its
 [trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
 
 The next actionable handoff is the existing policy approval/private-channel
-decision, publication destination/visibility approval, public package naming,
+decision, publication destination/visibility approval,
 and package-specific publishing authority. Local npm login is not a prerequisite
 for the proposed Actions OIDC route. Never request credentials in a public
 issue or invent an address/account to close a readiness row. No full local suite

@@ -1,9 +1,9 @@
-import type { RecordController, CommentBatchPreview } from '@banora/sdk/controller';
-import { searchRecord } from '@banora/sdk/record-search';
-import type { RecordSearchHit } from '@banora/sdk/record-search';
-import { describeDiagnosticFailure } from '@banora/sdk/diagnostics';
+import type { RecordController, CommentBatchPreview } from '@0disoft/banora/controller';
+import { searchRecord } from '@0disoft/banora/record-search';
+import type { RecordSearchHit } from '@0disoft/banora/record-search';
+import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
 import type { StudioDiagnostics } from './diagnostics.js';
-import { createUiMessages, formatUiMessage } from '@banora/sdk/locale';
+import { createUiMessages, formatUiMessage } from '@0disoft/banora/locale';
 import { getUiLocale, localizeUi, setUiText, subscribeUiLanguage } from '../ui-language.js';
 
 /** Uses public SDK records/previews only; no saved query or implicit authored-data logging. */

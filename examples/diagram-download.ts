@@ -1,4 +1,4 @@
-import type { BoardView, ViewerView } from '@banora/sdk';
+import type { BoardView, ViewerView } from '@0disoft/banora';
 
 export async function downloadDiagram(
   view: BoardView | ViewerView | null,

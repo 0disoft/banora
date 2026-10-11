@@ -1,5 +1,5 @@
-import { mountViewer, RecordController } from '@banora/sdk';
-import type { ViewerView } from '@banora/sdk';
+import { mountViewer, RecordController } from '@0disoft/banora';
+import type { ViewerView } from '@0disoft/banora';
 import sample from '../fixtures/study.sgf?raw';
 
 const controller = new RecordController({ sgf: sample });

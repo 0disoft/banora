@@ -12,7 +12,7 @@ import {
 import type { MaybeRefOrGetter, PropType, UnwrapRef } from 'vue';
 export { ControlledBoard } from './ControlledBoard.js';
 export type { ControlledBoardProps } from './ControlledBoard.js';
-import { mountBoard, mountViewer } from '@banora/sdk';
+import { mountBoard, mountViewer } from '@0disoft/banora';
 import type {
   BoardCrop,
   BoardOptions,
@@ -23,7 +23,7 @@ import type {
   RecordController,
   ViewerOptions,
   ViewerView,
-} from '@banora/sdk';
+} from '@0disoft/banora';
 
 export type ControllerHandle = RecordController | UnwrapRef<RecordController>;
 const rawController = (value: ControllerHandle) => toRaw(value) as RecordController;

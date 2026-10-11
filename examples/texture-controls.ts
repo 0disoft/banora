@@ -1,6 +1,6 @@
 import { localizeUi, setUiText } from './ui-language.js';
-import { prepareStoneTexture } from '@banora/sdk';
-import type { Color, StoneTexture, StoneTextures } from '@banora/sdk';
+import { prepareStoneTexture } from '@0disoft/banora';
+import type { Color, StoneTexture, StoneTextures } from '@0disoft/banora';
 import './texture-controls.css';
 
 function demoBlob(color: Color): Promise<Blob> {

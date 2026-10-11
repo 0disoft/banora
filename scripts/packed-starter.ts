@@ -58,23 +58,23 @@ await run(
 
 // Assert this app actually resolves installed copies, not parent workspace links.
 const consumerRoot = await realpath(directory);
-for (const name of ['@banora/sdk', 'typescript', 'vite']) {
+for (const name of ['@0disoft/banora', 'typescript', 'vite']) {
   const installed = await realpath(resolve(directory, 'node_modules', name));
   if (!installed.startsWith(consumerRoot + sep))
     throw Error(`Dependency escaped the standalone installation: ${name}`);
 }
 const manifest = JSON.parse(await readFile(resolve(directory, 'package.json'), 'utf8'));
-if (manifest.workspaces || !manifest.dependencies?.['@banora/sdk']?.includes('sdk.tgz'))
+if (manifest.workspaces || !manifest.dependencies?.['@0disoft/banora']?.includes('sdk.tgz'))
   throw Error('Starter did not install the local SDK tarball');
 const config = JSON.parse(await readFile(resolve(directory, 'tsconfig.json'), 'utf8'));
 if (config.extends || config.compilerOptions.paths)
   throw Error('Starter must have an independent TypeScript configuration');
 const metadata = JSON.parse(
-  await readFile(resolve(directory, 'node_modules/@banora/sdk/package.json'), 'utf8'),
+  await readFile(resolve(directory, 'node_modules/@0disoft/banora/package.json'), 'utf8'),
 );
 if (Object.keys(metadata.dependencies ?? {}).length)
   throw Error('Standalone SDK acquired runtime dependencies');
-await readFile(resolve(directory, 'node_modules/@banora/sdk/LICENSE'));
+await readFile(resolve(directory, 'node_modules/@0disoft/banora/LICENSE'));
 await run(['npm', 'run', 'build'], directory);
 const html = await readFile(resolve(directory, 'dist/index.html'), 'utf8');
 if (!html.includes('My Go record editor') || !html.includes('./assets/'))

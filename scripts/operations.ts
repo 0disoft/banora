@@ -1,9 +1,9 @@
 import { createReadStream } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { RecordController } from '@banora/sdk/controller';
-import { parseRecordCheckpoint } from '@banora/sdk/checkpoint';
-import { recordNodeAt, serializeSgf } from '@banora/sdk/sgf';
-import { getRuleProfile } from '@banora/sdk/rules';
+import { RecordController } from '@0disoft/banora/controller';
+import { parseRecordCheckpoint } from '@0disoft/banora/checkpoint';
+import { recordNodeAt, serializeSgf } from '@0disoft/banora/sgf';
+import { getRuleProfile } from '@0disoft/banora/rules';
 import { DRAFT_BACKUP_BYTES, isDraftEntry } from '../examples/studio/draft-store.js';
 
 type Action = 'recovery-check' | 'drill-recovery';

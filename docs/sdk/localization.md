@@ -1,6 +1,6 @@
 # UI Localization
 
-The optional `@banora/sdk/locale` module (also exported from the root and classic
+The optional `@0disoft/banora/locale` module (also exported from the root and classic
 browser global) provides `BanoraLocale`, `LocaleOptions`, `UiMessages`,
 `createUiMessages(options)`, `formatUiMessage(template, values)` and
 `createBoardLabels(options)`. The built-in languages are English (`en`),
@@ -16,7 +16,7 @@ changes only control text. A direct controls update replaces the locale/message
 configuration; Viewer updates merge its existing options.
 
 ```ts
-import { mountViewer, mountBoard, createBoardLabels } from '@banora/sdk';
+import { mountViewer, mountBoard, createBoardLabels } from '@0disoft/banora';
 const viewer = mountViewer(document.querySelector('#record')!, {
   locale: 'ko', messages: { variations: 'My variation list' },
 });

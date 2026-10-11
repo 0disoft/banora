@@ -11,8 +11,8 @@ input options and borrowed `onView` bindings. See the
 
 ```ts
 import {createElement} from 'react';
-import {RecordController} from '@banora/sdk';
-import {Board, Viewer, useRecordState} from '@banora/react';
+import {RecordController} from '@0disoft/banora';
+import {Board, Viewer, useRecordState} from '@0disoft/banora-react';
 
 // Create once outside render, or retain with a hook. The host owns this controller.
 const controller = new RecordController({sgf: '(;SZ[9];B[aa])'});

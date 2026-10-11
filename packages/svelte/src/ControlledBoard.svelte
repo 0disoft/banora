@@ -1,7 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { mountControlledBoard } from '@banora/sdk/controlled-board';
-  import type { ControlledBoardView } from '@banora/sdk/controlled-board';
+  import { mountControlledBoard } from '@0disoft/banora/controlled-board';
+  import type { ControlledBoardView } from '@0disoft/banora/controlled-board';
   import type { ControlledBoardProps } from './types.js';
   let {
     state: snapshot,

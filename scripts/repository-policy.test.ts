@@ -32,14 +32,14 @@ test('source boundary gate rejects static, dynamic, CommonJS and indirect render
   expect(
     inspectSource(
       'packages/cli/src/main.ts',
-      "#!/usr/bin/env node\nexport * from '@banora/sdk/automation';",
+      "#!/usr/bin/env node\nexport * from '@0disoft/banora/automation';",
     ).errors,
   ).toBeEmpty();
 });
 test('consumer gate rejects SDK source bypass and unrelated frameworks; size is a review candidate', () => {
   for (const [file, source] of [
     ['examples/studio/main.ts', "export * from '../../packages/sdk/src/controller.ts';"],
-    ['packages/react/src/index.ts', "export * from '@banora/sdk/dist/core.js';"],
+    ['packages/react/src/index.ts', "export * from '@0disoft/banora/dist/core.js';"],
     ['packages/vue/src/index.ts', "export * from 'react';"],
     [
       'packages/svelte/src/Board.svelte',
@@ -50,7 +50,7 @@ test('consumer gate rejects SDK source bypass and unrelated frameworks; size is 
   expect(
     inspectSource(
       'packages/react/src/index.ts',
-      "export * from '@banora/sdk/board'; export * from 'react';",
+      "export * from '@0disoft/banora/board'; export * from 'react';",
     ).errors,
   ).toBeEmpty();
   const large = inspectSource('scripts/large.ts', `// ${'x'.repeat(41 * 1024)}\n`);

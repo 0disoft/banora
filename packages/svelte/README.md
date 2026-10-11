@@ -11,8 +11,8 @@ See the [host-controlled guide](https://github.com/0disoft/banora/blob/main/docs
 
 ```svelte
 <script lang="ts">
-import {RecordController} from '@banora/sdk';
-import {Board, Viewer, createRecordStore} from '@banora/svelte';
+import {RecordController} from '@0disoft/banora';
+import {Board, Viewer, createRecordStore} from '@0disoft/banora-svelte';
 const controller = new RecordController({sgf: '(;SZ[9];B[aa])'});
 const record = createRecordStore(controller);
 </script>

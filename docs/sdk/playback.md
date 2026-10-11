@@ -2,7 +2,7 @@
 
 - Status: Headless playback and shared Studio/Viewer controls implemented; six production consumers checked
 
-`@banora/sdk/playback` and the root/global export provide
+`@0disoft/banora/playback` and the root/global export provide
 `createRecordPlayback(controller,{intervalMs?})`, `normalizePlaybackInterval`,
 `RecordPlayback`, `PlaybackOptions` and `PlaybackState`. Importing and using the
 coordinator require no DOM; the runtime must provide standard timeout functions.
@@ -28,7 +28,7 @@ controlled boards retain their host's navigation/transport semantics.
 
 ## Shared Browser Controls
 
-`@banora/sdk/playback-controls` and the root/global export provide
+`@0disoft/banora/playback-controls` and the root/global export provide
 `mountPlaybackControls(container,{controller,scope?,intervalMs?,onAction?})`,
 `PlaybackControlsOptions` and `PlaybackControls`. Importing is SSR-safe; mounting
 requires a DOM. The returned handle exposes `playback` and idempotent `dispose`.

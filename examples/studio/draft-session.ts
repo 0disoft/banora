@@ -1,4 +1,4 @@
-import type { RecordController, ControllerState } from '@banora/sdk/controller';
+import type { RecordController, ControllerState } from '@0disoft/banora/controller';
 import { DraftError, safeDraftFilename } from './draft-store.js';
 import type { DraftStore, StudioDraft, DraftErrorCode } from './draft-store.js';
 

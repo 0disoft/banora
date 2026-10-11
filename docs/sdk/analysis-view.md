@@ -1,12 +1,12 @@
 # Analysis View
 
-`@banora/sdk/analysis-view` and root exports provide `mountAnalysis`, `AnalysisView`,
+`@0disoft/banora/analysis-view` and root exports provide `mountAnalysis`, `AnalysisView`,
 `AnalysisViewOptions` and `AnalysisBoardOptions`. Import is safe without runtime
 browser globals; mounting requires a browser DOM. The view displays the common
 [analysis session](analysis.md), without an engine, network or framework dependency.
 
 ```ts
-import {mountAnalysis} from '@banora/sdk/analysis-view';
+import {mountAnalysis} from '@0disoft/banora/analysis-view';
 
 // Borrow an existing model; mounting never submits its position.
 const view = mountAnalysis(element, {

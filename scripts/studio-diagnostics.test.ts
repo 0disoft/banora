@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { StudioDiagnostics } from '../examples/studio/diagnostics.js';
-import { describeDiagnosticFailure } from '@banora/sdk/diagnostics';
+import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
 
 test('Studio consent epochs exclude operations started off or completed after clear/disable/disposal', () => {
   let time = 0,

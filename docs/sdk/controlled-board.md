@@ -4,7 +4,7 @@
 - Decision: [ADR 0012](../adr/0012-host-controlled-board-and-presentation-boundary.md)
 
 Use this boundary when another engine, server or application owns the game state.
-`@banora/sdk/board-state` exports `createBoardSnapshot`, `BoardSnapshot`,
+`@0disoft/banora/board-state` exports `createBoardSnapshot`, `BoardSnapshot`,
 `BoardSnapshotValue`, `BoardNumber`, `BoardOverlay` and `BoardIntent`. Importing and
 normalizing snapshots requires no DOM, framework, SGF or rule history.
 
@@ -32,13 +32,13 @@ connection. Applications choose their own state store, serialization and transpo
 
 ## Common SVG Surface
 
-`@banora/sdk/controlled-board` exports `mountControlledBoard`,
+`@0disoft/banora/controlled-board` exports `mountControlledBoard`,
 `ControlledBoardOptions`, `ControlledBoardPresentation` and `ControlledBoardView`.
 The root/global SDK exports the same API. Importing the mount is safe on the server;
 calling it requires a browser DOM. It does not create a `RecordController`.
 
 ```ts
-import {mountControlledBoard} from '@banora/sdk/controlled-board';
+import {mountControlledBoard} from '@0disoft/banora/controlled-board';
 const view = mountControlledBoard(document.getElementById('board')!, {
   state: {key:'host/game/node/revision-1', width:9, height:9, stones:Array(81).fill(null)},
   onIntent: event => console.log(event),
@@ -101,8 +101,8 @@ Views never unsubscribe/dispose an externally managed store or native engine.
 
 ```ts
 import {createElement} from 'react';
-import {ControlledBoard} from '@banora/react';
-import type {BoardSnapshot, BoardIntent} from '@banora/sdk/board-state';
+import {ControlledBoard} from '@0disoft/banora-react';
+import type {BoardSnapshot, BoardIntent} from '@0disoft/banora/board-state';
 export function HostBoard(props: {snapshot:BoardSnapshot; send:(intent:BoardIntent)=>void}) {
   return createElement(ControlledBoard, {state:props.snapshot, onIntent:props.send});
 }
@@ -110,8 +110,8 @@ export function HostBoard(props: {snapshot:BoardSnapshot; send:(intent:BoardInte
 
 ```vue
 <script setup lang="ts">
-import {ControlledBoard} from '@banora/vue';
-import type {BoardSnapshot, BoardIntent} from '@banora/sdk/board-state';
+import {ControlledBoard} from '@0disoft/banora-vue';
+import type {BoardSnapshot, BoardIntent} from '@0disoft/banora/board-state';
 defineProps<{snapshot:BoardSnapshot}>();
 const emit = defineEmits<{intent:[BoardIntent]}>();
 </script>
@@ -120,8 +120,8 @@ const emit = defineEmits<{intent:[BoardIntent]}>();
 
 ```svelte
 <script lang="ts">
-import {ControlledBoard} from '@banora/svelte';
-import type {BoardSnapshot, BoardIntent} from '@banora/sdk/board-state';
+import {ControlledBoard} from '@0disoft/banora-svelte';
+import type {BoardSnapshot, BoardIntent} from '@0disoft/banora/board-state';
 let {snapshot, send}:{snapshot:BoardSnapshot; send:(intent:BoardIntent)=>void} = $props();
 </script>
 <ControlledBoard state={snapshot} onIntent={send} />

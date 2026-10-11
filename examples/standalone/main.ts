@@ -1,7 +1,7 @@
-import { RecordController } from '@banora/sdk/controller';
-import type { CommandResult } from '@banora/sdk/controller';
-import { decodeSgf, parseSgf } from '@banora/sdk/sgf';
-import { mountViewer } from '@banora/sdk/viewer';
+import { RecordController } from '@0disoft/banora/controller';
+import type { CommandResult } from '@0disoft/banora/controller';
+import { decodeSgf, parseSgf } from '@0disoft/banora/sgf';
+import { mountViewer } from '@0disoft/banora/viewer';
 import sample from './sample.sgf?raw';
 import './style.css';
 

@@ -98,7 +98,7 @@ Legal play can opt into positional or situational superko through the core or
 controller's `rules` option; simple ko remains the default. For example:
 
 ```ts
-import {RecordController} from '@banora/sdk';
+import {RecordController} from '@0disoft/banora';
 const controller = new RecordController({size:9, rules:{ko:'situational-superko'}});
 ```
 
