@@ -231,6 +231,13 @@ history context. Cancellation and stale-response rejection are required.
 
 ## Consumer Experience
 
+Destructive/replacement confirmation dialogs have explicit accessible names tied
+to their localized visible titles. Native modal focus prevents background controls
+from receiving keyboard focus; Escape cancels without removing continuations or
+replacing dirty work. These confirmations remain operable at narrow layout widths.
+Reference framework sharing guards use their actual English UI; broad physical
+assistive-device/browser-engine compatibility is not inferred from Chrome checks.
+
 The optional CLI embeds original reusable JSON requests, discoverable through
 `recipe` and `recipe --name NAME`. Discovery executes nothing. Requests exercise
 study creation/checkpoints, branch search, explicit review previews, agreed scoring

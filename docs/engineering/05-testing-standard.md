@@ -42,6 +42,14 @@ Root Bun scripts configure `test`, `typecheck`, `docs` and `check`, including th
 SDK build, plus packed headless `smoke`. Explicit `smoke:browser` checks production
 Studio/read-only, all three framework, puzzle and analysis workflows with Playwright
 CLI. Independent adapter smoke checks installed types and real host SSR. See
-VALIDATION.md for commands and the configured Oxlint/Oxfmt checks. `contract` and
-`migration-check` remain unconfigured. Report only observed checks and explicit
+VALIDATION.md for commands and the configured Oxlint/Oxfmt checks. The named
+`migration-check` executes current checkpoint/backup and interrupted preference
+migration regressions. Standalone `contract` remains unconfigured; its type/schema/
+artifact gates execute within `check`. Report only observed checks and explicit
 coverage boundaries.
+
+The production accessibility scenario verifies actual localized modal names,
+keyboard focus, Escape cancellation and unchanged authored state/selection at
+desktop and narrow layout widths. Studio covers four languages; framework sharing
+consumers cover their actual English UI. This is browser accessibility-tree and
+keyboard evidence, not a claim of physical assistive-device testing.

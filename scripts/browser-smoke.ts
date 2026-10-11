@@ -243,7 +243,12 @@ try {
     'run-code',
     'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
   );
-  if (process.argv.includes('--support-only')) {
+  if (process.argv.includes('--accessibility-only')) {
+    await scenario('accessibility', 'banora-accessibility-complete');
+    console.log(
+      'Focused accessibility smoke passed: localized guard names, modal keyboard/cancel, narrow layouts and three framework sharing consumers.',
+    );
+  } else if (process.argv.includes('--support-only')) {
     await supportSmoke();
     console.log(
       'Focused support smoke passed: consent/privacy, actual operation evidence/download, clear/reload, discovery, locale/mobile/menu and no remote requests.',
@@ -313,6 +318,7 @@ try {
     console.log('Focused texture smoke passed.');
   } else if (process.argv.includes('--share-only')) {
     await shareSmoke();
+    await scenario('accessibility', 'banora-accessibility-complete');
     console.log('Focused share smoke passed.');
   } else if (process.argv.includes('--touch-only')) {
     await scenario('touch', 'banora-touch-complete');
@@ -321,6 +327,7 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await scenario('accessibility', 'banora-accessibility-complete');
     await supportSmoke();
     await searchSmoke();
     await preferencesSmoke();

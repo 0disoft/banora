@@ -209,9 +209,9 @@
         ><a href="../analysis/">Analysis ↗</a><a href="../readonly/">Read-only example ↗</a></footer
       >
     </main>
-    <dialog id="unsaved"
+    <dialog id="unsaved" aria-labelledby="unsaved-title"
       ><form method="dialog"
-        ><h2>This record has changes.</h2
+        ><h2 id="unsaved-title">This record has changes.</h2
         ><p>Export a copy before opening another record, or discard these changes.</p
         ><div class="dialog-actions"
           ><button value="cancel" class="button">Cancel</button
@@ -220,9 +220,9 @@
         ></form
       ></dialog
     >
-    <dialog id="remove-dialog"
+    <dialog id="remove-dialog" aria-labelledby="remove-title"
       ><form method="dialog"
-        ><h2>Remove this continuation?</h2
+        ><h2 id="remove-title">Remove this continuation?</h2
         ><p>This removes the selected node and all moves after it. Undo can restore them.</p
         ><div class="dialog-actions"
           ><button value="cancel" class="button">Cancel</button

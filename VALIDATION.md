@@ -6,6 +6,11 @@
 
 This document owns stable validation names for this scaffold.
 
+Feature evidence sections retain earlier scoped implementation results and counts.
+Their prior command availability or remaining-work notes are historical; current
+commands and coverage limits belong to Runner Policy and the active readiness review.
+In particular, migration-check is now configured as documented below.
+
 ## Standard Validation Names
 
 - format
@@ -42,6 +47,13 @@ cache invalidation through edits/Undo/import/checkpoint rules. Shared controller
 changes also run the production browser suite; desktop SDK timing does not prove paint latency.
 
 ## Required Final Report
+
+`scripts/accessibility-scenario.js` runs against actual built production pages.
+It checks Studio replacement/removal dialog names in four languages, native modal
+keyboard focus/Escape, preserved authored state and selection, and three framework
+sharing guards at desktop/320px widths. `--accessibility-only` selects this focused
+browser route; full browser and sharing routes include it. This does not prove
+physical screen-reader or untested engine support.
 
 `scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
 modified/extra files, directory links, source-preserving isolated restaging, actual

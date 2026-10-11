@@ -41,6 +41,7 @@ export function mountSharing(
     status = find('status');
   const dialog = document.createElement('dialog');
   dialog.dataset.share = 'guard';
+  dialog.setAttribute('aria-label', 'This record has changes.');
   dialog.innerHTML =
     '<form method="dialog"><h2>This record has changes.</h2><p>Export a copy before opening the shared record, or discard your changes.</p><div class="sharing-row"><button value="cancel">Cancel</button><button value="discard">Discard</button><button value="export">Export &amp; continue</button></div></form>';
   panel.append(dialog);
