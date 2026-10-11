@@ -1,6 +1,6 @@
 import type { BoardLabels } from './board-state.js';
 
-export type BanoraLocale = 'en' | 'ko' | 'zh';
+export type BanoraLocale = 'en' | 'ko' | 'zh' | 'ja';
 const english = {
   viewer: 'Go record viewer',
   game: 'Game {number}',
@@ -141,10 +141,56 @@ const chinese: UiMessages = {
   confirm: '确认在 {coordinate} 落子',
   cancel: '取消落子',
 };
+const japanese: UiMessages = {
+  viewer: '囲碁棋譜ビューア',
+  game: '棋譜 {number}',
+  gameLabel: '棋譜 ',
+  selectGame: '棋譜を選択',
+  navigation: '棋譜の移動',
+  first: '初期局面',
+  previous: '前の手',
+  next: '次の手',
+  last: '最後の局面',
+  pass: 'パス',
+  undo: '元に戻す',
+  redo: 'やり直す',
+  variations: '変化図',
+  comments: 'コメント',
+  positionComments: '現在の局面のコメント',
+  hasComment: 'コメントあり',
+  start: '初期局面',
+  annotation: '注釈',
+  black: '黒',
+  white: '白',
+  empty: '空点',
+  colorPass: '{color} パス',
+  selectNode: '{label}を選択',
+  move: '{number}手目',
+  record: '囲碁棋譜',
+  summary: '{black} / {white} · {color}の手番 · アゲハマ 黒 {blackCaptures} / 白 {whiteCaptures}',
+  treeLimit: '最初の 500 ノードを表示します。移動ボタンで棋譜全体を確認できます。',
+  rejected: '操作できません：{reason}',
+  playback: '棋譜の自動再生',
+  interval: '間隔 ',
+  playbackInterval: '着手間隔',
+  seconds: '{number}秒',
+  play: '再生',
+  pause: '一時停止',
+  playRecord: '棋譜を再生',
+  pausePlayback: '再生を一時停止',
+  playbackHint: '← / → 前後の手に移動 · 碁盤にフォーカスがある場合は Alt + ← / →',
+  board:
+    '碁盤。方向キーでカーソルを移動し、Enter で交点を選択します。Page Up と Page Down で棋譜を移動します。',
+  boardPoint: '{coordinate}。{stone}。',
+  boardState: '{moveNumber}手目。{toPlay}の手番。アゲハマ 黒 {blackCaptures}、白 {whiteCaptures}。',
+  confirm: '{coordinate}への着手を確定',
+  cancel: '着手をキャンセル',
+};
 const catalogs: Readonly<Record<BanoraLocale, UiMessages>> = {
   en: english,
   ko: korean,
   zh: chinese,
+  ja: japanese,
 };
 /** Explicit and DOM-free: SDK defaults never depend on browser or machine language. */
 export function createUiMessages(options: LocaleOptions = {}): UiMessages {

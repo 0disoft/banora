@@ -60,10 +60,13 @@ let initialLanguage: BanoraLocale = browserLanguage.startsWith('ko')
   ? 'ko'
   : browserLanguage.startsWith('zh')
     ? 'zh'
-    : 'en';
+    : browserLanguage.startsWith('ja')
+      ? 'ja'
+      : 'en';
 try {
   const stored = localStorage.getItem('banora.studio.locale');
-  if (stored === 'en' || stored === 'ko' || stored === 'zh') initialLanguage = stored;
+  if (stored === 'en' || stored === 'ko' || stored === 'zh' || stored === 'ja')
+    initialLanguage = stored;
 } catch {
   /* Restricted storage still allows session-local language changes. */
 }
@@ -639,6 +642,7 @@ const localizedTitles: Record<BanoraLocale, string> = {
   en: 'Banora Studio — Go record workspace',
   ko: 'Banora Studio — 바둑 기보 작업 공간',
   zh: 'Banora Studio — 围棋棋谱工作区',
+  ja: 'Banora Studio — 囲碁棋譜ワークスペース',
 };
 const disposeLanguage = subscribeUiLanguage(() => {
   const locale = getUiLocale();

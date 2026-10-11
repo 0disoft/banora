@@ -4,7 +4,7 @@ The optional `@banora/sdk/locale` module (also exported from the root and classi
 browser global) provides `BanoraLocale`, `LocaleOptions`, `UiMessages`,
 `createUiMessages(options)`, `formatUiMessage(template, values)` and
 `createBoardLabels(options)`. The built-in languages are English (`en`),
-Korean (`ko`) and Chinese (`zh`, using simplified characters). SDK defaults are
+Korean (`ko`), Chinese (`zh`, using simplified characters) and Japanese (`ja`). SDK defaults are
 explicitly English; they never read navigator, local storage, or a machine locale.
 These helpers are DOM-free.
 
@@ -22,6 +22,7 @@ const viewer = mountViewer(document.querySelector('#record')!, {
 });
 viewer.update({ locale: 'en', messages: {} });
 viewer.update({ locale: 'zh' });
+viewer.update({ locale: 'ja' });
 const board = mountBoard(document.querySelector('#board')!, {
   labels: createBoardLabels({ locale: 'ko' }),
 });
@@ -43,8 +44,8 @@ labels and are outside the built-in Viewer language bundle.
 
 ## Studio Language Selection
 
-Studio detects Korean (`ko*`) and Chinese (`zh*`) browser languages on first load,
-otherwise English. Its header selector lists English, Korean and Chinese by their
+Studio detects Korean (`ko*`), Chinese (`zh*`) and Japanese (`ja*`) browser languages
+on first load, otherwise English. Its header selector lists all four languages by their
 native names, without a script qualifier on the Chinese label. Switching does not
 reload or edit the record. An explicit selection is stored under `banora.studio.locale`; unavailable
 storage falls back to session-only selection. `html.lang` and the document title
@@ -54,6 +55,6 @@ Studio's tools, navigation, variations, touch controls, file/unsaved-change dial
 texture controls, sharing and manual scoring use example-owned catalogs. Static
 labels bind before authored data is populated; dynamic UI setters explicitly mark
 UI text. No global DOM observer or heuristic translation of user data is used.
-The Chinese static catalog must cover the same keys as Korean at compile time.
+The Chinese and Japanese static catalogs must cover the same keys as Korean at compile time.
 Underlying protocol/diagnostic details and rule IDs remain English/stable, and
 linked puzzle/analysis consumer pages and the comparison widget retain their current English UI.

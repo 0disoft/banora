@@ -46,3 +46,22 @@ test('Chinese templates preserve every placeholder and support literal overrides
   );
   expect(createUiMessages().move).toBe('Move {number}');
 });
+
+test('Japanese templates preserve placeholders, literal values and English defaults', () => {
+  const english = createUiMessages();
+  const japanese = createUiMessages({ locale: 'ja' });
+  for (const key of Object.keys(english) as (keyof typeof english)[]) {
+    expect(japanese[key].length).toBeGreaterThan(0);
+    expect(japanese[key].match(/\{\w+\}/g)?.sort() ?? []).toEqual(
+      english[key].match(/\{\w+\}/g)?.sort() ?? [],
+    );
+  }
+  expect(formatUiMessage(japanese.move, { number: 23 })).toBe('23手目');
+  expect(formatUiMessage(japanese.selectNode, { label: '<tag>$&' })).toBe('<tag>$&を選択');
+  expect(createBoardLabels({ locale: 'ja' }).black).toBe('黒');
+  expect(Object.isFrozen(japanese)).toBe(true);
+  expect(createUiMessages({ locale: 'ja', messages: { variations: 'Custom' } }).variations).toBe(
+    'Custom',
+  );
+  expect(createUiMessages().move).toBe('Move {number}');
+});

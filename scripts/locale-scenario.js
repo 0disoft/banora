@@ -103,6 +103,26 @@ async (page) => {
         view.playback.getState().intervalMs === 500,
       'Chinese update changed record, history or playback settings',
     );
+    view.update({ locale: 'ja', messages: {} });
+    check(
+      container.querySelector('section').lang === 'ja' &&
+        container.querySelector('nav > span').textContent === '1手目' &&
+        container.querySelector('summary').textContent === '変化図' &&
+        container
+          .querySelector('svg[role="application"]')
+          .getAttribute('aria-label')
+          .startsWith('碁盤。') &&
+        indicator()?.title === 'コメントあり' &&
+        container.querySelector('.banora-record-playback').lang === 'ja',
+      'Japanese viewer/board/playback localization failed',
+    );
+    check(
+      controller.prepareExport().text === before &&
+        controller.getState().position.moveNumber === 1 &&
+        controller.getState().dirty &&
+        view.playback.getState().intervalMs === 500,
+      'Japanese update changed record, history or playback settings',
+    );
     view.dispose();
     controller.dispose();
     container.remove();
@@ -168,18 +188,45 @@ async (page) => {
   if (!(await page.locator('#score-result').textContent()).startsWith('暂定结果：'))
     throw Error('Scoring result untranslated');
   await page.getByRole('button', { name: '关闭计分', exact: true }).click();
+  await page.locator('#language').selectOption('ja');
+  if (
+    (await page.locator('html').getAttribute('lang')) !== 'ja' ||
+    (await page.locator('#language option[value="ja"]').textContent()) !== '日本語' ||
+    (await page.locator('#comment').inputValue()) !== 'Authored English <tag> note' ||
+    (await page.locator('#move').textContent()) !== '1手目' ||
+    (await page.locator('#dirty').textContent()) !== '未保存の変更' ||
+    !(await page
+      .locator('#tree')
+      .getByRole('button', { name: '1 · 黒 G7', exact: true })
+      .count()) ||
+    (await page
+      .locator('#tree [aria-current="true"] .banora-comment-indicator')
+      .getAttribute('title')) !== 'コメントあり'
+  )
+    throw Error('Japanese Studio switch lost data or labels');
+  await page.getByRole('button', { name: '次の手', exact: true }).click();
+  if ((await page.locator('#move').textContent()) !== '2手目')
+    throw Error('Japanese next move failed');
+  await page.getByRole('button', { name: '前の手', exact: true }).click();
+  await page.getByRole('button', { name: 'リンクを作成', exact: true }).click();
+  if (!(await page.locator('[data-share="output"]').inputValue()).includes('#banora='))
+    throw Error('Japanese sharing failed');
+  await page.getByRole('button', { name: '現在の局面を計算', exact: true }).click();
+  if (!(await page.locator('#score-result').textContent()).startsWith('暫定結果：'))
+    throw Error('Japanese scoring result untranslated');
+  await page.getByRole('button', { name: '計算を閉じる', exact: true }).click();
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: '保存 SGF', exact: true }).click();
+  await page.getByRole('button', { name: 'SGF を保存', exact: true }).click();
   const exported = await download;
   await exported.saveAs('output/playwright/localized-preserved.sgf');
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.screenshot({ path: 'output/playwright/studio-zh-desktop.png', fullPage: true });
+  await page.screenshot({ path: 'output/playwright/studio-ja-desktop.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 1000 });
   if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth))
-    throw Error('Chinese mobile layout overflow');
-  await page.screenshot({ path: 'output/playwright/studio-zh-mobile.png', fullPage: true });
+    throw Error('Japanese mobile layout overflow');
+  await page.screenshot({ path: 'output/playwright/studio-ja-mobile.png', fullPage: true });
   await page.reload();
-  if ((await page.locator('#language').inputValue()) !== 'zh')
+  if ((await page.locator('#language').inputValue()) !== 'ja')
     throw Error('Language preference not retained');
   await page.locator('#language').selectOption('en');
   const context = await page
@@ -202,6 +249,27 @@ async (page) => {
       throw Error('Saved selection did not override Chinese browser language');
   } finally {
     await context.close();
+  }
+  const japaneseContext = await page
+    .context()
+    .browser()
+    .newContext({ locale: 'ja-JP', viewport: { width: 390, height: 1000 } });
+  try {
+    const japanesePage = await japaneseContext.newPage();
+    await japanesePage.goto(`${origin}/studio/`);
+    await japanesePage.locator('#board svg').waitFor();
+    if (
+      (await japanesePage.locator('#language').inputValue()) !== 'ja' ||
+      (await japanesePage.locator('html').getAttribute('lang')) !== 'ja' ||
+      (await japanesePage.locator('#game-name').textContent()) !== 'Opening study'
+    )
+      throw Error('Japanese browser detection failed or translated authored title');
+    await japanesePage.locator('#language').selectOption('zh');
+    await japanesePage.reload();
+    if ((await japanesePage.locator('#language').inputValue()) !== 'zh')
+      throw Error('Saved selection did not override Japanese browser language');
+  } finally {
+    await japaneseContext.close();
   }
   await page.setViewportSize({ width: 1280, height: 1000 });
   return 'banora-locale-complete';
