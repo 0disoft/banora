@@ -387,6 +387,94 @@ async (page) => {
       source.dispose();
       host.remove();
     });
+    await page.evaluate(async () => {
+      const { RecordController } = await import('/sdk/controller.js'),
+        { AnalysisSession } = await import('/sdk/analysis.js'),
+        { mountAnalysis } = await import('/sdk/analysis-view.js');
+      const host = document.createElement('div');
+      document.body.append(host);
+      let submissions = 0;
+      const provider = {
+        id: 'unavailable',
+        async analyze() {
+          submissions++;
+          return {};
+        },
+      };
+      const source = new RecordController({ sgf: '(;SZ[5];B[dd];W[ee])' }),
+        session = new AnalysisSession(source, provider, { profile: 'aga-area' }),
+        view = mountAnalysis(host, {
+          session,
+          board: { crop: { x: 2, y: 2, width: 3, height: 3 } },
+        });
+      function check(message) {
+        const svg = host.querySelector('[data-analysis-board] svg'),
+          position = source.getState().position;
+        if (
+          svg.getAttribute('data-board-width') !== String(position.width) ||
+          svg.getAttribute('data-board-height') !== String(position.height) ||
+          !view.exportSvg().includes(`data-board-width="${position.width}"`) ||
+          host
+            .querySelector('[data-analysis-overlay]')
+            .querySelectorAll('[data-analysis-candidate],[data-analysis-ownership]').length ||
+          submissions
+        )
+          throw Error(message);
+      }
+      // Keep the mismatch unchanged: the session has no new context to publish.
+      const unavailable = session.getState();
+      source.next();
+      if (!view.exportSvg().includes('data-stone="3,3"'))
+        throw Error('Unavailable analysis retained a stale board after navigation');
+      source.play({ x: 3, y: 4 });
+      if (!host.querySelector('[data-stone="3,4"]'))
+        throw Error('Unavailable analysis did not display a source edit');
+      source.undo();
+      if (host.querySelector('[data-stone="3,4"]') || session.getState() !== unavailable)
+        throw Error('Unavailable analysis Undo or unchanged model state failed');
+      source.loadSgf('(;SZ[3]AW[cc])', { discardChanges: true });
+      check('Unavailable analysis import retained stale board dimensions');
+      if (
+        !host.querySelector('[data-stone="2,2"]') ||
+        host.querySelector('[data-analysis-board] svg').getAttribute('viewBox') !== '0 0 4.5 4.5' ||
+        !host.querySelector('[data-analysis-request]').disabled
+      )
+        throw Error('Unavailable analysis crop reset or disabled request failed');
+      session.setSettings({ profile: 'japanese-territory' });
+      source.play({ x: 0, y: 0 });
+      check('Recovered analysis context did not follow its source');
+      if (!host.querySelector('[data-stone="0,0"]'))
+        throw Error('Recovered analysis board lost a legal source move');
+      view.dispose();
+      source.undo();
+      if (host.children.length || !session.getState().context)
+        throw Error('Unavailable view cleanup leaked DOM or disposed its borrowed session');
+      session.dispose();
+      source.dispose();
+
+      const history = new RecordController({ sgf: '(;SZ[5];B[aa];B[bb];W[cc])' });
+      history.next();
+      history.next();
+      const invalidSession = new AnalysisSession(history, provider, {
+          profile: 'japanese-territory',
+        }),
+        invalidView = mountAnalysis(host, { session: invalidSession }),
+        invalidState = invalidSession.getState();
+      if (invalidState.error?.reason !== 'unsupported-history')
+        throw Error('Illegal history fixture did not disable analysis');
+      history.next();
+      if (!host.querySelector('[data-stone="2,2"]') || invalidSession.getState() !== invalidState)
+        throw Error('Unsupported history analysis retained a stale board after navigation');
+      history.previous();
+      if (host.querySelector('[data-stone="2,2"]') || submissions)
+        throw Error('Unsupported history navigation submitted or retained a future stone');
+      invalidView.dispose();
+      history.next();
+      if (host.children.length) throw Error('Unsupported history view leaked a source listener');
+      invalidSession.dispose();
+      history.dispose();
+      host.remove();
+    });
     mobileContext = await page
       .context()
       .browser()

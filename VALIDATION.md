@@ -160,8 +160,11 @@ Result and actual diagram are required; it is included in the complete suite.
 fixture. It verifies candidate/root Black metrics and current-player loss, pass/
 capture PV steps, ownership/point values, rectangular transforms/crop, callback/
 presentation updates, explicit manual JSON submission, errors/cancel/stale/destroyed
-replies and owned/borrowed lifetime. Keyboard/emulated touch/layout, identical source
-SGF downloads and an actual six-stone PV SVG excluding predictions/cursor are
+replies and owned/borrowed lifetime.
+Unavailable-context fixtures also verify source navigation/edit/Undo/import drawing,
+crop reset on smaller boards, recovery and disposal without automatic submission.
+Keyboard/emulated touch/layout, identical source SGF downloads and an actual
+six-stone PV SVG excluding predictions/cursor are
 required with the exact completion Result. It is included in the complete suite;
 illustrative protocol data does not establish actual engine/model compatibility.
 `--drop-only` exercises Studio's production DOM file drag/drop boundary, metadata,

@@ -74,6 +74,10 @@ Navigation, play, setup, import, rules/komi or provider changes invalidate the c
 model and immediately clear old display data. Comment-only edits preserve a
 semantically matching result. The view reads the model's current state during
 notification, preventing an earlier queued state from restoring obsolete content.
+When analysis is unavailable, the drawing still follows source navigation, edits,
+Undo and imports, even if the model's diagnostic stays unchanged. This does not
+submit analysis or add predictions. Correcting the settings/history restores the
+normal context display without remounting.
 
 ## Presentation, Export and Lifetime
 

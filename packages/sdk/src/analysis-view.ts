@@ -124,7 +124,9 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
   const initialPosition = state.context?.position ?? source.getState().position;
   let lastSgf = analysisDisplaySgf(analysisPreview(initialPosition, null, 0));
   const display = new RecordController({ sgf: lastSgf });
-  let board: BoardView | undefined, unsubscribe: (() => void) | undefined;
+  let board: BoardView | undefined,
+    unsubscribe: (() => void) | undefined,
+    unsubscribeSource: (() => void) | undefined;
   const leases = new Set<{ deliver: ((completion: AnalysisCompletion) => void) | undefined }>();
   const live = () => {
     if (disposed) throw Error('Analysis view is disposed');
@@ -272,6 +274,10 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
     board = mountBoard(find('board'), { controller: display, ...boardOptions() });
     find('stack').append(overlay);
     unsubscribe = session.subscribe(render);
+    // Unavailable contexts can remain identical while their source position changes.
+    unsubscribeSource = source.subscribe(() => {
+      if (!disposed && !session.getState().context) render(session.getState());
+    });
     find('request').addEventListener(
       'click',
       () => {
@@ -360,6 +366,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
   } catch (error) {
     abort.abort();
     unsubscribe?.();
+    unsubscribeSource?.();
     board?.dispose();
     display.dispose();
     if (!borrowed) session.dispose();
@@ -402,6 +409,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
       disposed = true;
       abort.abort();
       unsubscribe?.();
+      unsubscribeSource?.();
       for (const lease of leases) lease.deliver = undefined;
       leases.clear();
       board!.dispose();
