@@ -35,3 +35,6 @@ consumers and validation. Keep unresolved choices explicit. Use the
 
 The [recovery decision](0016-portable-record-recovery.md) defines portable working
 records, export baselines, selected locations and host-owned persistence.
+
+The [Studio storage decision](0017-studio-local-draft-storage.md) defines bounded
+IndexedDB drafts, ownership, revisions and explicit recovery/deletion requirements.
