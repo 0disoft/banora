@@ -149,6 +149,11 @@ reviewed parsed-workflow policy binding. Only the named publishing job's OIDC
 permission is exempted; other write permissions and secret injection remain denied.
 Static/local evidence does not prove hosted download, environment approval or npm
 authority. Executed hosted results belong to the release preparation evidence.
+The subsequent `health` job is read-only and selected only after a successful
+explicit publish; it executes fresh registry-download/installed-consumer checks
+without rebuilding and retains a bounded success/failure receipt. Workflow
+regressions guard its dependencies/conditions and refusal of OIDC permission.
+No live publication/registry health is inferred from static or simulated checks.
 
 The manual-only `.github/workflows/prepare-release.yml` runs the full nine-gate
 preparation on the dispatched main commit and retains its verified directory for

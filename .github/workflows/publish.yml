@@ -133,3 +133,53 @@ jobs:
           if-no-files-found: error
           overwrite: false
           retention-days: 14
+
+  health:
+    needs: [preview, publish]
+    if: needs.publish.result == 'success' && inputs.execute == true && github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: mise.toml
+          package-manager-cache: false
+      - name: Install reviewed consumer-check dependencies
+        run: bun run setup
+      - name: Download the same reviewed manifest and comparison bytes
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.preview.outputs.artifact_id }}
+          path: .artifacts/publication
+          github-token: ${{ github.token }}
+          repository: 0disoft/banora
+          run-id: ${{ inputs.prepare_run_id }}
+      - name: Check fresh registry bytes and independent installed consumers
+        id: health
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun run security:files
+          bun scripts/release.ts registry-check \
+            --bundle .artifacts/publication \
+            --manifest-sha256 "$BANORA_APPROVED_MANIFEST" \
+            --source-commit "$BANORA_APPROVED_SOURCE" \
+            --tag "$BANORA_APPROVED_TAG" > "$RUNNER_TEMP/banora-registry-health.json"
+      - name: Preserve successful or failed registry health receipt
+        if: always() && steps.health.outcome != 'skipped'
+        uses: actions/upload-artifact@v7
+        with:
+          name: banora-registry-health-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/banora-registry-health.json
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 14

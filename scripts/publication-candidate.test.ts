@@ -154,6 +154,7 @@ interface Workflow {
       if: string;
       environment?: string;
       permissions?: Record<string, string>;
+      needs?: string | string[];
       'runs-on': string;
       steps: Step[];
     }
@@ -173,7 +174,21 @@ test('only the fully reviewed manual publication workflow receives job-scoped OI
   expect(workflow.on.workflow_dispatch.inputs.execute?.default).toBe(false);
   expect(workflow.jobs.preview?.permissions?.['id-token']).toBeUndefined();
   expect(workflow.jobs.publish?.environment).toBe('npm-release');
+  expect(workflow.jobs.health?.permissions).toEqual({ contents: 'read', actions: 'read' });
+  expect(workflow.jobs.health?.needs).toEqual(['preview', 'publish']);
+  expect(workflow.jobs.health?.if).toContain("needs.publish.result == 'success'");
+  const healthCommand = workflow.jobs.health?.steps.find((step) =>
+    step.run?.includes('registry-check'),
+  )?.run;
+  expect(healthCommand).toContain('--manifest-sha256 "$BANORA_APPROVED_MANIFEST"');
+  expect(healthCommand).not.toContain('--execute');
   const changes: ((value: Workflow) => void)[] = [
+    (value) => {
+      value.jobs.health!.permissions!['id-token'] = 'write';
+    },
+    (value) => {
+      value.jobs.health!.if = 'always()';
+    },
     (value) => {
       value.on.workflow_dispatch.inputs.execute!.default = true;
     },

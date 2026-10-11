@@ -11,6 +11,15 @@ the user's backup before trying another version. The SDK maintainer owns package
 diagnosis; the host operator owns deployment, access and user-data recovery.
 Do not restore a known vulnerable version simply because its functional checks pass.
 
+The manual publication workflow's separate read-only `health` job executes fresh
+registry-byte verification and independent SDK/CLI/framework consumers after an
+explicit successful upload. If it fails, packages may already be published;
+preserve both publication and health receipts, inspect exact registry versions/
+integrity/channels, and stop further promotion. A failed health job does not
+automatically unpublish or change tags. Use the independently authorized registry/
+host procedure below; repeat read-only `release registry-check` only with the
+reviewed source/hash/channel and corresponding check dependencies available.
+
 1. Select a previously prepared, maintainer-reviewed bundle from retained storage.
    Confirm its recorded source/tree, tools and intended version. Hashes alone do
    not authenticate it. If none exists, stop and prepare a forward fix.

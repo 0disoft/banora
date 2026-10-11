@@ -94,6 +94,10 @@ selected, public-source, environment-gated publishing job receives `id-token: wr
 Its exact parsed workflow, pathname/job/permission are bound by the signal gate's
 reviewed policy hash; changes fail closed pending intentional whole-workflow review.
 This drift check does not configure required reviewers or grant npm authority.
+The subsequent independent installed-consumer health job runs only after explicit
+successful publication and uses read-only permissions. It downloads fresh registry
+bytes, verifies them against the reviewed candidate, and fails without automatic
+retagging/retry if identity, channel, transport or consumer checks do not pass.
 No static npm secrets, broad write token or automatic push publication is configured.
 `security:files` rejects high-signal
 credential/private-file patterns and dangerous workflow permission/trigger changes;

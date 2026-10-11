@@ -251,6 +251,17 @@ remain disabled and no static npm secret or broad write token is configured.
 The JSON receipt is retained for 14 days even after an uncertain upload. Missing
 receipts or failed post-checks are failures, not a release success.
 
+A subsequent separate `health` job runs only after successful explicit publication.
+It has `contents: read` and `actions: read`, without OIDC or npm write authority.
+After frozen root setup it retrieves the same artifact ID for source/hash comparison
+and invokes `registry-check` on fresh registry downloads. No source package rebuild
+is performed. Success requires the independent SDK/CLI/framework consumers and
+final channel confirmation; an upload receipt alone is insufficient. The health
+receipt is retained for 14 days on success or failure. Failed health makes the
+workflow fail after publication, preserves publication progress and requires
+investigation/fix-forward or separately approved rollback. It does not retry
+uploads, retag packages or claim a healthy host application.
+
 The sole OIDC exception in `scripts/security.ts` binds the exact parsed workflow
 SHA-256, pathname, job and permission. Any parsed workflow edit, including extra
 steps, changed inputs, environment or trigger/conditions, fails closed until that
