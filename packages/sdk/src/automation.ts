@@ -12,6 +12,8 @@ import { getRuleProfile } from './rules.js';
 import type { RuleProfileId } from './rules.js';
 import type { RecordCheckpoint } from './checkpoint.js';
 import { isAutomationRequest } from './automation-schema.js';
+import { searchRecord } from './record-search.js';
+import type { RecordSearchOptions } from './record-search.js';
 export { AUTOMATION_SCHEMA } from './automation-schema.js';
 
 export type AutomationOperation =
@@ -20,6 +22,13 @@ export type AutomationOperation =
   | { op: 'next'; variation?: number }
   | { op: 'goto'; target: RecordLocator }
   | { op: 'comment'; text: string }
+  | ({ op: 'search' } & RecordSearchOptions)
+  | {
+      op: 'comment-batch';
+      changes: readonly { target: RecordLocator; text: string; expectedText?: string }[];
+      previewOnly?: boolean;
+      expectedSgf?: string;
+    }
   | { op: 'marker'; point: Point; kind: MarkerKind | null; label?: string }
   | { op: 'setup'; stones: readonly SetupStone[]; toPlay?: Color }
   | { op: 'connection'; from: Point; to: Point; kind: ConnectionKind; present?: boolean }
@@ -140,8 +149,16 @@ export function executeAutomation(input: unknown) {
     }
     const results: unknown[] = [];
     let legalPointBudget = 8192;
+    let recordToolBudget = 8;
     for (const [index, operation] of (request.operations ?? []).entries()) {
       operationIndex = index;
+      if ((operation.op === 'search' || operation.op === 'comment-batch') && --recordToolBudget < 0)
+        return failure({
+          code: 'command-failed',
+          message: 'Record tools exceed the per-request 8-call budget.',
+          operationIndex: index,
+          reason: 'limit',
+        });
       let result: CommandResult;
       switch (operation.op) {
         case 'play':
@@ -159,6 +176,65 @@ export function executeAutomation(input: unknown) {
         case 'comment':
           result = controller.setComment(operation.text);
           break;
+        case 'search': {
+          const { op: _op, ...options } = operation;
+          try {
+            results.push({
+              operationIndex: index,
+              op: operation.op,
+              value: searchRecord(controller.getState().record, options),
+            });
+            result = { ok: true };
+          } catch (error) {
+            if (!(error instanceof TypeError) && !(error instanceof RangeError)) throw error;
+            return failure({
+              code: 'command-failed',
+              message: 'Record search rejected its options or work/output bounds.',
+              operationIndex: index,
+              reason: error instanceof RangeError ? 'limit' : 'invalid-edit',
+            });
+          }
+          break;
+        }
+        case 'comment-batch': {
+          if (
+            operation.expectedSgf !== undefined &&
+            operation.expectedSgf !== serializeSgf(controller.getState().record)
+          ) {
+            result = { ok: false, reason: 'stale-preview' };
+            break;
+          }
+          const targets = new Map<string, RecordLocator>();
+          const changes = operation.changes.map(({ target, ...change }) => {
+            const nodeId = targetId(target);
+            targets.set(nodeId, target);
+            return { ...change, nodeId };
+          });
+          if (changes.some((change) => !change.nodeId)) {
+            result = { ok: false, reason: 'node-not-found' };
+            break;
+          }
+          const preview = controller.previewComments(changes);
+          if (!preview.ok) {
+            result = preview;
+            break;
+          }
+          result = operation.previewOnly ? { ok: true } : controller.applyComments(preview.preview);
+          if (result.ok)
+            results.push({
+              operationIndex: index,
+              op: operation.op,
+              value: {
+                applied: !operation.previewOnly,
+                edits: preview.preview.edits.map(({ nodeId, before, after }) => ({
+                  target: targets.get(nodeId)!,
+                  before,
+                  after,
+                })),
+              },
+            });
+          break;
+        }
         case 'marker':
           result = controller.setMarker(operation.point, operation.kind, operation.label);
           break;

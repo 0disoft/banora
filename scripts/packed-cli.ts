@@ -69,6 +69,173 @@ check(
   'Installed executable shim failed',
 );
 check(cli(['schema']).oneOf.length === 2, 'Missing request discovery');
+check(JSON.stringify(cli(['schema'])).includes('comment-batch'), 'Missing comment-batch discovery');
+check(
+  cli(['--help']).commands.some((item: { name: string }) => item.name === 'search'),
+  'Missing search command discovery',
+);
+const toolsSgf =
+  '(;SZ[5]XX[keep];B[aa](;W[bb]C[Needle first])(;W[cc]C[needle second]))(;SZ[9]C[needle other])';
+await writeFile(resolve(directory, 'tools.sgf'), toolsSgf);
+const searched = cli([
+  'search',
+  '--input',
+  'tools.sgf',
+  '--query',
+  'needle',
+  '--properties',
+  'C',
+  '--limit',
+  '2',
+]);
+check(
+  searched.results[0].value.total === 3 &&
+    searched.results[0].value.hasMore &&
+    !searched.history.dirty &&
+    searched.results[0].value.hits[1].target.path.join(',') === '0,1',
+  'Installed search lost branches/pagination/selection',
+);
+check(
+  cli(['search', '--input', 'tools.sgf', '--query', '', '--properties', 'C']).results[0].value
+    .total === 3,
+  'Installed explicit empty search query failed',
+);
+const caseSearch = cli(
+  ['search', '--input', '-', '--query', 'Needle', '--case-sensitive'],
+  0,
+  toolsSgf,
+);
+check(caseSearch.results[0].value.total === 1, 'Installed case-sensitive stdin search failed');
+check(
+  cli(['search', '--input', 'tools.sgf', '--properties', 'C', '--game', '1']).results[0].value
+    .total === 1,
+  'Installed comment enumeration/game filter failed',
+);
+check(
+  cli(['search', '--input', 'tools.sgf', '--offset', '-1'], 2).error.code === 'usage',
+  'Negative search offset not rejected',
+);
+check(
+  cli(['search', '--input', 'tools.sgf', '--limit', '101'], 3).error.code === 'invalid-request',
+  'Search limit not rejected',
+);
+const changes = searched.results[0].value.hits.map((hit: { target: unknown; excerpt: string }) => ({
+  target: hit.target,
+  text: 'Reviewed 한국어',
+  expectedText: hit.excerpt,
+}));
+const toolRequest = {
+  schemaVersion: 'banora.automation/v1',
+  kind: 'record',
+  sgf: toolsSgf,
+  selection: changes[1]!.target,
+  operations: [{ op: 'comment-batch', changes, previewOnly: true }],
+};
+const previewed = cli(['run'], 0, JSON.stringify(toolRequest));
+check(
+  !previewed.history.dirty &&
+    previewed.results[0].value.applied === false &&
+    previewed.results[0].value.edits.length === 2 &&
+    previewed.sgf.includes('C[Needle first]'),
+  'Installed preview changed source',
+);
+await writeFile(
+  resolve(directory, 'tool-ops.json'),
+  JSON.stringify([{ op: 'comment-batch', changes, expectedSgf: previewed.sgf }]),
+);
+const appliedTools = cli([
+  'edit',
+  '--input',
+  'tools.sgf',
+  '--operations',
+  'tool-ops.json',
+  '--output',
+  'tools-edited.sgf',
+]);
+check(
+  appliedTools.history.dirty &&
+    appliedTools.results[0].value.applied &&
+    appliedTools.sgf.includes('XX[keep]'),
+  'Installed batch apply failed',
+);
+check(
+  cli(['search', '--input', 'tools-edited.sgf', '--query', 'Reviewed']).results[0].value.total ===
+    2,
+  'Installed edited SGF reopen lost batch comments',
+);
+const undoneTools = cli(
+  ['run'],
+  0,
+  JSON.stringify({
+    ...toolRequest,
+    operations: [{ op: 'comment-batch', changes }, { op: 'undo' }],
+  }),
+);
+check(
+  !undoneTools.history.dirty &&
+    undoneTools.history.canRedo &&
+    undoneTools.selection.path.join(',') === '0,1',
+  'Installed batch Undo changed selection or baseline',
+);
+await writeFile(
+  resolve(directory, 'stale-tools.json'),
+  JSON.stringify({
+    ...toolRequest,
+    operations: [{ op: 'comment-batch', changes: [{ ...changes[0], expectedText: 'stale' }] }],
+  }),
+);
+const staleTools = cli(['run', '--request', 'stale-tools.json', '--output', 'stale-tools.sgf'], 3);
+check(
+  staleTools.error.reason === 'stale-preview' && !Object.hasOwn(staleTools, 'sgf'),
+  'Installed stale batch returned partial output',
+);
+check(
+  !(await Bun.file(resolve(directory, 'stale-tools.sgf')).exists()),
+  'Failed batch published an output file',
+);
+check(
+  (await readFile(resolve(directory, 'tools.sgf'), 'utf8')) === toolsSgf,
+  'Record-tool commands changed the input file',
+);
+const replacedSource = cli(
+  ['run'],
+  3,
+  JSON.stringify({
+    ...toolRequest,
+    sgf: toolsSgf.replace('XX[keep]', 'XX[intervening]'),
+    operations: [{ op: 'comment-batch', changes, expectedSgf: previewed.sgf }],
+  }),
+);
+check(
+  replacedSource.error.reason === 'stale-preview' && !Object.hasOwn(replacedSource, 'sgf'),
+  'Installed exact source guard accepted unrelated intervening changes',
+);
+const lateSgf = `(;SZ[5]${';B[];W[]'.repeat(180)};C[late needle])`;
+await writeFile(resolve(directory, 'late-tools.sgf'), lateSgf);
+const lateTools = cli(['search', '--input', 'late-tools.sgf', '--query', 'late needle']);
+const lateTarget = lateTools.results[0].value.hits[0].target;
+check(lateTarget.path.length === 361, 'Installed search truncated a long locator');
+const lateEdited = cli(
+  ['run'],
+  0,
+  JSON.stringify({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf: lateSgf,
+    selection: lateTarget,
+    operations: [
+      {
+        op: 'comment-batch',
+        changes: [{ target: lateTarget, text: 'continued late', expectedText: 'late needle' }],
+      },
+    ],
+  }),
+);
+check(
+  lateEdited.selection.path.length === 361 &&
+    lateEdited.selected.properties.C[0] === 'continued late',
+  'Installed returned locator could not resume/apply',
+);
 const checkpointResult = cli(
   ['run'],
   0,

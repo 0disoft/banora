@@ -27,15 +27,16 @@ Requests use `schemaVersion:"banora.automation/v1"`; results contain `ok` and ei
 data or structured `error:{code,message,operationIndex?,reason?}`. Schema discovery
 itself returns a JSON Schema rather than a result envelope.
 
-| Command                                              | Input                                      | Result                                            |
-| ---------------------------------------------------- | ------------------------------------------ | ------------------------------------------------- |
-| `banora run --request request.json`                  | Full automation request; defaults to stdin | Record operations/queries or snapshot validation  |
-| `banora create --size 9`                             | New square board; defaults to 19           | Initial record/snapshot                           |
-| `banora inspect --input game.sgf --tree`             | SGF file or `-`; optional full tree        | Root state, children, SGF and optional game trees |
-| `banora edit --input game.sgf --operations ops.json` | SGF plus JSON operation array              | Edited SGF and selected state                     |
-| `banora snapshot --input state.json`                 | Plain `BoardSnapshot` JSON                 | Normalized external display state                 |
+| Command                                              | Input                                              | Result                                                   |
+| ---------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------- |
+| `banora run --request request.json`                  | Full automation request; defaults to stdin         | Record operations/queries or snapshot validation         |
+| `banora create --size 9`                             | New square board; defaults to 19                   | Initial record/snapshot                                  |
+| `banora inspect --input game.sgf --tree`             | SGF file or `-`; optional full tree                | Root state, children, SGF and optional game trees        |
+| `banora search --input game.sgf --query text`        | SGF file or `-`; optional literal/property filters | Whole-record counts, paginated hits and portable targets |
+| `banora edit --input game.sgf --operations ops.json` | SGF plus JSON operation array                      | Edited SGF and selected state                            |
+| `banora snapshot --input state.json`                 | Plain `BoardSnapshot` JSON                         | Normalized external display state                        |
 
-`create` also accepts `--operations`; record convenience commands accept `--profile`
+`create` also accepts `--operations`; `create`/`inspect`/`edit` accept `--profile`
 with `japanese-territory`, `aga-territory`, `aga-area` or `tromp-taylor`. For initial
 selection and all other options, use the full JSON `run` request. Default rules
 remain the SDK's simple-ko/suicide-forbidden policy. Choose a scoring profile
@@ -63,9 +64,44 @@ are zero-based from the top left; null play points mean pass. Record locators us
 portable selected locator, properties/children, row-major stones, rules/captures,
 logical annotations, history flags, query results and SGF.
 
+### Search and Review Multiple Comments
+
+Run `banora search --input game.sgf --query text --properties C,N,LB --limit 20`.
+`--properties` is a comma-separated list of uppercase SGF identifiers. Omit
+`--query` (or pass an empty query) to list nonblank values. Optional `--game` uses a zero-based game index;
+`--offset` paginates matches and `--case-sensitive` requests exact case. Queries
+cover every game/variation, including moves beyond the visible Studio tree limit.
+They change no selection/history or files. Follow `results[0].value.hits[].target`
+through JSON `goto` or use it as a batch target. Exact bounds are in the schema
+and [automation contract](../../docs/sdk/automation.md).
+
+An operations file can preview changes:
+
+```json
+[
+  {
+    "op": "comment-batch",
+    "previewOnly": true,
+    "changes": [
+      {"target": {"gameIndex": 0, "path": [0]}, "text": "Reviewed", "expectedText": "Original note"},
+      {"target": {"gameIndex": 0, "path": [0, 0]}, "text": "", "expectedText": "Obsolete note"}
+    ]
+  }
+]
+```
+
+Run `banora edit --input game.sgf --operations preview.json` to inspect
+`results[0].value.edits`. To apply, omit `previewOnly` (or use false), add the
+preview response's canonical `sgf` as operation `expectedSgf`, and use an explicit
+new output file. That guard rejects any intervening content change. `expectedText`
+alone guards only each targeted comment. Apply is one request-local Undo unit;
+append an `undo` operation in that same request to reverse the entire batch.
+Wrong targets/conditions or exceeded limits publish no output file. Files/stdin
+are bounded to 8 MiB, including duplicated expected SGF in a guarded request.
+
 Operation names: `play`, `previous`, `next`, `goto`, `comment`, `marker`, `setup`,
 `connection`, `stroke`, `remove-stroke`, `clear-strokes`, `remove-branch`,
-`reorder-branch`, `undo`, `redo`, `legal-points`, `score`. Exact fields are in
+`reorder-branch`, `undo`, `redo`, `legal-points`, `score`, `search`, `comment-batch`. Exact fields are in
 `banora schema`; unknown/repeated CLI flags and unknown request/operation fields
 are errors. Score output depends on manually agreed dead/seki status, not automatic
 life-and-death detection.
@@ -78,6 +114,7 @@ read/JSON/size limit failure, 3 SDK validation/command failure, 4 output-save fa
 Input reads are bounded to 8 MiB; SGF retains its own 5 MiB/parser limits and JSON
 batches have at most 256 operations. All batches run on a disposable private
 controller. Legal-point scans share an 8,192-candidate-cell per-request budget.
+Whole-record searches and comment batches share eight calls per request.
 A failed batch exposes no partly edited record and writes no output.
 
 Without `--output`, nothing is saved. Successful `--output PATH` saves SGF for a

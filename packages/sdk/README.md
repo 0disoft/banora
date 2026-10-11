@@ -17,7 +17,8 @@ property queries and portable result targets, without replay/navigation. Control
 `previewComments`, `applyComments` and `setComments` validate multi-node changes
 and apply them as one Undo unit while retaining selection/export semantics.
 Previews are immutable, tied to their issuing controller/current source, and never
-implicitly logged. Terminal and Studio controls are subsequent integrations.
+implicitly logged. Terminal automation exposes search, portable batch targets,
+preview-only diffs and optional exact-source guards; Studio controls follow separately.
 
 `@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.

@@ -36,6 +36,32 @@ const definitions: Record<string, Schema> = {
   next: object({ variation: integer(0, 49_999) }, []),
   goto: object({ target: locator }),
   comment: object({ text: text() }),
+  search: object(
+    {
+      query: text(512),
+      properties: {
+        ...list({ ...text(8), minLength: 1, pattern: '^[A-Z]{1,8}$' }, 32),
+        minItems: 1,
+        uniqueItems: true,
+      },
+      caseSensitive: { type: 'boolean' },
+      gameIndex: integer(0, 49_999),
+      offset: integer(0, 50_000),
+      limit: integer(1, 100),
+    },
+    ['query'],
+  ),
+  'comment-batch': object(
+    {
+      changes: list(
+        object({ target: locator, text: text(), expectedText: text() }, ['target', 'text']),
+        256,
+      ),
+      previewOnly: { type: 'boolean' },
+      expectedSgf: text(5 * 1024 * 1024),
+    },
+    ['changes'],
+  ),
   marker: object(
     {
       point,

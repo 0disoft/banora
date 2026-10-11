@@ -1,6 +1,6 @@
 # ADR 0019: Whole-Record Search and Atomic Comment Batches
 
-- Status: Accepted; SDK implemented, terminal and Studio integration pending
+- Status: Accepted; SDK and terminal integration implemented, Studio integration pending
 
 ## Decision
 
@@ -55,5 +55,12 @@ collections/branches, metadata/labels, literal/case behavior, move counts, bound
 failed/no-op atomicity, stale/foreign/forged previews and unchanged-subtree sharing.
 Packed consumers exercise root/controller/selective exports under Node with
 strict declarations, including an ES2022-only consumer without DOM types.
-Terminal discovery/commands and Studio search/select/preview/apply UI follow in
-separate cohesive increments; they are not yet claimed as shipped.
+Terminal discovery exposes `search` and `comment-batch`, with portable targets,
+preview-only diffs and optional exact canonical `expectedSgf`/per-comment conditions
+for cross-request review. `banora search` provides a file/stdin convenience command.
+Queries and batch edits share an eight-call request budget. Installed Node CLI
+checks search, branches/counts/pagination, stdin/case/game filters, preview/source
+retention, guarded application, Undo/reopen, failed-output protection and returned
+locations past move 360. No issued preview object or app authority crosses processes.
+Studio search/select/preview/apply UI is the next integration increment and is not
+yet claimed as shipped.

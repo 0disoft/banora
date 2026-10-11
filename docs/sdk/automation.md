@@ -22,6 +22,8 @@ limit. Returned locations can resume ordinary long games beyond move 128.
 No field executes code, shell commands or remote tools.
 Legal-point scans share a per-request budget of 8,192 candidate cells; larger
 query batches fail with reason `limit` instead of running unbounded repeated scans.
+Whole-record `search` and `comment-batch` operations share eight calls per request;
+each obeys the [record tools bounds](public-api.md#whole-record-search-and-comment-batches).
 
 ```ts
 import {executeAutomation} from '@banora/sdk/automation';
@@ -46,11 +48,36 @@ across requests, while Undo/Redo remains request-local. See [recovery](recovery.
 
 Supported operation names are `play`, `previous`, `next`, `goto`, `comment`,
 `marker`, `setup`, `connection`, `stroke`, `remove-stroke`, `clear-strokes`,
-`remove-branch`, `reorder-branch`, `undo`, `redo`, `legal-points` and `score`.
+`remove-branch`, `reorder-branch`, `undo`, `redo`, `legal-points`, `score`, `search`
+and `comment-batch`.
 Read their exact arguments from the schema rather than guessing CLI flag syntax.
 Markers with null kind remove the point's marks; setup replaces that node's setup.
 Scoring requires an explicit named profile and manually agreed dead/seki status.
 Legal points use the selected position's actual replayed rules/history.
+
+`search` accepts `{query, properties?, caseSensitive?, gameIndex?, offset?, limit?}`
+and returns `results[].value` with whole-record counts, paginated hits/portable
+targets and branch move numbers. It never navigates or creates history. Properties
+default to comments, node/game names, players and labels; an empty query enumerates
+their nonblank values. Matching is literal, not regex. Invalid options or work/output
+bounds fail without partial results. Other operations continue to use current-tree
+locators, so do not reuse a returned path after branch reordering/removal.
+
+`comment-batch` accepts `changes:[{target,text,expectedText?}]`, optional
+`previewOnly` and `expectedSgf`. Preview-only returns changed before/after text and
+targets in `results[].value:{applied:false,edits}` without altering source/history.
+Default application is atomic, preserves the current selection and makes one Undo
+entry; its result has `applied:true`. Missing/duplicate targets, stale expected text,
+limits or malformed entries fail the whole isolated request.
+
+For review across separate terminal calls, take the successful preview-only
+response's canonical `sgf` (with no later edits in that request) and pass it as
+`expectedSgf` when applying. It must exactly match the current serialized record;
+any intervening content change returns `stale-preview`, even when selected comments
+are unchanged. Per-comment `expectedText` alone guards those comments, not the whole
+record. Issued controller preview objects cannot cross process boundaries. Complete
+requests, including both input/expected SGF, remain subject to the CLI's 8 MiB read
+bound. No live app or file-lock/revision authority is inferred from this guard.
 
 A successful record response contains row-major `snapshot.stones`, logical
 annotations, next color, captures, rules/pass counts, `selection`, selected-node
@@ -81,7 +108,7 @@ Browser-only textures, placement motion and SVG/PNG view exports remain DOM APIs
 The optional [CLI package guide](../../packages/cli/README.md) documents the
 installed `banora` executable. In this repository, `bun run build:cli` builds it,
 and `bun run cli schema` discovers the operation schema. `run` accepts a full JSON
-request file/stdin; `create`, `inspect`, `edit` and `snapshot` are convenience
+request file/stdin; `create`, `inspect`, `search`, `edit` and `snapshot` are convenience
 commands. Exact flags, exit codes and file preservation are discoverable through
 `banora --help`. Calling the executable directly writes only one JSON document
 per process, including errors; package-manager banners are outside that contract.

@@ -1,6 +1,176 @@
 import { expect, test } from 'bun:test';
 import { executeAutomation, AUTOMATION_SCHEMA } from '../src/automation.js';
 
+test('automation discovers whole-record search and portable comment previews without changing the document', () => {
+  const sgf =
+    '(;SZ[5]C[root]XX[keep];B[aa](;W[bb]C[first target])(;W[cc]C[second target]))(;SZ[9]C[another target])';
+  const base = executeAutomation({ schemaVersion: 'banora.automation/v1', kind: 'record', sgf });
+  const result = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf,
+    operations: [
+      { op: 'search', query: 'TARGET', properties: ['C'], limit: 2 },
+      {
+        op: 'comment-batch',
+        previewOnly: true,
+        changes: [
+          { target: { gameIndex: 0, path: [0, 1] }, text: 'edited', expectedText: 'second target' },
+          { target: { gameIndex: 1, path: [] }, text: '', expectedText: 'another target' },
+        ],
+      },
+    ],
+  });
+  expect(JSON.stringify(AUTOMATION_SCHEMA)).toContain('comment-batch');
+  expect(JSON.stringify(AUTOMATION_SCHEMA)).toContain('caseSensitive');
+  if (!result.ok || result.kind !== 'record' || !base.ok || base.kind !== 'record')
+    throw Error('Automation failed');
+  expect(result.sgf).toBe(base.sgf);
+  expect(result.history).toEqual({ dirty: false, canUndo: false, canRedo: false });
+  expect(result.selection).toEqual({ gameIndex: 0, path: [] });
+  expect(result.results).toEqual([
+    {
+      operationIndex: 0,
+      op: 'search',
+      value: {
+        total: 3,
+        offset: 0,
+        limit: 2,
+        hasMore: true,
+        hits: [
+          expect.objectContaining({ target: { gameIndex: 0, path: [0, 0] }, moveNumber: 2 }),
+          expect.objectContaining({ target: { gameIndex: 0, path: [0, 1] }, moveNumber: 2 }),
+        ],
+      },
+    },
+    {
+      operationIndex: 1,
+      op: 'comment-batch',
+      value: {
+        applied: false,
+        edits: [
+          { target: { gameIndex: 0, path: [0, 1] }, before: 'second target', after: 'edited' },
+          { target: { gameIndex: 1, path: [] }, before: 'another target', after: '' },
+        ],
+      },
+    },
+  ]);
+});
+
+test('automation applies multi-game comments once, preserves selection and supports whole-batch Undo/Redo', () => {
+  const oldSource = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf: '(;C[same]XX[old])',
+  });
+  if (!oldSource.ok || oldSource.kind !== 'record') throw Error('Source fixture failed');
+  expect(
+    executeAutomation({
+      schemaVersion: 'banora.automation/v1',
+      kind: 'record',
+      sgf: '(;C[same]XX[new])',
+      operations: [
+        {
+          op: 'comment-batch',
+          changes: [{ target: { gameIndex: 0, path: [] }, text: 'new' }],
+          expectedSgf: oldSource.sgf,
+        },
+      ],
+    }),
+  ).toMatchObject({ ok: false, error: { reason: 'stale-preview' } });
+  const sgf = '(;SZ[5]C[root];B[aa]C[branch])(;SZ[9]C[second])';
+  const operations = [
+    {
+      op: 'comment-batch',
+      changes: [
+        { target: { gameIndex: 0, path: [0] }, text: 'changed', expectedText: 'branch' },
+        { target: { gameIndex: 1, path: [] }, text: 'changed', expectedText: 'second' },
+      ],
+    },
+    { op: 'undo' },
+  ];
+  const undone = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf,
+    selection: { gameIndex: 0, path: [0] },
+    operations,
+  });
+  if (!undone.ok || undone.kind !== 'record') throw Error('Undo failed');
+  expect(undone.selected.properties.C).toEqual(['branch']);
+  expect(undone.history).toEqual({ dirty: false, canUndo: false, canRedo: true });
+  const redone = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf,
+    selection: { gameIndex: 0, path: [0] },
+    operations: [...operations, { op: 'redo' }, { op: 'search', query: 'changed' }],
+  });
+  if (!redone.ok || redone.kind !== 'record') throw Error('Redo failed');
+  expect(redone.selection).toEqual({ gameIndex: 0, path: [0] });
+  expect(redone.snapshot.stones[0]).toBe('black');
+  expect(redone.results[1]).toMatchObject({ op: 'search', value: { total: 2 } });
+});
+
+test('record-tool requests reject malformed/stale/missing/duplicate inputs and repeated work without partial output', () => {
+  for (const operation of [
+    { op: 'search', query: 'x', properties: [] },
+    { op: 'search', query: 'x', properties: ['c'] },
+    { op: 'search', query: 'x', properties: ['C', 'C'] },
+    { op: 'search', query: 'x', limit: 101 },
+    {
+      op: 'comment-batch',
+      changes: [{ target: { gameIndex: 0, path: [] }, text: 'x', unknown: true }],
+    },
+  ]) {
+    const result = executeAutomation({
+      schemaVersion: 'banora.automation/v1',
+      kind: 'record',
+      operations: [operation],
+    });
+    expect(result).toMatchObject({ ok: false, error: { code: 'invalid-request' } });
+  }
+  for (const [changes, reason] of [
+    [
+      [{ target: { gameIndex: 0, path: [] }, text: 'x', expectedText: 'not-current' }],
+      'stale-preview',
+    ],
+    [[{ target: { gameIndex: 0, path: [99] }, text: 'x' }], 'node-not-found'],
+    [
+      [
+        { target: { gameIndex: 0, path: [] }, text: 'x' },
+        { target: { gameIndex: 0, path: [] }, text: 'y' },
+      ],
+      'invalid-edit',
+    ],
+  ]) {
+    const result = executeAutomation({
+      schemaVersion: 'banora.automation/v1',
+      kind: 'record',
+      operations: [
+        { op: 'comment', text: 'earlier edit' },
+        { op: 'comment-batch', changes },
+      ],
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: 'command-failed', operationIndex: 1, reason },
+    });
+    expect('sgf' in result).toBe(false);
+  }
+  const operations = Array.from({ length: 8 }, () => ({ op: 'search', query: '' }));
+  expect(
+    executeAutomation({ schemaVersion: 'banora.automation/v1', kind: 'record', operations }).ok,
+  ).toBe(true);
+  const result = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    operations: [...operations, { op: 'comment-batch', changes: [] }],
+  });
+  expect(result).toMatchObject({ ok: false, error: { operationIndex: 8, reason: 'limit' } });
+  expect('sgf' in result).toBe(false);
+});
+
 test('automation exposes discoverable JSON commands and rejects malformed batches before edits', () => {
   expect(JSON.stringify(AUTOMATION_SCHEMA)).toContain('reorder-branch');
   expect(Object.isFrozen(AUTOMATION_SCHEMA.oneOf[0])).toBe(true);

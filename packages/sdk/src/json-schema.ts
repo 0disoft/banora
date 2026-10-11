@@ -18,7 +18,8 @@ export function matches(value: unknown, schema: Schema): boolean {
     return (
       typeof value === 'string' &&
       value.length <= (schema.maxLength as number) &&
-      (schema.minLength === undefined || value.length >= (schema.minLength as number))
+      (schema.minLength === undefined || value.length >= (schema.minLength as number)) &&
+      (schema.pattern === undefined || new RegExp(schema.pattern as string).test(value))
     );
   if (schema.type === 'number' || schema.type === 'integer')
     return (
@@ -32,6 +33,8 @@ export function matches(value: unknown, schema: Schema): boolean {
     return (
       Array.isArray(value) &&
       value.length <= (schema.maxItems as number) &&
+      (schema.minItems === undefined || value.length >= (schema.minItems as number)) &&
+      (schema.uniqueItems !== true || new Set(value).size === value.length) &&
       Array.from(value).every((item) => matches(item, schema.items as Schema))
     );
   if (schema.type === 'object') {

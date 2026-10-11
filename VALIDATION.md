@@ -318,3 +318,23 @@ SDK integration passed 167 tests / 2,296 assertions and existing 103 installed C
 checks. New terminal/Studio interaction follows separately; no new UI evidence is
 claimed from these headless checks. Independent contract/migration-check intents
 remain unconfigured; public API and ADR 0019 own the additive contract.
+
+## Record Tools Terminal Evidence
+
+Automation schema discovery includes `search` and `comment-batch`; installed
+`banora search` checks file/stdin, literal/explicit-empty/case queries, field/game
+filters, pagination and structured argument/limit errors. Packed Node CLI checks
+portable multi-node preview/apply, unchanged source, exact `expectedSgf` and
+per-comment guards, one-step Undo/selected location, saved SGF reopen and rejected
+output publication. A returned search path past move 360 resumes and edits through
+an actual subsequent installed request. Repeated whole-record operations share
+eight calls per request; malformed/stale requests expose no partial record.
+
+Terminal integration passed `check` (170 tests / 2,322 assertions, root/Svelte types,
+builds, quality/boundaries/docs and packed SDK/CLI). Final installed CLI smoke passed
+169 checks after adding explicit-empty query handling. The full production browser
+suite passed on Chrome 154 after the shared controller/schema changes, covering
+existing SDK/Studio/framework workflows. Studio search/select/batch UI remains a
+subsequent integration, not evidence inferred from terminal or existing UI checks.
+Other browser engines, physical devices and hosted CI were not executed. Separate
+`contract`/`migration-check` intents are unconfigured; no DB migration is added.

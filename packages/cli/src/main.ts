@@ -8,6 +8,7 @@ const commands = {
   schema: [],
   run: ['request', 'output', 'force'],
   inspect: ['input', 'tree', 'profile'],
+  search: ['input', 'query', 'properties', 'game', 'offset', 'limit', 'case-sensitive'],
   edit: ['input', 'operations', 'output', 'force', 'profile'],
   create: ['size', 'operations', 'output', 'force', 'profile'],
   snapshot: ['input', 'output', 'force'],
@@ -20,7 +21,7 @@ const help = {
     flags: flags.map((flag) => `--${flag}`),
   })),
   usage:
-    'banora schema | run --request FILE | inspect --input SGF | edit --input SGF --operations JSON | create --size N | snapshot --input JSON',
+    'banora schema | run --request FILE | inspect --input SGF | search --input SGF --query TEXT | edit --input SGF --operations JSON | create --size N | snapshot --input JSON',
   stdin: 'Use - instead of a filename. run defaults to stdin.',
   output:
     'One JSON response on stdout. --output saves successful SGF or normalized snapshot JSON; existing files require --force. Inputs are never overwritten.',
@@ -49,10 +50,10 @@ async function main() {
       name = token.slice(2);
     if (!token.startsWith('--') || !allowed.includes(name) || Object.hasOwn(flags, name))
       throw new CliError('usage', 'Unknown, positional or repeated argument. Run banora --help.');
-    if (name === 'force' || name === 'tree') flags[name] = true;
+    if (name === 'force' || name === 'tree' || name === 'case-sensitive') flags[name] = true;
     else {
       const value = argv.shift();
-      if (!value || value.startsWith('--'))
+      if (value === undefined || value.startsWith('--') || (value === '' && name !== 'query'))
         throw new CliError('usage', `--${name} requires a value.`);
       flags[name] = value;
     }
@@ -90,6 +91,9 @@ async function main() {
       throw new CliError('usage', 'edit requires --operations JSON_FILE.');
     if (typeof flags.size === 'string' && !/^\d+$/.test(flags.size))
       throw new CliError('usage', 'Size must be an integer from 2 through 52.');
+    for (const name of ['game', 'offset', 'limit'])
+      if (typeof flags[name] === 'string' && !/^\d+$/.test(flags[name]))
+        throw new CliError('usage', `--${name} requires a nonnegative decimal integer.`);
     request = {
       schemaVersion: 'banora.automation/v1',
       kind: 'record',
@@ -100,6 +104,23 @@ async function main() {
         ? { operations: json(await read(flags.operations)) }
         : {}),
       ...(flags.tree ? { includeTree: true } : {}),
+      ...(command === 'search'
+        ? {
+            operations: [
+              {
+                op: 'search',
+                query: flags.query ?? '',
+                ...(typeof flags.properties === 'string'
+                  ? { properties: flags.properties.split(',').map((key) => key.trim()) }
+                  : {}),
+                ...(typeof flags.game === 'string' ? { gameIndex: Number(flags.game) } : {}),
+                ...(typeof flags.offset === 'string' ? { offset: Number(flags.offset) } : {}),
+                ...(typeof flags.limit === 'string' ? { limit: Number(flags.limit) } : {}),
+                ...(flags['case-sensitive'] ? { caseSensitive: true } : {}),
+              },
+            ],
+          }
+        : {}),
     };
   }
   const result = executeAutomation(request);

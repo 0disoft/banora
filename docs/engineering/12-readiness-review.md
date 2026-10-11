@@ -333,3 +333,35 @@ Terminal schema/commands and Studio search/select/preview/apply controls are the
 next integration steps; no shipped UI or hosted evidence is claimed here. The
 full 72-question objective remains active, including later measured performance,
 diagnostics/help, release operations and requirement-by-requirement final audit.
+
+## Execution: Record Tools Terminal Integration
+
+Automation discovery now exposes whole-record `search` and portable `comment-batch`
+operations. Preview-only diffs leave working SGF/history unchanged; application
+keeps selection and supports one-step Undo within the request. Optional exact
+canonical `expectedSgf` conditions guard cross-request review against unrelated
+intervening content changes, while per-comment `expectedText` guards selected text.
+Missing/duplicate/stale or over-limit changes fail without partial output. Whole-
+record operations share eight calls per request. The synchronous schema matcher
+now enforces the added property-pattern/minimum-count/primitive-uniqueness constraints.
+
+The `banora search` convenience command accepts file/stdin, literal or omitted/
+explicit-empty queries, field/game filters, case sensitivity and pagination. Installed
+Node checks exercise branch targets, previews, guarded edits, Undo, saved/reopened
+SGF, unchanged input files, failed output protection and a returned path past move
+360 used in an actual later request. Issued SDK preview objects and live application
+authority do not cross process boundaries; canonical source comparison is explicit.
+
+`check` passed 170 tests / 2,322 assertions and packed public/headless/classic SDK
+consumers. Final CLI smoke passed 169 installed Node checks; the full production
+Chrome browser suite passed existing Studio/framework/controller workflows after
+the shared implementation change. Docs, types, lint/format, boundaries and local
+file/permission signals passed. SDK JSON/CLI discovery is additive within existing
+v1; no DB, persistence/hygiene or dependency changes. Packed CLI runner coverage
+increased; product/API automation/compatibility, ADR 0019, READMEs and validation
+were synchronized. Broader devices/engines/hosted CI and separate unconfigured
+contract/migration-check commands are not claimed.
+
+Studio search/select/preview/apply remains the next milestone-4 integration.
+Diagnostics/help/ops, measured performance, release/migration/rollback and the
+final all-72 audit remain active; this is concrete progress, not goal completion.

@@ -95,7 +95,10 @@ and export contracts, adding `stale-preview` as a failure reason. Unit cases inc
 collections/branches, 4,000-move paths, bounds, stale/foreign preview refusal and
 atomic cross-game edits. Independently installed Node consumers check root/controller/
 search declarations and execution, including ES2022-only types without DOM.
-Studio/CLI integration and browser interaction are not implied by this SDK evidence.
+Installed Node CLI additionally checks search/schema discovery, file/stdin queries,
+portable batch preview/application, exact-source/per-comment guards, Undo/reopen and
+failed-output protection, including returned paths past move 360. Studio interaction
+for these new methods is not implied by headless/terminal evidence.
 
 Agent automation is available through DOM-free `@banora/sdk/automation` and the
 optional Node 24.x `@banora/cli` package. Installed SDK declarations/runtime and

@@ -142,8 +142,10 @@ and one-step Undo across multiple selected nodes. Content changes invalidate a
 preview; browsing preserves it and application keeps the current cursor/export
 baseline. Bounds and ownership are specified in
 [ADR 0019](../adr/0019-record-search-and-atomic-comment-batches.md). SDK methods
-are implemented; terminal commands and Studio search/select/preview controls are
-subsequent integration increments, not current UI promises.
+and terminal commands are implemented. Terminal operations expose portable targets,
+preview-only comment diffs and optional exact-source conditions for cross-request
+review. Studio search/select/preview controls are the next integration increment,
+not current UI promises.
 
 Hosts may keep rules, records and revisions in an external server/native engine.
 The additive [controlled-board decision](../adr/0012-host-controlled-board-and-presentation-boundary.md)
