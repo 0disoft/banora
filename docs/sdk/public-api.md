@@ -407,6 +407,13 @@ are logged without rolling back committed commands. Root exports include all the
 change. Failed commands, export preparation and selecting the already active node
 leave it unchanged. This contract supports external-store framework bindings.
 
+State construction reuses one complete path for replay and the returned snapshot;
+an initial board is created only when no cached ancestor exists. This private
+optimization retains the 128-position budget, exact history and cache invalidation
+on record/rule replacement or edits. See the
+[measured SDK evidence](../engineering/14-sdk-performance-evidence.md); it changes
+neither public snapshot ownership nor rules/dirty/Undo behavior.
+
 `inspectNode` uses the same record replay and bounded position cache as ordinary
 navigation; it never creates a separate rules engine. Its snapshot's path/game/node
 refer to the inspected node while dirty/Undo flags describe the owning controller.

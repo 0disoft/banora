@@ -153,10 +153,8 @@ export class RecordController {
     }
     return path.reverse();
   }
-  #position(id = this.#selected): Position {
-    const path = this.#path(id);
-    const root = this.#index.nodes.get(path[0]!)!;
-    let position = initialRecordPosition(root, this.#rules);
+  #position(path: readonly string[]): Position {
+    let position: Position | undefined;
     let start = 0;
     for (let i = path.length - 1; i >= 0; i--) {
       const cached = this.#positionCache.get(path[i]!);
@@ -166,6 +164,7 @@ export class RecordController {
         break;
       }
     }
+    position ??= initialRecordPosition(this.#index.nodes.get(path[0]!)!, this.#rules);
     for (let i = start; i < path.length; i++) {
       position = applyRecordNode(position, this.#index.nodes.get(path[i]!)!);
       this.#positionCache.set(path[i]!, position);
@@ -187,7 +186,8 @@ export class RecordController {
   }
   #state(id: string): ControllerState {
     const node = this.#index.nodes.get(id)!;
-    const position = this.#position(id);
+    const path = this.#path(id);
+    const position = this.#position(path);
     const markers: Marker[] = [];
     for (const [kind, key] of Object.entries(markerProperties) as [MarkerKind, string][]) {
       for (const value of node.properties[key] ?? []) {
@@ -223,7 +223,7 @@ export class RecordController {
       record: this.#record,
       node,
       position,
-      path: Object.freeze(this.#path(id)),
+      path: Object.freeze(path),
       gameIndex: this.#index.games.get(id)!,
       dirty: this.#dirty,
       recordGeneration: this.#recordGeneration,

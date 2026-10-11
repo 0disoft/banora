@@ -37,6 +37,12 @@ input-to-paint, thumbnails/overlays and representative low-spec/physical-device
 budgets remain UNDECIDED/unmeasured. Desktop SDK timings and one process memory
 snapshot do not prove frame rate, peak allocation, an SLO or a device guarantee.
 
+Measured desktop long-record navigation led to one-path state construction and lazy
+initial-position creation after checking the bounded replay cache. Cached ancestors
+preserve exact history; cache size/freshness/invalidation and public APIs are unchanged.
+The 5,000-move synthetic sequential case's median fell from 1,032.73 to 484.49ms;
+small-study variation is recorded instead of claiming universal latency improvements.
+
 ## Optimization Gates
 
 Placement motion has a structural resource bound: at most one effect per mounted

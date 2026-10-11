@@ -442,3 +442,46 @@ No public SDK/CLI API, DB/storage schema, dependency or hygiene change. Root com
 test runner coverage and CI planner routing were added. Remaining work includes
 release/rollback tooling, private-report access, measured performance and the full
 72-question current-state audit; the goal remains active.
+
+## Execution: Measured SDK Performance and Navigation Optimization
+
+Added `bun run perf --output FILE` and Node public-artifact measurements for the
+committed study and authored 300-/5,000-move 19x19 records. Eight cases per workload
+measure parse/open/serialize, main-line/tail navigation, comment search/batching and
+checkpoint restore. One warm-up/five fresh samples retain raw timings and descriptive
+min/median/max, workload counts/bytes, actual runtime/source digest and a process
+memory snapshot. Setup/verification/disposal are excluded; navigation success checks
+are included. Reports contain no authored record content/path. Existing output and
+input aliases cannot be overwritten. No timing threshold or repeated benchmark job
+was added to default CI; focused tests verify correctness and lifecycle.
+
+Tooling was committed as `a51f255` after `check` passed 187 tests / 2,594 assertions,
+types/builds/quality/docs and packed SDK/CLI (222 installed CLI checks). Baseline
+source was `2406f2b` plus tooling-only edits. The dominant long navigation case led
+to one complete path per state and lazy initial-position construction after a
+cached ancestor lookup. The same 128-position cache/eviction and edit/Undo/import/
+checkpoint invalidation remain; complete immutable paths and superko history are
+retained. No public state/API, DB/storage schema, dependency or hygiene change.
+
+Same-host Node 24.14.0 Windows x64 medians: 5,000 sequential commands 1,032.73→484.49ms
+(53.1% observed reduction); 40 tail commands 13.99→7.34ms (47.5%). The 300-move
+sequential case fell 8.60→6.57ms. The tiny study sequential median rose ~0.03ms;
+no every-operation/device/frame/peak-memory improvement is claimed. Before/after
+workload metadata matches and the optimized controller digest matches the report.
+The owning [performance evidence](14-sdk-performance-evidence.md) preserves exact
+values, method/ranges, source hashes, control-case variation and unmeasured boundaries.
+
+New replay tests compare warm/evicted state to fresh serialized replay and cover
+captures, pass prisoners, setup, MN, branches/collections, read-only inspection,
+immutable paths and cache invalidation. Final `check` passed 189 tests / 2,681
+assertions, builds/types/quality/boundaries/docs and packed SDK/CLI. The complete
+production browser suite passed Chrome 154 Studio/reference/framework flows,
+recovery/search/support, editing/Undo/export/reopen, rule and lifecycle paths.
+Functional browser checks are not paint/frame performance evidence.
+
+Updated performance budget/evidence, public API implementation notes, development/
+validation guidance and this record. Root opt-in performance command and its tests/
+CI planner routing were added; browser runner/workflow permissions are unchanged.
+Standalone contract/migration runners are unconfigured. Physical/low-spec/other
+engines, paint latency and memory peak remain unmeasured. Release/rollback tooling,
+private reporting access and the 72-question final audit remain active.

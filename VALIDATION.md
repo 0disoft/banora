@@ -27,6 +27,14 @@ file/stdin requests, fixed transport envelopes, safe environment/timing, actual
 successful/failed report publication, existing-output/force and input protection.
 Normal automation/checkpoint fixtures continue to verify authored result compatibility.
 
+`scripts/performance.test.ts` checks legal authored workloads and fresh warm/sample
+measurement/verification/disposal behavior without time thresholds. The opt-in `perf`
+runner rebuilds public Node SDK artifacts and records 24 original/authored workload
+cases. `packages/sdk/test/controller-replay.test.ts` compares warm/evicted states
+with fresh replay across captures/passes/setup/MN/collections/branches and guards
+cache invalidation through edits/Undo/import/checkpoint rules. Shared controller
+changes also run the production browser suite; desktop SDK timing does not prove paint latency.
+
 ## Required Final Report
 
 Final responses must list executed validations, passed validations, skipped validations, skip reasons, and remaining risk.

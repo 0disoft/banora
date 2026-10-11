@@ -1,7 +1,7 @@
 # SDK Performance Evidence
 
-Status: desktop Node baseline measured; optimization and broader browser/device
-measurements remain separate work.
+Status: desktop Node before/after navigation optimization measured; broader
+browser/device performance measurements remain separate work.
 
 ## Method and Provenance
 
@@ -44,18 +44,58 @@ as one controller edit; restore includes the selected tail's replay.
 | Comment batch                |           0.45 |            3.77 |             58.53 |
 | Checkpoint restore           |           0.47 |            7.00 |             89.36 |
 
-## Next Optimization and Boundaries
+## Measured Optimization and Boundaries
 
-The long navigation loop is the measured dominant aggregate case. Source inspection
-shows each state constructs its complete path twice and initializes an empty board
-before checking the existing 128-position cache. Reuse the path and avoid unnecessary
-initialization on a cache hit, retaining immutable state, replay history, eviction and
-all edit/import/Undo invalidation. Compare the same workload/method before claiming
-improvement. Full long-path state still inherently exposes a complete path; no
-unbounded whole-record position cache or altered public state is justified here.
+The long navigation loop was the dominant aggregate case. Each state constructed
+its complete path twice and initialized an empty board before consulting the
+128-position cache. The controller now builds one path for replay/state and creates
+an initial position only without a cached ancestor. Cache budget/eviction, immutable
+state, complete history and edit/import/Undo/checkpoint invalidation remain.
+Full long-path state still exposes a complete path; no unbounded position cache
+or altered public state is introduced.
 
-SDK correctness and installed artifact tests guard semantics. Browser/user-flow
-fixtures must also run after shared controller changes. Rendering/perceived latency,
+`bun run perf --output .tmp/performance-after.json` used the same runtime/workloads/
+method at source commit `a51f255` plus the controller change (dirty worktree).
+Controller SHA-256:
+`3eb175e7ef37420cb2bcc52e384cf91f29e944cbc0fe642436f6a7a8e2a53755`.
+
+| Navigation case                | Before median ms | After median ms | Observed reduction |
+| ------------------------------ | ---------------: | --------------: | -----------------: |
+| Study sequential (7 commands)  |           0.1554 |          0.1860 |             -19.7% |
+| Study tail roundtrip (40)      |           0.4264 |          0.3617 |              15.2% |
+| 300-move sequential            |           8.6042 |          6.5698 |              23.6% |
+| 300-move tail roundtrip (40)   |           0.8898 |          0.3742 |              57.9% |
+| 5,000-move sequential          |       1,032.7275 |        484.4922 |              53.1% |
+| 5,000-move tail roundtrip (40) |          13.9945 |          7.3433 |              47.5% |
+
+Stress sequential ranges were 945.72–1,224.68ms before and 450.35–660.21ms after.
+The small study's sequential median increased about 0.03ms: do not claim every
+operation/device improves. Unaffected parse/search cases vary between processes
+and are not attributed to this optimization. Process snapshots do not prove lower
+allocation/peak memory. This is observed desktop SDK work, not a speed/paint guarantee.
+
+SDK correctness and installed artifact tests guard semantics. Replay fixtures compare
+warm/evicted states to fresh replay across captures, passes, setup, move overrides,
+branches and collections. They verify read-only inspection, immutable paths and
+cache invalidation after setup/Undo/import/checkpoint policy changes. Shared controller
+changes also require production browser flows. Rendering/perceived latency,
 superko-heavy unique histories, annotations/overlays, multi-board scrolling and
 physical low-spec devices remain unmeasured; this baseline does not close those
 performance questions or the [active readiness audit](12-readiness-review.md).
+
+## Executed Validation
+
+Benchmark tooling passed `check` with 187 tests / 2,594 assertions and 222 installed
+CLI checks before the controller change. After optimization, `check` passed 189 tests /
+2,681 assertions, quality/boundaries, builds, root/Svelte types, docs, packed root/
+subpath/no-DOM/classic SDK and installed CLI artifacts. The production browser suite
+passed in Chrome 154, including Studio recovery/search/support and all three
+frameworks, editor/guards/reopen, controlled boards, rules, diagrams, transforms,
+ink/touch, comparison/sharing/textures/animation, scoring/puzzles/analysis and lifecycle.
+These are functional/browser correctness checks, not a browser performance measurement.
+
+Report workload node/board/byte/comment/main-line counts match before and after;
+the after-report digest matches current controller source. Source/privacy/whitespace
+checks follow the synchronized docs. Other browser engines, physical/low-spec
+devices, paint/frame latency and memory peak/retention remain unmeasured. No hosted
+execution, automatic timing gate or universal numerical guarantee is inferred.
