@@ -10,8 +10,11 @@ headless local journal. Type-only SDK reason dependencies import no runtime
 controller/DOM/provider code. Unit fixtures verify actual failure projection,
 cross-realm data, bounded immutable reports and no raw-text retention; packed
 Node root/subpath/ES2022-only and classic VM consumers execute public artifacts.
-This does not claim Studio support-download, CLI diagnostic commands, hosted
-telemetry or automatic environment detection.
+Separate production Studio Chrome 154 fixtures check opt-in/clear/reload, actual
+redacted JSON download and failed download, delayed-file consent epochs, local
+action/settings discovery, four languages, keyboard/mobile/menu and zero remote
+requests. CLI diagnostic commands, hosted telemetry, automatic environment detection
+and broader browser/physical-device behavior remain unclaimed.
 
 Use Vite library builds for ESM entrypoints, TypeScript declarations, and a browser
 script distribution. React, Vue, and Svelte are optional dependencies of their

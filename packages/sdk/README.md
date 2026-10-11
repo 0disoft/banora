@@ -27,6 +27,8 @@ projection. It retains at most 256 fixed operation/code events and produces froz
 local summaries/support reports, without recording authored data, raw exceptions,
 fingerprint strings or arbitrary metadata. Hosts own opt-in, reviewed sharing and
 clear/retention; the SDK adds no automatic collection, persistence or remote calls.
+Studio Help separately demonstrates session-only opt-in, inspected JSON/download,
+clear/reload and diagnostic freshness without changing authored/export state.
 
 `@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.

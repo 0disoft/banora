@@ -237,8 +237,12 @@ authored data, raw messages/stacks, arbitrary metadata or environment fingerprin
 strings are recorded. Hosts own opt-in, reviewed download/sharing and retention;
 reports summarize retained local events only. See
 [ADR 0020](../adr/0020-explicit-redacted-diagnostics.md) and the
-[diagnostic contract](../sdk/diagnostics.md). SDK support is implemented; Studio
-opt-in/support-download/help integration follows separately.
+[diagnostic contract](../sdk/diagnostics.md). Studio Help provides localized action/
+settings discovery and session-only opt-in, report inspection/clear/download. A
+consent epoch invalidates old diagnostic completions on clear/disable/re-enable;
+file import captures that epoch before reading. No record/draft/export state is
+changed by diagnostic actions. Its repository Issues link has no private prefill;
+the exact instrumented operation scope is listed in the consumer contract.
 
 - No account or remote dependency for local board, rules, or SGF functionality.
 - All framework adapters are optional. The headless core and record parser import

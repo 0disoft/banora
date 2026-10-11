@@ -11,6 +11,8 @@ import {
 } from './draft-store.js';
 import type { DraftEntry, StudioDraft } from './draft-store.js';
 import { localizeUi, setUiText, getUiLocale } from '../ui-language.js';
+import type { StudioDiagnostics } from './diagnostics.js';
+import { describeDiagnosticFailure } from '@banora/sdk/diagnostics';
 
 const statusText: Record<AutosaveStatus, string> = {
   idle: '',
@@ -30,6 +32,7 @@ export function mountRecoveryControls(
   host: HTMLElement,
   controller: RecordController,
   options: {
+    diagnostics?: StudioDiagnostics;
     filename(): string;
     replace(checkpoint: unknown, filename: string, signal: AbortSignal): Promise<boolean>;
     autosave: boolean;
@@ -66,12 +69,24 @@ export function mountRecoveryControls(
   let deletion: { id: string; revision: number | null } | undefined;
   let entries = new Map<string, DraftEntry | null>();
   toggle.checked = options.autosave;
+  let checkpointCompletion: ReturnType<StudioDiagnostics['begin']> | undefined;
   const autosave = new DraftAutosave(
     controller,
     options.filename,
     store,
     toggle.checked,
     (status) => {
+      if (status === 'saving') checkpointCompletion = options.diagnostics?.begin('checkpoint');
+      else if (checkpointCompletion) {
+        checkpointCompletion(
+          status === 'saved'
+            ? { status: 'success' }
+            : ['idle', 'off'].includes(status)
+              ? { status: 'cancelled' }
+              : { status: 'failure', failure: describeDiagnosticFailure('storage', status) },
+        );
+        checkpointCompletion = undefined;
+      }
       find('draft-status').setAttribute(
         'aria-live',
         ['idle', 'saving', 'saved', 'off'].includes(status) ? 'off' : 'polite',
@@ -176,6 +191,7 @@ export function mountRecoveryControls(
     }
   }
   function downloadBackup(backup: unknown, filename: string): void {
+    const complete = options.diagnostics?.begin('backup');
     let url: string | undefined;
     try {
       const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
@@ -188,7 +204,15 @@ export function mountRecoveryControls(
       link.click();
       link.remove();
       setUiText(message, 'Backup download started.');
+      complete?.({ status: 'success' });
     } catch (error) {
+      complete?.({
+        status: 'failure',
+        failure: describeDiagnosticFailure(
+          'storage',
+          error instanceof DraftError ? error.code : 'failed',
+        ),
+      });
       failure(error);
     } finally {
       if (url) setTimeout(() => URL.revokeObjectURL(url!), 30_000);

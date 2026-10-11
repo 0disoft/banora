@@ -69,5 +69,43 @@ unknown failures need a minimized reproduction. Provider failures do not imply a
 safe retry. `retryable` is true only for `wait`/`retry`: check current state and
 operation safety before an explicit retry. The journal never replays or acknowledges
 an export. See [ADR 0020](../adr/0020-explicit-redacted-diagnostics.md) and the
-[observability procedure](../ops/observability.md). Studio opt-in/download/help
-integration follows separately; headless support is not a shipped UI claim.
+[observability procedure](../ops/observability.md).
+
+## Studio Consumer
+
+Open **Help** above the board or through its quick menu. Find action searches
+localized feature names/descriptions and English names; results launch file/record
+actions and dialogs, focus theme/display-size settings or open the matching board
+menu section. Brief instructions and the repository Issues link are opt-in help,
+not permanent explanatory content on the board. The Issues link opens externally
+only on user activation, with no record/diagnostic prefill and no referrer.
+The repository was verified private with Issues enabled on 2026-10-11; this channel
+currently requires repository access. Public feedback access is a release-readiness
+item, not established by a working local link or unpublished issue templates.
+
+Expand Diagnostics and explicitly enable local collection. It defaults off and is
+not saved in preferences/storage. Only the current page's explicitly instrumented
+operations are collected: main edit/navigation commands, file/record import, SGF
+download, checkpoint restore, autosave attempts, backup downloads and search/batch
+preview/application. The journal holds 64 recent events and shows discarded count,
+outcomes, available maximum timing, event IDs/codes/recovery and inspectable JSON.
+Instant command reports omit timing; timed operations cover their instrumented
+scope, not a benchmark or click/funnel/lifetime usage measure. Scoring, sharing,
+textures, playback and other demo pages are not automatically instrumented.
+
+Clear invalidates pending diagnostic completions and erases current records without
+changing the SGF, Undo, export baseline, drafts or preferences. Disable also clears;
+re-enable starts a new collection epoch. A file read started off or completed after
+clear/disable/re-enable cannot repopulate the report. Consent/history reset on reload
+and are independent in each tab. Disposal invalidates pending completions and releases
+listeners/resources. Timing/inspection failures are isolated from authored operations.
+
+Download writes a reviewed `banora-diagnostics.json`, never acknowledges SGF export
+and makes no remote request. Failed downloads show a fixed message and preserve the
+record/report. At most four temporary download URLs are retained for 30 seconds;
+disposal revokes them. Already downloaded reports remain user-owned and require
+separate deletion. The Studio environment projection includes browser runtime and
+UI locale only; include actual SDK/consumer/browser versions separately in a report.
+English/Korean/Chinese/Japanese, 320px layout, focus/Escape, action/menu restoration,
+actual downloaded JSON and delayed-file consent transitions have browser fixtures.
+Terminal diagnostic commands and hosted collection remain separate work.

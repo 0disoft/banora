@@ -215,6 +215,19 @@ async function searchSmoke() {
   )
     throw Error('Search batch SGF export lost content');
 }
+async function supportSmoke() {
+  await scenario('support', 'banora-support-complete');
+  const json = await readFile(resolve(output, 'support-diagnostics.json'), 'utf8');
+  const report = JSON.parse(json);
+  if (
+    report.schemaVersion !== 'banora.diagnostics/v1' ||
+    !report.events.some(
+      (event: { failure?: { code: string } }) => event.failure?.code === 'property',
+    ) ||
+    json.includes('Private')
+  )
+    throw Error('Downloaded support diagnostics failed validation');
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
@@ -226,7 +239,12 @@ try {
     'run-code',
     'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
   );
-  if (process.argv.includes('--search-only')) {
+  if (process.argv.includes('--support-only')) {
+    await supportSmoke();
+    console.log(
+      'Focused support smoke passed: consent/privacy, actual operation evidence/download, clear/reload, discovery, locale/mobile/menu and no remote requests.',
+    );
+  } else if (process.argv.includes('--search-only')) {
     await searchSmoke();
     console.log(
       'Focused search smoke passed: all games/branches, paging, long paths, preview/apply/Undo, freshness, bounds and locale/mobile/menu.',
@@ -299,6 +317,7 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await supportSmoke();
     await searchSmoke();
     await preferencesSmoke();
     await recoverySmoke();

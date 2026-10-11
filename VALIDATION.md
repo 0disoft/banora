@@ -393,3 +393,39 @@ devices, other engines and hosted CI/monitoring remain unverified. Separate
 `contract`/`migration-check` intents are unconfigured. The operational guide now
 uses real local commands and identifies the missing private security-report channel
 instead of inventing a contact or a hosted collector.
+
+## Studio Support and Diagnostic Evidence
+
+`scripts/studio-diagnostics.test.ts` verifies default-off, no off-start timing,
+one completion per attempt, epoch invalidation after clear/disable/re-enable/dispose,
+optional clock failure, listener isolation and raw-text exclusion. The Studio model
+is session-only and uses public SDK exports; no localStorage/IndexedDB consent or
+diagnostic record is created.
+
+After `build:examples`, `bun scripts/browser-smoke.ts --support-only` checks the
+production consumer through Playwright CLI. The full suite calls the same scenario
+and inspects the actual downloaded `banora.diagnostics/v1` JSON for a real SGF
+failure and absence of authored/query/file content. The scenario checks navigation/
+edit/search/batch evidence, report inspection/download/failure, unchanged record
+dirty state, 64-event eviction, clear/disable/reload and consent changes during
+delayed public File reads. Delaying File/URL APIs is fixture environment control;
+no private SDK/controller or production test hooks are used.
+
+Help discovery launches record dialogs, opens all indexed board-menu sections and
+focuses theme/display size settings. Four locales, 320px layout, Escape/focus,
+menu restoration and no remote requests are checked. The GitHub feedback link has
+no prefill/referrer; read-only API inspection found Issues enabled on a private
+repository, so public feedback access is not claimed. Current local template changes
+have not been pushed. Separate `contract`/`migration-check` runners are unconfigured;
+physical devices, other browser engines, hosted CI/telemetry and public release
+remain unverified. No SDK API, DB/storage schema, dependency or hygiene changes;
+browser/CI runners add a support-focused route and actual artifact inspection.
+
+Studio integration passed `check`: 176 tests / 2,448 assertions, root/Svelte types,
+builds, quality/boundaries, packed SDK and 169 installed CLI checks. The full
+production suite passed shared consumer flows on Windows Headless Chrome 154.
+Final focused support and locale routes passed the expanded menu/settings registry,
+gutter refinement and authored `GN[Success]` preservation across all four languages.
+Game headings/options remain authored text even when their value is a UI key.
+Final root typecheck/lint, docs (111 documents / 353 links), file/permission signals
+and whitespace checks passed. No broader engine/device or hosted execution is inferred.

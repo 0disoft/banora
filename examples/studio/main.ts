@@ -40,6 +40,10 @@ import { safeDraftFilename } from './draft-store.js';
 import { defaultPreferences, PreferenceStore } from './preferences.js';
 import { applyPreferenceInputs, mountPreferenceControls } from './preference-controls.js';
 import { mountSearchControls } from './search-controls.js';
+import { StudioDiagnostics } from './diagnostics.js';
+import { mountSupportControls } from './support-controls.js';
+import { describeDiagnosticFailure } from '@banora/sdk/diagnostics';
+import type { DiagnosticOperation } from '@banora/sdk/diagnostics';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 let preferenceStorage: Storage | undefined;
@@ -63,6 +67,7 @@ const disposeStaticLanguage = localizeUi(document.documentElement);
 let ui = createUiMessages({ locale: initialLanguage });
 document.documentElement.lang = initialLanguage;
 const controller = new RecordController({ sgf: sample });
+const diagnostics = new StudioDiagnostics();
 const comment = find<HTMLTextAreaElement>('comment');
 const tool = find<HTMLSelectElement>('tool');
 const penOption = document.createElement('option');
@@ -82,12 +87,27 @@ let connectionStart: { point: Point; node: string } | undefined;
 let comparison: ComparisonView | undefined;
 let stoneTextures: StoneTextures | null = null;
 
-function report(result: CommandResult): void {
+function report(
+  result: CommandResult,
+  operation: DiagnosticOperation = 'edit',
+  record = true,
+): void {
+  const id = record
+    ? diagnostics.record(
+        result.ok
+          ? { operation, status: 'success' }
+          : {
+              operation,
+              status: 'failure',
+              failure: describeDiagnosticFailure('controller', result.reason),
+            },
+      )
+    : undefined;
   if (!result.ok)
     setUiText(
       status,
-      result.diagnostics?.map((item) => item.message).join('; ') ??
-        `Action rejected: ${result.reason.replaceAll('-', ' ')}.`,
+      (result.diagnostics?.map((item) => item.message).join('; ') ??
+        `Action rejected: ${result.reason.replaceAll('-', ' ')}.`) + (id ? ` (${id})` : ''),
     );
 }
 const view = mountBoard(find('board'), {
@@ -200,7 +220,7 @@ function renderTree(state: ControllerState): void {
       button.setAttribute('aria-description', ui.hasComment);
       button.append(indicator);
     }
-    button.addEventListener('click', () => report(controller.goTo(node.id)));
+    button.addEventListener('click', () => report(controller.goTo(node.id), 'navigate'));
     wrapper.append(button);
     fragment.append(wrapper);
     shown.add(node.id);
@@ -276,7 +296,9 @@ const renderState = (state: ControllerState) => {
       ...state.record.games.map((root, index) => {
         const option = document.createElement('option');
         option.value = String(index);
-        setUiText(option, root.properties.GN?.[0] ?? `Game ${index + 1}`);
+        const authoredName = root.properties.GN?.[0];
+        if (authoredName === undefined) setUiText(option, `Game ${index + 1}`);
+        else option.textContent = authoredName;
         return option;
       }),
     );
@@ -299,6 +321,7 @@ function findNode(root: SgfNode, id: string): SgfNode | undefined {
 }
 
 function exportRecord(): boolean {
+  const complete = diagnostics.begin('export');
   const ticket = controller.prepareExport();
   let url: string | undefined;
   try {
@@ -313,11 +336,13 @@ function exportRecord(): boolean {
     (document.querySelector<HTMLDialogElement>('dialog:modal') ?? document.body).append(link);
     link.click();
     link.remove();
-    report(controller.acknowledgeExport(ticket.id));
+    report(controller.acknowledgeExport(ticket.id), 'export', false);
     setUiText(status, 'SGF download started.');
+    complete({ status: 'success' });
     return true;
   } catch (error) {
     controller.cancelExport(ticket.id);
+    complete({ status: 'failure', failure: describeDiagnosticFailure('io', 'write') });
     setUiText(status, `Export failed: ${String(error)}`);
     return false;
   } finally {
@@ -351,18 +376,34 @@ async function openRecord(
   name: string,
   locator?: RecordLocator,
   signal?: AbortSignal,
+  fileCompletion?: ReturnType<StudioDiagnostics['begin']>,
 ): Promise<boolean> {
-  if (opening || disposed || signal?.aborted) return false;
+  if (opening || disposed || signal?.aborted) {
+    fileCompletion?.({ status: 'cancelled' });
+    return false;
+  }
+  const complete = fileCompletion ?? diagnostics.begin('import');
+  let finished = false;
   opening = true;
   try {
     const parsed = typeof input === 'string' ? parseSgf(input) : decodeSgf(input);
     if (!parsed.ok) {
+      complete({
+        status: 'failure',
+        failure: describeDiagnosticFailure('sgf', parsed.diagnostics[0]?.code),
+      });
+      finished = true;
       setUiText(status, parsed.diagnostics.map((item) => item.message).join('; '));
       return false;
     }
     const approved = await mayReplace(signal);
     if (!approved || disposed || signal?.aborted) return false;
     if (controller.getState().record !== approved) {
+      complete({
+        status: 'failure',
+        failure: describeDiagnosticFailure('controller', 'stale-preview'),
+      });
+      finished = true;
       setUiText(status, 'Record changed during approval. Open it again.');
       return false;
     }
@@ -370,18 +411,27 @@ async function openRecord(
     filename = safeDraftFilename(name);
     const result = controller.loadSgf(input, { discardChanges: true, locator });
     if (!result.ok) {
+      complete({
+        status: 'failure',
+        failure: describeDiagnosticFailure('controller', result.reason),
+      });
+      finished = true;
       filename = previousName;
-      report(result);
+      report(result, 'import', false);
       return false;
     }
     setUiText(status, `Opened ${filename}.`);
+    complete({ status: 'success' });
+    finished = true;
     return true;
   } finally {
+    if (!finished) complete({ status: 'cancelled' });
     opening = false;
   }
 }
 async function openFile(selected?: File): Promise<void> {
   if (!selected || disposed) return;
+  const complete = diagnostics.begin('import');
   const sequence = ++fileReadSequence;
   const generation = controller.getState().recordGeneration;
   const current = () =>
@@ -389,29 +439,50 @@ async function openFile(selected?: File): Promise<void> {
     sequence === fileReadSequence &&
     generation === controller.getState().recordGeneration;
   if (selected.size > 5 * 1024 * 1024) {
+    complete({ status: 'failure', failure: describeDiagnosticFailure('sgf', 'limit') });
     setUiText(status, 'SGF file exceeds the 5 MiB input limit.');
     return;
   }
   try {
     const bytes = new Uint8Array(await selected.arrayBuffer());
-    if (!current()) return;
-    await openRecord(bytes, selected.name);
+    if (!current()) {
+      complete({ status: 'cancelled' });
+      return;
+    }
+    await openRecord(bytes, selected.name, undefined, undefined, complete);
   } catch (error) {
+    complete(
+      current()
+        ? { status: 'failure', failure: describeDiagnosticFailure('io', 'read') }
+        : { status: 'cancelled' },
+    );
     if (current()) setUiText(status, `Could not open file: ${String(error)}`);
   }
 }
 async function openCheckpoint(input: unknown, name: string, signal: AbortSignal): Promise<boolean> {
   if (opening || disposed || signal.aborted) return false;
+  const complete = diagnostics.begin('restore');
+  let finished = false;
   opening = true;
   try {
     const parsed = parseRecordCheckpoint(input);
     if (!parsed.ok) {
+      complete({
+        status: 'failure',
+        failure: describeDiagnosticFailure('controller', 'invalid-checkpoint'),
+      });
+      finished = true;
       setUiText(status, 'Invalid backup. Current record kept.');
       return false;
     }
     const approved = await mayReplace(signal);
     if (!approved || disposed || signal.aborted) return false;
     if (controller.getState().record !== approved) {
+      complete({
+        status: 'failure',
+        failure: describeDiagnosticFailure('controller', 'stale-preview'),
+      });
+      finished = true;
       setUiText(status, 'Record changed during approval. Open it again.');
       return false;
     }
@@ -419,13 +490,21 @@ async function openCheckpoint(input: unknown, name: string, signal: AbortSignal)
     filename = safeDraftFilename(name);
     const result = controller.loadCheckpoint(parsed.value, { discardChanges: true });
     if (!result.ok) {
+      complete({
+        status: 'failure',
+        failure: describeDiagnosticFailure('controller', result.reason),
+      });
+      finished = true;
       filename = previousName;
-      report(result);
+      report(result, 'restore', false);
       return false;
     }
     setUiText(status, 'Draft restored.');
+    complete({ status: 'success' });
+    finished = true;
     return true;
   } finally {
+    if (!finished) complete({ status: 'cancelled' });
     opening = false;
   }
 }
@@ -441,15 +520,18 @@ find('new').addEventListener('click', () => {
   void openRecord('(;FF[4]GM[1]CA[UTF-8]SZ[19])', 'untitled.sgf');
 });
 find('export').addEventListener('click', exportRecord);
-find('previous').addEventListener('click', () => report(controller.previous()));
-find('next').addEventListener('click', () => report(controller.next()));
+find('previous').addEventListener('click', () => report(controller.previous(), 'navigate'));
+find('next').addEventListener('click', () => report(controller.next(), 'navigate'));
 find('first').addEventListener('click', () =>
-  report(controller.goTo(controller.getState().record.games[controller.getState().gameIndex]!.id)),
+  report(
+    controller.goTo(controller.getState().record.games[controller.getState().gameIndex]!.id),
+    'navigate',
+  ),
 );
 find('last').addEventListener('click', () => {
   let node = controller.getState().node;
   while (node.children[0]) node = node.children[0];
-  report(controller.goTo(node.id));
+  report(controller.goTo(node.id), 'navigate');
 });
 find('pass').addEventListener('click', () => report(controller.play(null)));
 find('undo').addEventListener('click', () => report(controller.undo()));
@@ -602,7 +684,7 @@ find('pin-right').addEventListener('click', () =>
   comparison?.update({ right: controller.getState().node.id }),
 );
 games.addEventListener('change', () =>
-  report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id)),
+  report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id), 'navigate'),
 );
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && connectionStart) {
@@ -628,6 +710,8 @@ window.addEventListener('pagehide', (event) => {
   if (!event.persisted) {
     disposed = true;
     disposeRecovery();
+    disposeSupport();
+    diagnostics.dispose();
     disposeSearch();
     disposePreferences();
     disposePlaybackPreference();
@@ -685,6 +769,7 @@ const disposeSharing = mountSharing(find('sharing-host'), controller, {
 });
 const disposeScoring = mountScoringControls(find('scoring-host'), controller);
 const disposeRecovery = mountRecoveryControls(find('drafts-host'), controller, {
+  diagnostics,
   filename: () => filename,
   replace: openCheckpoint,
   autosave: preferences.get('autosave'),
@@ -697,7 +782,8 @@ const disposePreferences = mountPreferenceControls(find('preferences-host'), pre
   playbackControls.playback.setInterval(preferences.get('playbackInterval'));
   playbackControls.playback.pause();
 });
-const disposeSearch = mountSearchControls(find('search-host'), controller);
+const disposeSearch = mountSearchControls(find('search-host'), controller, diagnostics);
+const disposeSupport = mountSupportControls(find('support-host'), diagnostics);
 const disposeBoardMenu = mountBoardMenu();
 
 const localizedTitles: Record<BanoraLocale, string> = {

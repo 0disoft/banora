@@ -1,5 +1,66 @@
 @import '../select.css';
 
+#support-dialog {
+  width: min(720px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+}
+.support-filter {
+  display: grid;
+  gap: 8px;
+  margin-block: 16px;
+}
+.support-filter input {
+  width: 100%;
+  min-width: 0;
+}
+#support-actions {
+  margin-bottom: 16px;
+}
+#support-actions,
+#diagnostic-events,
+#diagnostic-json {
+  max-height: min(260px, 32dvh);
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.support-action,
+.diagnostic-event {
+  padding-block: 16px;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.support-action {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+#diagnostic-panel {
+  border-top: 1px solid var(--border);
+  padding-block: 16px;
+  margin-top: 16px;
+}
+#diagnostic-panel summary {
+  cursor: pointer;
+}
+#diagnostic-json {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  #support-dialog {
+    padding: 20px;
+  }
+  .support-action {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .support-action .button {
+    justify-self: start;
+  }
+}
+
 #search-dialog {
   width: min(720px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);

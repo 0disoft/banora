@@ -9,6 +9,10 @@ export interface CheckPlan {
   readonly audit: boolean;
 }
 const focused: readonly [RegExp, string][] = [
+  [
+    /^(examples\/studio\/(diagnostics|support-controls)\.ts|scripts\/(support-scenario\.js|studio-diagnostics\.test\.ts))$/,
+    '--support-only',
+  ],
   [/^(examples\/studio\/search-controls\.ts|scripts\/search-scenario\.js)$/, '--search-only'],
   [
     /^(examples\/studio\/(preferences|preference-controls)\.ts$|scripts\/preferences(-scenario\.js|\.test\.ts)$)/,

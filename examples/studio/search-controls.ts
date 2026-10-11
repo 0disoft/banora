@@ -1,11 +1,17 @@
 import type { RecordController, CommentBatchPreview } from '@banora/sdk/controller';
 import { searchRecord } from '@banora/sdk/record-search';
 import type { RecordSearchHit } from '@banora/sdk/record-search';
+import { describeDiagnosticFailure } from '@banora/sdk/diagnostics';
+import type { StudioDiagnostics } from './diagnostics.js';
 import { createUiMessages, formatUiMessage } from '@banora/sdk/locale';
 import { getUiLocale, localizeUi, setUiText, subscribeUiLanguage } from '../ui-language.js';
 
 /** Uses public SDK records/previews only; no saved query or implicit authored-data logging. */
-export function mountSearchControls(host: HTMLElement, controller: RecordController): () => void {
+export function mountSearchControls(
+  host: HTMLElement,
+  controller: RecordController,
+  diagnostics?: StudioDiagnostics,
+): () => void {
   host.innerHTML = `<button id="search-open" class="button" type="button">Search record</button>
     <dialog id="search-dialog" aria-labelledby="search-title"><h2 id="search-title">Search record</h2>
     <form id="search-form" class="search-actions"><label><span>Search text</span><input id="search-query" type="search" maxlength="512"/></label>
@@ -128,6 +134,7 @@ export function mountSearchControls(host: HTMLElement, controller: RecordControl
     controls();
   }
   function search() {
+    const complete = diagnostics?.begin('search');
     try {
       const options = {
         query: query.value,
@@ -147,7 +154,15 @@ export function mountSearchControls(host: HTMLElement, controller: RecordControl
       find<HTMLButtonElement>('search-previous').disabled = offset === 0;
       find<HTMLButtonElement>('search-next').disabled = !result.hasMore;
       renderResults();
-    } catch {
+      complete?.({ status: 'success' });
+    } catch (error) {
+      complete?.({
+        status: 'failure',
+        failure: describeDiagnosticFailure(
+          'sgf',
+          error instanceof RangeError ? 'limit' : 'property',
+        ),
+      });
       hits = [];
       find('search-count').textContent = '';
       find<HTMLButtonElement>('search-previous').disabled = find<HTMLButtonElement>(
@@ -240,6 +255,15 @@ export function mountSearchControls(host: HTMLElement, controller: RecordControl
       const result = controller.previewComments(
         [...selected.keys()].map((nodeId) => ({ nodeId, text: text.value })),
       );
+      diagnostics?.record(
+        result.ok
+          ? { operation: 'batch', status: 'success' }
+          : {
+              operation: 'batch',
+              status: 'failure',
+              failure: describeDiagnosticFailure('controller', result.reason),
+            },
+      );
       if (!result.ok) {
         setUiText(
           status,
@@ -292,6 +316,15 @@ export function mountSearchControls(host: HTMLElement, controller: RecordControl
       applying = true;
       try {
         const result = controller.applyComments(approved);
+        diagnostics?.record(
+          result.ok
+            ? { operation: 'batch', status: 'success' }
+            : {
+                operation: 'batch',
+                status: 'failure',
+                failure: describeDiagnosticFailure('controller', result.reason),
+              },
+        );
         discardPreview();
         if (result.ok) {
           selected.clear();

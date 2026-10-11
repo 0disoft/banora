@@ -14,6 +14,9 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
   ).toEqual(['--analysis-only', '--playback-only']);
   expect(planChecks(['packages/sdk/src/controller.ts']).browser).toEqual(['all']);
   expect(
+    planChecks(['examples/studio/diagnostics.ts', 'scripts/support-scenario.js']).browser,
+  ).toEqual(['--support-only']);
+  expect(
     planChecks(['examples/studio/search-controls.ts', 'scripts/search-scenario.js']).browser,
   ).toEqual(['--search-only']);
   expect(

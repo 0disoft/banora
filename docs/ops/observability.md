@@ -9,8 +9,13 @@ Enable collection explicitly in the consuming application. Use the public
 values and display returned IDs beside translated actionable failures. Never log
 SGF, names/comments/queries, filenames/paths, raw exceptions/stacks, provider IDs,
 URL/referrer, user agent or credentials. Banora provides no global interception,
-default remote telemetry, hosted dashboard or alert service. Studio integration
-is a following increment, not shipped yet.
+default remote telemetry, hosted dashboard or alert service. In Studio, open Help,
+expand Diagnostics and enable collection before reproducing the operation. Inspect
+the summary/events/JSON, then explicitly download if needed. Clear or disable after
+support; collection and history are not persisted and reset on reload. Delayed work
+from a previous consent epoch cannot repopulate cleared data. See the
+[exact consumer scope](../sdk/diagnostics.md#studio-consumer); other demos/modules
+are not automatically captured. Already downloaded files remain user-owned.
 
 Inspect a report before sending it. Its summaries describe the recent bounded
 window, not lifetime traffic, a benchmark or service SLO. Evicted count means older
@@ -34,6 +39,11 @@ downloaded reports separately. Reports still reveal feature usage/timing.
    The repository maintainer triages SDK defects. The host
    operator owns tenant/auth boundaries, endpoint/secrets, storage retention and
    service incidents; no SDK hosted operations team is implied.
+
+The repository's Issues API was checked on 2026-10-11: Issues is enabled, but the
+repository is private. Its feedback/status page currently requires repository
+access. Verify a public or otherwise accessible support channel before distributing
+an external demo/package; local template updates are not hosted publication evidence.
 
 ## Host Monitoring Boundary
 

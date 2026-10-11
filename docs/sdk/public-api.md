@@ -17,8 +17,10 @@ accepted. Typed controller/SGF/analysis maps exhaust their existing reasons and 
 safe recovery guidance without changing those commands' return contracts.
 See [diagnostics](diagnostics.md) for all limits, identifiers, environment privacy,
 retry guidance and host opt-in/storage/sharing ownership. No automatic logging,
-network, timer or controller observation is installed. Studio UI and terminal
-diagnostic commands are not implied by this headless module.
+network, timer or controller observation is installed. Studio separately consumes
+this module through opt-in session collection and Help inspection/clear/download;
+the [consumer contract](diagnostics.md#studio-consumer) names its exact coverage.
+Terminal diagnostic commands are not implied by this module or the Studio UI.
 
 ## Implemented Core Exports
 

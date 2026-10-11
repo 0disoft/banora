@@ -1,6 +1,6 @@
 # ADR 0020: Explicit Redacted Local Diagnostics
 
-- Status: Accepted; headless SDK implemented, Studio integration follows separately
+- Status: Accepted; headless SDK and Studio integration implemented
 
 ## Decision
 
@@ -49,5 +49,9 @@ Unit fixtures project actual controller/SGF failures without changing source sta
 check eviction, retained summaries, immutable snapshots, clear, nonreused IDs,
 capacity shadowing, malformed input atomicity, accessor/proxy errors and raw-text
 exclusion. Independently installed root/subpath/no-DOM/classic consumers exercise
-public declarations/runtime. Studio download/help and hosted monitoring are not
-implied by this SDK evidence.
+public declarations/runtime. Separate Studio production browser fixtures exercise
+opt-in, inspect/clear, actual download and failed-download handling, no authored data
+or remote requests, reload reset and consent changes during delayed public File reads.
+Localized help finds record actions, settings and all board-menu sections and routes
+to their actual controls. Hosted monitoring and terminal diagnostic commands remain
+separate work, not inferred from these local consumers.

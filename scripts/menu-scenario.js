@@ -32,6 +32,7 @@ async (page) => {
       'share',
       'drafts',
       'search',
+      'support',
       'preferences',
       'scoring',
     ]) {
