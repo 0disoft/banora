@@ -49,7 +49,12 @@ copy. File actions sit directly above the workspace. Keyboard guidance is availa
 through localized tooltips rather than persistent paragraphs; texture help lists
 only accepted formats and size limits. The idle status is empty, while errors,
 active operations and unsaved-change confirmations remain visible. Sharing includes
-a concise link-access notice. Fonts and authored SGF text are unchanged.
+a concise link-access notice. Font families and authored SGF text are unchanged.
+Default UI text sizes in Studio, the shared widgets and examples are increased by
+one CSS pixel across desktop and mobile tiers. Root-relative sizes retain the
+browser's root font preference, with a one-pixel addition rather than proportional
+page scaling. SVG coordinates, stone numbers and diagram labels retain their
+board-space sizing so they continue to scale with the board.
 
 Studio control separators leave clearance on both sides: 16px on desktop and
 14px on narrow screens. Board, playback and workspace boundaries add the missing

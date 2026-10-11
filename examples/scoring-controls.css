@@ -35,7 +35,7 @@
 .score-layout table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 0.8rem;
+  font-size: calc(0.8rem + 1px);
 }
 .score-layout caption {
   text-align: left;

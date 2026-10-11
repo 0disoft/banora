@@ -8,11 +8,11 @@
 }
 .sharing-controls h2 {
   margin: 0 0 16px;
-  font-size: 1.15rem;
+  font-size: calc(1.15rem + 1px);
 }
 .sharing-controls label {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
 }
 .sharing-controls textarea {
   display: block;
@@ -20,7 +20,7 @@
   width: 100%;
   margin: 8px 0 12px;
   padding: 10px;
-  font: 13px system-ui;
+  font: 14px system-ui;
   border: 1px solid #bac9bf;
   border-radius: 6px;
   resize: vertical;
@@ -46,7 +46,7 @@
 }
 .sharing-controls p,
 .sharing-row span {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
 }
 .sharing-controls [hidden] {

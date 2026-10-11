@@ -5,6 +5,7 @@
   line-height: 1.6;
 }
 body {
+  font-size: calc(1rem + 1px);
   margin: 0;
 }
 main {
@@ -13,7 +14,7 @@ main {
   padding: 0 16px;
 }
 h1 {
-  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-size: calc(clamp(1.5rem, 5vw, 2rem) + 1px);
   line-height: 1.25;
 }
 .toolbar {
@@ -48,7 +49,7 @@ input:focus-visible {
 #record-state,
 #status,
 .note {
-  font-size: 0.875rem;
+  font-size: calc(0.875rem + 1px);
   overflow-wrap: anywhere;
 }
 dialog {
@@ -59,4 +60,12 @@ dialog {
 }
 dialog::backdrop {
   background: #14251baa;
+}
+
+h2 {
+  font-size: calc(1.5rem + 1px);
+}
+input {
+  /* Native controls use a 13 1/3px baseline rather than the body font. */
+  font-size: calc(13.333333px + 1px);
 }

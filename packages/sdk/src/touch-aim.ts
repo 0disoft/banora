@@ -38,7 +38,7 @@ export function mountTouchUI(
   panel.setAttribute('data-touch-confirm', '');
   panel.setAttribute('role', 'group');
   panel.style.cssText =
-    'display:none;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin-top:12px;font:14px system-ui;color:#173d31;';
+    'display:none;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin-top:12px;font:15px system-ui;color:#173d31;';
   const prompt = document.createElement('span');
   const accept = document.createElement('button'),
     reject = document.createElement('button');

@@ -14,6 +14,7 @@
   box-sizing: border-box;
 }
 body {
+  font-size: calc(1rem + 1px);
   margin: 0;
 }
 button,
@@ -51,13 +52,13 @@ p {
 h1 {
   font-family: Georgia, serif;
   font-weight: 500;
-  font-size: clamp(2rem, 3.2vw, 3.2rem);
+  font-size: calc(clamp(2rem, 3.2vw, 3.2rem) + 1px);
   letter-spacing: -0.04em;
   line-height: 1.15;
   margin: 8px 0 12px;
 }
 h2 {
-  font-size: 1rem;
+  font-size: calc(1rem + 1px);
   font-weight: 650;
 }
 select,
@@ -69,7 +70,7 @@ input {
   color: inherit;
 }
 label {
-  font-size: 0.82rem;
+  font-size: calc(0.82rem + 1px);
   color: var(--muted);
 }
 .muted {
@@ -77,10 +78,10 @@ label {
   line-height: 1.5;
 }
 .small {
-  font-size: 0.75rem;
+  font-size: calc(0.75rem + 1px);
 }
 .eyebrow {
-  font-size: 0.63rem;
+  font-size: calc(0.63rem + 1px);
   font-weight: 750;
   letter-spacing: 0.16em;
   color: var(--muted);
@@ -110,14 +111,14 @@ label {
   background:
     linear-gradient(90deg, transparent 46%, #a8b7a84d 46%, #a8b7a84d 50%, transparent 50%),
     linear-gradient(transparent 46%, #a8b7a84d 46%, #a8b7a84d 50%, transparent 50%);
-  font-size: 22px;
+  font-size: 23px;
 }
 .brand strong {
-  font-size: 1.5rem;
+  font-size: calc(1.5rem + 1px);
   letter-spacing: -0.06em;
 }
 .brand strong span {
-  font-size: 0.88rem;
+  font-size: calc(0.88rem + 1px);
   font-weight: 450;
   letter-spacing: 0;
   margin-left: 7px;
@@ -130,7 +131,7 @@ label {
   gap: 10px;
 }
 .pill {
-  font-size: 0.72rem;
+  font-size: calc(0.72rem + 1px);
   color: var(--muted);
   border: 1px solid var(--border);
   border-radius: 30px;
@@ -147,7 +148,7 @@ label {
   color: #42594d;
   background: #fff;
   padding: 10px 14px;
-  font-size: 0.82rem;
+  font-size: calc(0.82rem + 1px);
   font-weight: 600;
   transition: background 0.15s;
 }
@@ -165,7 +166,7 @@ label {
 .button.icon {
   min-width: 42px;
   padding: 8px 12px;
-  font-size: 1rem;
+  font-size: calc(1rem + 1px);
 }
 main {
   max-width: 1280px;
@@ -224,7 +225,7 @@ main {
   gap: 7px;
 }
 .theme-label select {
-  font-size: 0.75rem;
+  font-size: calc(0.75rem + 1px);
 }
 .board {
   width: 100%;
@@ -244,7 +245,7 @@ main {
   justify-content: space-between;
   margin: 18px 0 14px;
   gap: 8px;
-  font-size: 0.8rem;
+  font-size: calc(0.8rem + 1px);
   color: #68756b;
 }
 .navigation {
@@ -258,7 +259,7 @@ main {
 .move-count {
   min-width: 84px;
   text-align: center;
-  font-size: 0.8rem;
+  font-size: calc(0.8rem + 1px);
   font-weight: 650;
 }
 .editing-tools {
@@ -283,20 +284,20 @@ main {
   display: none;
 }
 .editing-tools select {
-  font-size: 0.75rem;
+  font-size: calc(0.75rem + 1px);
 }
 .editing-tools input[type='text'],
 #label-text {
   width: 55px;
 }
 .checkbox {
-  font-size: 0.72rem !important;
+  font-size: calc(0.72rem + 1px) !important;
 }
 .spacer {
   flex: 1;
 }
 .editing-tools .button {
-  font-size: 0.74rem;
+  font-size: calc(0.74rem + 1px);
   padding: 8px 12px;
 }
 .sidebar {
@@ -319,7 +320,7 @@ main {
   max-width: 245px;
   min-width: 0;
   width: 100%;
-  font-size: 0.8rem;
+  font-size: calc(0.8rem + 1px);
 }
 .metadata dl {
   display: grid;
@@ -330,7 +331,7 @@ main {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 0.8rem;
+  font-size: calc(0.8rem + 1px);
 }
 .metadata dt {
   color: var(--muted);
@@ -348,7 +349,7 @@ main {
   margin-bottom: 13px;
 }
 .card-title .muted {
-  font-size: 0.65rem;
+  font-size: calc(0.65rem + 1px);
 }
 .tree {
   max-height: 245px;
@@ -369,7 +370,7 @@ main {
   padding: 8px 10px;
   border-radius: 6px;
   color: #627467;
-  font-size: 0.78rem;
+  font-size: calc(0.78rem + 1px);
 }
 .tree button:hover {
   background: #f1f4ee;
@@ -407,21 +408,21 @@ main {
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 0.83rem;
+  font-size: calc(0.83rem + 1px);
   line-height: 1.6;
   min-height: 130px;
   background: #fcfcf7;
   color: #354a3d;
 }
 .comments h2 {
-  font-size: 0.88rem;
+  font-size: calc(0.88rem + 1px);
 }
 footer {
   display: flex;
   justify-content: space-between;
   gap: 20px;
   margin: 22px 0;
-  font-size: 0.73rem;
+  font-size: calc(0.73rem + 1px);
   color: var(--muted);
   line-height: 1.5;
 }
@@ -443,12 +444,12 @@ dialog::backdrop {
 }
 dialog h2 {
   font-family: Georgia, serif;
-  font-size: 1.7rem;
+  font-size: calc(1.7rem + 1px);
   font-weight: 500;
   margin: 12px 0;
 }
 dialog p:not(.eyebrow) {
-  font-size: 0.86rem;
+  font-size: calc(0.86rem + 1px);
   line-height: 1.6;
   color: var(--muted);
 }
@@ -469,7 +470,7 @@ body.dragging::after {
   border-radius: 16px;
   background: #e4efe4ee;
   color: #285340;
-  font-size: 1.4rem;
+  font-size: calc(1.4rem + 1px);
   pointer-events: none;
 }
 @media (max-width: 960px) {
@@ -493,7 +494,7 @@ body.dragging::after {
     font-size: 0;
   }
   .theme-label select {
-    font-size: 0.72rem;
+    font-size: calc(0.72rem + 1px);
   }
 }
 @media (max-width: 700px) {
@@ -505,17 +506,17 @@ body.dragging::after {
     padding: 0 16px;
   }
   .brand strong {
-    font-size: 1.3rem;
+    font-size: calc(1.3rem + 1px);
   }
   .header-actions {
     gap: 8px;
   }
   .pill {
-    font-size: 0.62rem;
+    font-size: calc(0.62rem + 1px);
     padding: 6px 8px;
   }
   .header-actions .button {
-    font-size: 0.72rem;
+    font-size: calc(0.72rem + 1px);
     padding: 9px 11px;
   }
   main {
@@ -537,10 +538,10 @@ body.dragging::after {
   .file-actions .button {
     flex: 1;
     padding: 10px 9px;
-    font-size: 0.75rem;
+    font-size: calc(0.75rem + 1px);
   }
   .position-info {
-    font-size: 0.72rem;
+    font-size: calc(0.72rem + 1px);
     margin: 16px 6px;
   }
   .editing-tools {
@@ -594,7 +595,7 @@ body.dragging::after {
   vertical-align: middle;
 }
 #ink-count {
-  font-size: 0.72rem;
+  font-size: calc(0.72rem + 1px);
   color: var(--muted);
 }
 @media (max-width: 700px) {
@@ -612,7 +613,7 @@ body.dragging::after {
 
 .language-select {
   font: inherit;
-  font-size: 0.75rem;
+  font-size: calc(0.75rem + 1px);
   padding: 7px 8px;
   max-width: 100px;
 }

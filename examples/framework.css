@@ -1,5 +1,5 @@
 body {
-  font: 16px system-ui;
+  font: 17px system-ui;
   max-width: 1100px;
   margin: 30px auto;
   padding: 0 20px;
@@ -42,4 +42,16 @@ button:focus-visible {
   .boards {
     grid-template-columns: 1fr;
   }
+}
+
+h1 {
+  font-size: 33px;
+}
+h2 {
+  font-size: 25px;
+}
+input,
+select {
+  /* Native controls use a 13 1/3px baseline rather than the body font. */
+  font-size: calc(13.333333px + 1px);
 }
