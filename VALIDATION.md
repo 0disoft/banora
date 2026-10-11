@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; first hosted CI executed, browser failure under review
+- Status: Active local validation; hosted Linux CI passed at b5d1d5e
 
 ## Validation Source of Truth
 

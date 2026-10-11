@@ -1,7 +1,9 @@
 # CI
 
-Status: workflow and local parity configured; hosted execution and repository
-branch-protection settings require separate evidence.
+Status: workflow and local parity configured; hosted Linux execution passed at
+`b5d1d5e` in [CI run 38160771867](https://github.com/0disoft/banora/actions/runs/38160771867).
+Branch-protection settings and dependency-update PR execution remain separate
+evidence requirements.
 
 ## One Job, Affected Checks
 

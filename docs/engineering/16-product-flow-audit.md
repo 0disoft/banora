@@ -101,11 +101,39 @@ must remain at move zero with an empty root comment and no old selections.
 
 Focused production search smoke passed locally after this test-only correction,
 including paging, preview/apply/Undo, bounds, locales and narrow-layout coverage.
-Lint and format passed. Hosted success still requires a subsequent actual run;
-the initial run is not reported as green. Runtime/API/storage/DB/dependency,
+Lint and format passed. Hosted success is recorded separately below; the initial
+run remains a failure. Runtime/API/storage/DB/dependency,
 repository hygiene and runner definitions are unchanged. Bugfix, test-hardening
 and Playwright procedures applied; validation/testing-standard owners record
 observable import completion rather than arbitrary delays.
+
+## October 12: First Successful Hosted CI
+
+[Run 38160771867](https://github.com/0disoft/banora/actions/runs/38160771867)
+completed successfully for `b5d1d5ed8f4d3e076f8257e49cbd82af37c701e9` on the private
+draft PR. Its single Ubuntu x64 job took 5 minutes 2 seconds with Bun 1.4.3,
+Node 24.21.0 and Headless Chrome 155. This also exercises stable updates within
+the supported tool majors against the existing frozen dependency lockfile.
+
+Executed gates include frozen setup/tool diagnostics, change planning, root
+quality/boundaries/builds/types, 197 tests/2,746 assertions, packed public SDK/classic
+and 297 installed CLI checks, file/permission signals, dependency audit (165
+packages, no reported advisories), React/Vue/Svelte packed types and SSR consumers,
+the complete production browser suite, and an independently installed/built
+standalone editor with its actual browser import/edit/export/reopen flow.
+Search, accessibility, bounded tree navigation, support, preferences and recovery
+run inside that completed full browser route; no route is inferred from a skipped
+step. The monthly-only step was correctly skipped for the pull-request event;
+the ordinary code route independently executed both security signal commands.
+
+This closes the missing hosted execution evidence for this source snapshot.
+The local retained d1ee675 release candidate still describes its own source and
+gates; this CI run does not publish it. Branch protection, bot update PRs, public
+visibility/demo/package publication, live rollback and physical-device/assistive
+technology certification remain unproven. No runner, permission, API, database,
+dependency or repository-hygiene settings changed. Subsequent evidence-only
+documentation commits are held for the next validated push batch, avoiding a
+second full pull-request run for identical executable code.
 
 ## October 12: Workflow and Promise Review
 
