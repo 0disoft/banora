@@ -45,6 +45,10 @@ the [specification](product/02-spec.md) for the initial editing/reopen workflow.
 
 ## Planned Versus Implemented
 
+The [project readiness review](engineering/12-readiness-review.md) tracks the active
+72-question engineering, operations and product audit and its delivery sequence.
+It does not supersede the product scope or establish completion by itself.
+
 The [terminal automation contract](sdk/automation.md) documents machine-readable
 commands, input limits and the external state authority boundary.
 
