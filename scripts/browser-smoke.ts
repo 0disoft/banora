@@ -1,8 +1,10 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
 import { requireScenarioResult, scenarioExpression } from './scenario-result.js';
+import { releaseInput } from './release-artifacts.js';
 
 const root = process.cwd();
+const release = await releaseInput();
 const output = resolve(root, 'output/playwright');
 await mkdir(output, { recursive: true });
 const session = `banora-smoke-${process.pid}`;
@@ -14,7 +16,9 @@ const server = Bun.serve({
       return new Response('Method not allowed', { status: 405 });
     const pathname = decodeURIComponent(new URL(request.url).pathname);
     const sdk = pathname.startsWith('/sdk/');
-    const directory = resolve(root, sdk ? 'packages/sdk/dist' : 'dist/examples');
+    const directory = release
+      ? resolve(release, sdk ? 'browser-sdk' : 'examples')
+      : resolve(root, sdk ? 'packages/sdk/dist' : 'dist/examples');
     const relative = sdk ? pathname.slice(5) : pathname.slice(1);
     const path = resolve(directory, relative + (pathname.endsWith('/') ? 'index.html' : ''));
     if (!path.startsWith(directory + sep)) return new Response('Not found', { status: 404 });

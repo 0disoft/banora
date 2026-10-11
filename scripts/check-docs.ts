@@ -10,6 +10,7 @@ const ignored = new Set([
   'dist',
   '.cache',
   '.tmp',
+  '.artifacts',
 ]);
 let documents = 0;
 let links = 0;

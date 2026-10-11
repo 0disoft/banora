@@ -1,5 +1,6 @@
-import { mkdir, mkdtemp, writeFile, readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile, readFile, copyFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { releaseInput } from './release-artifacts.js';
 
 const root = process.cwd();
 await mkdir(resolve(root, '.tmp'), { recursive: true });
@@ -12,10 +13,20 @@ const run = (command: string[], cwd: string) => {
     );
   return result.stdout.toString();
 };
-run(
-  [process.execPath, 'pm', 'pack', '--filename', resolve(directory, 'sdk.tgz'), '--ignore-scripts'],
-  resolve(root, 'packages/sdk'),
-);
+const release = await releaseInput();
+if (release) await copyFile(resolve(release, 'packages/sdk.tgz'), resolve(directory, 'sdk.tgz'));
+else
+  run(
+    [
+      process.execPath,
+      'pm',
+      'pack',
+      '--filename',
+      resolve(directory, 'sdk.tgz'),
+      '--ignore-scripts',
+    ],
+    resolve(root, 'packages/sdk'),
+  );
 await writeFile(
   resolve(directory, 'package.json'),
   JSON.stringify({

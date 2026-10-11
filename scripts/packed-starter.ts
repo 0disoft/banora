@@ -1,6 +1,7 @@
 import { copyFile, mkdir, mkdtemp, readFile, realpath } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
 import { smokeStarter } from './starter-browser-smoke.js';
+import { releaseInput } from './release-artifacts.js';
 
 const root = resolve(import.meta.dirname, '..');
 await mkdir(resolve(root, '.tmp'), { recursive: true });
@@ -36,10 +37,20 @@ async function run(command: string[], cwd: string): Promise<void> {
   console.log(stdout.trim());
 }
 
-await run(
-  [process.execPath, 'pm', 'pack', '--filename', resolve(directory, 'sdk.tgz'), '--ignore-scripts'],
-  resolve(root, 'packages/sdk'),
-);
+const release = await releaseInput();
+if (release) await copyFile(resolve(release, 'packages/sdk.tgz'), resolve(directory, 'sdk.tgz'));
+else
+  await run(
+    [
+      process.execPath,
+      'pm',
+      'pack',
+      '--filename',
+      resolve(directory, 'sdk.tgz'),
+      '--ignore-scripts',
+    ],
+    resolve(root, 'packages/sdk'),
+  );
 await run(
   ['npm', 'install', '--ignore-scripts', '--no-audit', '--no-fund', './sdk.tgz'],
   directory,

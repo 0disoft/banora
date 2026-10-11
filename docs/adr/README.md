@@ -50,3 +50,6 @@ bounded local operation evidence, safe failure policy and a closed support-repor
 
 The [operational recovery decision](0021-isolated-operational-recovery-checks.md)
 defines isolated backup validation/drills, safe reports and concrete local runbooks.
+
+The [retained release decision](0022-retained-release-artifacts.md) defines clean-source
+artifact preparation, exact-byte consumer checks and isolated restaging without publication.

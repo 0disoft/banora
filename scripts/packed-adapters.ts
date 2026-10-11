@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, writeFile, readFile, access, copyFile } from 'node:fs/p
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { releaseInput } from './release-artifacts.js';
 
 const root = resolve(import.meta.dirname, '..');
 await mkdir(resolve(root, '.tmp'), { recursive: true });
@@ -14,25 +15,38 @@ function run(command: string[], cwd: string) {
     );
   return result.stdout.toString();
 }
-run(
-  [process.execPath, 'pm', 'pack', '--filename', resolve(directory, 'sdk.tgz'), '--ignore-scripts'],
-  resolve(root, 'packages/sdk'),
-);
-for (const framework of ['react', 'vue', 'svelte'] as const) {
-  const consumer = resolve(directory, framework);
-  await mkdir(consumer);
-  await copyFile(resolve(directory, 'sdk.tgz'), resolve(consumer, 'sdk.tgz'));
+const release = await releaseInput();
+if (release) await copyFile(resolve(release, 'packages/sdk.tgz'), resolve(directory, 'sdk.tgz'));
+else
   run(
     [
       process.execPath,
       'pm',
       'pack',
       '--filename',
-      resolve(consumer, 'adapter.tgz'),
+      resolve(directory, 'sdk.tgz'),
       '--ignore-scripts',
     ],
-    resolve(root, 'packages', framework),
+    resolve(root, 'packages/sdk'),
   );
+for (const framework of ['react', 'vue', 'svelte'] as const) {
+  const consumer = resolve(directory, framework);
+  await mkdir(consumer);
+  await copyFile(resolve(directory, 'sdk.tgz'), resolve(consumer, 'sdk.tgz'));
+  if (release)
+    await copyFile(resolve(release, `packages/${framework}.tgz`), resolve(consumer, 'adapter.tgz'));
+  else
+    run(
+      [
+        process.execPath,
+        'pm',
+        'pack',
+        '--filename',
+        resolve(consumer, 'adapter.tgz'),
+        '--ignore-scripts',
+      ],
+      resolve(root, 'packages', framework),
+    );
   const dependencies = {
     '@banora/sdk': './sdk.tgz',
     [`@banora/${framework}`]: './adapter.tgz',

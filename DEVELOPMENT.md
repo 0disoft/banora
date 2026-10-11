@@ -145,3 +145,10 @@ exports/types, tested runtime versions, consumer examples and migration policy.
 The user's implementation delegation authorizes SDK and example development.
 Package publication and hosted deployment are separate actions. See the
 [implementation status](docs/engineering/08-implementation-status.md) for evidence.
+
+Maintainers can prepare retained local artifacts with `bun run release prepare`
+from a clean committed checkout. This runs full release gates against the retained
+package/demo bytes. `bun run release verify --bundle DIR` verifies integrity;
+`bun run release restore --bundle DIR` restages a prepared copy without deployment.
+Normal cleanup preserves `.artifacts`. See [release](docs/ops/release.md) for
+candidate/resume behavior, unsigned provenance and the separate publication handoff.

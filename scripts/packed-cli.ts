@@ -1,6 +1,7 @@
-import { mkdir, mkdtemp, readFile, writeFile, access } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile, access, copyFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { releaseInput } from './release-artifacts.js';
 
 const root = process.cwd();
 await mkdir(resolve(root, '.tmp'), { recursive: true });
@@ -10,18 +11,23 @@ function run(command: string[], cwd: string) {
   if (result.exitCode !== 0)
     throw Error(`${command[0]} failed: ${result.stdout.toString()}${result.stderr.toString()}`);
 }
-for (const name of ['sdk', 'cli'])
-  run(
-    [
-      process.execPath,
-      'pm',
-      'pack',
-      '--filename',
-      resolve(directory, `${name}.tgz`),
-      '--ignore-scripts',
-    ],
-    resolve(root, 'packages', name),
-  );
+const release = await releaseInput();
+for (const name of ['sdk', 'cli']) {
+  if (release)
+    await copyFile(resolve(release, `packages/${name}.tgz`), resolve(directory, `${name}.tgz`));
+  else
+    run(
+      [
+        process.execPath,
+        'pm',
+        'pack',
+        '--filename',
+        resolve(directory, `${name}.tgz`),
+        '--ignore-scripts',
+      ],
+      resolve(root, 'packages', name),
+    );
+}
 await writeFile(
   resolve(directory, 'package.json'),
   JSON.stringify({

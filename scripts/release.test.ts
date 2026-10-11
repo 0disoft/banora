@@ -1,0 +1,132 @@
+import { expect, test } from 'bun:test';
+import { mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import {
+  inventory,
+  isReleaseManifest,
+  RELEASE_CHECKS,
+  RELEASE_PACKAGES,
+  restoreRelease,
+  verifyRelease,
+} from './release-artifacts.js';
+import type { ReleaseManifest } from './release-artifacts.js';
+import { releaseSource, runReleaseCheck } from './release.js';
+
+async function fixture(prepared = false) {
+  await mkdir('.tmp', { recursive: true });
+  const root = await mkdtemp(resolve('.tmp/release-test-'));
+  const bundle = resolve(root, 'bundle');
+  await mkdir(resolve(bundle, 'packages'), { recursive: true });
+  for (const name of RELEASE_PACKAGES)
+    await writeFile(
+      resolve(bundle, `packages/${name}.tgz`),
+      `Authored ${name} integrity fixture, not an executable package.`,
+    );
+  await mkdir(resolve(bundle, 'examples/studio'), { recursive: true });
+  await writeFile(
+    resolve(bundle, 'examples/studio/index.html'),
+    '<html>Authored integrity fixture</html>',
+  );
+  await mkdir(resolve(bundle, 'browser-sdk'));
+  await writeFile(
+    resolve(bundle, 'browser-sdk/banora.global.js'),
+    '/* Authored integrity fixture */',
+  );
+  const manifest: ReleaseManifest = {
+    schemaVersion: 'banora.release/v1',
+    state: prepared ? 'prepared' : 'candidate',
+    source: { commit: 'a'.repeat(40), tree: 'b'.repeat(40) },
+    tools: { bun: '1.4.2', node: '24.14.0' },
+    packages: RELEASE_PACKAGES.map((name) => ({
+      name: `@banora/${name}`,
+      version: '0.1.0-dev.0',
+      archive: `packages/${name}.tgz`,
+    })),
+    files: await inventory(bundle),
+    checks: prepared ? RELEASE_CHECKS : [],
+  };
+  await writeFile(resolve(bundle, 'manifest.json'), JSON.stringify(manifest));
+  return { root, bundle, manifest };
+}
+test('release schema rejects future, traversing, duplicate and incomplete evidence; candidate does not imply prepared', async () => {
+  const { bundle, manifest } = await fixture();
+  expect(isReleaseManifest(manifest)).toBe(true);
+  expect((await verifyRelease(bundle, true)).manifest.state).toBe('candidate');
+  await expect(verifyRelease(bundle)).rejects.toThrow('manifest');
+  for (const value of [
+    { ...manifest, schemaVersion: 'banora.release/future' },
+    { ...manifest, state: 'prepared' },
+    { ...manifest, extra: 'unknown' },
+    { ...manifest, files: [...manifest.files, manifest.files[0]] },
+    {
+      ...manifest,
+      files: manifest.files.map((file, index) =>
+        index === 0 ? { ...file, path: '../outside' } : file,
+      ),
+    },
+    {
+      ...manifest,
+      files: manifest.files.map((file, index) =>
+        index === 0 ? { ...file, bytes: Infinity } : file,
+      ),
+    },
+    { ...manifest, packages: manifest.packages.slice(1) },
+  ])
+    expect(isReleaseManifest(value)).toBe(false);
+});
+test('integrity verifies complete bytes and rejects extra or changed files without editing originals', async () => {
+  const { bundle } = await fixture(true);
+  expect((await verifyRelease(bundle)).manifest.state).toBe('prepared');
+  const file = resolve(bundle, 'packages/sdk.tgz');
+  const original = await readFile(file);
+  await writeFile(file, 'Changed authored fixture');
+  await expect(verifyRelease(bundle)).rejects.toThrow('integrity');
+  await writeFile(file, original);
+  await writeFile(resolve(bundle, 'examples/unexpected.js'), 'Unexpected fixture');
+  await expect(verifyRelease(bundle)).rejects.toThrow('integrity');
+  expect(await readFile(file)).toEqual(original);
+});
+test('release restaging copies verified immutable bytes, preserves source and rejects directory links', async () => {
+  const { root, bundle, manifest } = await fixture(true);
+  const original = await readFile(resolve(bundle, 'manifest.json'));
+  const restored = resolve(root, await restoreRelease(root, bundle));
+  expect(restored).not.toBe(bundle);
+  expect((await verifyRelease(restored)).manifest.files).toEqual(manifest.files);
+  expect(await readFile(resolve(bundle, 'manifest.json'))).toEqual(original);
+  await writeFile(resolve(restored, 'packages/sdk.tgz'), 'Restaging modification');
+  expect((await verifyRelease(bundle)).manifest.files).toEqual(manifest.files);
+  const outside = resolve(root, 'outside');
+  await mkdir(outside);
+  await symlink(
+    outside,
+    resolve(bundle, 'examples/linked'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
+  await expect(verifyRelease(bundle)).rejects.toThrow('linked');
+});
+test('source gate checks the actual workspace/Git state and check execution fails/stops without raw log propagation', async () => {
+  const { root } = await fixture();
+  const initialized = Bun.spawnSync(['git', 'init', '--quiet', root], {
+    stdout: 'pipe',
+    stderr: 'pipe',
+  });
+  expect(initialized.exitCode).toBe(0);
+  await writeFile(
+    resolve(root, 'package.json'),
+    JSON.stringify({ name: 'banora-workspace', private: true }),
+  );
+  expect(() => releaseSource(root)).toThrow('source');
+  await expect(
+    runReleaseCheck(process.cwd(), ['-e', 'process.exit(1)'], 'failure-fixture', 5000),
+  ).rejects.toThrow('check');
+  await expect(
+    runReleaseCheck(process.cwd(), ['-e', 'setInterval(()=>{},1000)'], 'timeout-fixture', 100),
+  ).rejects.toThrow('check');
+  const child = Bun.spawnSync([process.execPath, 'scripts/release.ts', '--unknown'], {
+    stdout: 'pipe',
+    stderr: 'pipe',
+  });
+  expect(child.exitCode).toBe(1);
+  expect(child.stderr.toString()).toBe('');
+  expect(JSON.parse(child.stdout.toString()).error.code).toBe('usage');
+});

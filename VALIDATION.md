@@ -37,6 +37,13 @@ changes also run the production browser suite; desktop SDK timing does not prove
 
 ## Required Final Report
 
+`scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
+modified/extra files, directory links, source-preserving isolated restaging, actual
+Git source guards and failed/timed-out check processes. `bun run release prepare`
+requires committed clean source and runs all nine gates against retained artifacts;
+see [release](docs/ops/release.md). Prepared reuse verifies integrity without rerunning
+gates. `verify` and `restore --bundle DIR` do not prove publication or live rollback.
+
 Final responses must list executed validations, passed validations, skipped validations, skip reasons, and remaining risk.
 
 ## Runner Policy

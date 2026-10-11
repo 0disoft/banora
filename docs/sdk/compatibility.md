@@ -346,3 +346,10 @@ changes may require adapter checks, but unrelated edits do not require a full ma
 Record actual tested runtime versions in the [implementation status](../engineering/08-implementation-status.md).
 The common package is `0.1.0-dev.0`; no automatic version bump or publication is
 configured. Version changes belong to an intentional release task.
+
+Local [release preparation](../ops/release.md) checks retained exact tarballs and
+production examples from clean committed source, with independently installed
+SDK/CLI/framework consumers and a standalone starter. A prepared unsigned bundle
+and its isolated [restaging](../ops/rollback.md) are not registry publication or a
+live host rollback. Restoring older artifacts still requires checking the target
+host's APIs and supported saved-data versions; no automatic data downgrade occurs.

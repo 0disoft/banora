@@ -66,8 +66,10 @@ documentation and contributor-facing examples use English.
 Remaining generic engineering/operations templates are scaffolds, not evidence of
 implemented infrastructure. The [operational contract](ops/00-operational-contract.md)
 now owns executable local recovery, incident, configuration and private-data procedures.
-Release/rollback preparation and private reporting remain explicit readiness work;
-these procedures do not establish hosted-service infrastructure or publication.
+The [release](ops/release.md) and [rollback](ops/rollback.md) procedures own local
+retained-artifact preparation, integrity checks and isolated restaging. Private
+reporting and remote release access remain explicit readiness work; these procedures
+do not establish hosted-service infrastructure or publication.
 
 Diagrams are explanatory views of the documented architecture; see the
 [diagram index](../diagrams/README.md). Change the owning contract before updating

@@ -34,32 +34,32 @@ This is an ownership decision, not evidence that such a service exists.
 
 ## Engineering and Operations
 
-| ID  | Requested outcome                                | Current evidence / work to verify                                                                                                   |
-| --- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Reproducible tools and initial setup             | Bun/Node majors and lockfile exist; add bootstrap and executable environment checks.                                                |
-| 2   | Common run/build/check/cleanup commands          | Root package scripts exist; add discovery, setup and bounded cleanup.                                                               |
-| 3   | Module responsibility and dependency enforcement | Architecture and packed headless checks exist; add a source import gate.                                                            |
-| 4   | Design decisions and rejected alternatives       | ADRs 0001-0013 exist; record new readiness decisions and link their owners.                                                         |
-| 5   | Interface types, documents and compatibility     | Public declarations, automation schema and packed consumers exist; audit export/document synchronization.                           |
-| 6   | Validated configuration and safe secrets         | SDK options validate locally; ops templates need actual defaults and host secret boundaries.                                        |
-| 7   | Normal/error/boundary development fixtures       | Authored SGF, puzzles and analysis fixtures exist; index reproducible cases and reset paths.                                        |
-| 8   | Fast regression checks with repro cases          | Bun tests and focused browser scenarios exist; add readiness regression coverage.                                                   |
-| 9   | Change-aware CI and caching                      | No hosted workflow exists; implement bounded routing and cache policy.                                                              |
-| 10  | Stable updates within supported majors           | Manifest ranges/lockfile exist; automate reviewed update candidates and major promotion gates.                                      |
-| 11  | Format/static/forbidden-pattern/size rules       | Oxlint/Oxfmt exist; enforce dependency, quality and review-size policies.                                                           |
-| 12  | Error classes, messages, causes and retryability | Typed SDK reason/recovery projection implemented; consumer messaging and retry safety need integration.                             |
-| 13  | Structured operation identifiers/logs            | Explicit bounded SDK evidence/IDs have Studio opt-in and one-run terminal consumers; no hosted tracing implied.                     |
-| 14  | Latency/failure/resource visibility and alerts   | SDK retained-window outcome/timing summaries and real ops guide implemented; hosted monitoring remains host-owned.                  |
-| 15  | Timeout/retry/rate limits/failure containment    | Analysis cancellation/capacity and host process deadlines exist; audit disconnect/retry boundaries.                                 |
-| 16  | Versioned data, migration and recovery           | SGF and automation versions exist; version new local drafts/preferences and test invalid/future versions.                           |
-| 17  | Rebuildable infrastructure and permissions       | SDK needs no server infrastructure; CI/static artifacts must be declarative and least-privilege.                                    |
-| 18  | Pre-release verification environment             | Production examples and isolated installed consumers exist; provide a repeatable release-preparation path.                          |
-| 19  | Release verification and rollback automation     | Packed checks exist; operational release/rollback documents are empty scaffolds.                                                    |
-| 20  | Feature activation and emergency disable         | Explicit optional modules/providers and read-only options exist; audit capability control without remote flags.                     |
-| 21  | Automatic backups and verified restore           | SGF export exists; add local draft backup/restore and document portable backup limits.                                              |
-| 22  | Executable operational procedures                | Local config/secrets/incident/recovery runbooks and actual isolated backup checks/drills exist; release preparation remains active. |
-| 23  | Secret/dependency/permission security gates      | Input-boundary tests exist; add repository/CI security checks and documented vulnerability reporting.                               |
-| 24  | Code/document synchronization                    | Relative-link/docs and packed declarations checks exist; add command/export policy evidence.                                        |
+| ID  | Requested outcome                                | Current evidence / work to verify                                                                                                           |
+| --- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Reproducible tools and initial setup             | Bun/Node majors and lockfile exist; add bootstrap and executable environment checks.                                                        |
+| 2   | Common run/build/check/cleanup commands          | Root package scripts exist; add discovery, setup and bounded cleanup.                                                                       |
+| 3   | Module responsibility and dependency enforcement | Architecture and packed headless checks exist; add a source import gate.                                                                    |
+| 4   | Design decisions and rejected alternatives       | ADRs 0001-0013 exist; record new readiness decisions and link their owners.                                                                 |
+| 5   | Interface types, documents and compatibility     | Public declarations, automation schema and packed consumers exist; audit export/document synchronization.                                   |
+| 6   | Validated configuration and safe secrets         | SDK options validate locally; ops templates need actual defaults and host secret boundaries.                                                |
+| 7   | Normal/error/boundary development fixtures       | Authored SGF, puzzles and analysis fixtures exist; index reproducible cases and reset paths.                                                |
+| 8   | Fast regression checks with repro cases          | Bun tests and focused browser scenarios exist; add readiness regression coverage.                                                           |
+| 9   | Change-aware CI and caching                      | No hosted workflow exists; implement bounded routing and cache policy.                                                                      |
+| 10  | Stable updates within supported majors           | Manifest ranges/lockfile exist; automate reviewed update candidates and major promotion gates.                                              |
+| 11  | Format/static/forbidden-pattern/size rules       | Oxlint/Oxfmt exist; enforce dependency, quality and review-size policies.                                                                   |
+| 12  | Error classes, messages, causes and retryability | Typed SDK reason/recovery projection implemented; consumer messaging and retry safety need integration.                                     |
+| 13  | Structured operation identifiers/logs            | Explicit bounded SDK evidence/IDs have Studio opt-in and one-run terminal consumers; no hosted tracing implied.                             |
+| 14  | Latency/failure/resource visibility and alerts   | SDK retained-window outcome/timing summaries and real ops guide implemented; hosted monitoring remains host-owned.                          |
+| 15  | Timeout/retry/rate limits/failure containment    | Analysis cancellation/capacity and host process deadlines exist; audit disconnect/retry boundaries.                                         |
+| 16  | Versioned data, migration and recovery           | SGF and automation versions exist; version new local drafts/preferences and test invalid/future versions.                                   |
+| 17  | Rebuildable infrastructure and permissions       | SDK needs no server infrastructure; CI/static artifacts must be declarative and least-privilege.                                            |
+| 18  | Pre-release verification environment             | Production examples and isolated installed consumers exist; provide a repeatable release-preparation path.                                  |
+| 19  | Release verification and rollback automation     | Retained prepare/verify/isolated-restage tooling exists; clean-source exact-artifact execution and remote handoff remain separate evidence. |
+| 20  | Feature activation and emergency disable         | Explicit optional modules/providers and read-only options exist; audit capability control without remote flags.                             |
+| 21  | Automatic backups and verified restore           | SGF export exists; add local draft backup/restore and document portable backup limits.                                                      |
+| 22  | Executable operational procedures                | Local config/secrets/incident/recovery runbooks and actual isolated backup checks/drills exist; release preparation remains active.         |
+| 23  | Secret/dependency/permission security gates      | Input-boundary tests exist; add repository/CI security checks and documented vulnerability reporting.                                       |
+| 24  | Code/document synchronization                    | Relative-link/docs and packed declarations checks exist; add command/export policy evidence.                                                |
 
 ## Product Workflows
 
@@ -134,3 +134,6 @@ required in-scope implementation is complete.
 all implementation/check history separately from this current-state worklist.
 Historical counts and next-step notes are scoped to their increment; they do not
 replace the final current-state, requirement-by-requirement completion audit.
+
+[Retained release evidence](15-release-preparation-evidence.md) separately records
+the local artifact preparation exercise and its publication/rollback boundaries.

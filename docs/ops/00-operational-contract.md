@@ -35,8 +35,10 @@ or opens browser storage. JSON results exclude content, names, paths and raw err
 Use [incident response](incident-response.md), [configuration](config-and-env.md),
 [secrets](secrets.md), [backup/restore](backup-and-restore.md) and
 [diagnostics](observability.md) for action-specific procedures. Release and rollback
-preparation remain tracked by the [active readiness review](../engineering/12-readiness-review.md);
-empty release templates do not establish a working publication channel.
+preparation use [release](release.md) and [rollback](rollback.md): clean-source,
+retained-artifact checks and isolated restaging. They do not establish a working
+publication channel or a host's deployment pointer. Remaining remote/access gates
+are tracked by the [active readiness review](../engineering/12-readiness-review.md).
 
 ## Recovery and Release Gates
 

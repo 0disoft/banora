@@ -26,3 +26,6 @@ output/playwright/
 
 # Svelte packaging intermediates
 .svelte-kit/
+
+# Retained release bundles and isolated restore staging; normal clean preserves them.
+.artifacts/
