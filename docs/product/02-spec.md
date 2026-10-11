@@ -157,6 +157,8 @@ the prior baseline intact. A browser download cannot establish actual disk persi
 Before Studio replaces or closes a dirty record, offer Export / Discard / Cancel.
 Only successful export or explicit discard allows the pending operation; cancellation
 retains the current record. Hosts own this UI; the SDK supplies state and operations.
+Studio ignores late file reads and read errors after a newer file selection,
+record replacement or page exit, so earlier input cannot overwrite the current record.
 Autosave and recovery are deferred. See the [API contract](../sdk/public-api.md).
 
 ## SGF Preservation

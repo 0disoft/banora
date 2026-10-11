@@ -158,6 +158,8 @@ SGF downloads and an actual six-stone PV SVG excluding predictions/cursor are
 required with the exact completion Result. It is included in the complete suite;
 illustrative protocol data does not establish actual engine/model compatibility.
 `--drop-only` exercises Studio's production DOM file drag/drop boundary, metadata,
+deferred read completion/error races against newer valid/invalid selections and
+new/example record replacement,
 handicap/setup and branch rendering, Cancel/Export & continue, actual export/reopen
 and retention after malformed bytes. It requires a completed Result and downloaded
 SGF content. This uses browser-created File/DataTransfer/DragEvent objects; it does

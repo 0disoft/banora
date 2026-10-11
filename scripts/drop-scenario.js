@@ -129,6 +129,83 @@ async (page) => {
       'Invalid dropped bytes opened a replacement guard',
     );
     await page.screenshot({ path: 'output/playwright/studio-drop-reopen.png', fullPage: true });
+    // Defer the browser's real File read; exercise the same public drop boundary.
+    await page.evaluate(() => {
+      const original = File.prototype.arrayBuffer;
+      window.restoreFileRead = () => {
+        File.prototype.arrayBuffer = original;
+      };
+      File.prototype.arrayBuffer = function () {
+        if (!this.name.startsWith('delayed-')) return original.call(this);
+        return new Promise((resolve, reject) => {
+          window.finishFileRead = async () => {
+            if (this.name === 'delayed-error.sgf') reject(Error('Stale file read error'));
+            else resolve(await original.call(this));
+            await new Promise(requestAnimationFrame);
+          };
+        });
+      };
+    });
+    try {
+      const older = Buffer.from('(;SZ[9]GN[Older delayed record])');
+      await drop(older, 'delayed-old.sgf');
+      await drop(Buffer.from('(;SZ[13]GN[Latest selected record])'), 'latest.sgf');
+      await page.waitForFunction(
+        () => document.querySelector('#game-name').textContent === 'Latest selected record',
+      );
+      await page.evaluate(() => window.finishFileRead());
+      verify(
+        (await page.locator('#game-name').textContent()) === 'Latest selected record',
+        'Late file read overwrote newer selection',
+      );
+      await drop(older, 'delayed-error.sgf');
+      await drop(Buffer.from('(;SZ[9]GN[Latest after error])'), 'latest-error.sgf');
+      await page.waitForFunction(
+        () => document.querySelector('#game-name').textContent === 'Latest after error',
+      );
+      const status = await page.locator('#status').textContent();
+      await page.evaluate(() => window.finishFileRead());
+      verify(
+        (await page.locator('#status').textContent()) === status,
+        'Stale read error overwrote current status',
+      );
+      await drop(older, 'delayed-invalid.sgf');
+      await drop(Buffer.from('(bad'), 'latest-invalid.sgf');
+      await page.waitForFunction(() =>
+        document.querySelector('#status').textContent.includes('Unexpected'),
+      );
+      await page.evaluate(() => window.finishFileRead());
+      verify(
+        (await page.locator('#game-name').textContent()) === 'Latest after error',
+        'Earlier file replaced record after latest input failed',
+      );
+      await drop(older, 'delayed-new.sgf');
+      await page.locator('#new').click();
+      await page.waitForFunction(
+        () => document.querySelector('#board svg').getAttribute('data-board-width') === '19',
+      );
+      await page.evaluate(() => window.finishFileRead());
+      verify(
+        (await page.locator('#board svg').getAttribute('data-board-width')) === '19',
+        'Late file replaced a new record',
+      );
+      await drop(older, 'delayed-sample.sgf');
+      await page.locator('#sample').click();
+      await page.waitForFunction(
+        () => document.querySelector('#game-name').textContent === 'Opening study',
+      );
+      await page.evaluate(() => window.finishFileRead());
+      verify(
+        (await page.locator('#game-name').textContent()) === 'Opening study',
+        'Late file replaced the example record',
+      );
+    } finally {
+      await page.evaluate(() => {
+        window.restoreFileRead();
+        delete window.restoreFileRead;
+        delete window.finishFileRead;
+      });
+    }
     verify(
       errors.length === 0 && external.length === 0,
       `Dropped file errors/remote requests: ${[...errors, ...external].join('; ')}`,

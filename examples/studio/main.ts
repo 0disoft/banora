@@ -89,6 +89,8 @@ const file = find<HTMLInputElement>('file');
 const games = find<HTMLSelectElement>('games');
 let filename = 'opening-study.sgf';
 let opening = false;
+let disposed = false;
+let fileReadSequence = 0;
 let lastTreeState: { record: ControllerState['record']; id: string } | undefined;
 let connectionStart: { point: Point; node: string } | undefined;
 let comparison: ComparisonView | undefined;
@@ -351,7 +353,7 @@ async function openRecord(
   locator?: RecordLocator,
   signal?: AbortSignal,
 ): Promise<boolean> {
-  if (opening || signal?.aborted) return false;
+  if (opening || disposed || signal?.aborted) return false;
   opening = true;
   try {
     const parsed = typeof input === 'string' ? parseSgf(input) : decodeSgf(input);
@@ -360,7 +362,7 @@ async function openRecord(
       return false;
     }
     const approved = await mayReplace(signal);
-    if (!approved || signal?.aborted) return false;
+    if (!approved || disposed || signal?.aborted) return false;
     if (controller.getState().record !== approved) {
       setUiText(status, 'Record changed during approval. Open it again.');
       return false;
@@ -380,15 +382,23 @@ async function openRecord(
   }
 }
 async function openFile(selected?: File): Promise<void> {
-  if (!selected) return;
+  if (!selected || disposed) return;
+  const sequence = ++fileReadSequence;
+  const generation = controller.getState().recordGeneration;
+  const current = () =>
+    !disposed &&
+    sequence === fileReadSequence &&
+    generation === controller.getState().recordGeneration;
   if (selected.size > 5 * 1024 * 1024) {
     setUiText(status, 'SGF file exceeds the 5 MiB input limit.');
     return;
   }
   try {
-    await openRecord(new Uint8Array(await selected.arrayBuffer()), selected.name);
+    const bytes = new Uint8Array(await selected.arrayBuffer());
+    if (!current()) return;
+    await openRecord(bytes, selected.name);
   } catch (error) {
-    setUiText(status, `Could not open file: ${String(error)}`);
+    if (current()) setUiText(status, `Could not open file: ${String(error)}`);
   }
 }
 find('open').addEventListener('click', () => file.click());
@@ -584,8 +594,10 @@ window.addEventListener('beforeunload', (event) => {
   }
 });
 window.addEventListener('pagehide', (event) => {
+  fileReadSequence++;
   playbackControls.playback.pause();
   if (!event.persisted) {
+    disposed = true;
     disposeLanguage();
     disposeStaticLanguage();
     disposeBoardMenu();
