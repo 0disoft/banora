@@ -3,8 +3,9 @@
 Status: scoped local tooling and clean-source preparation executed. This is not
 publication, hosted rollback or all-72 completion.
 
-Latest executed candidate: clean source `cb53a96`, prepared and restaged after the
-package identity change. Its exact
+Latest executed candidate: hosted clean source `ff9edb7`, retained in GitHub Actions
+and downloaded/verified locally. The earlier cb53a96 Windows candidate is preserved.
+Their exact
 evidence is recorded at the end of this document; older snapshots below remain
 historical and do not describe current GitHub or candidate state.
 
@@ -14,6 +15,44 @@ previous `@banora/*` identities and cannot be published under the new names.
 Its 149 files verified successfully with the updated verifier; originals were
 not rewritten. The newly prepared candidate contains the current package names.
 Use the recorded source commit for executable legacy-bundle consumers.
+
+## October 12: Hosted Candidate Retained and Downloaded
+
+The manual-only
+[preparation run 38173047836](https://github.com/0disoft/banora/actions/runs/38173047836)
+completed successfully in one 4m31s Ubuntu job at main source
+`ff9edb7156e148edcfcc406e3dddbecd7e0182a1`, tree
+`a6dba1a4458a66ff7874c32b987ce31dc02c0b06`, using Bun 1.4.3 and Node 24.21.0.
+Its terminal receipt records new preparation (`reused: false`), all nine successful
+gates and 149 retained current-name files at version `0.1.0-dev.0`. The full browser
+and starter gates ran against exact retained files, not a later rebuild. Child
+output was drained; the receipt does not supply another inner test count.
+
+GitHub retained one non-expired artifact:
+
+- ID `11714732515`; name
+  `banora-candidate-ff9edb7156e148edcfcc406e3dddbecd7e0182a1-38173047836-1`.
+- Upload archive SHA-256 from action output and API metadata:
+  `8670f93dfb2211a2b8865fd5452d43063bc78b7911cf9319ff3163dde3ab59a8`.
+- Size 681,033 bytes; API expiry `2026-10-25T20:42:50Z`. This is temporary repository
+  storage, not permanent retention, public access or a published npm release.
+- Prepared manifest SHA-256 from the hosted publication-plan receipt:
+  `6b63e49efa8f33ff28708a2109246baa513bbff6a0b1429bcf14ac3c0f761e2d`.
+
+The named artifact was actually downloaded to
+`.artifacts/downloads/38173047836-9dde2fd7-1d9a-4a2a-9d04-0ad8411c54e9/`.
+The downloaded manifest hash equals the hosted receipt; `release verify` checked
+all 149 file hashes and source/tree. Installed public SDK/classic/global/type/
+license consumers passed from those downloaded Linux-built tarballs on Windows,
+followed by 297 actual installed Node CLI checks. No package was rebuilt for these
+consumer runs. The archive digest was inspected in hosted output/API metadata;
+the separate downloaded ZIP archive hash was not independently recalculated.
+
+The workflow's authority remained read-only repository access, without OIDC or
+registry tokens. It changed neither repository visibility nor npm settings.
+Verified transfer and cross-platform consumption close the configured-only upload
+gap; authorization, public provenance, initial registry publication and live
+previous-version rollback remain separate obligations.
 
 ## October 12: Current Publisher Identities Prepared and Restaged
 

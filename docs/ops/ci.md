@@ -5,6 +5,18 @@ Status: workflow and local parity configured; hosted Linux default-main executio
 Branch-protection settings and dependency-update PR execution remain separate
 evidence requirements.
 
+Subsequent scoped [CI run 38173018558](https://github.com/0disoft/banora/actions/runs/38173018558)
+passed at ff9edb7 in 35s: root check with 203 tests/2,831 assertions, 297 installed
+CLI checks and 357-file permission signals. The release-only route correctly
+skipped browser installation/full browser, additional installed adapters/starter
+and dependency audit. Complete current-name browser/installed-consumer evidence
+remains at ec13a69; the separate manual candidate route runs all nine release gates.
+
+Actual successful Bun/GitHub Actions Dependabot jobs were also inspected at
+fed716a; their checked versions required no update. See the
+[dependency policy](../engineering/06-dependency-and-change-policy.md) for exact
+job evidence and its limits. No changed-lockfile update PR or auto-merge is claimed.
+
 The October 12 validated push batch put the current SDK/tooling and grouped monthly
 Dependabot configuration on the remote default branch. Its single Ubuntu CI job
 passed in 3m46s: frozen setup, 198 tests/2,770 assertions, 297 installed CLI checks,

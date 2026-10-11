@@ -28,6 +28,16 @@ require diff review because a pre-1.0 minor can change behavior. The
 uses the committed text lockfile. Configuration is not proof that a hosted update
 job or repository security alerts are enabled.
 
+On October 12, hosted update execution was verified from the actual terminal
+Dependabot jobs at source fed716a: the
+[Bun job](https://github.com/0disoft/banora/actions/runs/38164787176) and
+[GitHub Actions job](https://github.com/0disoft/banora/actions/runs/38164787095)
+both succeeded. Their logs inspected registry versions, applied the configured
+update policy and recorded no needed updates for the checked dependencies/actions.
+No update PR or automatic merge was required or observed. This proves bot execution
+for that source, not a future changed-lockfile compatibility run or security-alert
+configuration; new updates still require the affected checks described below.
+
 Manifest/lockfile changes trigger the installed adapters, standalone editor, full
 browser consumers and high/critical dependency audit in [CI](../ops/ci.md). A monthly
 audit detects newly reported advisories even without dependency changes. Failed

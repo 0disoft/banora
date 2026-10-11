@@ -128,9 +128,11 @@ verification for release-only orchestration while retaining all mixed SDK gates.
 Actual hosted artifact retention and downloaded-byte verification require separate
 execution evidence; workflow/static checks alone do not prove those outcomes.
 
-The latest executed preparation is clean source `cb53a96`: all nine named gates
-passed against its retained 149-file bundle. Actual verification/restaging and
-installed copied SDK/classic/types/license plus 297 copied CLI checks also passed.
+The latest executed preparation is hosted clean source `ff9edb7`: all nine named
+gates passed against its retained 149-file bundle, which was uploaded and actually
+downloaded with the matching manifest hash. Downloaded Linux-built SDK/classic/
+types/license and 297 installed CLI checks also passed on Windows. The earlier
+cb53a96 local bundle remains verified/restaged and preserved.
 See [release evidence](docs/engineering/15-release-preparation-evidence.md) for the
 source/tree, manifest hash, tools and exact preservation/publication boundary.
 

@@ -125,13 +125,17 @@ last recovery copy. Restore procedures are in [rollback](rollback.md).
 
 ## Publication Handoff
 
-Before any publication, designate the primary/backup maintainer and a real private
+Before any publication, identify the primary maintainer, account/artifact recovery
+procedure and a real private
 security-report channel; establish registry scope access, credentials outside Git,
 public feedback access, licensing/provenance and supported runtime evidence.
 Hosted CI and a local green result are different evidence. Stop on failed checks,
 authored-data loss, leaked data, mismatched bytes or missing publication authority.
 Record approved source, manifest hash, version, destination, operator and recovery
 bundle in the release record. Keep prereleases separate from the stable channel.
+
+A solo maintainer can own this handoff; do not require a fictional backup person.
+Any actual backup maintainer or escalation contact must be recorded explicitly.
 
 If a future registry task authorizes publication, publish each reviewed retained
 tarball rather than rebuilding it. Publish the SDK before dependent packages,

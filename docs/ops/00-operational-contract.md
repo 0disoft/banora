@@ -9,9 +9,13 @@ SDK maintainers own package correctness, compatibility, repository verification,
 issue triage and release artifacts. The integrating application operator owns its
 users, permissions, secrets, storage, retention, deployment and service incidents.
 A user's local Studio browser/profile owns its drafts and downloaded files. There
-is no SDK account database, background server, on-call team or cloud backup.
-Named backup maintainers/escalation contacts are not established; release handoff
-must designate them rather than inventing a contact in this document.
+is no SDK account database, background server, on-call team or automatic cloud
+backup of browser-authored records. Temporary hosted release artifacts have
+separate maintainer-owned retention, as documented in [release](release.md).
+This repository is maintained by a solo operator. Release handoff must identify
+the primary maintainer and an account/artifact recovery procedure; a second person
+is not a prerequisite. Record a backup maintainer or escalation contact only if
+one actually exists, without inventing availability or a private contact.
 
 Critical SDK journeys are open/navigate/edit/export/reopen with authored properties
 preserved; isolated terminal requests with protected input files; guarded recovery
