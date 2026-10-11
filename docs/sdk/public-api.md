@@ -760,7 +760,9 @@ created controller is disposed with the viewer. The
 variation tree labels include the position's move number, for example `23 · Black Q4`.
 Numbers follow each branch independently, count passes, retain the number on annotation/setup
 nodes and honor SGF `MN` overrides, matching the navigation counter. The start position is
-normally `0 · Start position`. The tree has the same 500-node display bound as Studio; all nodes remain
+normally `0 · Start position`. Rows with nonblank `C` comments include a speech-bubble
+indicator; its tooltip and accessible description use `messages.hasComment`.
+Whitespace-only comments have no indicator, and comment edits/Undo/Redo update it. The tree has the same 500-node display bound as Studio; all nodes remain
 accessible through controller navigation. Comments and metadata are rendered as
 text. Mounting requires a DOM; importing the package on the server is safe.
 

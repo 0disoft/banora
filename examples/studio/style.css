@@ -381,6 +381,12 @@ main {
   color: #285340;
   font-weight: 650;
 }
+.tree .banora-comment-indicator {
+  display: inline-flex;
+  flex: none;
+  margin-left: auto;
+  opacity: 0.8;
+}
 .tree-dot {
   width: 9px;
   height: 9px;

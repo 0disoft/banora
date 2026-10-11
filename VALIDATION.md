@@ -207,6 +207,7 @@ After building examples, `bun scripts/browser-smoke.ts --locale-only` checks
 English/Korean Viewer updates, custom literal messages, rejection rollback,
 localized board accessibility, authored content/selection/dirty-state preservation,
 Studio labels, sharing, manual scoring, SGF export, saved language preference and
+comment indicators (blank/whitespace, add/clear, Undo/Redo and localized accessible descriptions), plus
 390px/1440px layouts. It runs in the full browser suite. Existing role-based
 fixtures explicitly select English; they do not rely on the runner machine's
 browser language. Headless locale helpers are tested through an isolated packed

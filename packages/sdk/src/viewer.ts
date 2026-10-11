@@ -31,7 +31,7 @@ export interface ViewerView {
 const stylesheet = `
 .banora-viewer{font:14px system-ui;color:var(--banora-text,#294738);background:var(--banora-surface,#fafbf5);border:1px solid #d9e1d4;border-radius:12px;padding:18px;box-sizing:border-box;max-width:100%;min-width:0}
 .banora-viewer header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.banora-viewer h2{font-size:16px;margin:0}.banora-viewer button,.banora-viewer select{font:inherit;color:inherit;border:1px solid #cfd9cb;background:#fff;border-radius:7px;padding:8px 11px;cursor:pointer}.banora-viewer button:disabled{opacity:.4;cursor:default}.banora-viewer button:focus-visible,.banora-viewer select:focus-visible,.banora-viewer textarea:focus-visible{outline:3px solid #589474;outline-offset:3px}
-.banora-viewer nav{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:7px;margin-top:14px}.banora-viewer [data-summary]{font-size:12px;text-align:center;margin:12px 0}.banora-viewer [data-tree]{max-height:220px;overflow:auto;display:grid;gap:3px;margin-top:10px}.banora-viewer [data-tree] button{text-align:left;width:100%;border:0;background:transparent}.banora-viewer [data-tree] button[aria-current=true]{background:#e3efdf;font-weight:600}.banora-viewer details{margin-top:16px}.banora-viewer summary{cursor:pointer}.banora-viewer [data-notes]{display:block;margin-top:16px}.banora-viewer textarea{display:block;width:100%;min-height:100px;box-sizing:border-box;resize:vertical;font:inherit;line-height:1.6;border:1px solid #d2dccd;border-radius:8px;margin-top:7px;padding:10px;background:#fff;color:inherit}.banora-viewer [data-status]{font-size:12px;color:#687b69;margin:12px 0 0}.banora-viewer [hidden]{display:none!important}
+.banora-viewer nav{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:7px;margin-top:14px}.banora-viewer [data-summary]{font-size:12px;text-align:center;margin:12px 0}.banora-viewer [data-tree]{max-height:220px;overflow:auto;display:grid;gap:3px;margin-top:10px}.banora-viewer [data-tree] button{display:flex;align-items:center;gap:8px;text-align:left;width:100%;border:0;background:transparent}.banora-viewer [data-tree] button[aria-current=true]{background:#e3efdf;font-weight:600}.banora-viewer .banora-comment-indicator{display:inline-flex;flex:none;margin-left:auto;opacity:.8}.banora-viewer details{margin-top:16px}.banora-viewer summary{cursor:pointer}.banora-viewer [data-notes]{display:block;margin-top:16px}.banora-viewer textarea{display:block;width:100%;min-height:100px;box-sizing:border-box;resize:vertical;font:inherit;line-height:1.6;border:1px solid #d2dccd;border-radius:8px;margin-top:7px;padding:10px;background:#fff;color:inherit}.banora-viewer [data-status]{font-size:12px;color:#687b69;margin:12px 0 0}.banora-viewer [hidden]{display:none!important}
 `;
 
 export function mountViewer(container: HTMLElement, initial: ViewerOptions = {}): ViewerView {
@@ -174,6 +174,16 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       entry.textContent = label;
       entry.setAttribute('aria-label', formatUiMessage(ui.selectNode, { label }));
       entry.dataset.node = node.id;
+      if (node.properties.C?.[0]?.trim()) {
+        const indicator = document.createElement('span');
+        indicator.className = 'banora-comment-indicator';
+        indicator.title = ui.hasComment;
+        indicator.setAttribute('aria-hidden', 'true');
+        indicator.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h14v10H8l-4 3v-3H3Z"/></svg>';
+        entry.setAttribute('aria-description', ui.hasComment);
+        entry.append(indicator);
+      }
       entry.style.paddingLeft = `${10 + Math.min(indent, 8) * 12}px`;
       entry.setAttribute('aria-current', String(node.id === state.node.id));
       if (node.id === state.node.id) selected = entry;

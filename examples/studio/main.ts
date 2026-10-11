@@ -181,6 +181,16 @@ function renderTree(state: ControllerState): void {
     const text = document.createElement('span');
     text.textContent = `${moveNumber} · ${nodeTitle(node, depth, state.position.width, state.position.height)}`;
     button.append(dot, text);
+    if (node.properties.C?.[0]?.trim()) {
+      const indicator = document.createElement('span');
+      indicator.className = 'banora-comment-indicator';
+      indicator.title = ui.hasComment;
+      indicator.setAttribute('aria-hidden', 'true');
+      indicator.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h14v10H8l-4 3v-3H3Z"/></svg>';
+      button.setAttribute('aria-description', ui.hasComment);
+      button.append(indicator);
+    }
     button.addEventListener('click', () => report(controller.goTo(node.id)));
     wrapper.append(button);
     fragment.append(wrapper);

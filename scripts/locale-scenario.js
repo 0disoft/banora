@@ -35,14 +35,33 @@ async (page) => {
       JSON.stringify(rows) === JSON.stringify(['0 · 시작 위치', '1 · 흑 A9', '2 · 백 패스']),
       'Korean move labels failed',
     );
+    const indicator = () =>
+      container.querySelector('[aria-current="true"] .banora-comment-indicator');
+    check(indicator()?.title === '코멘트 있음', 'Root comment indicator missing');
     controller.next();
+    check(!indicator(), 'Empty comment has an indicator');
     controller.setComment('Unsaved <tag> comment');
+    check(indicator() && !container.querySelector('tag'), 'Comment indicator missing or unsafe');
+    controller.undo();
+    check(!indicator(), 'Undo retained comment indicator');
+    controller.redo();
+    check(indicator(), 'Redo lost comment indicator');
+    controller.setComment(' \n\t ');
+    check(!indicator(), 'Whitespace-only comment has an indicator');
+    controller.undo();
     const before = controller.prepareExport().text;
     view.update({ locale: 'en', messages: { variations: '<tag>Branches</tag>' } });
     check(
       container.querySelector('summary').textContent === '<tag>Branches</tag>' &&
         !container.querySelector('summary tag'),
       'Custom messages interpreted as HTML',
+    );
+    check(
+      indicator()?.title === 'Has comment' &&
+        container
+          .querySelector('[data-tree] button[aria-current="true"]')
+          .getAttribute('aria-description') === 'Has comment',
+      'Comment indicator accessibility did not follow language',
     );
     check(
       controller.prepareExport().text === before &&
@@ -78,6 +97,15 @@ async (page) => {
   await page.getByRole('button', { name: '다음 수', exact: true }).click();
   await page.locator('#comment').fill('Authored English <tag> note');
   await page.locator('#comment').blur();
+  if (!(await page.locator('#tree [aria-current="true"] .banora-comment-indicator').count()))
+    throw Error('Studio comment indicator missing');
+  await page.locator('#comment').fill(' ');
+  await page.locator('#comment').blur();
+  if (await page.locator('#tree [aria-current="true"] .banora-comment-indicator').count())
+    throw Error('Studio retained whitespace-only comment indicator');
+  await page.locator('#undo').click();
+  if (!(await page.locator('#tree [aria-current="true"] .banora-comment-indicator').count()))
+    throw Error('Studio Undo lost comment indicator');
   if ((await page.locator('#move').textContent()) !== '1수')
     throw Error('Studio move untranslated');
   if (
