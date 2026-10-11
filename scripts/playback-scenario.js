@@ -125,10 +125,24 @@ async (page) => {
   await page.waitForTimeout(600);
   check((await move()) === 'Move 0', 'Import retained an old timer');
   await page.locator('#comment').fill('Dialog keyboard guard');
-  await page.getByRole('button', { name: 'New record', exact: true }).click();
+  await page.locator('#comment').blur();
+  await page.getByRole('button', { name: 'Play record', exact: true }).click();
+  await page.getByRole('button', { name: 'New record', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await page.locator('#unsaved[open]').waitFor();
+  check(
+    await page.getByRole('button', { name: 'Play record', exact: true }).isVisible(),
+    'Keyboard-opened modal failed to pause playback',
+  );
+  await page.waitForTimeout(600);
+  check((await move()) === 'Move 0', 'Replay advanced behind the modal');
   await page.keyboard.press('ArrowRight');
   check((await move()) === 'Move 0', 'Dialog key navigated behind the dialog');
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  check(
+    await page.getByRole('button', { name: 'Play record', exact: true }).isVisible(),
+    'Cancelling a modal resumed playback',
+  );
   await page.locator('#comment').fill('');
   await page.screenshot({ path: 'output/playwright/studio-playback.png', fullPage: true });
 
@@ -225,6 +239,20 @@ async (page) => {
     result.retained = view.playback.getState().intervalMs;
     view.playback.setInterval(500);
     view.playback.play();
+    // Host-owned modals can live outside the Viewer's declared input scope.
+    const dialog = document.createElement('dialog');
+    const cancel = document.createElement('button');
+    cancel.textContent = 'Host confirmation';
+    dialog.append(cancel);
+    document.body.append(dialog);
+    dialog.showModal();
+    result.modalPaused = !view.playback.getState().playing;
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    result.modalMove = controller.getState().position.moveNumber;
+    dialog.close();
+    dialog.remove();
+    result.stillPaused = !view.playback.getState().playing;
+    view.playback.play();
     view.dispose();
     view.dispose();
     await new Promise((resolve) => setTimeout(resolve, 600));
@@ -239,6 +267,9 @@ async (page) => {
       direct.updated === 5000 &&
       direct.retained === 5000 &&
       direct.rejected &&
+      direct.modalPaused &&
+      direct.modalMove === 0 &&
+      direct.stillPaused &&
       direct.move === 0 &&
       direct.borrowed,
     'Viewer public playback/update/disposal contract failed',

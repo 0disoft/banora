@@ -122,11 +122,15 @@ export function mountPlaybackControls(
     },
     { capture: true, signal: abort.signal },
   );
-  scope.addEventListener(
+  document.addEventListener(
     'focusin',
     (event) => {
       const target = event.target as Element;
-      if (!root.contains(target) && target.closest(editable)) playback.pause();
+      if (
+        !root.contains(target) &&
+        (target.closest('dialog:modal') || (scope.contains(target) && target.closest(editable)))
+      )
+        playback.pause();
     },
     { signal: abort.signal },
   );

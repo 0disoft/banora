@@ -51,6 +51,9 @@ Alt+Left/Right navigate the record. The capture handler consumes handled keys
 exactly once, preventing browser-history navigation for these Alt shortcuts.
 Input/textarea/select/contenteditable and common ARIA editing controls retain
 their native keys. Open native dialogs block the page shortcuts.
+Focus entering a native modal dialog pauses replay even when the host places
+that dialog outside the controls' input scope. This also covers keyboard-opened
+confirmations; closing or cancelling a dialog does not resume replay.
 
 Pointer interaction outside the playback controls, focus in an editable field,
 manual navigation/edits/import, hidden-document transition and pagehide pause
