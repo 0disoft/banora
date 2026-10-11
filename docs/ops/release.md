@@ -79,5 +79,44 @@ own deployment pointer only after verification. No command here publishes packag
 uploads files, changes registry tags or migrates user data. Actual remote health,
 rollback and access remain prerequisites for a future deployment task.
 
+## October 12: Executed Access Preflight
+
+The reviewed local candidate is fdea584: five development-version packages,
+149 retained files, nine successful preparation gates and verified copied SDK/CLI
+consumers. The current remote main CI at fed716a is complete and successful.
+Those gates establish preparation and tested consumers; they do not supply
+publication authority or an operator's account.
+
+Read-only checks after preparing that candidate found:
+
+- GitHub still reports private visibility with Issues enabled. All observed CI
+  runs are terminal, and no open bot update PR is present.
+- `npm whoami --registry https://registry.npmjs.org/` returns `ENEEDAUTH`.
+  This machine's authenticated publisher and `@banora` namespace access are not
+  established. No login, token creation or publish operation was attempted.
+- The public-registry lookup for `@banora/sdk` returns `E404`. This does not
+  establish namespace availability/ownership or distinguish absence from restricted
+  access; development package names are not a reservation or publication grant.
+- The repository Pages lookup returns HTTP 404. No existing Pages deployment is
+  established by that lookup; it does not prove that no other host exists.
+- Root SECURITY.md is absent. The already-prepared 93-line policy candidate/diff
+  still needs explicit owner approval and a verified private reporting channel.
+
+Public GitHub source plus a GitHub Pages demo and npm packages is a proposed
+destination, pending the owner's choice. It is not selected or deployed merely
+because its tooling is available. If selected, Pages requires its publishing
+source and workflow/artifact deployment to be configured; see
+[GitHub's custom workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+For subsequent npm automation, prefer a package-configured trusted publisher
+with short-lived OIDC authority after account/package ownership is established;
+see [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
+Neither provider configuration nor extra CI write authority has been applied.
+
+The next actionable handoff is the existing policy approval/private-channel
+decision, publication destination/visibility approval, and real registry
+authentication/namespace verification. Never request credentials in a public
+issue or invent an address/account to close a readiness row. No full local suite
+needs repeating while these external prerequisites remain unchanged.
+
 See [VALIDATION](../../VALIDATION.md), the [operational contract](00-operational-contract.md)
 and [ADR 0022](../adr/0022-retained-release-artifacts.md).
