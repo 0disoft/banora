@@ -1,5 +1,89 @@
 @import '../select.css';
 
+#search-dialog {
+  width: min(720px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+}
+.search-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 16px;
+}
+.search-actions label,
+.search-editor {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+#search-query {
+  width: 100%;
+  min-width: 0;
+}
+#search-results,
+#search-diff {
+  max-height: min(260px, 32dvh);
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+#search-comment {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  font: inherit;
+  background: #fdfdf9;
+  color: inherit;
+}
+.search-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 12px;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.search-result label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+.search-result p {
+  grid-column: 1 / -1;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.search-change {
+  border-top: 1px solid var(--border);
+  padding-block: 16px;
+}
+.search-change pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  max-height: 160px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+@media (max-width: 480px) {
+  #search-dialog {
+    padding: 20px;
+  }
+  .search-result {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .search-result .button {
+    justify-self: start;
+  }
+}
+
 .draft-toolbar,
 .draft-actions {
   display: flex;

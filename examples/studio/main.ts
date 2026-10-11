@@ -39,6 +39,7 @@ import { mountRecoveryControls } from './recovery-controls.js';
 import { safeDraftFilename } from './draft-store.js';
 import { defaultPreferences, PreferenceStore } from './preferences.js';
 import { applyPreferenceInputs, mountPreferenceControls } from './preference-controls.js';
+import { mountSearchControls } from './search-controls.js';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 let preferenceStorage: Storage | undefined;
@@ -627,6 +628,7 @@ window.addEventListener('pagehide', (event) => {
   if (!event.persisted) {
     disposed = true;
     disposeRecovery();
+    disposeSearch();
     disposePreferences();
     disposePlaybackPreference();
     disposeLanguage();
@@ -695,6 +697,7 @@ const disposePreferences = mountPreferenceControls(find('preferences-host'), pre
   playbackControls.playback.setInterval(preferences.get('playbackInterval'));
   playbackControls.playback.pause();
 });
+const disposeSearch = mountSearchControls(find('search-host'), controller);
 const disposeBoardMenu = mountBoardMenu();
 
 const localizedTitles: Record<BanoraLocale, string> = {

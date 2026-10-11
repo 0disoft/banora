@@ -18,7 +18,9 @@ property queries and portable result targets, without replay/navigation. Control
 and apply them as one Undo unit while retaining selection/export semantics.
 Previews are immutable, tied to their issuing controller/current source, and never
 implicitly logged. Terminal automation exposes search, portable batch targets,
-preview-only diffs and optional exact-source guards; Studio controls follow separately.
+preview-only diffs and optional exact-source guards. Studio demonstrates record-wide
+search, navigation and selected comment preview/application through these public
+exports, with session-local selection and one-step Undo.
 
 `@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.

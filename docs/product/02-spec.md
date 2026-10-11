@@ -144,8 +144,14 @@ baseline. Bounds and ownership are specified in
 [ADR 0019](../adr/0019-record-search-and-atomic-comment-batches.md). SDK methods
 and terminal commands are implemented. Terminal operations expose portable targets,
 preview-only comment diffs and optional exact-source conditions for cross-request
-review. Studio search/select/preview controls are the next integration increment,
-not current UI promises.
+review. Studio exposes Search record above the board and through its quick menu.
+Search all record text or comments, navigate a result, or select up to 256 positions
+across pages. Preview a common replacement comment before applying it as one Undo
+unit; an empty replacement clears selected comments. Closing/cancelling or source
+changes discard approval while retaining typed text. Imports clear old selection.
+Search and preview text stays local to the current session; authored text is never
+interpreted as markup or translated with the interface. Paginated results and
+before/after diffs scroll independently of the modal's controls.
 
 Hosts may keep rules, records and revisions in an external server/native engine.
 The additive [controlled-board decision](../adr/0012-host-controlled-board-and-presentation-boundary.md)

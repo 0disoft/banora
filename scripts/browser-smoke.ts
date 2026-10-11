@@ -205,6 +205,16 @@ async function preferencesSmoke(): Promise<void> {
   )
     throw Error('Settings reset changed the actual downloaded checkpoint');
 }
+async function searchSmoke() {
+  await scenario('search', 'banora-search-complete');
+  const sgf = await readFile(resolve(output, 'search-edited.sgf'), 'utf8');
+  if (
+    !sgf.includes('XX[keep]') ||
+    !sgf.includes('MN[700]') ||
+    (sgf.match(/C\[Edited <img> 한국어\]/g) ?? []).length !== 4
+  )
+    throw Error('Search batch SGF export lost content');
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
@@ -216,7 +226,12 @@ try {
     'run-code',
     'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
   );
-  if (process.argv.includes('--preferences-only')) {
+  if (process.argv.includes('--search-only')) {
+    await searchSmoke();
+    console.log(
+      'Focused search smoke passed: all games/branches, paging, long paths, preview/apply/Undo, freshness, bounds and locale/mobile/menu.',
+    );
+  } else if (process.argv.includes('--preferences-only')) {
     await preferencesSmoke();
     console.log(
       'Focused preferences smoke passed: migration, presentation, reset, record/draft retention, tabs, versions and denied storage.',
@@ -284,6 +299,7 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await searchSmoke();
     await preferencesSmoke();
     await recoverySmoke();
     await cli('goto', `${address}/studio/`);

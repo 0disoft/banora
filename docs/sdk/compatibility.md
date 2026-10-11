@@ -97,8 +97,12 @@ atomic cross-game edits. Independently installed Node consumers check root/contr
 search declarations and execution, including ES2022-only types without DOM.
 Installed Node CLI additionally checks search/schema discovery, file/stdin queries,
 portable batch preview/application, exact-source/per-comment guards, Undo/reopen and
-failed-output protection, including returned paths past move 360. Studio interaction
-for these new methods is not implied by headless/terminal evidence.
+failed-output protection, including returned paths past move 360. Production Studio
+browser fixtures separately exercise public search/controller exports: collections/
+branches, move 700, paging/selection, preview/cancel/apply/Undo, actual SGF download,
+stale preview/result refusal, aggregate bounds, four languages and 320px/menu use.
+This browser evidence covers the Studio consumer; it does not imply a new search UI
+in the separate read-only viewer or framework adapters.
 
 Agent automation is available through DOM-free `@banora/sdk/automation` and the
 optional Node 24.x `@banora/cli` package. Installed SDK declarations/runtime and

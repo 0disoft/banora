@@ -1,6 +1,6 @@
 # ADR 0019: Whole-Record Search and Atomic Comment Batches
 
-- Status: Accepted; SDK and terminal integration implemented, Studio integration pending
+- Status: Accepted; SDK, terminal and Studio integration implemented
 
 ## Decision
 
@@ -62,5 +62,13 @@ Queries and batch edits share an eight-call request budget. Installed Node CLI
 checks search, branches/counts/pagination, stdin/case/game filters, preview/source
 retention, guarded application, Undo/reopen, failed-output protection and returned
 locations past move 360. No issued preview object or app authority crosses processes.
-Studio search/select/preview/apply UI is the next integration increment and is not
-yet claimed as shipped.
+Studio consumes the public search/controller exports through a native dialog,
+accessible above the board and from its quick menu. Users search record text or
+comments, navigate matches and select up to 256 positions across result pages.
+One common comment is previewed as literal before/after text, then applied as one
+Undo unit. Closing/cancelling or changing source content invalidates the preview
+without losing typed input. Import clears record-specific selection and makes
+retained old result buttons inert. Queries and selection are session-local.
+Results and diffs have bounded scrolling regions; narrower pages handle long paths.
+Production browser fixtures cover all games/branches, move 700, actual SGF download,
+preview freshness, limits, four languages, keyboard focus and mobile/menu placement.

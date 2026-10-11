@@ -338,3 +338,32 @@ existing SDK/Studio/framework workflows. Studio search/select/batch UI remains a
 subsequent integration, not evidence inferred from terminal or existing UI checks.
 Other browser engines, physical devices and hosted CI were not executed. Separate
 `contract`/`migration-check` intents are unconfigured; no DB migration is added.
+
+## Record Tools Studio Evidence
+
+After `build:examples`, `bun scripts/browser-smoke.ts --search-only` uses the same
+production Playwright CLI consumer as the full browser suite. Both routes inspect
+the actual downloaded SGF for four edited comments, unknown-property preservation
+and `MN[700]`. The scenario searches multiple games/branches, navigates a late
+position, selects across pages, previews/cancels/applies/clears comments, and checks
+one-step Undo/Redo and export-baseline retention. It verifies source-change preview
+invalidation, retained typed input, import selection reset, inert retained old result
+buttons, empty-result page ranges, the 256-selection cap and aggregate-input refusal.
+
+English/Korean/Chinese/Japanese labels retain literal authored before/after text.
+The dialog is checked at 1440px and 320px, with keyboard focus/Escape, quick-menu
+borrowing/restoration and separate result/diff scrolling. `search-controls.ts`
+imports only public SDK exports. Focused CI routing covers that consumer and its
+scenario; shared Studio/language/menu changes retain broader routing. No SDK public
+API, DB, storage schema, dependency or hygiene change is introduced by this UI.
+Independent `contract`/`migration-check` runners remain unconfigured; physical
+devices, other browser engines and hosted CI execution remain unverified.
+
+Studio integration passed `check`: 170 tests / 2,323 assertions, lint/format,
+boundaries, builds, root/Svelte types, 108 documents / 340 links, packed SDK and
+169 installed CLI checks. The full production browser suite passed on Windows
+Headless Chrome 154, including this search scenario and existing consumer flows.
+The final focused route also passed after giving search selection its own translated
+caption and revoking preview approval synchronously on Close/navigation/Escape.
+An earlier focused run caught delayed native-close cleanup retaining Apply briefly;
+the cancellation fix preserves typed input and passes the same regression scenario.

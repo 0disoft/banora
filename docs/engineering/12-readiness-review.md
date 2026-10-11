@@ -68,18 +68,18 @@ This is an ownership decision, not evidence that such a service exists.
 | 25  | First-run guidance to a first result     | Standalone guide and Studio exist; audit clean setup and add concise contextual help.                                                       |
 | 26  | Trial space and samples                  | Static Studio/viewer/puzzle/analysis consumers exist; verify built artifacts and sample reset.                                              |
 | 27  | Templates for recurring work             | New record/example record and standalone app exist; index templates and portable automation recipes.                                        |
-| 28  | One-place search and navigation          | Variation tree is bounded to 500 rows; add whole-record search with node/metadata/comment navigation.                                       |
-| 29  | Bounded batch edit/export                | Automation supports operation arrays; add useful transaction/preview integration and user-facing batch workflow.                            |
+| 28  | One-place search and navigation          | Whole-record SDK/CLI/Studio search navigates beyond tree limits; function/settings discovery remains separate work.                         |
+| 29  | Bounded batch edit/export                | SDK/CLI/Studio support guarded comment batches with preview and one-step Undo; exported SGF preserves all selected edits.                   |
 | 30  | Autosave and resume                      | SDK/terminal checkpoints and Studio local drafts/guarded restore preserve records, baselines and selected locations.                        |
-| 31  | Compare changes and Undo                 | Controller Undo/Redo and position comparison exist; verify new batch/recovery interactions.                                                 |
-| 32  | Preview before destructive/bulk changes  | Dirty replacement guards exist; add inspectable batch preview with atomic commit.                                                           |
+| 31  | Compare changes and Undo                 | Controller Undo/Redo, position comparison and batch/recovery interactions have unit and production browser evidence.                        |
+| 32  | Preview before destructive/bulk changes  | Inspectable comment previews require explicit atomic apply; source changes invalidate approval without losing typed input.                  |
 | 33  | Import/export across tools               | SGF/UTF-8 and diagrams/CLI exist; verify new persistence and batch paths preserve unknown properties.                                       |
 | 34  | Share and collaborative review           | Embedded links/comments exist; collaborative authority remains host-owned, with explicit privacy/permission contracts.                      |
 | 35  | Personal workspace/preferences           | Twelve versioned scalar settings, safe legacy migration and explicit bounded reset preserve record semantics; browser evidence in ADR 0018. |
 | 36  | Completion/action-required feedback      | Live statuses/dirty dialog exist; audit actionable feedback and pending-work visibility.                                                    |
 | 37  | Saved recurring multi-step automation    | JSON automation/CLI exists; provide validated reusable recipes; scheduling remains host-owned.                                              |
 | 38  | Roles and access control                 | Local SDK has no users; controlled intentions/read-only are presentation only, hosts enforce authorization.                                 |
-| 39  | Review/approve/apply important changes   | Host-controlled board accepts intentions; local bulk preview should require explicit apply, preserve Undo.                                  |
+| 39  | Review/approve/apply important changes   | Local bulk preview requires explicit apply and preserves Undo; multi-user approval authority remains host-owned.                            |
 | 40  | Operator management                      | No hosted accounts/jobs exist; local diagnostics/recovery tools must avoid a fictitious admin service.                                      |
 | 41  | Redacted support bundle                  | Add environment/operation diagnostics that exclude SGF, names, comments, file paths and secrets by default.                                 |
 | 42  | In-product examples/help                 | Tooltips exist; provide concise opt-in help near relevant actions, not permanent explanatory prose.                                         |
@@ -362,6 +362,45 @@ increased; product/API automation/compatibility, ADR 0019, READMEs and validatio
 were synchronized. Broader devices/engines/hosted CI and separate unconfigured
 contract/migration-check commands are not claimed.
 
-Studio search/select/preview/apply remains the next milestone-4 integration.
+Studio search/select/preview/apply is recorded in the next execution entry.
 Diagnostics/help/ops, measured performance, release/migration/rollback and the
 final all-72 audit remain active; this is concrete progress, not goal completion.
+
+## Execution: Studio Record Search and Comment Preview
+
+Added a native search dialog above the board and in its quick menu, consuming only
+public SDK search/controller exports. Whole-record or comment search spans all
+games/branches; paged results navigate independently of visible tree limits. Users
+select up to 256 positions across pages, preview a common comment replacement or
+clear, then apply it as one Undo unit without moving the current position.
+Closing/cancelling/source changes invalidate approval while preserving typed input.
+Import resets old selection and makes retained old result buttons inert.
+
+Selection retains only node identity and small display metadata, rather than every
+long portable path. Closed dialogs do not rescan every ordinary comment edit;
+deleted selections are pruned when needed. Result and diff regions scroll separately
+so large result pages do not bury the editing controls. Empty/reduced result sets
+reset or clamp pagination. All four supported languages translate interface labels
+while keeping authored before/after text literal.
+
+The production scenario covers collections/branches, move 700, page selection,
+preview/cancel/apply/clear/Undo/Redo, actual downloaded SGF, freshness/import guards,
+aggregate limits, four languages, keyboard focus, 320px display and menu restoration.
+Source documents updated: product specification, ADR 0019, SDK README/compatibility,
+validation and this review. No SDK API, DB, storage/hygiene or dependency changes;
+the browser runner adds a focused route and shared download inspection, and the CI
+planner routes search-only source changes to it.
+
+`check` passed 170 tests / 2,323 assertions, quality/boundaries/builds/root/Svelte
+types, 108-document checks, packed SDK consumers and 169 installed CLI checks.
+The full production browser suite passed on Windows Headless Chrome 154,
+including the new search scenario and existing SDK/Studio/framework consumers.
+Final focused search smoke passed after the selection-caption update and synchronous
+Close/navigation/Escape approval revocation. The focused route caught delayed native
+close cleanup briefly retaining Apply; immediate cancellation fixes that gap without
+discarding typed input. The runtime refinement also passed root typecheck.
+
+Record-data search and comment batching now have SDK, terminal and Studio consumers.
+Function/settings discovery is still separate work under question 28. Diagnostics/
+help/ops, measured performance, release/rollback and the final all-72 audit remain
+active. Physical devices, other browser engines and hosted CI are not claimed.

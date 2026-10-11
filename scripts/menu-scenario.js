@@ -31,6 +31,7 @@ async (page) => {
       'comparison',
       'share',
       'drafts',
+      'search',
       'preferences',
       'scoring',
     ]) {
