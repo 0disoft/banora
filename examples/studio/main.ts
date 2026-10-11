@@ -82,7 +82,9 @@ let filename = 'opening-study.sgf';
 let opening = false;
 let disposed = false;
 let fileReadSequence = 0;
-let lastTreeState: { record: ControllerState['record']; id: string } | undefined;
+let lastTreeState: { record: ControllerState['record']; gameIndex: number; id: string } | undefined;
+const treeButtons = new Map<string, HTMLButtonElement>();
+let selectedTreeRow: HTMLDivElement | undefined;
 let connectionStart: { point: Point; node: string } | undefined;
 let comparison: ComparisonView | undefined;
 let stoneTextures: StoneTextures | null = null;
@@ -191,13 +193,14 @@ function nodeTitle(node: SgfNode, depth: number, width: number, height: number):
   return `${color} ${letters[x] ?? x + 1}${height - y}`;
 }
 function renderTree(state: ControllerState): void {
-  if (lastTreeState?.record === state.record && lastTreeState.id === state.node.id) return;
-  lastTreeState = { record: state.record, id: state.node.id };
+  const previous = lastTreeState;
+  const reuse = previous?.record === state.record && previous.gameIndex === state.gameIndex;
+  if (reuse && previous.id === state.node.id) return;
+  lastTreeState = { record: state.record, gameIndex: state.gameIndex, id: state.node.id };
   const fragment = document.createDocumentFragment();
   const pending = [
     { node: state.record.games[state.gameIndex]!, depth: 0, indent: 0, parentMove: 0 },
   ];
-  const shown = new Set<string>();
   let count = 0;
   const row = (node: SgfNode, depth: number, indent: number, moveNumber: number) => {
     const wrapper = document.createElement('div');
@@ -223,8 +226,28 @@ function renderTree(state: ControllerState): void {
     button.addEventListener('click', () => report(controller.goTo(node.id), 'navigate'));
     wrapper.append(button);
     fragment.append(wrapper);
-    shown.add(node.id);
+    treeButtons.set(node.id, button);
+    return wrapper;
   };
+  if (reuse) {
+    const restoreFocus = selectedTreeRow?.contains(document.activeElement) ?? false;
+    treeButtons.get(previous.id)?.setAttribute('aria-current', 'false');
+    if (selectedTreeRow) {
+      selectedTreeRow.remove();
+      treeButtons.delete(previous.id);
+      selectedTreeRow = undefined;
+    }
+    const current = treeButtons.get(state.node.id);
+    if (current) current.setAttribute('aria-current', 'true');
+    else {
+      selectedTreeRow = row(state.node, state.path.length - 1, 0, state.position.moveNumber);
+      find('tree').append(fragment);
+    }
+    if (restoreFocus) treeButtons.get(state.node.id)?.focus({ preventScroll: true });
+    return;
+  }
+  treeButtons.clear();
+  selectedTreeRow = undefined;
   while (pending.length && count++ < 500) {
     const entry = pending.pop()!;
     const props = entry.node.properties;
@@ -240,8 +263,8 @@ function renderTree(state: ControllerState): void {
         parentMove: moveNumber,
       });
   }
-  if (!shown.has(state.node.id))
-    row(state.node, state.path.length - 1, 0, state.position.moveNumber);
+  if (!treeButtons.has(state.node.id))
+    selectedTreeRow = row(state.node, state.path.length - 1, 0, state.position.moveNumber);
   find('tree').replaceChildren(fragment);
   setUiText(
     find('tree-note'),
@@ -709,6 +732,9 @@ window.addEventListener('pagehide', (event) => {
   playbackControls.playback.pause();
   if (!event.persisted) {
     disposed = true;
+    treeButtons.clear();
+    selectedTreeRow = undefined;
+    lastTreeState = undefined;
     disposeRecovery();
     disposeSupport();
     diagnostics.dispose();

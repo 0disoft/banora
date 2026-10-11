@@ -64,6 +64,13 @@ sharing guards at desktop/320px widths. `--accessibility-only` selects this focu
 browser route; full browser and sharing routes include it. This does not prove
 physical screen-reader or untested engine support.
 
+The production `tree-navigation` scenario covers Studio keyboard focus across
+navigation and bounded tail-row replacement, exact selection/MN/annotation labels,
+collection/language/import changes, comment indicator Undo and actual SGF export/
+reopen. `--tree-only` selects it; full functional browser smoke includes it. The
+browser benchmark additionally verifies move/clean/row/stone state and rejects
+controller/Studio source changes during its measurement window.
+
 `scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
 modified/extra files, directory links, source-preserving isolated restaging, actual
 Git source guards and failed/timed-out check processes. `bun run release prepare`

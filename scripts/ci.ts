@@ -9,6 +9,7 @@ export interface CheckPlan {
   readonly audit: boolean;
 }
 const focused: readonly [RegExp, string][] = [
+  [/^scripts\/tree-navigation-scenario\.js$/, '--tree-only'],
   [/^scripts\/browser-performance-scenario\.js$/, '--performance-only'],
   [/^scripts\/accessibility-scenario\.js$/, '--accessibility-only'],
   [

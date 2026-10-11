@@ -113,3 +113,18 @@ the local SDK would create new authority and operations obligations. No runtime,
 public API, schema/DB, dependency, hygiene or runner was changed by this review.
 Documentation validation, format and whitespace checks cover this increment;
 runtime checks were not repeated for evidence-table changes.
+
+## October 12: Measured Tree Navigation
+
+[Browser measurement evidence](17-browser-performance-evidence.md) records native
+and 4x-emulated CPU timings before/after reusing Studio's bounded variation rows.
+The final 5,000-move 4x Previous/Next medians fell from 193.2/156.8ms to
+77.7/62.3ms; native-clock results and heap snapshots do not consistently improve.
+The new actual-page keyboard/tree fixture and full production suite passed, along
+with root check (197 tests/2,746 assertions and 297 installed CLI checks). Exact
+selection, MN/annotation labels, comments/Undo, collection/language/import changes
+and real export/reopen are retained. A screenshot was inspected. The specification
+owns row reuse/focus behavior; validation owns the opt-in measurement and focused
+tree route. No SDK API, schema/DB, dependency or hygiene changed. Refactor,
+test-hardening and Playwright procedures applied. Physical/other-engine and
+peak/retention measurements remain unverified; no universal speed claim is made.

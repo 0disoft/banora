@@ -65,7 +65,18 @@ async function scenario(file: string, expected: string): Promise<void> {
 }
 async function browserPerformance(): Promise<void> {
   if (release) throw Error('Browser performance measures the current built checkout only.');
+  const sourceHashes = async () => {
+    const hashes: Record<string, string> = {};
+    for (const name of ['packages/sdk/src/controller.ts', 'examples/studio/main.ts'])
+      hashes[name] = createHash('sha256')
+        .update(await readFile(resolve(root, name)))
+        .digest('hex');
+    return hashes;
+  };
+  const hashes = await sourceHashes();
   await scenario('browser-performance', 'banora-browser-performance-complete');
+  if (JSON.stringify(hashes) !== JSON.stringify(await sourceHashes()))
+    throw Error('Browser benchmark source changed during measurement. Rebuild and rerun.');
   const measured = JSON.parse(
     await readFile(resolve(output, 'browser-performance-samples.json'), 'utf8'),
   );
@@ -92,11 +103,6 @@ async function browserPerformance(): Promise<void> {
     if (result.status !== 0) throw Error('Cannot identify browser benchmark source.');
     return result.stdout.trim();
   };
-  const hashes: Record<string, string> = {};
-  for (const name of ['packages/sdk/src/controller.ts', 'examples/studio/main.ts'])
-    hashes[name] = createHash('sha256')
-      .update(await readFile(resolve(root, name)))
-      .digest('hex');
   const report = {
     schemaVersion: 'banora.browser-performance/v1',
     source: { commit: git(['rev-parse', 'HEAD']), dirty: !!git(['status', '--porcelain']), hashes },
@@ -119,6 +125,18 @@ async function browserPerformance(): Promise<void> {
   console.log(
     'Browser performance measured: 4 workload/profile pairs, 20 samples; report in output/playwright/browser-performance.json.',
   );
+}
+async function treeNavigation(): Promise<void> {
+  await scenario('tree-navigation', 'banora-tree-navigation-complete');
+  const saved = await readFile(resolve(output, 'tree-reused.sgf'), 'utf8');
+  for (const value of [
+    'XG[tree reuse]',
+    'C[tail original]',
+    'MN[700]',
+    'GN[Second]',
+    'C[second comment]',
+  ])
+    if (!saved.includes(value)) throw Error('Tree navigation/export lost authored record content.');
 }
 async function dropSmoke(): Promise<void> {
   await scenario('drop', 'banora-drop-complete');
@@ -320,6 +338,11 @@ try {
   );
   if (process.argv.includes('--performance-only')) {
     await browserPerformance();
+  } else if (process.argv.includes('--tree-only')) {
+    await treeNavigation();
+    console.log(
+      'Focused variation tree smoke passed: keyboard focus, bounded tail rows, game/record/language changes, comment Undo and export/reopen.',
+    );
   } else if (process.argv.includes('--accessibility-only')) {
     await scenario('accessibility', 'banora-accessibility-complete');
     console.log(
@@ -405,6 +428,7 @@ try {
     console.log('Focused comparison smoke passed.');
   } else {
     await scenario('accessibility', 'banora-accessibility-complete');
+    await treeNavigation();
     await supportSmoke();
     await searchSmoke();
     await preferencesSmoke();
