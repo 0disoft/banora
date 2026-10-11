@@ -754,7 +754,10 @@ own unsaved-change confirmation and file export transport.
 Viewer disposal removes only its own DOM/listeners and preserves an external
 controller. Playback timers/controls are disposed with the viewer. An internally
 created controller is disposed with the viewer. The
-variation tree has the same 500-node display bound as Studio; all nodes remain
+variation tree labels include the position's move number, for example `23 · Black Q4`.
+Numbers follow each branch independently, count passes, retain the number on annotation/setup
+nodes and honor SGF `MN` overrides, matching the navigation counter. The start position is
+normally `0 · Start position`. The tree has the same 500-node display bound as Studio; all nodes remain
 accessible through controller navigation. Comments and metadata are rendered as
 text. Mounting requires a DOM; importing the package on the server is safe.
 

@@ -68,7 +68,7 @@ async (page) => {
         (await page.locator('#board [data-marker]').count()) === 1,
       'Dropped main line/marker failed',
     );
-    await page.locator('#tree').getByRole('button', { name: 'White D4', exact: true }).click();
+    await page.locator('#tree').getByRole('button', { name: '1 · White D4', exact: true }).click();
     verify(
       (await page.locator('#comment').inputValue()) === 'Alternative',
       'Dropped original branch failed',
@@ -104,11 +104,11 @@ async (page) => {
     verify(
       (await page
         .locator('#tree')
-        .getByRole('button', { name: 'White E5', exact: true })
+        .getByRole('button', { name: '1 · White E5', exact: true })
         .count()) === 1 &&
         (await page
           .locator('#tree')
-          .getByRole('button', { name: 'White D4', exact: true })
+          .getByRole('button', { name: '1 · White D4', exact: true })
           .count()) === 1,
       'Dropped export/reopen lost branches',
     );

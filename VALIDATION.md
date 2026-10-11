@@ -116,7 +116,10 @@ with the host-approved stones. It is also part of the complete browser suite.
 `bun scripts/browser-smoke.ts --playback-only` checks recorded playback in Studio,
 common Viewer, React/Vue/Svelte and classic script: 0.5–5 second speed selection,
 pause/end, scoped arrows/board Alt arrows, editable/select/dialog guards, long SGF
-preservation, record replacement, public updates and disposal/remount. The exact
+preservation, record replacement, public updates and disposal/remount. The
+scenario also checks Studio/Viewer variation numbers across branches, passes,
+annotation/setup nodes, SGF `MN`, accessible labels and a selected node beyond the
+500-node tree display limit. The exact
 completion Result and downloaded 162-move SGF are required. This fixture is also
 part of the complete production-browser suite. Browser scenarios restore the
 expected Studio route before the legacy editor scenario; native wrapper coverage

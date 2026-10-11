@@ -41,14 +41,14 @@ async (page) => {
   await (await downloadReady).saveAs('output/playwright/browser-roundtrip.sgf');
   verify((await page.locator('#dirty').innerText()) === 'No changes', 'Export baseline failed');
   await page.locator('#file').setInputFiles('output/playwright/browser-roundtrip.sgf');
-  await page.getByRole('button', { name: 'White B8', exact: true }).click();
+  await page.getByRole('button', { name: '2 · White B8', exact: true }).click();
   verify(
     (await page.locator('#comment').inputValue()) === 'A browser edit: preserve this comment.',
     'Comment lost on reopen',
   );
   verify((await page.locator('[data-marker]').count()) === 1, 'Label lost on reopen');
   verify(
-    (await page.getByRole('button', { name: 'White C3', exact: true }).count()) === 1,
+    (await page.getByRole('button', { name: '2 · White C3', exact: true }).count()) === 1,
     'Original variation lost',
   );
   await page.getByRole('checkbox', { name: 'Move numbers' }).check();
@@ -172,7 +172,7 @@ async (page) => {
     'Viewer default was editable',
   );
   await viewer.locator('summary').click();
-  await viewer.getByRole('button', { name: 'Select Black C5', exact: true }).click();
+  await viewer.getByRole('button', { name: 'Select 5 · Black C5', exact: true }).click();
   verify(
     (await page.locator('#state').innerText()).includes('move 5, clean'),
     'Viewer branch selection failed',

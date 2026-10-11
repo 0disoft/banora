@@ -40,7 +40,7 @@ async (page) => {
       'Main line failed',
     );
     await page.getByText('Variations', { exact: true }).click();
-    await page.getByRole('button', { name: 'Select White D4', exact: true }).click();
+    await page.getByRole('button', { name: 'Select 1 · White D4', exact: true }).click();
     verify(
       (await page.getByRole('textbox', { name: 'Position comments' }).inputValue()) ===
         'Alternative',
@@ -89,14 +89,16 @@ async (page) => {
     await opened('untitled.sgf');
     await page.locator('#file').setInputFiles('output/playwright/standalone-roundtrip.sgf');
     await opened('standalone-roundtrip.sgf');
-    await page.getByRole('button', { name: 'Select Black A9', exact: true }).click();
+    await page.getByRole('button', { name: 'Select 2 · Black A9', exact: true }).click();
     verify(
       (await comment.inputValue()) === 'My saved continuation',
       'Reopen lost continuation/comment',
     );
     verify(
-      (await page.getByRole('button', { name: 'Select White E5', exact: true }).count()) === 1 &&
-        (await page.getByRole('button', { name: 'Select White D4', exact: true }).count()) === 1,
+      (await page.getByRole('button', { name: 'Select 1 · White E5', exact: true }).count()) ===
+        1 &&
+        (await page.getByRole('button', { name: 'Select 1 · White D4', exact: true }).count()) ===
+          1,
       'Reopen lost original branches',
     );
 

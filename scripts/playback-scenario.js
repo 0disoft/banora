@@ -12,6 +12,33 @@ async (page) => {
     ';B[];W[]'.repeat(80) +
     ')';
   await page.goto(`${origin}/studio/`);
+  const numbered =
+    '(;SZ[9]GN[Numbered branches]AB[cc];B[aa];C[Note]N[Review](;W[]MN[23];B[bb])(;AW[dd];W[ee]))';
+  const expectedLabels = [
+    '0 · Start position',
+    '1 · Black A9',
+    '1 · Review',
+    '23 · White pass',
+    '24 · Black B8',
+    '1 · Annotation',
+    '2 · White E5',
+  ];
+  await page.locator('#file').setInputFiles({
+    name: 'numbered.sgf',
+    mimeType: 'application/x-go-sgf',
+    buffer: Buffer.from(numbered),
+  });
+  await page.locator('#game-name').filter({ hasText: 'Numbered branches' }).waitFor();
+  check(
+    JSON.stringify(await page.locator('#tree button').allTextContents()) ===
+      JSON.stringify(expectedLabels),
+    'Studio branch/pass/setup/annotation/MN numbering failed',
+  );
+  await page.getByRole('button', { name: '24 · Black B8', exact: true }).click();
+  check(
+    (await page.locator('#move').textContent()) === 'Move 24',
+    'Studio row number disagrees with navigation',
+  );
   await page.locator('#file').setInputFiles({
     name: 'long-replay.sgf',
     mimeType: 'application/x-go-sgf',
@@ -68,6 +95,10 @@ async (page) => {
     'Reading/editing notes failed to pause',
   );
   await page.getByRole('button', { name: 'Last node', exact: true }).click();
+  check(
+    (await page.locator('#tree button[aria-current="true"]').textContent()) === '162 · White pass',
+    'Long-record tree number failed',
+  );
   check(
     (await move()) === 'Move 162' &&
       (await page.getByRole('button', { name: 'Play record', exact: true }).isDisabled()),
@@ -140,6 +171,43 @@ async (page) => {
     );
   }
   await page.goto(`${origin}/viewer/`);
+  const numbering = await page.evaluate(
+    async ({ numbered, expectedLabels }) => {
+      const { RecordController, mountViewer } = await import('/sdk/index.js');
+      const controller = new RecordController({ sgf: numbered });
+      const container = document.createElement('div');
+      document.body.append(container);
+      const view = mountViewer(container, { controller });
+      const rows = [...container.querySelectorAll('[data-tree] button')];
+      if (JSON.stringify(rows.map((row) => row.textContent)) !== JSON.stringify(expectedLabels))
+        throw Error('Viewer numbered rows differ');
+      for (const row of rows) {
+        container.querySelector(`[data-node="${row.dataset.node}"]`).click();
+        const selected = container.querySelector('[data-tree] button[aria-current="true"]');
+        if (
+          selected.textContent !==
+            `${controller.getState().position.moveNumber} · ${row.textContent.split(' · ')[1]}` ||
+          selected.getAttribute('aria-label') !== `Select ${selected.textContent}`
+        )
+          throw Error('Viewer navigation/accessible number differs');
+      }
+      controller.loadSgf('(;SZ[9]' + ';B[];W[]'.repeat(251) + ')');
+      let node = controller.getState().node;
+      while (node.children[0]) node = node.children[0];
+      controller.goTo(node.id);
+      if (
+        container.querySelector('[data-tree] button[aria-current="true"]').textContent !==
+        '502 · White pass'
+      )
+        throw Error('Selected row beyond display limit lost number');
+      view.dispose();
+      controller.dispose();
+      container.remove();
+      return true;
+    },
+    { numbered, expectedLabels },
+  );
+  check(numbering, 'Viewer tree numbering failed');
   const direct = await page.evaluate(async () => {
     const { RecordController, mountViewer } = await import('/sdk/index.js');
     const controller = new RecordController({ sgf: '(;SZ[9];B[aa];W[bb])' });

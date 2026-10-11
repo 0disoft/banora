@@ -116,10 +116,12 @@ function renderTree(state: ControllerState): void {
   if (lastTreeState?.record === state.record && lastTreeState.id === state.node.id) return;
   lastTreeState = { record: state.record, id: state.node.id };
   const fragment = document.createDocumentFragment();
-  const pending = [{ node: state.record.games[state.gameIndex]!, depth: 0, indent: 0 }];
+  const pending = [
+    { node: state.record.games[state.gameIndex]!, depth: 0, indent: 0, parentMove: 0 },
+  ];
   const shown = new Set<string>();
   let count = 0;
-  const row = (node: SgfNode, depth: number, indent: number) => {
+  const row = (node: SgfNode, depth: number, indent: number, moveNumber: number) => {
     const wrapper = document.createElement('div');
     wrapper.setAttribute('role', 'listitem');
     const button = document.createElement('button');
@@ -128,7 +130,7 @@ function renderTree(state: ControllerState): void {
     const dot = document.createElement('span');
     dot.className = `tree-dot ${node.properties.W ? 'white' : node.properties.B ? '' : 'root'}`;
     const text = document.createElement('span');
-    text.textContent = nodeTitle(node, depth, state.position.width, state.position.height);
+    text.textContent = `${moveNumber} · ${nodeTitle(node, depth, state.position.width, state.position.height)}`;
     button.append(dot, text);
     button.addEventListener('click', () => report(controller.goTo(node.id)));
     wrapper.append(button);
@@ -137,15 +139,21 @@ function renderTree(state: ControllerState): void {
   };
   while (pending.length && count++ < 500) {
     const entry = pending.pop()!;
-    row(entry.node, entry.depth, entry.indent);
+    const props = entry.node.properties;
+    const moveNumber = props.MN
+      ? Number(props.MN[0])
+      : entry.parentMove + (props.B || props.W ? 1 : 0);
+    row(entry.node, entry.depth, entry.indent, moveNumber);
     for (let i = entry.node.children.length - 1; i >= 0; i--)
       pending.push({
         node: entry.node.children[i]!,
         depth: entry.depth + 1,
         indent: entry.indent + (i > 0 ? 1 : 0),
+        parentMove: moveNumber,
       });
   }
-  if (!shown.has(state.node.id)) row(state.node, state.path.length - 1, 0);
+  if (!shown.has(state.node.id))
+    row(state.node, state.path.length - 1, 0, state.position.moveNumber);
   find('tree').replaceChildren(fragment);
   find('tree-note').textContent = pending.length
     ? 'First 500 nodes shown. Move controls can navigate the whole record.'

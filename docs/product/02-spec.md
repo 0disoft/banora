@@ -17,6 +17,9 @@ viewer or compose lower-level modules without adopting an application framework.
 Banora Studio is the initial reference consumer at `examples/studio` in this
 repository. Public demo hosting remains a separate action. The initial
 layout consists of the board, move controls, a variation tree, and a comments panel.
+Variation rows show the position's move number alongside the move or annotation label,
+using branch-local counts (including passes) and SGF `MN` overrides. Setup/comment-only
+nodes retain their position's number rather than counting as moves.
 
 1. Open a local SGF by drag-and-drop/file selection, or choose a bundled example.
 2. Move through the record and inspect comments and existing variations.

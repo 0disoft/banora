@@ -155,16 +155,17 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     lastTree = { record: state.record, selected: state.node.id };
     const focusInside = tree.contains(document.activeElement);
     const fragment = document.createDocumentFragment();
-    const pending = [{ node: state.record.games[state.gameIndex]!, indent: 0 }];
+    const pending = [{ node: state.record.games[state.gameIndex]!, indent: 0, parentMove: 0 }];
     let count = 0;
     let selected: HTMLButtonElement | undefined;
-    const row = (node: SgfNode, indent: number) => {
+    const row = (node: SgfNode, indent: number, moveNumber: number) => {
       const item = document.createElement('div');
       item.setAttribute('role', 'listitem');
       const entry = document.createElement('button');
       entry.type = 'button';
-      entry.textContent = nodeName(node, state);
-      entry.setAttribute('aria-label', `Select ${nodeName(node, state)}`);
+      const label = `${moveNumber} · ${nodeName(node, state)}`;
+      entry.textContent = label;
+      entry.setAttribute('aria-label', `Select ${label}`);
       entry.dataset.node = node.id;
       entry.style.paddingLeft = `${10 + Math.min(indent, 8) * 12}px`;
       entry.setAttribute('aria-current', String(node.id === state.node.id));
@@ -174,11 +175,19 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     };
     while (pending.length && count++ < 500) {
       const item = pending.pop()!;
-      row(item.node, item.indent);
+      const props = item.node.properties;
+      const moveNumber = props.MN
+        ? Number(props.MN[0])
+        : item.parentMove + (props.B || props.W ? 1 : 0);
+      row(item.node, item.indent, moveNumber);
       for (let i = item.node.children.length - 1; i >= 0; i--)
-        pending.push({ node: item.node.children[i]!, indent: item.indent + (i > 0 ? 1 : 0) });
+        pending.push({
+          node: item.node.children[i]!,
+          indent: item.indent + (i > 0 ? 1 : 0),
+          parentMove: moveNumber,
+        });
     }
-    if (!selected) row(state.node, 0);
+    if (!selected) row(state.node, 0, state.position.moveNumber);
     tree.replaceChildren(fragment);
     treeNote.textContent = pending.length
       ? 'First 500 nodes shown; move controls navigate the complete record.'

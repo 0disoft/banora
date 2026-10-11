@@ -92,16 +92,16 @@ async (page) => {
       document.querySelector('#dirty').textContent === 'No changes',
   );
   verify((await page.locator('[data-stone="4,5"]').count()) === 1, 'Setup export/reopen failed');
-  await page.getByRole('button', { name: 'Black C7', exact: true }).click();
+  await page.getByRole('button', { name: '1 · Black C7', exact: true }).click();
   await page.locator('#promote-branch').click();
   verify(
-    (await page.locator('#tree button').nth(1).innerText()) === 'Black C7',
+    (await page.locator('#tree button').nth(1).innerText()) === '1 · Black C7',
     'Branch promotion failed',
   );
   await page.locator('#remove-branch').click();
   await page.locator('#remove-dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   verify(
-    (await page.getByRole('button', { name: 'Black C7', exact: true }).count()) === 1,
+    (await page.getByRole('button', { name: '1 · Black C7', exact: true }).count()) === 1,
     'Cancelled removal changed record',
   );
   await page.locator('#remove-branch').click();
@@ -114,13 +114,13 @@ async (page) => {
   await page.locator('#undo').click();
   verify(
     (await page
-      .getByRole('button', { name: 'Black C7', exact: true })
+      .getByRole('button', { name: '1 · Black C7', exact: true })
       .getAttribute('aria-current')) === 'true',
     'Removal Undo did not restore cursor',
   );
   await page.locator('#undo').click();
   verify(
-    (await page.locator('#tree button').nth(1).innerText()) === 'Black A9',
+    (await page.locator('#tree button').nth(1).innerText()) === '1 · Black A9',
     'Reorder Undo failed',
   );
   verify(
