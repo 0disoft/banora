@@ -38,6 +38,12 @@ opening browser storage or emitting authored data. `bun run ops drill-recovery`
 rehearses guarded recovery/Undo on the committed study fixture. See the
 [operational contract](docs/ops/00-operational-contract.md) for scope and prerequisites.
 
+`bun run perf --output .tmp/performance-report.json` rebuilds the SDK and measures
+public synchronous operations in Node, with warm-up/five samples and correctness
+checks on original/authored fixtures. Existing output files are refused. It does
+not run automatically in CI or measure browser frames; see the
+[performance evidence](docs/engineering/14-sdk-performance-evidence.md).
+
 `bun run boundaries` validates classified SDK runtime dependency directions,
 public consumer imports and framework isolation. Files above 40 KB are reported
 as review candidates. Type-only/computed imports are not a source-scanner support

@@ -1,6 +1,6 @@
 # Performance Budget
 
-- Status: Measurement plan; no measurements or numerical guarantees yet
+- Status: Reproducible desktop Node SDK baseline measured; browser/device budgets pending
 - Technical owner: UNASSIGNED
 - Decision: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 
@@ -16,9 +16,26 @@
 | Minimal consumers       | Compressed bundle size and excluded optional dependencies    |
 | Mount/unmount cycles    | Remaining listeners, subscriptions, objects and pending work |
 
-Numerical budgets, fixtures and representative device/browser versions are
-UNDECIDED. Record these with the initial implementation baseline before advertising
-performance. Report workload, tool/runtime versions and measurement limitations.
+`bun run perf --output .tmp/performance-report.json` rebuilds public SDK artifacts,
+bundles a Node runner and measures synchronous parse/open/export/navigation/search/
+batch/recovery. A report uses one warm-up and five fresh samples per case, with
+min/median/max and raw samples. Setup and post-run verification/disposal are outside
+timing; navigation success checks run inside timing. Existing output/input aliases
+are never overwritten. No benchmark or flaky timing threshold runs in default CI.
+Tests verify workloads, measurement lifecycle and correctness, not time limits.
+
+The committed original study and authored 300/5,000-move 19x19 workloads provide
+small/reference, review-sized and pass-heavy stress coverage. Synthetic workloads
+have a legal opening followed by passes and periodic comments; they are not engine/
+tournament games. Reports project workload dimensions/counts/bytes, exact Node
+version/platform/architecture, commit/dirty flag, controller source digest and a
+process memory snapshot without authored record content or paths. Root invocation
+builds current source; a directly run stale artifact cannot establish a current baseline.
+
+See the [measured baseline](14-sdk-performance-evidence.md). Browser rendering,
+input-to-paint, thumbnails/overlays and representative low-spec/physical-device
+budgets remain UNDECIDED/unmeasured. Desktop SDK timings and one process memory
+snapshot do not prove frame rate, peak allocation, an SLO or a device guarantee.
 
 ## Optimization Gates
 

@@ -10,6 +10,7 @@
     "doctor": "bun scripts/development.ts doctor",
     "commands": "bun scripts/development.ts commands",
     "ops": "bun scripts/operations.ts",
+    "perf": "bun run build && bun build scripts/performance.ts --target=node --packages=external --outfile .tmp/performance.mjs && node .tmp/performance.mjs",
     "clean": "bun scripts/development.ts clean",
     "boundaries": "bun scripts/repository-policy.ts",
     "ci:plan": "bun scripts/ci.ts plan",
