@@ -42,12 +42,21 @@
         <section class="board-panel" aria-label="Board workspace">
           <div class="board-top"
             ><div><p class="eyebrow">ACTIVE RECORD</p><h2 id="game-name">Opening study</h2></div
-            ><label class="theme-label"
-              >Board
-              <select id="theme"
-                ><option value="wood">Warm wood</option
-                ><option value="flat">Paper</option></select
-              ></label
+            ><div class="board-presentation"
+              ><label class="theme-label"
+                >Board
+                <select id="theme"
+                  ><option value="wood">Warm wood</option
+                  ><option value="flat">Paper</option></select
+                ></label
+              ><label class="theme-label"
+                >Display size
+                <select id="board-size"
+                  ><option value="small">Small</option
+                  ><option value="default" selected>Default</option
+                  ><option value="large">Large</option></select
+                ></label
+              ></div
             ></div
           >
           <div id="board" class="board"></div>

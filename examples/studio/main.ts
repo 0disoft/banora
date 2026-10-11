@@ -34,6 +34,25 @@ import { mountTextureControls } from '../texture-controls.js';
 import { mountScoringControls } from '../scoring-controls.js';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+const boardSize = find<HTMLSelectElement>('board-size');
+const isBoardSize = (value: string | null): value is 'small' | 'default' | 'large' =>
+  value === 'small' || value === 'default' || value === 'large';
+try {
+  const stored = localStorage.getItem('banora.studio.board-size');
+  if (isBoardSize(stored)) boardSize.value = stored;
+} catch {
+  /* Restricted storage still allows session-local size changes. */
+}
+find('board').dataset.displaySize = boardSize.value;
+boardSize.addEventListener('change', () => {
+  if (!isBoardSize(boardSize.value)) return;
+  find('board').dataset.displaySize = boardSize.value;
+  try {
+    localStorage.setItem('banora.studio.board-size', boardSize.value);
+  } catch {
+    /* Optional preference persistence. */
+  }
+});
 const language = find<HTMLSelectElement>('language');
 let initialLanguage: BanoraLocale = navigator.language.toLowerCase().startsWith('ko') ? 'ko' : 'en';
 try {

@@ -200,6 +200,7 @@ main {
 }
 .board-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -207,6 +208,17 @@ main {
 }
 .board-top h2 {
   margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.board-top > div:first-child {
+  min-width: 0;
+}
+.board-presentation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
 }
 .theme-label {
   display: flex;
@@ -217,8 +229,16 @@ main {
   font-size: 0.75rem;
 }
 .board {
+  width: 100%;
   max-width: 620px;
   margin: auto;
+}
+.board[data-display-size='small'] {
+  width: 85%;
+  max-width: 527px;
+}
+.board[data-display-size='large'] {
+  max-width: 713px;
 }
 .position-info {
   display: flex;

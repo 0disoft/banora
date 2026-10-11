@@ -20,6 +20,12 @@ layout consists of the board, move controls, a variation tree, and a comments pa
 Variation rows show the position's move number alongside the move or annotation label,
 using branch-local counts (including passes) and SGF `MN` overrides. Setup/comment-only
 nodes retain their position's number rather than counting as moves.
+Studio offers Small / Default / Large display sizes, with the existing 620px board
+width as Default and 85% / 115% width caps for Small / Large. Small also reduces
+the available width on narrow screens; Large is constrained by its container.
+This scales the rendered board without changing SGF dimensions, selection, rules
+or editing history. The optional local preference uses `banora.studio.board-size`;
+invalid or unavailable storage falls back to Default.
 
 1. Open a local SGF by drag-and-drop/file selection, or choose a bundled example.
 2. Move through the record and inspect comments and existing variations.
