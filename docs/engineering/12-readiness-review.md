@@ -309,3 +309,27 @@ unconfigured `contract`/`migration-check` commands remain unverified. Actual loc
 migration behavior is exercised by unit and production browser fixtures.
 Whole-record search/batch preview, redacted diagnostics/help/operational tools,
 measured performance and the final release/all-72 audit remain active work.
+
+## Execution: Record Search and Comment Batch SDK
+
+Implemented headless literal property search across all games/branches with
+accurate full counts, bounded pagination/portable locators and iterative traversal
+independent of the visible tree. Added controller-owned immutable comment previews,
+expected-text checks and atomic cross-game application preserving current selection,
+rules, generation, export baseline and one-step Undo. Invalid, stale or foreign
+inputs return no partial edits; no-op batches retain groups/Redo. Unchanged
+subtrees are shared and limits are validated before issuing a preview.
+
+`check` passed 167 tests / 2,296 assertions, existing quality/boundary/build/types,
+108-document checks, installed root/headless/classic SDK consumers and existing
+103 Node CLI checks. Deep paths, limits, raw unknown-property escaping, issued
+preview identity/freshness, tickets/groups and atomic notification/Undo are covered.
+The selective `@banora/sdk/record-search` API and controller methods are additive;
+no DB, persistence/hygiene or dependency change. The module boundary classification
+and packed-consumer runner include new headless functionality.
+
+Product/API/compatibility, package README, ADR 0019 and validation are synchronized.
+Terminal schema/commands and Studio search/select/preview/apply controls are the
+next integration steps; no shipped UI or hosted evidence is claimed here. The
+full 72-question objective remains active, including later measured performance,
+diagnostics/help, release operations and requirement-by-requirement final audit.

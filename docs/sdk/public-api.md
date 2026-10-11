@@ -301,6 +301,47 @@ without marking an export complete. `loadCheckpoint(unknown, {discardChanges?})`
 validates before replacing; success starts a new generation/session with the exact
 dirty baseline and restored policy. See the [recovery contract](recovery.md) for
 limits, diagnostics, storage ownership and session-local Undo.
+
+### Whole-Record Search and Comment Batches
+
+`searchRecord(record, options)` is exported by root and the headless
+`@banora/sdk/record-search` entrypoint. Pass a validated immutable SGF record and
+`{query, properties?, caseSensitive?, gameIndex?, offset?, limit?}`. Default fields
+are `C`, `N`, `GN`, `PB`, `PW` and `LB`; an empty query lists their nonblank values.
+Matching is literal, case-insensitive by default, without board replay or mutation.
+Order is games then depth-first child order. The frozen result contains `hits`,
+`total`, `offset`, `limit`, `hasMore`; each hit provides `nodeId`, portable `target`,
+`moveNumber`, matching `properties` and an excerpt of at most 160 UTF-16 units
+without a dangling high surrogate. Counts include all matches, not only the page.
+
+Queries allow at most 512 text units, 1–32 unique uppercase property identifiers,
+page sizes 1–100 (default 50) and offsets 0–50,000. Invalid options throw TypeError.
+Visits over 50,000 nodes, scans over 8 Mi text units or output over 100,000 total
+locator steps throw RangeError without partial results; lower page size for deep
+records. Searching never navigates, serializes SGF or changes export state.
+
+`previewComments(changes)` accepts at most 256 distinct `{nodeId, text,
+expectedText?}` changes and returns `{ok: true, preview}` or a command failure.
+New text has the same newline/tab normalization as `setComment`; expected text
+must equal the current stored comment exactly. Each text is bounded to 65,536 units,
+aggregate new/expected inputs to 1,048,576 units, and the resulting SGF to the
+controller's configured limits. Missing/duplicate targets, unknown fields, sparse
+arrays, stale expected text and over-limit candidates are rejected atomically.
+
+The frozen `CommentBatchPreview` exposes immutable `source`/candidate `record` and
+changed `edits` (`nodeId`, `before`, `after`). Previewing leaves snapshots, selection,
+notifications, Undo/Redo, comment groups and export tickets unchanged. Call
+`applyComments(preview)` only on its issuing controller while its exact source
+record is current. Foreign/fabricated previews return `invalid-edit`; changed
+source returns `stale-preview`. Navigation does not stale a content preview.
+Undo back to the exact source permits applying that preview again.
+
+Application preserves the current cursor, rules/generation and export baseline,
+and produces one notification/Undo entry. No-op application leaves groups/Redo
+intact. `setComments(changes)` validates and applies directly using the same rules.
+Types `CommentChange`, `CommentBatchEdit`, `CommentBatchPreview` are exported from
+root/controller. Preview content is authored data, unsuitable for diagnostic logs.
+[ADR 0019](../adr/0019-record-search-and-atomic-comment-batches.md) owns this contract.
 `rules` accepts the same explicit superko policies as the core. History follows
 only the selected game's ancestor path; inspecting another node, visiting a sibling,
 cache eviction or editing comments does not add positions to that path's membership.
@@ -315,24 +356,25 @@ no-ops, so they do not create an epoch. After a move, an explicit
 `setSetup([], state.position.toPlay)` creates a setup/PL child and resets repetition.
 This differs from the lower-level `setup`, which always returns a new epoch.
 
-| Operation                                                           | Behavior                                                                                                                                                  |
-| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `getState()` / `subscribe(listener)`                                | Immutable current state; subscription immediately delivers a snapshot and returns cleanup                                                                 |
-| `inspectNode(id)`                                                   | Read an immutable snapshot at another node without navigation, history changes or notifications; missing IDs return null                                  |
-| `goTo(id)` / `previous()` / `next(variation?)`                      | Select an existing node/path without creating an edit                                                                                                     |
-| `play(pointOrNull)`                                                 | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch                                                            |
-| `setComment(text)` / `setMarker(point, kindOrNull, label?)`         | Undoable comments and triangle/square/circle/cross/label edits                                                                                            |
-| `setConnection(from, to, 'line' \| 'arrow', present?)`              | Add/remove a node-local SGF line or directed arrow; endpoints must differ                                                                                 |
-| `addStroke(points, style?)` / `removeStroke(id)` / `clearStrokes()` | Undoable node-local freehand annotations; removing an absent ID or clearing empty ink is a no-op                                                          |
-| `setSetup(stones, toPlay?)`                                         | Patch free black/white/empty setup points and optional turn; after a move append a setup child rather than mixing move/setup properties                   |
-| `removeBranch(nodeId?)`                                             | Remove a non-root node and descendants; a deleted selection moves to its surviving parent                                                                 |
-| `reorderBranch(nodeId, index)`                                      | Move a non-root node to a zero-based sibling slot without moving the current cursor                                                                       |
-| `beginEditGroup()` / `endEditGroup()`                               | Group comments into one undo unit; begin returns an idempotent cleanup scoped to that group; navigation/global end closes it                              |
-| `undo()` / `redo()`                                                 | Restore record edits and the cursor captured for that history entry                                                                                       |
-| `loadSgf(textOrBytes, { discardChanges?, locator? })`               | Validate record and target first; reject dirty replacement unless explicitly permitted; select the target atomically and reset editing history on success |
-| `prepareExport()`                                                   | Return an immutable `{ id, text }` ticket without changing dirty state                                                                                    |
-| `acknowledgeExport(id)` / `cancelExport(id)`                        | Acknowledge host export success or cancel; only acknowledgment advances the exact exported semantic baseline                                              |
-| `dispose()`                                                         | Release controller subscriptions/cache/tickets; subsequent state/mutation use is rejected                                                                 |
+| Operation                                                                      | Behavior                                                                                                                                                  |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getState()` / `subscribe(listener)`                                           | Immutable current state; subscription immediately delivers a snapshot and returns cleanup                                                                 |
+| `inspectNode(id)`                                                              | Read an immutable snapshot at another node without navigation, history changes or notifications; missing IDs return null                                  |
+| `goTo(id)` / `previous()` / `next(variation?)`                                 | Select an existing node/path without creating an edit                                                                                                     |
+| `play(pointOrNull)`                                                            | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch                                                            |
+| `setComment(text)` / `setMarker(point, kindOrNull, label?)`                    | Undoable comments and triangle/square/circle/cross/label edits                                                                                            |
+| `previewComments(changes)` / `applyComments(preview)` / `setComments(changes)` | Validate multi-node comment changes without mutation, then apply atomically as one Undo unit; stale or foreign previews are refused                       |
+| `setConnection(from, to, 'line' \| 'arrow', present?)`                         | Add/remove a node-local SGF line or directed arrow; endpoints must differ                                                                                 |
+| `addStroke(points, style?)` / `removeStroke(id)` / `clearStrokes()`            | Undoable node-local freehand annotations; removing an absent ID or clearing empty ink is a no-op                                                          |
+| `setSetup(stones, toPlay?)`                                                    | Patch free black/white/empty setup points and optional turn; after a move append a setup child rather than mixing move/setup properties                   |
+| `removeBranch(nodeId?)`                                                        | Remove a non-root node and descendants; a deleted selection moves to its surviving parent                                                                 |
+| `reorderBranch(nodeId, index)`                                                 | Move a non-root node to a zero-based sibling slot without moving the current cursor                                                                       |
+| `beginEditGroup()` / `endEditGroup()`                                          | Group comments into one undo unit; begin returns an idempotent cleanup scoped to that group; navigation/global end closes it                              |
+| `undo()` / `redo()`                                                            | Restore record edits and the cursor captured for that history entry                                                                                       |
+| `loadSgf(textOrBytes, { discardChanges?, locator? })`                          | Validate record and target first; reject dirty replacement unless explicitly permitted; select the target atomically and reset editing history on success |
+| `prepareExport()`                                                              | Return an immutable `{ id, text }` ticket without changing dirty state                                                                                    |
+| `acknowledgeExport(id)` / `cancelExport(id)`                                   | Acknowledge host export success or cancel; only acknowledgment advances the exact exported semantic baseline                                              |
+| `dispose()`                                                                    | Release controller subscriptions/cache/tickets; subsequent state/mutation use is rejected                                                                 |
 
 An asynchronous acknowledgment of older content leaves newer edits dirty; stale
 acknowledgments cannot replace a newer acknowledged baseline. Import invalidates old

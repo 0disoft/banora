@@ -4,6 +4,7 @@ export * from './geometry.js';
 export * from './sgf.js';
 export * from './controller.js';
 export * from './checkpoint.js';
+export * from './record-search.js';
 export * from './automation.js';
 export * from './playback.js';
 export * from './playback-controls.js';

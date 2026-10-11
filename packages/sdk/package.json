@@ -106,6 +106,10 @@
     "./checkpoint": {
       "types": "./dist/checkpoint.d.ts",
       "import": "./dist/checkpoint.js"
+    },
+    "./record-search": {
+      "types": "./dist/record-search.d.ts",
+      "import": "./dist/record-search.js"
     }
   },
   "engines": {

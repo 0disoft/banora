@@ -41,3 +41,6 @@ IndexedDB drafts, ownership, revisions and explicit recovery/deletion requiremen
 
 The [preference decision](0018-versioned-studio-preferences.md) defines validated
 scalar settings, safe legacy migration and reset independent of authored records.
+
+The [record tools decision](0019-record-search-and-atomic-comment-batches.md)
+defines whole-record search and controller-owned atomic comment previews/application.

@@ -135,6 +135,16 @@ The [automation decision](../adr/0013-machine-readable-terminal-automation.md)
 requires command discovery, checked logical inputs, bounded isolated batches and
 structured failures; it adds no automatic control over another application's state.
 
+Headless whole-record literal search traverses all games/variations independently
+of visible tree limits and returns paginated matches with portable targets. The
+controller supports immutable comment-change previews, guarded atomic application
+and one-step Undo across multiple selected nodes. Content changes invalidate a
+preview; browsing preserves it and application keeps the current cursor/export
+baseline. Bounds and ownership are specified in
+[ADR 0019](../adr/0019-record-search-and-atomic-comment-batches.md). SDK methods
+are implemented; terminal commands and Studio search/select/preview controls are
+subsequent integration increments, not current UI promises.
+
 Hosts may keep rules, records and revisions in an external server/native engine.
 The additive [controlled-board decision](../adr/0012-host-controlled-board-and-presentation-boundary.md)
 defines a plain snapshot/intention integration without requiring a Banora record

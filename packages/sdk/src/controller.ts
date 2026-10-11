@@ -25,6 +25,9 @@ export type { Stroke, StrokeStyle } from './annotations.js';
 import { CHECKPOINT_SCHEMA, parseRecordCheckpoint } from './checkpoint.js';
 import type { RecordCheckpoint } from './checkpoint.js';
 import { matches } from './json-schema.js';
+import { buildCommentBatch, CommentBatchError } from './comment-batch.js';
+import type { CommentChange, CommentBatchPreview } from './comment-batch.js';
+export type { CommentChange, CommentBatchPreview, CommentBatchEdit } from './comment-batch.js';
 
 export type MarkerKind = 'triangle' | 'square' | 'circle' | 'cross' | 'label';
 export interface Marker {
@@ -63,6 +66,7 @@ export type ControllerFailure =
   | 'import'
   | 'invalid-export'
   | 'invalid-checkpoint'
+  | 'stale-preview'
   | 'limit';
 export type CommandResult =
   | { readonly ok: true }
@@ -120,6 +124,7 @@ export class RecordController {
   #ticketSequence = 0;
   #lastAcknowledged = 0;
   #tickets = new Map<number, { signature: string; record: SgfRecord }>();
+  #commentPreviews = new WeakSet<CommentBatchPreview>();
 
   constructor(options: ControllerOptions = {}) {
     this.#rules = options.rules ? Object.freeze({ ...options.rules }) : undefined;
@@ -317,6 +322,10 @@ export class RecordController {
     });
     const validation = parseSgf(serializeSgf(candidate), this.#limits);
     if (!validation.ok) return { ok: false, reason: 'limit', diagnostics: validation.diagnostics };
+    return this.#commit(candidate, selected, grouped);
+  }
+  /** Commit only a candidate already validated by this controller. */
+  #commit(candidate: SgfRecord, selected: string, grouped = false): CommandResult {
     // Rejected candidates must leave the active comment session intact.
     if (!grouped) this.endEditGroup();
     if (!this.#group || !this.#groupRecorded) {
@@ -391,6 +400,41 @@ export class RecordController {
       this.#selected,
       true,
     );
+  }
+  /** Construct a validated preview without edits, navigation, notifications or export acknowledgment. */
+  previewComments(
+    changes: readonly CommentChange[],
+  ):
+    | { readonly ok: true; readonly preview: CommentBatchPreview }
+    | Extract<CommandResult, { ok: false }> {
+    this.#assertLive();
+    try {
+      const preview = buildCommentBatch(this.#record, changes);
+      if (preview.edits.length) {
+        const validation = parseSgf(serializeSgf(preview.record), this.#limits);
+        if (!validation.ok)
+          return { ok: false, reason: 'limit', diagnostics: validation.diagnostics };
+      }
+      this.#commentPreviews.add(preview);
+      return Object.freeze({ ok: true, preview });
+    } catch (error) {
+      if (error instanceof CommentBatchError) return { ok: false, reason: error.reason };
+      throw error;
+    }
+  }
+  /** Apply a preview from this controller only while its source is still current. */
+  applyComments(preview: CommentBatchPreview): CommandResult {
+    this.#assertLive();
+    if (!preview || !this.#commentPreviews.has(preview))
+      return { ok: false, reason: 'invalid-edit' };
+    if (preview.source !== this.#record) return { ok: false, reason: 'stale-preview' };
+    if (!preview.edits.length) return { ok: true };
+    return this.#commit(preview.record, this.#selected);
+  }
+  /** Apply a checked bounded batch as one notification and Undo unit. */
+  setComments(changes: readonly CommentChange[]): CommandResult {
+    const result = this.previewComments(changes);
+    return result.ok ? this.applyComments(result.preview) : result;
   }
   removeBranch(id = this.#selected): CommandResult {
     this.#assertLive();

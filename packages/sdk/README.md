@@ -12,6 +12,13 @@ service. `@banora/sdk/checkpoint` supplies checked parsing and schema discovery;
 terminal automation can emit/resume the same recovery data. Undo is session-local,
 and hosts own storage, privacy, retention and concurrent writes.
 
+`@banora/sdk/record-search` searches every game/variation with bounded literal
+property queries and portable result targets, without replay/navigation. Controller
+`previewComments`, `applyComments` and `setComments` validate multi-node changes
+and apply them as one Undo unit while retaining selection/export semantics.
+Previews are immutable, tied to their issuing controller/current source, and never
+implicitly logged. Terminal and Studio controls are subsequent integrations.
+
 `@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.
 The separate DOM `playback-controls` mount is shared by Studio and every complete

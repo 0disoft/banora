@@ -303,3 +303,18 @@ The scenario also runs in the full production browser suite. Headless model test
 cover failed migration writes and bounded per-field reset. Other browser engines,
 physical devices and hosted CI are unverified. No SDK API or draft database schema
 changes are required; affected CI routing includes `--preferences-only`.
+
+## Record Tools SDK Evidence
+
+`packages/sdk/test/record-tools.test.ts` covers whole-collection/branch search,
+literal/case/field filtering, metadata/labels, passes/`MN`, pagination, work/output
+bounds and deep 4,000-move traversal without replay. Comment batch checks cover
+immutable previews, shared unchanged subtrees, cross-game targets, one notification/
+Undo unit, selection/export/rule preservation, malformed/missing/duplicate/over-limit
+refusal, no-op/group/Redo/ticket retention and stale/foreign/forged ownership.
+`check` executes these tests and packed root/controller/selective-search consumers
+under Node with strict declarations, including an ES2022-only no-DOM consumer.
+SDK integration passed 167 tests / 2,296 assertions and existing 103 installed CLI
+checks. New terminal/Studio interaction follows separately; no new UI evidence is
+claimed from these headless checks. Independent contract/migration-check intents
+remain unconfigured; public API and ADR 0019 own the additive contract.

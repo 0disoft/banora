@@ -89,6 +89,14 @@ consumer has Chrome 154 checks for separate tabs, close/reopen, quotas, guards,
 corrupt input and actual files. Broader storage/OS durability is not claimed;
 see the [recovery limits](recovery.md#studio-local-drafts).
 
+Whole-record search has a selective headless `@banora/sdk/record-search` entrypoint.
+The controller's comment preview/apply/set additions share the existing edit/Undo
+and export contracts, adding `stale-preview` as a failure reason. Unit cases include
+collections/branches, 4,000-move paths, bounds, stale/foreign preview refusal and
+atomic cross-game edits. Independently installed Node consumers check root/controller/
+search declarations and execution, including ES2022-only types without DOM.
+Studio/CLI integration and browser interaction are not implied by this SDK evidence.
+
 Agent automation is available through DOM-free `@banora/sdk/automation` and the
 optional Node 24.x `@banora/cli` package. Installed SDK declarations/runtime and
 the actual CLI tarballs/bin have Windows Node 24 evidence for machine-readable
