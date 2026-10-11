@@ -3,6 +3,37 @@
 Status: local artifact preparation implemented; registry publication and hosted
 deployment are not configured or established by a successful preparation.
 
+## Hosted Candidate Preparation
+
+The manual-only [prepare-release workflow](../../.github/workflows/prepare-release.yml)
+prepares the dispatched main commit on a GitHub-hosted Ubuntu runner. It accepts
+no arbitrary source, path, registry or shell inputs. Only `0disoft/banora` main
+can enter its one 20-minute job. It uses read-only repository permissions,
+non-persistent checkout credentials and the existing frozen setup/tool policy;
+it requests no OIDC token and does not publish packages, tags or a public demo.
+
+After all nine preparation gates pass, the workflow records an offline
+publication plan and retains only `.artifacts/releases/<source-commit>/` through
+GitHub Actions artifacts. The artifact name includes source commit, run ID and
+attempt; overwrite is disabled, missing files fail and retention is 14 days.
+The parent directory is hidden, so inclusion is explicitly enabled for this
+already-verified, closed file inventory, never for the whole workspace.
+See [GitHub's artifact action](https://github.com/actions/upload-artifact).
+
+The workflow exposes artifact ID, artifact archive digest and prepared manifest
+SHA-256 as distinct outputs. Preserve all three with the successful run and source
+commit. The upload archive digest is not the manifest hash. Downloaded contents
+must pass `bun run release verify --bundle DIR` before use. Actions storage access
+follows repository permissions; a private artifact is neither a public demo nor
+an approved npm release. Expiring CI storage is not permanent retention: download
+and independently preserve a reviewed candidate before its 14-day expiry.
+
+After the workflow is on remote main, run it explicitly with
+`gh workflow run prepare-release.yml --ref main`, then inspect its terminal result
+and artifact metadata. Configuration alone does not establish a successful hosted
+preparation or restore. An authorized publication flow must download and verify
+those exact reviewed bytes rather than run preparation again to rebuild them.
+
 ## Prepare Reviewed Artifacts
 
 Maintainers own source review, compatibility and artifact retention. Start in a

@@ -1,0 +1,69 @@
+name: Prepare release candidate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prepare-release-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      artifact_id: ${{ steps.archive.outputs.artifact-id }}
+      artifact_digest: ${{ steps.archive.outputs.artifact-digest }}
+      manifest_sha256: ${{ steps.receipt.outputs.manifest_sha256 }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: mise.toml
+          package-manager-cache: false
+      - name: Install reviewed dependencies
+        run: bun run setup
+      - name: Install browser for retained-archive checks
+        run: bun run playwright-cli install-browser chrome --with-deps
+      - name: Prepare and verify exact release bytes
+        run: bun run release prepare
+      - name: Record offline publication handoff
+        id: receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun run release publication-plan \
+            --bundle ".artifacts/releases/$GITHUB_SHA" \
+            --workflow publish.yml \
+            --environment npm-release > "$RUNNER_TEMP/banora-publication-plan.json"
+          bun -e '
+            const receipt = await Bun.file(process.env.RUNNER_TEMP + "/banora-publication-plan.json").json();
+            const plan = receipt.plan;
+            if (receipt.ok !== true || plan?.source.commit !== process.env.GITHUB_SHA ||
+                !/^[a-f0-9]{64}$/.test(plan?.manifestSha256 ?? "")) {
+              throw new Error("Invalid prepared-source receipt");
+            }
+            const {appendFile} = await import("node:fs/promises");
+            await appendFile(process.env.GITHUB_OUTPUT, "manifest_sha256=" + plan.manifestSha256 + "\n");
+            console.log(JSON.stringify(plan));
+          '
+      - name: Retain verified candidate
+        id: archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: banora-candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .artifacts/releases/${{ github.sha }}/
+          include-hidden-files: true
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 14
+          compression-level: 6

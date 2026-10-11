@@ -67,6 +67,48 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
     for (const command of commandsFor(planChecks(paths)))
       if (command[0] === 'run') expect(Object.hasOwn(metadata.scripts, command[1]!)).toBe(true);
 });
+
+test('manual candidate preparation keeps read-only authority and selects code verification without hiding mixed runtime changes', async () => {
+  const path = '.github/workflows/prepare-release.yml';
+  const isolated = planChecks([path, 'scripts/release.ts', 'scripts/publication-plan.ts']);
+  expect(isolated).toEqual({
+    mode: 'code',
+    browser: [],
+    adapters: false,
+    starter: false,
+    audit: false,
+  });
+  expect(commandsFor(isolated)).toContainEqual(['run', 'check']);
+  expect(commandsFor(isolated)).toContainEqual(['run', 'security:files']);
+  expect(planChecks([path, 'packages/sdk/src/controller.ts']).browser).toEqual(['all']);
+  expect(planChecks([path, 'packages/sdk/package.json']).audit).toBe(true);
+  expect(planChecks(['.github/workflows/unknown.yml']).browser).toEqual(['all']);
+  const workflow = Bun.YAML.parse(await readFile(path, 'utf8')) as {
+    on: Record<string, unknown>;
+    jobs: {
+      prepare: {
+        if: string;
+        'timeout-minutes': number;
+        steps: { run?: string; uses?: string; with?: Record<string, unknown> }[];
+      };
+    };
+  };
+  expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch']);
+  expect(workflowSignals(workflow)).toEqual([]);
+  const job = workflow.jobs.prepare;
+  expect(job.if).toContain("github.ref == 'refs/heads/main'");
+  expect(job['timeout-minutes']).toBeLessThanOrEqual(20);
+  expect(job.steps.some((step: { run?: string }) => step.run === 'bun run release prepare')).toBe(
+    true,
+  );
+  const upload = job.steps.find(
+    (step: { uses?: string }) => step.uses === 'actions/upload-artifact@v7',
+  );
+  expect(upload?.with?.path).toBe('.artifacts/releases/${{ github.sha }}/');
+  expect(upload?.with?.overwrite).toBe(false);
+  expect(upload?.with?.['retention-days']).toBe(14);
+  expect(upload?.with?.['if-no-files-found']).toBe('error');
+});
 test('security signals identify credential headers/files and dangerous workflow permissions without returning content', async () => {
   expect(secretSignals('.env', 'plain setting')).toEqual(['private configuration file']);
   expect(secretSignals('.env.example', 'PUBLIC_URL=http://127.0.0.1')).toBeEmpty();

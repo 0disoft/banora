@@ -121,6 +121,13 @@ exercise the actual command with an empty executable search path, preserve bundl
 bytes and reject unprepared/legacy/damaged artifacts, unsafe options and prerelease
 promotion to `latest`. A workflow file's presence is not publication authority.
 
+The manual-only `.github/workflows/prepare-release.yml` runs the full nine-gate
+preparation on the dispatched main commit and retains its verified directory for
+14 days. CI planner regressions preserve read-only authority and narrow ordinary
+verification for release-only orchestration while retaining all mixed SDK gates.
+Actual hosted artifact retention and downloaded-byte verification require separate
+execution evidence; workflow/static checks alone do not prove those outcomes.
+
 The latest executed preparation is clean source `cb53a96`: all nine named gates
 passed against its retained 149-file bundle. Actual verification/restaging and
 installed copied SDK/classic/types/license plus 297 copied CLI checks also passed.

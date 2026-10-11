@@ -43,7 +43,7 @@ This is an ownership decision, not evidence that such a service exists.
 | 5   | Interface types, documents and compatibility     | Source-generated declarations, frozen automation/checkpoint schemas and actual installed SDK/CLI/framework consumers exist. Root validation and installed types/SSR consumers now pass on Windows and hosted Ubuntu. Broader runtime/browser floors remain unclaimed.                                                                                                                          |
 | 6   | Validated configuration and safe secrets         | [Configuration](../ops/config-and-env.md) records actual defaults/validation/reload ownership; [secrets](../ops/secrets.md) separates CI/host credentials and authored-data privacy. No SDK environment loader or embedded secret is introduced.                                                                                                                                               |
 | 7   | Normal/error/boundary development fixtures       | [Fixture index](../../examples/fixtures/README.md) connects authored normal/error/boundary cases to actual regressions and safe resets; installed recipes execute and preserve isolated state.                                                                                                                                                                                                 |
-| 8   | Fast regression checks with repro cases          | Current local root check passed 202 tests/2,816 assertions and 297 installed CLI checks; [VALIDATION](../../VALIDATION.md) exposes focused files, named migration checks and browser scopes. Fixtures reproduce actual failures; browser option process checks fail before launch rather than silently testing another engine.                                                                 |
+| 8   | Fast regression checks with repro cases          | Current local root check passed 203 tests/2,831 assertions and 297 installed CLI checks; [VALIDATION](../../VALIDATION.md) exposes focused files, named migration checks and browser scopes. Fixtures reproduce actual failures; browser option process checks fail before launch rather than silently testing another engine.                                                                 |
 | 9   | Change-aware CI and caching                      | [CI source](../../.github/workflows/ci.yml) configures one cached, cancellable, change-aware job. [Main run 38164778251](https://github.com/0disoft/banora/actions/runs/38164778251) passed root/installed consumers, full production browser, dependency audit and standalone editor at fed716a in 3m46s; monthly-only step correctly skipped. See [flow evidence](16-product-flow-audit.md). |
 | 10  | Stable updates within supported majors           | Bun major ranges, frozen lockfile and grouped monthly update configuration exist. The remote default-main Dependabot blob matches reviewed source after the validated push; [update policy](../ops/ci.md) keeps promotions reviewed. No auto-merge or successful hosted bot-update execution is claimed.                                                                                       |
 | 11  | Format/static/forbidden-pattern/size rules       | Oxlint/Oxfmt, import boundaries, forbidden authority/secret signals and 40 KB source review candidates run in check; current lint/format/boundaries pass. Size is a review signal, not an arbitrary functional failure.                                                                                                                                                                        |
@@ -250,3 +250,18 @@ The schedule-only step correctly skipped; the ordinary full route executed both
 security gates. No publishing job, credentials, visibility or branch protection
 was configured by this push. Physical-device, registry and policy approvals remain
 separate gates. This result proves the renamed source, not a published SDK or demo.
+
+### October 12: Manual Hosted Candidate Route
+
+The separate [prepare-release workflow](../../.github/workflows/prepare-release.yml)
+now configures manual main-only nine-gate preparation and 14-day retention of
+the exact verified bundle, with unique run/attempt artifact identity and no
+overwrite. It has read-only repository permissions and no registry/OIDC grant.
+The ordinary CI planner checks release-only orchestration without unrelated
+browser reruns, while mixed SDK/manifest changes retain their complete routes.
+
+Local root check passed 203 tests/2,831 assertions and 297 installed CLI checks;
+type, docs, format, boundary and 357-file permission signals passed. This source
+does not change SDK/example artifacts. Actual hosted upload, artifact metadata
+and downloaded-byte verification remain unproven until the manual route executes;
+its configuration is not publication, permanent backup or deployed rollback.

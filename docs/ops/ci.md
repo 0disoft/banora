@@ -55,6 +55,22 @@ The monthly scheduled run performs only file/permission signals and dependency
 audit. It does not rerun unchanged browser/build checks. Browser installation is
 conditional and uses the same Playwright CLI as local scenarios.
 
+## Manual Release Candidates
+
+The [prepare-release workflow](../../.github/workflows/prepare-release.yml) is a
+separate, manual-only one-job route for retained candidates. It is not triggered
+by pushes, PRs or schedules, accepts no source/path inputs and only permits this
+repository's main ref. It runs the complete nine-gate preparation, then uploads
+the verified commit's release directory with a unique name and 14-day retention.
+It retains exact reviewed tarballs/examples without registry publication or OIDC
+authority. See [release](release.md) for receipts, retrieval and approval limits.
+
+Changes only to this orchestration, release helpers or their tests select root
+check and file/permission signals in ordinary CI, without rebuilding unchanged
+browser consumers. Mixed SDK/manifest changes still select their broader gates;
+other workflow changes still use the complete route. The explicit candidate run
+executes all consumer/browser/security gates regardless of ordinary CI selection.
+
 ## Permissions and Failures
 
 Workflow token permissions are explicitly `contents: read`; checkout does not
