@@ -67,6 +67,69 @@ describe('authoritative record editing', () => {
     controller.setComment('original');
     expect(controller.getState().dirty).toBe(false);
   });
+  test('failed edits and empty Redo preserve an active comment group and its cleanup', () => {
+    const failures = [
+      (controller: RecordController) => controller.play({ x: -1, y: 0 }),
+      (controller: RecordController) => controller.play({ x: 0, y: 0 }),
+      (controller: RecordController) => controller.play({ x: 1, y: 1 }),
+      (controller: RecordController) =>
+        controller.setMarker({ x: 1, y: 1 }, 'label', '\\'.repeat(4)),
+      (controller: RecordController) => controller.redo(),
+    ];
+    for (const fail of failures) {
+      const controller = new RecordController({
+        sgf: '(;SZ[5]AB[aa]C[original])',
+        limits: { maxNodes: 1, maxValueLength: 8 },
+      });
+      try {
+        const end = controller.beginEditGroup();
+        expect(controller.setComment('first').ok).toBe(true);
+        const before = controller.getState();
+        expect(fail(controller).ok).toBe(false);
+        expect(controller.getState()).toBe(before);
+        expect(controller.setComment('final').ok).toBe(true);
+        end();
+        expect(controller.undo().ok).toBe(true);
+        expect(controller.getState().node.properties.C).toEqual(['original']);
+        expect(controller.getState().canUndo).toBe(false);
+        expect(controller.getState().dirty).toBe(false);
+        expect(controller.redo().ok).toBe(true);
+        expect(controller.getState().node.properties.C).toEqual(['final']);
+      } finally {
+        controller.dispose();
+      }
+    }
+  });
+  test('rejected appended setup retains grouping while a committed marker remains a separate Undo unit', () => {
+    const controller = new RecordController({ sgf: '(;SZ[5];B[aa])', limits: { maxNodes: 2 } });
+    try {
+      controller.next();
+      const end = controller.beginEditGroup();
+      expect(controller.undo()).toEqual({ ok: false, reason: 'no-history' });
+      controller.setComment('first');
+      expect(controller.setMarker({ x: 2, y: 2 }, null).ok).toBe(true);
+      expect(controller.setSetup([{ x: 1, y: 1, color: 'white' }]).ok).toBe(false);
+      controller.setComment('final');
+      end();
+      controller.undo();
+      expect(controller.getState().node.properties.C).toBeUndefined();
+      expect(controller.getState().dirty).toBe(false);
+      controller.beginEditGroup();
+      controller.setComment('new');
+      expect(controller.setMarker({ x: 1, y: 1 }, 'triangle').ok).toBe(true);
+      controller.setComment('after');
+      controller.undo();
+      expect(controller.getState().node.properties.C).toEqual(['new']);
+      expect(controller.getState().markers).toHaveLength(1);
+      controller.undo();
+      expect(controller.getState().node.properties.C).toEqual(['new']);
+      expect(controller.getState().markers).toHaveLength(0);
+      controller.undo();
+      expect(controller.getState().node.properties.C).toBeUndefined();
+    } finally {
+      controller.dispose();
+    }
+  });
   test('markers, colon labels and unknown data survive export/reopen and Undo', () => {
     const controller = new RecordController({ sgf: '(;SZ[9]XX[preserved]TR[aa:bb])' });
     controller.setMarker({ x: 0, y: 0 }, 'label', 'A:B]C');

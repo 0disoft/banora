@@ -285,7 +285,12 @@ export class RecordController {
     } while (this.#index.nodes.has(id));
     return id;
   }
-  #edit(replacement: SgfNode, selected = this.#selected, target = this.#selected): CommandResult {
+  #edit(
+    replacement: SgfNode,
+    selected = this.#selected,
+    target = this.#selected,
+    grouped = false,
+  ): CommandResult {
     const path = this.#path(target);
     let updated = replacement;
     for (let i = path.length - 2; i >= 0; i--) {
@@ -305,6 +310,8 @@ export class RecordController {
     });
     const validation = parseSgf(serializeSgf(candidate), this.#limits);
     if (!validation.ok) return { ok: false, reason: 'limit', diagnostics: validation.diagnostics };
+    // Rejected candidates must leave the active comment session intact.
+    if (!grouped) this.endEditGroup();
     if (!this.#group || !this.#groupRecorded) {
       this.#undo.push({ record: this.#record, selected: this.#selected });
       if (this.#undo.length > 100) this.#undo.shift();
@@ -340,7 +347,6 @@ export class RecordController {
   }
   play(point: Point | null): CommandResult {
     this.#assertLive();
-    this.endEditGroup();
     const state = this.getState();
     const result = point ? play(state.position, point) : pass(state.position);
     if (!result.ok) return result;
@@ -372,7 +378,12 @@ export class RecordController {
     const properties = { ...node.properties };
     if (comment) properties.C = [comment];
     else delete properties.C;
-    return this.#edit(createSgfNode(node.id, properties, node.children, node.rawProperties));
+    return this.#edit(
+      createSgfNode(node.id, properties, node.children, node.rawProperties),
+      this.#selected,
+      this.#selected,
+      true,
+    );
   }
   removeBranch(id = this.#selected): CommandResult {
     this.#assertLive();
@@ -381,7 +392,6 @@ export class RecordController {
     if (!parentId) return { ok: false, reason: 'invalid-edit' };
     const parent = this.#index.nodes.get(parentId)!;
     const selected = this.#path().includes(id) ? parentId : this.#selected;
-    this.endEditGroup();
     return this.#edit(
       createSgfNode(
         parent.id,
@@ -405,7 +415,6 @@ export class RecordController {
     if (parent.children[index]!.id === id) return { ok: true };
     const children = parent.children.filter((child) => child.id !== id);
     children.splice(index, 0, node);
-    this.endEditGroup();
     return this.#edit(
       createSgfNode(parent.id, parent.properties, children, parent.rawProperties),
       this.#selected,
@@ -448,7 +457,6 @@ export class RecordController {
     if (toPlay !== undefined) properties.PL = [sgfColor(toPlay)];
     if (!append && JSON.stringify(properties) === JSON.stringify(state.node.properties))
       return { ok: true };
-    this.endEditGroup();
     if (!append)
       return this.#edit(
         createSgfNode(state.node.id, properties, state.node.children, state.node.rawProperties),
@@ -487,7 +495,6 @@ export class RecordController {
     const properties = { ...state.node.properties };
     if (values.length) properties[key] = values;
     else delete properties[key];
-    this.endEditGroup();
     return this.#edit(
       createSgfNode(state.node.id, properties, state.node.children, state.node.rawProperties),
     );
@@ -512,7 +519,6 @@ export class RecordController {
     } catch {
       return { ok: false, reason: 'invalid-annotation' };
     }
-    this.endEditGroup();
     const properties = {
       ...state.node.properties,
       BPN: [...(state.node.properties.BPN ?? []), encodeStroke(stroke)],
@@ -540,7 +546,6 @@ export class RecordController {
     const properties = { ...node.properties };
     if (values.length) properties.BPN = values;
     else delete properties.BPN;
-    this.endEditGroup();
     return this.#edit(createSgfNode(node.id, properties, node.children, node.rawProperties));
   }
   setMarker(point: Point, kind: MarkerKind | null, label = 'A'): CommandResult {
@@ -554,7 +559,6 @@ export class RecordController {
     ) {
       return { ok: false, reason: 'invalid-annotation' };
     }
-    this.endEditGroup();
     label = label.replace(/[\r\n\t\v\f]/g, ' ');
     const existing = state.markers.filter(
       (marker) => marker.point.x === point.x && marker.point.y === point.y,
@@ -595,9 +599,9 @@ export class RecordController {
   }
   undo(): CommandResult {
     this.#assertLive();
-    this.endEditGroup();
     const entry = this.#undo.pop();
     if (!entry) return { ok: false, reason: 'no-history' };
+    this.endEditGroup();
     this.#redo.push({ record: this.#record, selected: this.#selected });
     this.#record = entry.record;
     this.#selected = entry.selected;
@@ -608,9 +612,9 @@ export class RecordController {
   }
   redo(): CommandResult {
     this.#assertLive();
-    this.endEditGroup();
     const entry = this.#redo.pop();
     if (!entry) return { ok: false, reason: 'no-history' };
+    this.endEditGroup();
     this.#undo.push({ record: this.#record, selected: this.#selected });
     this.#record = entry.record;
     this.#selected = entry.selected;

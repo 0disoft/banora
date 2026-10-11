@@ -355,6 +355,10 @@ explicit controller-wide operation for host commands. Viewer blur/editability
 changes/hiding comments/disposal release only their own group; read-only viewer
 cleanup never changes another editor's grouping. Existing callers can continue
 ignoring the new cleanup return and explicitly call `endEditGroup()`.
+Rejected edits and empty Undo/Redo requests preserve the active comment group,
+including its cleanup token. Successful non-comment edits close the group only
+after candidate validation and remain separate Undo units. No-op annotation edits
+leave the group intact; navigation and explicit `endEditGroup()` still close it.
 
 Branch/setup/connection commands use the same edit Undo/Redo and dirty baseline.
 Root removal/reordering and invalid sibling indices return `invalid-edit`; unknown

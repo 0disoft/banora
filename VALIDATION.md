@@ -198,6 +198,13 @@ on completion/failure. Screenshots/downloads are ignored under `output/playwrigh
 packed-consumer installations are ignored under `.tmp/`. Install Chrome or use
 Playwright CLI's browser installation command when no compatible browser is available.
 
+## Record Editing Evidence
+
+`bun run test` verifies that rejected moves, node/value-limit failures and empty
+Undo/Redo requests preserve comment-group cleanup and one-step Undo/Redo. No-op
+annotations retain the session; committed non-comment edits remain separate Undo
+units. Snapshot identity and dirty-state recovery are checked through public APIs.
+
 ## Hygiene Validation
 
 Repository hygiene file changes must check line-ending churn, binary diff pollution,
