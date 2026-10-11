@@ -38,3 +38,6 @@ records, export baselines, selected locations and host-owned persistence.
 
 The [Studio storage decision](0017-studio-local-draft-storage.md) defines bounded
 IndexedDB drafts, ownership, revisions and explicit recovery/deletion requirements.
+
+The [preference decision](0018-versioned-studio-preferences.md) defines validated
+scalar settings, safe legacy migration and reset independent of authored records.
