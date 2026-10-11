@@ -127,3 +127,30 @@ a successful GitHub run or enabled branch protection. No publication, public dem
 real device, cloud collaboration or production-monitoring claim follows from a
 local test. Keep this review active until every question has a verified answer and
 required in-scope implementation is complete.
+
+## Executed Increments
+
+### Development foundation
+
+Implemented `mise.toml`, `setup`, `doctor`, machine-readable `commands`, preview-first
+artifact `clean`, classified `boundaries`, explicit forbidden-code lint rules and
+root command references checked from actual package scripts. Contributor/setup
+guides and [ADR 0014](../adr/0014-development-bootstrap-and-boundary-gates.md) own
+these choices. The SDK public API and runtime dependency graph are unchanged.
+
+On Windows with Bun 1.4.2 and Node 24.14.0:
+
+- `bun run setup` passed with the reviewed lockfile unchanged.
+- A separate empty dependency workspace containing the actual manifests/lockfile
+  installed 89 packages through the same setup command, passed all 17 declared
+  dependency/tool checks and retained an identical lockfile.
+- `bun run check` passed 143 tests / 1,851 assertions, declarations/headless packed
+  SDK consumers and 90 installed CLI checks before the final diagnostic refinements.
+- Focused policy fixtures cover unsafe dependency directions, literal dynamic/
+  CommonJS imports, framework/private-import violations, comments/shebangs, stable
+  version acceptance and preview/linked-target cleanup behavior.
+
+The mise installer itself has not been run on a fresh OS; automatic tool installation
+is configured from its documented installer contract. No browser, hosted CI or
+publication evidence is implied by this development-tool increment. Remaining
+rows and delivery increments are still active.

@@ -16,6 +16,27 @@
 
 ## Implemented Tooling
 
+For a new machine, install [mise](https://mise.jdx.dev/installing-mise.html) using
+its platform installer (Windows: `winget install jdx.mise`), inspect `mise.toml`,
+then run `mise install` and `mise exec -- bun run setup`. On macOS/Linux, follow
+mise's official installer instructions; no project-specific shell installer is
+required. Existing Bun 1.x and Node 24.x installations can use `bun run setup`.
+Setup installs the frozen lockfile and reports tool/dependency availability.
+Run `bun run check` once before editing; `bun run dev` starts the local consumers.
+
+`bun run doctor` is read-only and reports actual tool versions. `bun run commands`
+prints root scripts directly from `package.json`; it is the machine-readable
+discovery route. `bun run clean` previews generated artifacts; after stopping dev
+servers/builds, `bun run clean --apply` removes only the displayed allowlisted
+directories. It never removes source, `node_modules`, lockfiles or local SGF files.
+Linked artifact targets are refused before any deletion.
+
+`bun run boundaries` validates classified SDK runtime dependency directions,
+public consumer imports and framework isolation. Files above 40 KB are reported
+as review candidates. Type-only/computed imports are not a source-scanner support
+claim; installed declarations/headless/SSR checks remain required. See
+[ADR 0014](docs/adr/0014-development-bootstrap-and-boundary-gates.md).
+
 Use TypeScript for the SDK and SGF model, SVG/CSS for the initial renderer, Vite
 for library/demo builds, and Bun for dependency installation and package scripts.
 Use one common SDK package in M1 and three separate optional React, Vue and Svelte

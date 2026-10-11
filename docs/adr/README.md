@@ -23,6 +23,9 @@ defines external snapshot authority, input intentions and shared presentation.
 The [terminal automation decision](0013-machine-readable-terminal-automation.md)
 defines checked JSON commands and an optional agent-friendly CLI consumer.
 
+The [development bootstrap decision](0014-development-bootstrap-and-boundary-gates.md)
+defines supported tools, safe local commands and executable module boundaries.
+
 Update the owning ADR when a design changes and describe the consequences for
 consumers and validation. Keep unresolved choices explicit. Use the
 [ADR template](0000-template.md) for future decisions and link them here.

@@ -26,7 +26,12 @@ instructions while the SDK is unpublished. `bun run smoke:starter` installs a co
 with npm and checks its own types, production build and browser editing/reopen flow
 without workspace aliases. Browser checks require a compatible Playwright CLI browser.
 
-Use Bun 1.x and Node 24.x. Run `bun install`, then `bun run check` for strict
+Use Bun 1.x and Node 24.x. [mise](https://mise.jdx.dev/getting-started) can install
+both from `mise.toml`: run `mise install`, then `mise exec -- bun run setup`.
+With compatible tools already available, run `bun run setup` directly.
+It validates the tools and installs the committed lockfile. `bun run doctor`
+diagnoses setup; `bun run commands` prints the actual scripts as JSON.
+Run `bun run check` for strict
 typechecking, behavior tests, documentation checks and an ESM/declaration build.
 Run `bun run dev` and open [Banora Studio](http://127.0.0.1:4317/studio/) or the
 [read-only embed](http://127.0.0.1:4317/readonly/). `bun run build:examples` creates

@@ -29,6 +29,8 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | Name                 | Command                                      | Evidence                                                                                                                                                                               |
 | -------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | lint                 | `bun run lint`                               | Oxlint correctness rules, React hooks/compiler and Vue rules; warnings and unused suppressions fail                                                                                    |
+| doctor               | `bun run doctor`                             | Read-only stable Bun/Node major, lockfile and installed-tool diagnostics                                                                                                               |
+| boundaries           | `bun run boundaries`                         | Classified SDK runtime imports, public consumer imports, framework isolation and file-size review candidates                                                                           |
 | format               | `bun run format`                             | Read-only Oxfmt check for supported source, styles, components and documentation                                                                                                       |
 | typecheck            | `bun run typecheck`                          | Strict TypeScript checks for implementation, tests and scripts                                                                                                                         |
 | typecheck (Svelte)   | `bun run typecheck:svelte`                   | Native components and example checked with Svelte's supported isolated TypeScript toolchain                                                                                            |
@@ -99,6 +101,13 @@ trees, caches, local evidence, scaffold state and generated lockfiles are exclud
 their diff before committing. Validation commands never apply automatic fixes.
 The formatting baseline is committed separately from the tooling/lint changes.
 Both read-only checks run first in `bun run check`.
+The runtime dependency boundary gate follows them before building. Environment
+setup uses `bun run setup` with a frozen lockfile; `commands` reads actual scripts,
+while `clean` previews artifacts and requires explicit `--apply` to remove them.
+Cleanup tests verify previews, preserved source/dependencies and refusal of linked
+targets before any deletion. Module tests reject static/dynamic/CommonJS renderer
+imports and private/unrelated-framework consumer imports; type-only/computed
+imports remain covered only to the extent of strict declarations/packed checks.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
 Framework lifecycle and transform checks count SVG board applications, excluding

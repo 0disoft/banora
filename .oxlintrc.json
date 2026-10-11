@@ -2,6 +2,12 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["eslint", "typescript", "oxc", "react", "vue"],
   "categories": { "correctness": "error" },
+  "rules": {
+    "eslint/no-eval": "error",
+    "eslint/no-implied-eval": "error",
+    "eslint/no-new-func": "error",
+    "eslint/no-debugger": "error"
+  },
   "env": { "browser": true, "node": true },
   "globals": { "Bun": "readonly", "Banora": "readonly" },
   "ignorePatterns": [

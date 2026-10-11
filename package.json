@@ -6,6 +6,11 @@
     "packages/*"
   ],
   "scripts": {
+    "setup": "bun scripts/development.ts setup",
+    "doctor": "bun scripts/development.ts doctor",
+    "commands": "bun scripts/development.ts commands",
+    "clean": "bun scripts/development.ts clean",
+    "boundaries": "bun scripts/repository-policy.ts",
     "build": "vite build --config packages/sdk/vite.config.ts && tsc -p packages/sdk/tsconfig.build.json && bun scripts/build-browser.ts",
     "build:adapters": "bun run build && bun scripts/build-adapters.ts",
     "build:cli": "bun run build && bun scripts/build-cli.ts",
@@ -18,7 +23,7 @@
     "lint:fix": "oxlint . --fix --deny-warnings --report-unused-disable-directives",
     "format": "oxfmt . --check",
     "format:write": "oxfmt .",
-    "test": "bun test packages scripts/scenario-result.test.ts",
+    "test": "bun test packages scripts/*.test.ts",
     "docs": "bun scripts/check-docs.ts",
     "smoke": "bun run build && bun scripts/packed-consumer.ts",
     "smoke:adapters": "bun run build:adapters && bun scripts/packed-adapters.ts",
@@ -28,7 +33,7 @@
     "smoke:katago:node": "bun run build && bun build scripts/live-katago.ts --target=node --packages=external --outfile .tmp/live-katago-runner.mjs && node .tmp/live-katago-runner.mjs",
     "smoke:browser": "bun run build:examples && bun scripts/browser-smoke.ts",
     "typecheck:svelte": "bun run --cwd packages/svelte typecheck",
-    "check": "bun run lint && bun run format && bun run build:adapters && bun scripts/build-cli.ts && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts && bun scripts/packed-cli.ts"
+    "check": "bun run lint && bun run format && bun run boundaries && bun run build:adapters && bun scripts/build-cli.ts && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts && bun scripts/packed-cli.ts"
   },
   "devDependencies": {
     "@banora/react": "workspace:*",
