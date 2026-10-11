@@ -418,3 +418,12 @@ are unchanged. The new hosted job remains unexecuted until an authorized real
 publication exists, so live distribution, provider authority and actual rollback
 are still unproven. SDK API, DB, version, dependencies and hygiene are unchanged;
 the manual release workflow and its policy/tests/runbooks are the changed runners.
+
+The subsequent [hosted CI run 38177821097](https://github.com/0disoft/banora/actions/runs/38177821097)
+completed successfully at `7701d3723474ebe66d0ef7cdbb73fba445f5e6d0` in one 29s
+Linux job. It selected code-only private release verification and passed 215 tests /
+3,036 assertions, installed SDK/classic, 297 installed CLI checks, 122 documents /
+491 relative links and 363-file signals. Extra browser/adapter/starter/audit routes
+were correctly omitted for this diff; actual retained adapter installation was
+checked separately in the preceding integration. This validates the implemented
+tooling and narrow CI path, not an executed publication or registry-health job.
