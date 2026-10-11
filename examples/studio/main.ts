@@ -1,4 +1,4 @@
-import { createUiMessages, createBoardLabels } from '@banora/sdk/locale';
+import { createUiMessages, createBoardLabels, formatUiMessage } from '@banora/sdk/locale';
 import type { BanoraLocale } from '@banora/sdk/locale';
 import {
   getUiLocale,
@@ -183,7 +183,7 @@ function nodeTitle(node: SgfNode, depth: number, width: number, height: number):
   if (value === undefined)
     return depth === 0 ? ui.start : (node.properties.N?.[0] ?? ui.annotation);
   if (!value || (value === 'tt' && width <= 19 && height <= 19))
-    return `${color} ${getUiLocale() === 'ko' ? '패스' : 'pass'}`;
+    return formatUiMessage(ui.colorPass, { color });
   const letters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
   const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const x = alphabet.indexOf(value[0]!);

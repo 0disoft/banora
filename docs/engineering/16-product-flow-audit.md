@@ -44,3 +44,25 @@ no SDK-native modal API is invented. Other browser engines, physical assistive
 devices, public feedback/reporting access and hosted execution remain unverified.
 Root security policy awaits its separate owner approval. All remaining readiness
 rows still require current-source and appropriately scoped execution audit.
+
+## October 12: Localized Pass Captions
+
+The Studio tree used a Korean/English-only branch for pass captions, leaving
+English `pass` in Chinese and Japanese rows. A production browser fixture imported
+empty and legacy `tt` passes with `MN[9]`; the focused locale route failed on the
+Chinese caption before the fix. Studio now formats the existing SDK colorPass
+template instead of maintaining a separate language branch.
+
+After the fix, the focused production locale route passed exact pass captions in
+all four languages. Language changes left the record clean, and the actual
+download retained `B[]`, `W[tt]`, `MN[9]` and the unknown `XX` property. Existing
+locale, authored-text, preference, menu and texture checks remained enabled.
+Root `check` passed 197 tests/2,743 assertions, quality/boundaries/builds/types,
+120 documents/451 links, packed public SDK/classic and 297 installed CLI checks.
+The full browser execution above predates this presentation change; the focused
+locale route covers the updated path. Other engines/devices were not rerun.
+
+The product specification and this evidence document changed. SDK API, storage,
+DB, dependency, hygiene and CI routing contracts are unchanged; the locale browser
+scenario additionally verifies a real exported pass record. Bugfix,
+test-hardening and Playwright procedures applied.

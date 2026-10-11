@@ -170,6 +170,34 @@ async (page) => {
   if (result !== 'banora-locale-core-complete') throw Error('Locale core did not finish');
   const origin = new URL(page.url()).origin;
   await page.goto(`${origin}/studio/`);
+  await page.locator('#file').setInputFiles({
+    name: 'localized-pass.sgf',
+    mimeType: 'application/x-go-sgf',
+    buffer: Buffer.from('(;SZ[5]XX[pass-locale];B[];W[tt]MN[9])'),
+  });
+  await page.locator('#last').click();
+  for (const [locale, labels] of [
+    ['en', ['1 · Black pass', '9 · White pass']],
+    ['ko', ['1 · 흑 패스', '9 · 백 패스']],
+    ['zh', ['1 · 黑停一手', '9 · 白停一手']],
+    ['ja', ['1 · 黒 パス', '9 · 白 パス']],
+  ]) {
+    await page.locator('#language').selectOption(locale);
+    for (const label of labels)
+      if (
+        (await page.locator('#tree').getByRole('button', { name: label, exact: true }).count()) !==
+        1
+      )
+        throw Error(
+          `Localized pass caption missing: ${locale}: ${await page.locator('#tree button').allTextContents()}`,
+        );
+    if (await page.locator('#dirty').evaluate((element) => element.classList.contains('changed')))
+      throw Error('Pass caption localization changed authored data');
+  }
+  const passDownload = page.waitForEvent('download');
+  await page.locator('#export').click();
+  await (await passDownload).saveAs('output/playwright/localized-pass-preserved.sgf');
+  await page.locator('#sample').click();
   await page.locator('#language').selectOption('ko');
   if ((await page.locator('html').getAttribute('lang')) !== 'ko')
     throw Error('Studio language missing');

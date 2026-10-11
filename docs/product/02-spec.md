@@ -43,6 +43,8 @@ cloud storage and AI analysis are not part of Studio's initial workflow.
 
 Studio and the common Viewer support English, Korean, Chinese and Japanese presentation. SDK locale
 selection is explicit, preserves record state and never translates authored SGF text.
+Studio variation pass captions use the SDK locale template for both empty and
+legacy `tt` passes, preserving SGF move-number overrides and the authored encoding.
 
 Studio prioritizes controls and record content over introductory or promotional
 copy. File actions sit directly above the workspace. Keyboard guidance is available
