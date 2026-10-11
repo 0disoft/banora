@@ -12,6 +12,7 @@
     "ops": "bun scripts/operations.ts",
     "release": "bun scripts/release.ts",
     "perf": "bun run build && bun build scripts/performance.ts --target=node --packages=external --outfile .tmp/performance.mjs && node .tmp/performance.mjs",
+    "perf:browser": "bun run build:examples && bun scripts/browser-smoke.ts --performance-only",
     "clean": "bun scripts/development.ts clean",
     "boundaries": "bun scripts/repository-policy.ts",
     "ci:plan": "bun scripts/ci.ts plan",

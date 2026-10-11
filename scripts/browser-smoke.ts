@@ -1,7 +1,10 @@
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { resolve, sep } from 'node:path';
 import { requireScenarioResult, scenarioExpression } from './scenario-result.js';
 import { releaseInput } from './release-artifacts.js';
+import { syntheticReview } from './performance.js';
 
 const root = process.cwd();
 const release = await releaseInput();
@@ -15,6 +18,17 @@ const server = Bun.serve({
     if (!['GET', 'HEAD'].includes(request.method))
       return new Response('Method not allowed', { status: 405 });
     const pathname = decodeURIComponent(new URL(request.url).pathname);
+    const stress = /^\/performance\/(300|5000)\.sgf$/.exec(pathname);
+    if (stress && process.argv.includes('--performance-only')) {
+      const moves = Number(stress[1]);
+      return new Response(
+        syntheticReview(moves).replace(
+          'XG[Authored benchmark]',
+          `XG[Authored benchmark]GN[Browser review ${moves}]`,
+        ),
+        { headers: { 'Content-Type': 'application/x-go-sgf' } },
+      );
+    }
     const sdk = pathname.startsWith('/sdk/');
     const directory = release
       ? resolve(release, sdk ? 'browser-sdk' : 'examples')
@@ -48,6 +62,63 @@ async function scenario(file: string, expected: string): Promise<void> {
     scenarioExpression(await readFile(resolve(root, `scripts/${file}-scenario.js`), 'utf8')),
   );
   requireScenarioResult(result, expected);
+}
+async function browserPerformance(): Promise<void> {
+  if (release) throw Error('Browser performance measures the current built checkout only.');
+  await scenario('browser-performance', 'banora-browser-performance-complete');
+  const measured = JSON.parse(
+    await readFile(resolve(output, 'browser-performance-samples.json'), 'utf8'),
+  );
+  if (measured.workloads?.length !== 4 || measured.samples !== 5 || measured.warmups !== 1)
+    throw Error('Incomplete browser performance report.');
+  const dimensions = new Set<string>();
+  for (const workload of measured.workloads) {
+    const key = `${workload.moves}/${workload.cpuRate}`;
+    if (
+      ![300, 5000].includes(workload.moves) ||
+      ![1, 4].includes(workload.cpuRate) ||
+      dimensions.has(key) ||
+      workload.samples?.length !== 5
+    )
+      throw Error('Invalid browser performance workload.');
+    dimensions.add(key);
+    for (const sample of workload.samples)
+      for (const value of Object.values(sample))
+        if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+          throw Error('Invalid browser performance sample.');
+  }
+  const git = (args: string[]) => {
+    const result = spawnSync('git', args, { encoding: 'utf8', timeout: 5000 });
+    if (result.status !== 0) throw Error('Cannot identify browser benchmark source.');
+    return result.stdout.trim();
+  };
+  const hashes: Record<string, string> = {};
+  for (const name of ['packages/sdk/src/controller.ts', 'examples/studio/main.ts'])
+    hashes[name] = createHash('sha256')
+      .update(await readFile(resolve(root, name)))
+      .digest('hex');
+  const report = {
+    schemaVersion: 'banora.browser-performance/v1',
+    source: { commit: git(['rev-parse', 'HEAD']), dirty: !!git(['status', '--porcelain']), hashes },
+    runtime: { platform: process.platform, arch: process.arch },
+    method: {
+      timing:
+        'Native file change to rendered record heading plus two animation frames; navigation DOM click through two animation frames. Driver polling excluded.',
+      memory:
+        'Chromium JSHeapUsedSize snapshots before import, after import and after navigation; DOM counter after navigation. Not peak memory or retained memory after disposal.',
+      limits:
+        'Fresh contexts, one warmup and five samples per workload/profile. CPU rate 4 is emulation, not a physical low-spec device. Frame availability is not physical display latency. No timing pass/fail threshold.',
+      autosave: false,
+    },
+    ...measured,
+  };
+  await writeFile(
+    resolve(output, 'browser-performance.json'),
+    JSON.stringify(report, null, 2) + '\n',
+  );
+  console.log(
+    'Browser performance measured: 4 workload/profile pairs, 20 samples; report in output/playwright/browser-performance.json.',
+  );
 }
 async function dropSmoke(): Promise<void> {
   await scenario('drop', 'banora-drop-complete');
@@ -247,7 +318,9 @@ try {
     'run-code',
     'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
   );
-  if (process.argv.includes('--accessibility-only')) {
+  if (process.argv.includes('--performance-only')) {
+    await browserPerformance();
+  } else if (process.argv.includes('--accessibility-only')) {
     await scenario('accessibility', 'banora-accessibility-complete');
     console.log(
       'Focused accessibility smoke passed: localized guard names, modal keyboard/cancel, narrow layouts and three framework sharing consumers.',

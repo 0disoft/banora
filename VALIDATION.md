@@ -48,6 +48,15 @@ changes also run the production browser suite; desktop SDK timing does not prove
 
 ## Required Final Report
 
+The opt-in `bun run perf:browser` rebuilds production examples and measures real
+Studio imports/navigation in fresh Chromium contexts. It records one warmup and
+five samples for 300/5,000-move authored workloads at native/4x-emulated CPU rates,
+two-animation-frame latency and JS heap/DOM snapshots. The fixed ignored report
+is replaced on each successful run at `output/playwright/browser-performance.json`.
+No physical paint/device, memory peak/leak or timing threshold claim follows.
+Full functional smoke does not automatically run this measurement; changing its
+scenario selects the focused measurement route in the existing single CI job.
+
 `scripts/accessibility-scenario.js` runs against actual built production pages.
 It checks Studio replacement/removal dialog names in four languages, native modal
 keyboard focus/Escape, preserved authored state and selection, and three framework

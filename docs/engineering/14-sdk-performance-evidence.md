@@ -3,6 +3,10 @@
 Status: desktop Node before/after navigation optimization measured; broader
 browser/device performance measurements remain separate work.
 
+[Browser performance evidence](17-browser-performance-evidence.md) now records
+separate actual Studio/Chromium timings and heap snapshots. The historical Node
+results below remain scoped to their own source/runtime/method.
+
 ## Method and Provenance
 
 On 2026-10-11, `bun run perf --output .tmp/performance-before.json` rebuilt and
