@@ -1,6 +1,6 @@
 # ADR 0018: Versioned Studio Preferences
 
-- Status: Accepted; preference model implemented, UI/browser integration pending
+- Status: Accepted; preference model and Studio integration implemented
 
 ## Decision
 
@@ -17,7 +17,8 @@ playback interval and local autosave enablement. Do not persist document content
 Undo, selected tools/next player, scoring, provider credentials, images or filenames
 in preferences. The SDK owns no storage; these are Studio consumer choices.
 
-Validate shapes/versions and field values, bounding serialized envelopes to 4 KiB.
+Validate shapes/versions and field values, bounding serialized envelopes to 4 KiB
+in UTF-8 bytes (including multibyte content).
 Unknown/invalid data stays untouched on ordinary edits, which remain session-only
 for that field. Explicit reset may replace known preference keys only. Unknown
 future fields, drafts, checkpoints and unrelated host storage are never cleared.
@@ -31,10 +32,24 @@ If a write fails, keep legacy data and the user's usable session choice. Support
 new-format values take precedence; future formats are neither downgraded nor
 silently deleted. No background retry loop or account synchronization is added.
 
-## Evidence and Next Consumer Step
+## Consumer Integration and Evidence
 
 Unit checks cover migration, failed-write source retention, future/corrupt values,
 independent field writes, explicit bounded reset and unavailable-storage sessions.
-Studio mounting, control updates, record preservation and actual browser persistence
-still need the next integration increment. This model does not itself claim that
-the displayed controls are already restored or that reset is user-accessible.
+Studio applies validated input values before mounting the board/playback and shares
+the model with draft autosave. Existing view handlers also apply explicit reset,
+including the default playback interval followed by pause. **Settings → Reset saved
+settings** is available both below the workspace and beside the board. Routine
+success has no persistent help paragraph; failures have localized action text.
+
+Production Chromium checks legacy migration/new-format precedence, all twelve
+restored values, actual board theme/transform/numbering/size, independent simultaneous tabs,
+reset with a dirty selected position, retained drafts and working Undo/Redo.
+Downloaded before/after checkpoint payloads are identical, including the export
+baseline, selection and rules. Future versions survive ordinary edits, corrupt
+autosave fails closed, explicit reset recovers known fields, denied storage leaves
+editing usable and all four reset translations fit the 320px board menu.
+The scenario runs through `--preferences-only` and the full browser suite.
+
+No account sync or live cross-tab application is implied. Physical devices,
+non-Chromium storage policies and hosted CI execution remain unverified.

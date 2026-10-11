@@ -288,3 +288,18 @@ It runs in the full browser suite. Existing role-based
 fixtures explicitly select English; they do not rely on the runner machine's
 browser language. Headless locale helpers are tested through an isolated packed
 SDK install without DOM types. Physical devices are not implied by viewport checks.
+
+## Studio Preferences Evidence
+
+After building examples, `bun scripts/browser-smoke.ts --preferences-only` checks
+actual localStorage legacy migration, new-format precedence, twelve restored
+settings, applied board theme/transform/numbers/size, independent simultaneous tabs, explicit
+reset and retained dirty selection/Undo/Redo/drafts. The runner compares downloaded
+before/after checkpoint payloads, including SGF, baseline, selection and rules.
+Future/corrupt preferences survive ordinary edits until reset; unreadable autosave
+starts off, and denied storage leaves editing/session controls usable. All four
+reset translations fit the 320px board menu; its screenshot was inspected.
+The scenario also runs in the full production browser suite. Headless model tests
+cover failed migration writes and bounded per-field reset. Other browser engines,
+physical devices and hosted CI are unverified. No SDK API or draft database schema
+changes are required; affected CI routing includes `--preferences-only`.

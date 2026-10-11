@@ -98,3 +98,20 @@ no upload, cloud backup or cross-device synchronization. Browser storage can be
 cleared/unavailable; abrupt exit can lose a pending debounce/transaction window.
 Keep important work in a downloaded file. Physical-device, non-Chromium, abrupt
 process-kill and OS/disk-failure durability are unverified.
+
+## Studio Settings
+
+Board presentation, playback interval, language and autosave choices persist
+separately from drafts. Open **Settings** in the board menu to reset saved settings
+to browser-language/default values. Reset pauses playback and keeps authored work,
+selection, Undo, dirty state, export baseline and saved drafts.
+
+Supported fields use separate `banora.studio.preferences.<field>` localStorage
+keys with `{schemaVersion: "banora.studio-preference/v1", value}` envelopes capped
+at 4 KiB. Valid language/display-size/autosave legacy keys migrate after a
+successful new write. Future/corrupt values are preserved until explicit reset;
+unknown fields and unrelated storage are retained even then. Ordinary writes
+change only one field, preserving unrelated choices from another tab. Already-open
+tabs retain their session values until reload. Unavailable storage leaves settings
+usable in the session and starts unreadable autosave off. See
+[ADR 0018](../adr/0018-versioned-studio-preferences.md) for the field/ownership contract.

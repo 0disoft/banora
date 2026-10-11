@@ -118,7 +118,9 @@ async (page) => {
     );
     const retained = await state.innerText();
     if (studio) {
-      await page.locator('#rotation').selectOption('90');
+      // Studio now restores the prior session's rotation; exercise an actual change.
+      const rotation = page.locator('#rotation');
+      await rotation.selectOption((await rotation.inputValue()) === '90' ? '180' : '90');
       verify(
         (await effects()).every((view) => !view.effects.length),
         'Studio transform retained old effects',

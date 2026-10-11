@@ -32,6 +32,8 @@ export function mountRecoveryControls(
   options: {
     filename(): string;
     replace(checkpoint: unknown, filename: string, signal: AbortSignal): Promise<boolean>;
+    autosave: boolean;
+    onAutosaveChange(enabled: boolean): void;
   },
 ): () => void {
   host.innerHTML = `<button class="button" id="drafts-open" type="button">Local drafts</button>
@@ -63,11 +65,7 @@ export function mountRecoveryControls(
   let operationAbort: AbortController | undefined;
   let deletion: { id: string; revision: number | null } | undefined;
   let entries = new Map<string, DraftEntry | null>();
-  try {
-    toggle.checked = localStorage.getItem('banora.studio.drafts-enabled') !== 'false';
-  } catch {
-    /* Session control remains available. */
-  }
+  toggle.checked = options.autosave;
   const autosave = new DraftAutosave(
     controller,
     options.filename,
@@ -252,11 +250,7 @@ export function mountRecoveryControls(
     'change',
     () => {
       autosave.setEnabled(toggle.checked);
-      try {
-        localStorage.setItem('banora.studio.drafts-enabled', String(toggle.checked));
-      } catch {
-        /* No record loss if preferences cannot persist. */
-      }
+      options.onAutosaveChange(toggle.checked);
     },
     { signal },
   );

@@ -143,7 +143,8 @@ export class PreferenceStore {
     key: PreferenceKey,
     text: string,
   ): { ok: true; value: unknown } | { ok: false; reason: 'invalid' | 'newer' } {
-    if (text.length > 4096) return { ok: false, reason: 'invalid' };
+    if (text.length > 4096 || new TextEncoder().encode(text).byteLength > 4096)
+      return { ok: false, reason: 'invalid' };
     try {
       const data: unknown = JSON.parse(text);
       if (!data || typeof data !== 'object' || Array.isArray(data))

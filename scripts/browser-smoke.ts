@@ -190,6 +190,21 @@ async function recoverySmoke(): Promise<void> {
   )
     throw Error('Recovery backup/export downloads lost authored content or baseline');
 }
+async function preferencesSmoke(): Promise<void> {
+  await scenario('preferences', 'banora-preferences-complete');
+  const before = JSON.parse(
+    await readFile(resolve(output, 'preferences-before.banora.json'), 'utf8'),
+  );
+  const after = JSON.parse(
+    await readFile(resolve(output, 'preferences-after.banora.json'), 'utf8'),
+  );
+  if (
+    JSON.stringify(before.checkpoint) !== JSON.stringify(after.checkpoint) ||
+    before.filename !== after.filename ||
+    !before.checkpoint?.sgf.includes('Preference reset keeps this 한국어 note')
+  )
+    throw Error('Settings reset changed the actual downloaded checkpoint');
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
@@ -201,7 +216,12 @@ try {
     'run-code',
     'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
   );
-  if (process.argv.includes('--recovery-only')) {
+  if (process.argv.includes('--preferences-only')) {
+    await preferencesSmoke();
+    console.log(
+      'Focused preferences smoke passed: migration, presentation, reset, record/draft retention, tabs, versions and denied storage.',
+    );
+  } else if (process.argv.includes('--recovery-only')) {
     await recoverySmoke();
     console.log(
       'Focused recovery smoke passed: real IndexedDB, reload, two tabs, quotas/cap, backups, guards, deletion and locale/mobile controls.',
@@ -264,6 +284,7 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await preferencesSmoke();
     await recoverySmoke();
     await cli('goto', `${address}/studio/`);
     await localeSmoke();

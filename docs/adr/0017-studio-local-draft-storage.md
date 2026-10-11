@@ -46,8 +46,9 @@ English/Korean/Chinese/Japanese and 320px controls have scoped browser evidence.
 Autosave defaults on after interaction and debounces changes for 500ms. Untouched
 samples stay ephemeral. Visibility loss/disposal capture changes best-effort;
 abrupt termination can lose a pending write. Restore creates a copy and retains
-the original draft. Undo/presentation settings are not stored. Consolidated
-versioned preferences/migration remain a later increment. Routine save status is
+the original draft. Undo/presentation settings are not stored in draft payloads.
+[ADR 0018](0018-versioned-studio-preferences.md) owns separate versioned preferences,
+including autosave consent and safe legacy migration. Routine save status is
 quiet for assistive technology; failures use a polite live announcement.
 
 Delete requires confirm/cancel. Deleting the active draft turns autosave off;

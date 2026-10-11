@@ -1,6 +1,13 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const japaneseUi = {
+  Settings: '設定',
+  'Reset saved settings': '保存済みの設定をリセット',
+  'Settings stay in this session only.': '設定は現在のウィンドウでのみ保持されます。',
+  'Saved settings are invalid. Reset to replace them.':
+    '保存済みの設定が無効です。リセットで置き換えられます。',
+  'Saved settings need a newer Studio. Reset to replace them.':
+    '設定には新しい Studio が必要です。リセットで置き換えられます。',
   'Draft changed. Refresh or retry.': '下書きが変更されました。更新または再試行してください。',
   'Back up draft': '下書きをバックアップ',
   'Confirm delete': '削除を確認',

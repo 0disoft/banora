@@ -1,4 +1,11 @@
 export const koreanUi = {
+  Settings: '설정',
+  'Reset saved settings': '저장된 설정 초기화',
+  'Settings stay in this session only.': '설정은 현재 창에서만 유지됩니다.',
+  'Saved settings are invalid. Reset to replace them.':
+    '저장된 설정이 손상됐습니다. 초기화하면 교체됩니다.',
+  'Saved settings need a newer Studio. Reset to replace them.':
+    '더 최신 Studio의 설정입니다. 초기화하면 교체됩니다.',
   'Draft changed. Refresh or retry.': '초안이 변경됐습니다. 새로고침하거나 다시 시도하세요.',
   'Back up draft': '초안 백업',
   'Confirm delete': '삭제 확인',

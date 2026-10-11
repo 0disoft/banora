@@ -37,43 +37,25 @@ import { mountScoringControls } from '../scoring-controls.js';
 import { mountBoardMenu } from './board-menu.js';
 import { mountRecoveryControls } from './recovery-controls.js';
 import { safeDraftFilename } from './draft-store.js';
+import { defaultPreferences, PreferenceStore } from './preferences.js';
+import { applyPreferenceInputs, mountPreferenceControls } from './preference-controls.js';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-const boardSize = find<HTMLSelectElement>('board-size');
-const isBoardSize = (value: string | null): value is 'small' | 'default' | 'large' =>
-  value === 'small' || value === 'default' || value === 'large';
+let preferenceStorage: Storage | undefined;
 try {
-  const stored = localStorage.getItem('banora.studio.board-size');
-  if (isBoardSize(stored)) boardSize.value = stored;
+  preferenceStorage = localStorage;
 } catch {
-  /* Restricted storage still allows session-local size changes. */
+  /* Session settings work even when storage access is denied. */
 }
+const preferences = new PreferenceStore(preferenceStorage, defaultPreferences(navigator.language));
+applyPreferenceInputs(preferences);
+const boardSize = find<HTMLSelectElement>('board-size');
 find('board').dataset.displaySize = boardSize.value;
 boardSize.addEventListener('change', () => {
-  if (!isBoardSize(boardSize.value)) return;
   find('board').dataset.displaySize = boardSize.value;
-  try {
-    localStorage.setItem('banora.studio.board-size', boardSize.value);
-  } catch {
-    /* Optional preference persistence. */
-  }
 });
 const language = find<HTMLSelectElement>('language');
-const browserLanguage = navigator.language.toLowerCase();
-let initialLanguage: BanoraLocale = browserLanguage.startsWith('ko')
-  ? 'ko'
-  : browserLanguage.startsWith('zh')
-    ? 'zh'
-    : browserLanguage.startsWith('ja')
-      ? 'ja'
-      : 'en';
-try {
-  const stored = localStorage.getItem('banora.studio.locale');
-  if (stored === 'en' || stored === 'ko' || stored === 'zh' || stored === 'ja')
-    initialLanguage = stored;
-} catch {
-  /* Restricted storage still allows session-local language changes. */
-}
+const initialLanguage = preferences.get('locale');
 setUiLocale(initialLanguage);
 language.value = initialLanguage;
 const disposeStaticLanguage = localizeUi(document.documentElement);
@@ -110,7 +92,13 @@ function report(result: CommandResult): void {
 const view = mountBoard(find('board'), {
   controller,
   labels: createBoardLabels({ locale: getUiLocale() }),
-  touch: { mode: 'release' },
+  theme: preferences.get('theme'),
+  moveNumbers: preferences.get('moveNumbers'),
+  transform: { rotation: preferences.get('rotation'), flipX: preferences.get('flipX') },
+  touch: { mode: preferences.get('touchMode'), magnifier: preferences.get('touchMagnifier') },
+  placementAnimation: preferences.get('animation')
+    ? { durationMs: preferences.get('animationDuration') }
+    : false,
   onPoint(point) {
     const mode = tool.value;
     if (mode === 'play') report(controller.play(point));
@@ -161,6 +149,11 @@ const playbackControls = mountPlaybackControls(find('playback'), {
   scope: document.body,
   locale: getUiLocale(),
   onAction: report,
+  intervalMs: preferences.get('playbackInterval'),
+});
+const disposePlaybackPreference = playbackControls.playback.subscribe((state) => {
+  if (state.intervalMs !== preferences.get('playbackInterval'))
+    preferences.set('playbackInterval', state.intervalMs);
 });
 
 function nodeTitle(node: SgfNode, depth: number, width: number, height: number): string {
@@ -528,6 +521,7 @@ function updateAnimation() {
 }
 find('animation').addEventListener('change', updateAnimation);
 find('animation-duration').addEventListener('change', updateAnimation);
+find<HTMLSelectElement>('animation-duration').disabled = !preferences.get('animation');
 find<HTMLSelectElement>('theme').addEventListener('change', (event) => {
   const theme = (event.target as HTMLSelectElement).value as 'wood' | 'flat';
   view.update({ theme });
@@ -633,6 +627,8 @@ window.addEventListener('pagehide', (event) => {
   if (!event.persisted) {
     disposed = true;
     disposeRecovery();
+    disposePreferences();
+    disposePlaybackPreference();
     disposeLanguage();
     disposeStaticLanguage();
     disposeBoardMenu();
@@ -689,6 +685,15 @@ const disposeScoring = mountScoringControls(find('scoring-host'), controller);
 const disposeRecovery = mountRecoveryControls(find('drafts-host'), controller, {
   filename: () => filename,
   replace: openCheckpoint,
+  autosave: preferences.get('autosave'),
+  onAutosaveChange: (enabled) => {
+    preferences.set('autosave', enabled);
+  },
+});
+const disposePreferences = mountPreferenceControls(find('preferences-host'), preferences, () => {
+  // Apply the default interval before pause publishes its playback snapshot.
+  playbackControls.playback.setInterval(preferences.get('playbackInterval'));
+  playbackControls.playback.pause();
 });
 const disposeBoardMenu = mountBoardMenu();
 
@@ -714,9 +719,4 @@ document.title = localizedTitles[initialLanguage];
 language.addEventListener('change', () => {
   const locale = language.value as BanoraLocale;
   setUiLocale(locale);
-  try {
-    localStorage.setItem('banora.studio.locale', locale);
-  } catch {
-    /* Optional preference persistence. */
-  }
 });

@@ -31,6 +31,7 @@ async (page) => {
       'comparison',
       'share',
       'drafts',
+      'preferences',
       'scoring',
     ]) {
       await open(section);

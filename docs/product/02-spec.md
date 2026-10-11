@@ -27,8 +27,8 @@ Studio offers Small / Default / Large display sizes, with the existing 620px boa
 width as Default and 85% / 115% width caps for Small / Large. Small also reduces
 the available width on narrow screens; Large is constrained by its container.
 This scales the rendered board without changing SGF dimensions, selection, rules
-or editing history. The optional local preference uses `banora.studio.board-size`;
-invalid or unavailable storage falls back to Default.
+or editing history. The versioned local size preference falls back to Default
+when invalid or unavailable; valid legacy values migrate safely.
 
 1. Open a local SGF by drag-and-drop/file selection, or choose a bundled example.
 2. Move through the record and inspect comments and existing variations.
@@ -65,12 +65,23 @@ They remain native controls, with system appearance restored in forced-colors mo
 SDK styles are scoped to owned widgets; host dropdowns and listboxes are unaffected.
 
 Studio's board header includes a menu icon for tools, view/export, stone textures,
-touch settings, animation, comparison, sharing and scoring. A viewport-bounded,
+touch settings, animation, comparison, sharing, local drafts, settings and scoring. A viewport-bounded,
 nonmodal popover exposes the existing controls beside the board without scrolling
 to their lower-page sections. Controls are moved temporarily and restored on
 Back, outside click, Escape or close; values, handlers and record history are shared.
 Comparison/scoring open on selection without resetting an already-open session.
 The menu follows all four Studio languages and restores keyboard focus on close.
+
+Studio restores language, display size/theme, move-number visibility, rotation/
+reflection, touch mode/magnifier, animation enablement/duration, playback interval
+and autosave from validated per-field local preferences. Each interaction writes
+only its field; open tabs keep independent session values. **Settings → Reset
+saved settings** restores browser-language/default presentation and pauses playback
+without changing SGF, selection, Undo, dirty/export baseline, drafts or unrelated
+storage. Corrupt/future settings remain untouched until that explicit reset;
+unavailable storage leaves session controls usable. An unreadable/invalid autosave
+preference starts off. [ADR 0018](../adr/0018-versioned-studio-preferences.md) owns
+the bounded format and legacy migration; the SDK persists no preferences.
 Its bounds follow the visual viewport, including pinch zoom, panning and on-screen
 keyboard resizing, rather than assuming the layout viewport remains fully visible.
 

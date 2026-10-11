@@ -54,6 +54,7 @@ test('unknown or invalid versions stay intact until explicit reset and autosave 
     encode('invalid'),
     JSON.stringify({ schemaVersion: 'banora.studio-preference/v2', value: false }),
     'x'.repeat(4097),
+    JSON.stringify({ schemaVersion: 'banora.studio-preference/v2', value: '한'.repeat(2000) }),
   ]) {
     const { values, storage } = fixture();
     values.set(PREFERENCE_PREFIX + 'autosave', text);
@@ -105,4 +106,18 @@ test('unavailable storage and invalid patches leave usable bounded session prefe
     defaultPreferences('en'),
   );
   expect(blocked.get('autosave')).toBe(false);
+});
+
+test('the envelope bound measures UTF-8 bytes while preserving oversized future data', () => {
+  const { values, storage } = fixture();
+  const text = JSON.stringify({
+    schemaVersion: 'banora.studio-preference/v2',
+    value: '한'.repeat(2000),
+  });
+  values.set(PREFERENCE_PREFIX + 'theme', text);
+  const prefs = new PreferenceStore(storage, defaultPreferences('en'));
+  expect(prefs.getStatus()).toBe('invalid');
+  expect(prefs.get('theme')).toBe('wood');
+  expect(prefs.set('theme', 'flat')).toBe(false);
+  expect(values.get(PREFERENCE_PREFIX + 'theme')).toBe(text);
 });

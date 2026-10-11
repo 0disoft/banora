@@ -1,6 +1,12 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const chineseUi = {
+  Settings: '设置',
+  'Reset saved settings': '重置已保存的设置',
+  'Settings stay in this session only.': '设置仅在当前窗口中保留。',
+  'Saved settings are invalid. Reset to replace them.': '已保存的设置无效。重置可替换它们。',
+  'Saved settings need a newer Studio. Reset to replace them.':
+    '这些设置需要更新的 Studio。重置可替换它们。',
   'Draft changed. Refresh or retry.': '草稿已更改，请刷新或重试。',
   'Back up draft': '备份草稿',
   'Confirm delete': '确认删除',
