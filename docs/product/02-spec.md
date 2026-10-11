@@ -51,6 +51,13 @@ only accepted formats and size limits. The idle status is empty, while errors,
 active operations and unsaved-change confirmations remain visible. Sharing includes
 a concise link-access notice. Fonts and authored SGF text are unchanged.
 
+Studio control separators leave clearance on both sides: 16px on desktop and
+14px on narrow screens. Board, playback and workspace boundaries add the missing
+clearance before their separator; consecutive control rows use their existing
+padding without doubling the gap. Hidden rows leave no empty spacing.
+Navigation controls wrap inside the available width instead of expanding the
+mobile workspace beyond the viewport.
+
 ## Capability Scope
 
 | Area                      | Capability                                                                                                      | First milestone |
