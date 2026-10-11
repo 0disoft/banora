@@ -1,19 +1,66 @@
 # CI
 
-- Status: Draft
+Status: workflow and local parity configured; hosted execution and repository
+branch-protection settings require separate evidence.
 
-## Operational Contract
+## One Job, Affected Checks
 
-Cover required checks, branch protection, pipeline stages, artifacts, failure policy, local parity, and stop conditions.
+`.github/workflows/ci.yml` runs one Ubuntu job on pull requests, main pushes and
+manual dispatch. Superseded runs for the same PR/ref are cancelled. Branch pushes
+outside main do not duplicate PR runs. Timeout is 15 minutes; there is no broad
+OS/runtime matrix and no engine/model download or service credentials.
 
-## Owners
+Tools follow Bun 1.x and Node 24 from the declared tool policy. Setup installs the
+reviewed lockfile. Cache only Bun's package download directory, keyed by OS, Bun
+major and lockfile hash; never cache workspace `node_modules` or build output.
+Actual tool/dependency versions appear in setup/doctor output.
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+`scripts/ci.ts` compares verified commit IDs using Git's NUL-separated path output.
+Deleted/renamed paths remain visible; unknown or unavailable comparisons select
+full checks. The public local routes are:
 
-## Validation
+```sh
+bun run ci:plan --base HEAD~1 --head HEAD
+bun run ci:run --base HEAD~1 --head HEAD --dry-run
+bun run ci:run --base HEAD~1 --head HEAD
+```
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+Run parity against the matching clean worktree. The planner prints its paths,
+decision and real commands; the runner executes them serially and stops on the
+first failed command, preserving its nonzero status.
+
+| Change                                                                                   | Evidence                                                                                |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Only Markdown/Mermaid                                                                    | Format, docs and file/permission security signals; no builds/browser.                   |
+| SDK/CLI code or tests                                                                    | `check` plus file/permission signals; check includes installed SDK/CLI.                 |
+| Known optional analysis/puzzle/playback/locale/scoring/share/texture/animation/menu code | Relevant focused browser scopes, built once; combined changes keep all relevant scopes. |
+| Shared/unknown SDK, browser or toolchain code                                            | Full production browser suite instead of guessing a smaller impact.                     |
+| Framework adapter                                                                        | Installed adapter consumers plus browser consumers.                                     |
+| Standalone editor                                                                        | Independently installed starter and its own browser flow.                               |
+| Manifests/lockfile                                                                       | All installed consumers, full browser suite and dependency audit.                       |
+
+The monthly scheduled run performs only file/permission signals and dependency
+audit. It does not rerun unchanged browser/build checks. Browser installation is
+conditional and uses the same Playwright CLI as local scenarios.
+
+## Permissions and Failures
+
+Workflow token permissions are explicitly `contents: read`; checkout does not
+persist credentials. No `pull_request_target`, write token, publish/deploy step,
+production environment or secret is available. `security:files` rejects high-signal
+credential/private-file patterns and dangerous workflow permission/trigger changes;
+new secret injection also requires an intentional policy review.
+it prints only paths/reasons. This is a limited signal gate, not a complete secret
+or vulnerability scan. `security:deps` uses the registry audit and fails on high/
+critical advisories or unavailable service. Review other security risks separately.
+
+Repository maintainers investigate failed checks and keep the affected command's
+output as evidence. Missing/unconfigured checks are not passing checks. Add CI as
+a required status only after its hosted execution has been observed; the workflow
+does not itself configure branch protection. Never merge because a check was
+skipped unexpectedly. Publication/hosting uses a separately reviewed release flow.
+
+The monthly grouped [dependency update policy](../engineering/06-dependency-and-change-policy.md)
+limits bot PR count and keeps major promotion intentional. See [VALIDATION.md](../../VALIDATION.md)
+for exact local coverage and [readiness evidence](../engineering/12-readiness-review.md)
+for executed results and remaining work.

@@ -26,6 +26,9 @@ defines checked JSON commands and an optional agent-friendly CLI consumer.
 The [development bootstrap decision](0014-development-bootstrap-and-boundary-gates.md)
 defines supported tools, safe local commands and executable module boundaries.
 
+The [CI/update decision](0015-change-aware-ci-and-supported-major-updates.md)
+defines affected checks, local parity, read-only authority and supported-major updates.
+
 Update the owning ADR when a design changes and describe the consequences for
 consumers and validation. Keep unresolved choices explicit. Use the
 [ADR template](0000-template.md) for future decisions and link them here.

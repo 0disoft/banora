@@ -19,6 +19,22 @@ intentionally after the affected consumer examples and compatibility checks pass
 Tooling currently follows Bun 1.x, TypeScript 7.x and Vite 8.x. Root devDependencies
 and bun.lock record the build graph; framework dependencies will remain isolated.
 
+`.github/dependabot.yml` configures one monthly grouped Bun update candidate for
+minor/patch releases within supported majors, plus bounded GitHub Action updates.
+It does not auto-merge or promote SDK/tool majors. Major promotion is an explicit
+manifest/tool-policy change after compatibility evidence; formatter updates still
+require diff review because a pre-1.0 minor can change behavior. The
+[supported Bun ecosystem](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)
+uses the committed text lockfile. Configuration is not proof that a hosted update
+job or repository security alerts are enabled.
+
+Manifest/lockfile changes trigger the installed adapters, standalone editor, full
+browser consumers and high/critical dependency audit in [CI](../ops/ci.md). A monthly
+audit detects newly reported advisories even without dependency changes. Failed
+registry access is a failed audit, never a clean result. Use `bun update` within
+existing ranges for a local candidate; review the lockfile and compatibility output
+before committing it. Do not use `--latest` to silently promote majors.
+
 ## Changes and Releases
 
 Update the owning spec/API/ADR when consumer behavior changes. Record breaking

@@ -164,3 +164,32 @@ The already independently installed/built consumer passed the focused production
 browser rerun: file open, old/new variations, comments/Undo, replacement guards,
 real SGF download/reopen, invalid input and keyboard/emulated touch. The SDK and
 standalone application implementation did not change.
+
+### Change-aware CI and security/update gates
+
+Implemented the one-job GitHub workflow, local `ci:plan`/`ci:run` parity, grouped
+monthly supported-major update candidates and a monthly security-only audit.
+The file gate redacts credential content and rejects private-file/high-signal key
+patterns, write permissions, persisted checkout credentials, secret injection and
+privileged PR triggers. This limited gate does not replace a complete security
+review. [ADR 0015](../adr/0015-change-aware-ci-and-supported-major-updates.md) and
+[CI policy](../ops/ci.md) own the behavior and costs.
+
+Executed on the current Windows/Bun/Node environment:
+
+- The docs-only local CI route completed without builds/browser work.
+- The complete selected route passed `check` (145 tests / 1,888 assertions at that
+  snapshot, installed SDK and 90 installed CLI checks), file security signals,
+  registry audit (165 packages, no reported vulnerabilities), independently
+  installed React/Vue/Svelte declarations/SSR and the entire production browser
+  suite. It stopped on the starter-selector defect above; the corrected starter
+  subsequently passed its own complete browser flow without reinstalling.
+- Final planner/security fixtures passed 39 assertions, including starter/adapter
+  test routing, combined optional scopes, missing/invalid diff fallback, real root
+  commands and dangerous workflow/secret-injection refusal. Typecheck also passed.
+
+The complete route has not been rerun from its first step after the fixture-only
+fix; unchanged passed components were retained and the failed component was rerun.
+No successful hosted GitHub run, enabled Dependabot/branch protection or Linux
+compatibility is claimed. Those require external-state evidence after a reviewed
+push; the overall readiness goal remains active.

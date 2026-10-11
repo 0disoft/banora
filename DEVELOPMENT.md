@@ -113,8 +113,10 @@ public-package and explicit-provider boundaries when extending them.
 - Review dependency major upgrades against relevant examples and packed consumers.
 
 Use the root Bun scripts in VALIDATION.md. Tooling is Bun 1.x, TypeScript 7.x and
-Vite 8.x, with Node 24.x as the initial headless consumer target. No hosted CI
-has been configured. Unconfigured checks are skipped, not reported as passing.
+Vite 8.x, with Node 24.x as the initial headless consumer target. The
+[CI workflow](docs/ops/ci.md) configures one change-aware job; successful hosted
+execution and branch protection are separate evidence. Unconfigured checks are
+skipped, not reported as passing.
 
 Use `bun run lint` and `bun run format` for read-only Oxlint/Oxfmt checks.
 `bun run lint:fix` applies supported lint fixes; `bun run format:write` formats

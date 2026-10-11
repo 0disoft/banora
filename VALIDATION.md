@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; hosted CI not configured
+- Status: Active local validation; hosted CI configured, hosted execution unverified
 
 ## Validation Source of Truth
 
@@ -32,6 +32,8 @@ Use the root Bun package scripts. Run state-changing build/check commands serial
 | doctor               | `bun run doctor`                             | Read-only stable Bun/Node major, lockfile and installed-tool diagnostics                                                                                                               |
 | boundaries           | `bun run boundaries`                         | Classified SDK runtime imports, public consumer imports, framework isolation and file-size review candidates                                                                           |
 | format               | `bun run format`                             | Read-only Oxfmt check for supported source, styles, components and documentation                                                                                                       |
+| security (files)     | `bun run security:files`                     | Signal-only private-file/credential and workflow permission/trigger checks; no credential content in output                                                                            |
+| security (deps)      | `bun run security:deps`                      | Registry high/critical dependency audit; requires network and fails on audit-service errors                                                                                            |
 | typecheck            | `bun run typecheck`                          | Strict TypeScript checks for implementation, tests and scripts                                                                                                                         |
 | typecheck (Svelte)   | `bun run typecheck:svelte`                   | Native components and example checked with Svelte's supported isolated TypeScript toolchain                                                                                            |
 | test                 | `bun run test`                               | Focused SDK behavior and CLI completion-result tests using Bun's test runner                                                                                                           |
@@ -108,6 +110,16 @@ Cleanup tests verify previews, preserved source/dependencies and refusal of link
 targets before any deletion. Module tests reject static/dynamic/CommonJS renderer
 imports and private/unrelated-framework consumer imports; type-only/computed
 imports remain covered only to the extent of strict declarations/packed checks.
+
+`bun run ci:plan --base <commit> --head <commit>` reports changed files and actual
+check commands. `bun run ci:run` executes them serially; `--dry-run` prints only.
+Missing/empty/invalid diffs select full evidence, never success without checks.
+Documentation-only changes run format/docs/security signals; known optional SDK
+changes select focused browser scenarios. Unknown shared changes select the full
+browser suite. Lockfile/manifests also require installed adapters/starter and the
+dependency audit. See [CI policy](docs/ops/ci.md) for routing, cache and permissions.
+Planner tests verify fallback, multi-feature routing, root command existence and
+permission/credential signals. These do not establish an actual GitHub run.
 
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
 Framework lifecycle and transform checks count SVG board applications, excluding
