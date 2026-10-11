@@ -248,7 +248,7 @@ main {
   flex-wrap: wrap;
   gap: 8px;
   border-top: 1px solid var(--border);
-  padding-top: 16px;
+  padding: 16px 0;
 }
 .editing-tools label {
   display: flex;
@@ -526,7 +526,7 @@ body.dragging::after {
   }
   .editing-tools {
     gap: 7px;
-    padding: 14px 4px 0;
+    padding: 14px 4px;
   }
   .editing-tools .spacer {
     display: none;
