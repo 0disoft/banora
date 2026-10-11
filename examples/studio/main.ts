@@ -6,6 +6,7 @@ import {
   localizeUi,
   setUiText,
   subscribeUiLanguage,
+  translateUi,
 } from '../ui-language.js';
 import {
   RecordController,
@@ -303,7 +304,7 @@ function exportRecord(): boolean {
     link.click();
     link.remove();
     report(controller.acknowledgeExport(ticket.id));
-    setUiText(status, 'SGF download started. Keep the exported file before leaving this page.');
+    setUiText(status, 'SGF download started.');
     return true;
   } catch (error) {
     controller.cancelExport(ticket.id);
@@ -363,7 +364,7 @@ async function openRecord(
       report(result);
       return false;
     }
-    setUiText(status, `Opened ${filename}. Everything stays local.`);
+    setUiText(status, `Opened ${filename}.`);
     return true;
   } finally {
     opening = false;
@@ -438,22 +439,20 @@ function updateInk() {
         : null,
   });
 }
+function updateToolHint() {
+  tool.title = translateUi(
+    tool.value === 'pen'
+      ? 'Arrow keys move · Space adds an ink point · Enter finishes · Escape cancels'
+      : 'Arrow keys move the board cursor · Enter places · Page Up / Down navigates',
+  );
+}
+updateToolHint();
 tool.addEventListener('change', () => {
   connectionStart = undefined;
   find('label-control').hidden = tool.value !== 'label';
   find('ink-control').hidden = tool.value !== 'pen';
   updateInk();
-  setUiText(
-    find('keyboard-hint'),
-    tool.value === 'pen'
-      ? 'Arrow keys move · Space adds an ink point · Enter finishes · Escape cancels'
-      : 'Arrow keys move the board cursor · Enter places · Page Up / Down navigates',
-  );
-  if (tool.value === 'pen')
-    setUiText(
-      status,
-      'Drag to draw. Escape cancels; Undo removes a completed stroke. Keyboard: Space adds a point, Enter finishes.',
-    );
+  updateToolHint();
 });
 find('ink-color').addEventListener('input', updateInk);
 find('ink-width').addEventListener('change', updateInk);
@@ -509,7 +508,7 @@ async function exportDiagram(format: 'svg' | 'png') {
     link.download = name;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
-    setUiText(status, 'Diagram download started. Export SGF separately to save your record edits.');
+    setUiText(status, 'Diagram download started.');
   } catch (error) {
     setUiText(status, `Diagram export failed: ${String(error)}`);
   }
@@ -642,6 +641,7 @@ const disposeLanguage = subscribeUiLanguage(() => {
   view.update({ labels: createBoardLabels({ locale }) });
   playbackControls.update({ locale });
   renderState(controller.getState());
+  updateToolHint();
 });
 document.title = initialLanguage === 'ko' ? 'Banora Studio — 바둑 기보 작업 공간' : document.title;
 language.addEventListener('change', () => {

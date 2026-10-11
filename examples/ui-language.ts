@@ -16,10 +16,7 @@ export function translateUi(text: string): string {
   const patterns: [RegExp, (...values: string[]) => string][] = [
     [/^Move (\d+)$/, (n) => `${n}수`],
     [/^Game (\d+)$/, (n) => `기보 ${n}`],
-    [
-      /^Opened (.+)\. Everything stays local\.$/,
-      (name) => `${name} 파일을 열었습니다. 모든 처리는 이 브라우저에서 이루어집니다.`,
-    ],
+    [/^Opened (.+)\.$/, (name) => `${name} 열림`],
     [/^(\d+) strokes? on this node$/, (n) => `현재 위치에 ${n}개의 선`],
     [/^Captures  ● (\d+)  ○ (\d+)$/, (black, white) => `잡은 돌  ● ${black}  ○ ${white}`],
     [/^● Black to play$/, () => '● 흑 차례'],

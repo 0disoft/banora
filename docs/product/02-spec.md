@@ -44,6 +44,13 @@ cloud storage and AI analysis are not part of Studio's initial workflow.
 Studio and the common Viewer support English and Korean presentation. SDK locale
 selection is explicit, preserves record state and never translates authored SGF text.
 
+Studio prioritizes controls and record content over introductory or promotional
+copy. File actions sit directly above the workspace. Keyboard guidance is available
+through localized tooltips rather than persistent paragraphs; texture help lists
+only accepted formats and size limits. The idle status is empty, while errors,
+active operations and unsaved-change confirmations remain visible. Sharing includes
+a concise link-access notice. Fonts and authored SGF text are unchanged.
+
 ## Capability Scope
 
 | Area                      | Capability                                                                                                      | First milestone |

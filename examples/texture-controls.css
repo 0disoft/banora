@@ -57,3 +57,7 @@
   outline: 3px solid #589474;
   outline-offset: 3px;
 }
+
+.texture-controls [role='status']:empty {
+  display: none;
+}

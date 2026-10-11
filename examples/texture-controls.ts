@@ -46,10 +46,7 @@ export function mountTextureControls(
   setUiText(title, 'Stone textures');
   panel.append(title);
   const note = document.createElement('p');
-  setUiText(
-    note,
-    'Choose a PNG, JPEG or WebP up to 2 MiB. Images are center-cropped. Textures stay local and are not included in SGF or share links.',
-  );
+  setUiText(note, 'PNG / JPEG / WebP · max 2 MiB');
   panel.append(note);
   for (const color of ['black', 'white'] as const) {
     const row = document.createElement('fieldset');
@@ -75,7 +72,7 @@ export function mountTextureControls(
     const status = document.createElement('p');
     status.dataset.textureStatus = color;
     status.setAttribute('role', 'status');
-    setUiText(status, current[color] ? 'Custom texture active.' : 'Default stone color.');
+    setUiText(status, current[color] ? 'Custom texture active.' : '');
     async function load(source: Blob | Promise<Blob>): Promise<void> {
       pending[color]?.abort();
       const operation = new AbortController();
@@ -90,7 +87,7 @@ export function mountTextureControls(
         options.onChange(color, texture);
         current[color] = texture;
         reset.disabled = false;
-        setUiText(status, 'Custom texture active. SGF edits are unchanged.');
+        setUiText(status, 'Custom texture active.');
       } catch (error) {
         if (!operation.signal.aborted && !abort.signal.aborted)
           setUiText(status, `Texture unchanged: ${String(error)}`);
@@ -122,7 +119,7 @@ export function mountTextureControls(
         options.onChange(color, null);
         current[color] = null;
         reset.disabled = true;
-        setUiText(status, 'Default stone color.');
+        setUiText(status, '');
       },
       { signal: abort.signal },
     );

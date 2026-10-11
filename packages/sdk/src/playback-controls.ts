@@ -44,10 +44,7 @@ export function mountPlaybackControls(
     interval.append(option);
   }
   label.append(interval);
-  const hint = document.createElement('span');
-  hint.textContent = '← / → move through the record · Alt + ← / → while the board is focused';
-  hint.style.cssText = 'flex-basis:100%;text-align:center;font-size:12px;opacity:.75';
-  root.append(toggle, label, hint);
+  root.append(toggle, label);
   container.append(root);
   function render() {
     const state = playback.getState();
@@ -55,7 +52,7 @@ export function mountPlaybackControls(
     root.setAttribute('aria-label', ui.playback);
     label.firstChild!.textContent = ui.interval;
     interval.setAttribute('aria-label', ui.playbackInterval);
-    hint.textContent = ui.playbackHint;
+    root.title = ui.playbackHint;
     for (const option of interval.options)
       option.textContent = formatUiMessage(ui.seconds, { number: Number(option.value) / 1000 });
     toggle.textContent = state.playing ? ui.pause : ui.play;

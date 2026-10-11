@@ -1,4 +1,16 @@
 export const koreanUi: Readonly<Record<string, string>> = {
+  'PNG / JPEG / WebP · max 2 MiB': 'PNG / JPEG / WebP · 최대 2 MiB',
+  'SGF download started.': 'SGF 저장 시작',
+  'Diagram download started.': '이미지 저장 시작',
+  'Position only. Anyone with the link can view it.':
+    '현재 위치만 공유합니다. 링크가 있으면 열람할 수 있습니다.',
+  'Anyone with the link can view this record.': '링크가 있으면 기보를 열람할 수 있습니다.',
+  'Link created.': '링크 생성됨',
+  'Link copied.': '링크 복사됨',
+  'Puzzles ↗': '문제 ↗',
+  'Analysis ↗': '분석 ↗',
+  'Read-only example ↗': '읽기 전용 예제 ↗',
+
   'Set black stone': '흑돌 배치',
   'Set white stone': '백돌 배치',
   'Clear stone': '돌 제거',
@@ -8,22 +20,15 @@ export const koreanUi: Readonly<Record<string, string>> = {
   'AGA territory': 'AGA 집 계가',
   'AGA area': 'AGA 면적 계가',
   'Tromp-Taylor area': 'Tromp-Taylor 면적 계가',
-  'Choose a PNG, JPEG or WebP up to 2 MiB. Images are center-cropped. Textures stay local and are not included in SGF or share links.':
-    '2 MiB 이하의 PNG, JPEG, WebP 이미지를 선택하세요. 가운데를 기준으로 잘라 사용합니다. 이미지는 이 브라우저에서만 사용하며 SGF나 공유 링크에 포함하지 않습니다.',
 
   Language: '언어',
   'Export SGF': 'SGF 저장',
   'No changes': '변경 없음',
   'Unsaved changes': '저장하지 않은 변경',
-  'YOUR NEXT VARIATION': '다음 변화도를 찾아보세요',
-  'A little room to think.': '한 수를 생각할 여유.',
-  'Open a game. Follow a line. Find your own continuation.':
-    '기보를 열고 흐름을 따라가며 나만의 수를 찾아보세요.',
   'New record': '새 기보',
   'Example game': '예제 기보',
   'Open SGF': 'SGF 열기',
   'Board workspace': '바둑판 작업 공간',
-  'ACTIVE RECORD': '현재 기보',
   Board: '바둑판',
   'Display size': '표시 크기',
   Small: '작게',
@@ -83,7 +88,6 @@ export const koreanUi: Readonly<Record<string, string>> = {
   'Magnify aim': '확대 보기',
   'Animate new stones': '착수 애니메이션',
   Duration: '시간',
-  'Respects reduced-motion preferences.': '동작 줄이기 설정을 따릅니다.',
   'Arrow keys move the board cursor · Enter places · Page Up / Down navigates':
     '방향키로 커서 이동 · Enter로 착수 · Page Up / Down으로 수 이동',
   'Arrow keys move · Space adds an ink point · Enter finishes · Escape cancels':
@@ -92,23 +96,16 @@ export const koreanUi: Readonly<Record<string, string>> = {
   Game: '기보',
   'Board / Komi': '바둑판 / 덤',
   Variations: '변화도',
-  'Explore the tree': '진행 흐름 살펴보기',
   'Record nodes': '기보 위치 목록',
   'Notes on this position': '현재 위치 코멘트',
-  'What do you see here? Add a comment…': '이 위치에 대한 코멘트를 남겨보세요…',
-  'Comments, marks, lines and arrows travel with your SGF.':
-    '코멘트와 표시, 선, 화살표는 SGF에 함께 저장됩니다.',
   'Compare positions': '위치 비교',
   'Close comparison': '비교 닫기',
   'Pin current on left': '현재 위치를 왼쪽에 고정',
   'Pin current on right': '현재 위치를 오른쪽에 고정',
   'Position comparison': '위치 비교',
-  'Your records stay in this browser. No upload, no account.':
-    '기보는 이 브라우저에서만 처리합니다. 업로드나 계정이 필요하지 않습니다.',
   'Try the curated puzzles ↗': '바둑 문제 풀어보기 ↗',
   'Explore position analysis ↗': '형세 분석 살펴보기 ↗',
   'See the read-only embed ↗': '읽기 전용 예제 보기 ↗',
-  'KEEP YOUR CONTINUATION': '진행 내용을 보관하세요',
   'This record has changes.': '기보에 저장하지 않은 변경이 있습니다.',
   'Export a copy before opening another record, or discard these changes.':
     '다른 기보를 열기 전에 저장하거나 변경 내용을 버리세요.',
@@ -126,12 +123,9 @@ export const koreanUi: Readonly<Record<string, string>> = {
   'Use demo tile': '예제 이미지 사용',
   'Use default': '기본값 사용',
   'Custom texture active.': '사용자 이미지 적용 중.',
-  'Default stone color.': '기본 돌 색상.',
   'PNG/JPEG/WebP only. Local files stay in this browser and are not included in SGF or share links.':
     'PNG/JPEG/WebP를 지원합니다. 이미지는 이 브라우저에서만 사용하며 SGF나 공유 링크에 포함하지 않습니다.',
   'Preparing texture…': '이미지 준비 중…',
-  'Custom texture active. SGF edits are unchanged.':
-    '사용자 이미지를 적용했습니다. 기보 편집 내용은 유지됩니다.',
   'Share a record or position': '기보 또는 위치 공유',
   Content: '공유 내용',
   'Record at this node': '현재 위치에서 열리는 기보',
@@ -142,21 +136,11 @@ export const koreanUi: Readonly<Record<string, string>> = {
   'Created link': '생성한 링크',
   'Create a link, then copy it.': '링크를 만든 뒤 복사하세요.',
   'Copy link': '링크 복사',
-  'Creating or copying a link does not save your SGF edits.':
-    '링크 생성이나 복사만으로 기보 편집 내용이 저장되지는 않습니다.',
   'Open a shared link': '공유 링크 열기',
   'Paste a Banora share link here.': 'Banora 공유 링크를 붙여넣으세요.',
   'Open link': '링크 열기',
   'Export a copy before opening the shared record, or discard your changes.':
     '공유 기보를 열기 전에 저장하거나 변경 내용을 버리세요.',
-  'Shares the visible stones, turn and local marks/ink. No move history, capture totals or game metadata. Comments are optional. Anyone with the link can read its content.':
-    '현재 돌 배치와 차례, 표시와 그림을 공유합니다. 수순과 잡은 돌 수, 기보 정보는 포함하지 않습니다. 코멘트 포함 여부는 선택할 수 있습니다. 링크를 가진 사람은 누구나 내용을 볼 수 있습니다.',
-  'Shares every game, branch, comment and metadata field in this record. Anyone with the link can read its content.':
-    '이 기보의 모든 대국과 변화도, 코멘트, 정보를 공유합니다. 링크를 가진 사람은 누구나 내용을 볼 수 있습니다.',
-  'Link created from the current record. Later edits do not change this link.':
-    '현재 기보로 링크를 만들었습니다. 이후 편집은 이 링크에 반영되지 않습니다.',
-  'Link copied. This does not save SGF edits.':
-    '링크를 복사했습니다. 기보 편집 내용은 별도로 저장하세요.',
   'Clipboard unavailable. Select the created link and copy it manually.':
     '클립보드를 사용할 수 없습니다. 생성한 링크를 선택해서 직접 복사하세요.',
   'SGF download failed. The shared record was not opened.':
@@ -203,14 +187,8 @@ export const koreanUi: Readonly<Record<string, string>> = {
   'Territory total = territory + captured/dead/pass prisoners + komi + adjustment. Living stones are shown for reference.':
     '집 점수 = 집 + 잡은 돌/사석/패스 포로 + 덤 + 보정. 살아 있는 돌은 참고용입니다.',
   'Connection cancelled.': '선 그리기를 취소했습니다.',
-  'SGF download started. Keep the exported file before leaving this page.':
-    'SGF 저장을 시작했습니다. 페이지를 떠나기 전에 파일을 보관하세요.',
   'Record changed during approval. Open it again.': '확인 중 기보가 변경되었습니다. 다시 여세요.',
   'SGF file exceeds the 5 MiB input limit.': 'SGF 파일이 5 MiB 제한을 초과했습니다.',
-  'Diagram download started. Export SGF separately to save your record edits.':
-    '이미지 저장을 시작했습니다. 기보 편집 내용은 SGF로 따로 저장하세요.',
-  'Drag to draw. Escape cancels; Undo removes a completed stroke. Keyboard: Space adds a point, Enter finishes.':
-    '끌어서 그리세요. Escape로 취소하고 실행 취소로 완성한 선을 지울 수 있습니다. 키보드에서는 Space로 점을 추가하고 Enter로 완료합니다.',
   'First 500 nodes shown. Move controls can navigate the whole record.':
     '처음 500개 위치를 표시합니다. 이동 버튼으로 전체 기보를 탐색할 수 있습니다.',
 };

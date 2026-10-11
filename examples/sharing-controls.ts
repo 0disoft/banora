@@ -26,7 +26,7 @@ export function mountSharing(
     <button type="button" data-share="create">Create link</button></div>
     <p data-share="notice"></p>
     <label>Created link <textarea data-share="output" rows="2" readonly placeholder="Create a link, then copy it." spellcheck="false"></textarea></label>
-    <div class="sharing-row"><button type="button" data-share="copy" disabled>Copy link</button><span>Creating or copying a link does not save your SGF edits.</span></div>
+    <div class="sharing-row"><button type="button" data-share="copy" disabled>Copy link</button></div>
     <label>Open a shared link <textarea data-share="input" rows="2" placeholder="Paste a Banora share link here." spellcheck="false"></textarea></label>
     <button type="button" data-share="open">Open link</button>
     <p data-share="status" role="status"></p>`;
@@ -55,8 +55,8 @@ export function mountSharing(
     setUiText(
       find('notice'),
       position
-        ? 'Shares the visible stones, turn and local marks/ink. No move history, capture totals or game metadata. Comments are optional. Anyone with the link can read its content.'
-        : 'Shares every game, branch, comment and metadata field in this record. Anyone with the link can read its content.',
+        ? 'Position only. Anyone with the link can view it.'
+        : 'Anyone with the link can view this record.',
     );
   };
   notice();
@@ -76,7 +76,7 @@ export function mountSharing(
       }
       output.value = result.value;
       copy.disabled = false;
-      report('Link created from the current record. Later edits do not change this link.');
+      report('Link created.');
     },
     { signal },
   );
@@ -90,7 +90,7 @@ export function mountSharing(
       void (async () => {
         try {
           await navigator.clipboard.writeText(text);
-          report('Link copied. This does not save SGF edits.');
+          report('Link copied.');
         } catch {
           report('Clipboard unavailable. Select the created link and copy it manually.');
         }

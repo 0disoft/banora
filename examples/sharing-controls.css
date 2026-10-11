@@ -65,3 +65,7 @@
 .sharing-controls dialog::backdrop {
   background: #153b3266;
 }
+
+.sharing-controls [role='status']:empty {
+  display: none;
+}

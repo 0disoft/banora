@@ -65,3 +65,6 @@ all recorded moves/comments/unknown properties. Headless unit tests exercise rea
 timers, validation, cancellation and reentrant host navigation; installed types
 check the DOM-free coordinator and SSR-safe browser API separately. Background
 timer precision, physical devices and other browser engines are not guaranteed.
+
+Playback keyboard guidance is provided through the controls' localized tooltip,
+keeping the default toolbar compact without changing keyboard behavior.

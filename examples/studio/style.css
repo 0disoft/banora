@@ -171,15 +171,12 @@ main {
   margin: auto;
   padding: 36px 24px 20px;
 }
-.intro {
+.file-toolbar {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 28px;
-}
-.intro .muted {
-  font-size: 0.9rem;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 .file-actions {
   padding-bottom: 6px;
@@ -294,12 +291,6 @@ main {
 .editing-tools .button {
   font-size: 0.74rem;
   padding: 8px 12px;
-}
-.keyboard-hint {
-  font-size: 0.65rem;
-  text-align: center;
-  color: #8b958c;
-  margin-top: 16px;
 }
 .sidebar {
   display: grid;
@@ -482,11 +473,6 @@ body.dragging::after {
   .board-panel {
     padding: 18px;
   }
-  .intro {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 18px;
-  }
   .header {
     padding: 0 24px;
   }
@@ -524,9 +510,6 @@ body.dragging::after {
   }
   main {
     padding: 26px 14px 12px;
-  }
-  .intro {
-    margin-bottom: 20px;
   }
   .workspace {
     grid-template-columns: 1fr;
@@ -575,9 +558,6 @@ body.dragging::after {
   }
   .tree {
     max-height: 180px;
-  }
-  .keyboard-hint {
-    font-size: 0.6rem;
   }
   footer {
     flex-direction: column;
@@ -638,4 +618,8 @@ body.dragging::after {
     flex-wrap: wrap;
     margin-left: auto;
   }
+}
+
+#status:empty {
+  display: none;
 }
