@@ -52,6 +52,9 @@ the [specification](product/02-spec.md) for the initial editing/reopen workflow.
 The [project readiness review](engineering/12-readiness-review.md) tracks the active
 72-question engineering, operations and product audit and its delivery sequence.
 It does not supersede the product scope or establish completion by itself.
+Detailed historical records are separate: [development/product increments](engineering/13-readiness-execution-evidence.md)
+and [release/publication tooling](engineering/18-release-tooling-execution-evidence.md).
+The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable
 commands, input limits and the external state authority boundary.

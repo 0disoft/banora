@@ -3,7 +3,9 @@
 Status: historical scoped increments; not a completion or release claim.
 
 The [active readiness review](12-readiness-review.md) owns the 72-question worklist
-and completion rule. All prior increment records are preserved here. Counts,
+and completion rule. Earlier development/product increment records are preserved
+here; later publication and registry-health records belong to
+[release tooling history](18-release-tooling-execution-evidence.md). Counts,
 coverage limits and next-step notes refer to their specific execution time; inspect
 current source/commands for a final completion audit.
 
