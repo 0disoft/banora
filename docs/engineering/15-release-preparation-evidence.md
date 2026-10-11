@@ -1,7 +1,7 @@
 # Retained Release Preparation Evidence
 
-Status: scoped local tooling implemented; clean-source preparation execution is
-pending in this increment. This is not publication, hosted rollback or all-72 completion.
+Status: scoped local tooling and clean-source preparation executed. This is not
+publication, hosted rollback or all-72 completion.
 
 ## Implementation and Initial Checks
 
@@ -25,11 +25,34 @@ duplicates, altered/extra files, linked directories, exclusive source-preserving
 restaging, actual Git state and failed/timed-out subprocess cleanup. Integrity
 fixtures are authored non-executable test bytes, not claimed package evidence.
 
-## Remaining Execution and Scope
+## Clean-Source Execution
 
-Commit the tooling before the positive clean-source exercise. Run preparation's
-nine gates against the retained real packages/browser files, then verify and
-restage the result; record actual output here rather than assuming success.
+Actual preparation on October 12 succeeded at commit
+`2b8b67ed33c026db6d32ea1140f34bafe11de97b`, tree
+`7d5b76e70fffdd214179fa5fa839ef3de1f6120b`, Bun 1.4.2/Node 24.14.0 on Windows x64.
+It retained five `0.1.0-dev.0` tarballs and 149 total files, then completed `check`,
+`security-files`, `security-deps`, `sdk-archive`, `cli-archive`, `adapter-archives`,
+`browser-bundle`, `starter-archive` and `recovery-drill`. These are executed results,
+not inferred from the manifest schema. The installed SDK/classic/CLI, independent
+React/Vue/Svelte types/SSR, complete production browser and standalone starter used
+the retained real artifacts. The root check included 193 tests/2,707 assertions;
+dependency audit passed at preparation time. The browser exercised Studio recovery,
+search/help, languages, navigation/edit/export/reopen, framework lifecycle and the
+optional display/interaction consumers using the retained production files.
+
+Actual prepared-bundle verification succeeded. Restoration created a distinct
+directory and verified both its 149 files and the preserved original. A second
+clean-source prepare returned `reused: true` without executing gates again, as
+documented. These ignored local files are runtime output, not committed design
+evidence or a public distribution. The source remains identified separately from
+later documentation commits.
+
+The actual restaged bundle passed a separate verification and installed Node CLI
+run with 222 checks. This tests usable copied package bytes rather than treating
+copying alone as successful restoration.
+
+## Remaining Scope
+
 Unsigned hashes do not authenticate unknown artifacts. A restaged copy of the
 current version is not evidence of a distinct older release or a remote rollback.
 No registry upload, host selection, credentials, public/private reporting channel,
