@@ -48,7 +48,7 @@ This is an ownership decision, not evidence that such a service exists.
 | 10  | Stable updates within supported majors           | Manifest ranges/lockfile exist; automate reviewed update candidates and major promotion gates.                     |
 | 11  | Format/static/forbidden-pattern/size rules       | Oxlint/Oxfmt exist; enforce dependency, quality and review-size policies.                                          |
 | 12  | Error classes, messages, causes and retryability | Typed SDK reason/recovery projection implemented; consumer messaging and retry safety need integration.            |
-| 13  | Structured operation identifiers/logs            | Explicit SDK journal generates bounded safe local evidence/IDs; Studio/terminal integration follows.               |
+| 13  | Structured operation identifiers/logs            | Explicit bounded SDK evidence/IDs have Studio opt-in and one-run terminal consumers; no hosted tracing implied.    |
 | 14  | Latency/failure/resource visibility and alerts   | SDK retained-window outcome/timing summaries and real ops guide implemented; hosted monitoring remains host-owned. |
 | 15  | Timeout/retry/rate limits/failure containment    | Analysis cancellation/capacity and host process deadlines exist; audit disconnect/retry boundaries.                |
 | 16  | Versioned data, migration and recovery           | SGF and automation versions exist; version new local drafts/preferences and test invalid/future versions.          |
@@ -485,3 +485,42 @@ authored game-name options that matched UI catalog keys. `GN[Success]` now stays
 literal in the heading and game selection across all four languages. No authored
 record data was changed. Final root typecheck/lint, 111-document/353-link checks,
 file/permission signals and whitespace checks passed after synchronized documentation.
+
+## Execution: Terminal Diagnostic Reproduction
+
+Added root/selective/classic `diagnoseAutomation` and typed safe response, plus
+`banora diagnose --request FILE|- --output FILE --force` discovery. The same checked
+engine executes once on isolated state; its internal optional journal records actual
+completed import/restore/navigation/operation/output/checkpoint stages. SDK failures
+retain earlier isolated successes and zero-based failure position, never authored
+output or raw exceptions. Normal automation/checkpoint response contents remain
+compatible. Schema exceptions now return a structured failure; diagnostic execution
+never reads arbitrary exception messages, including accessors. Typed automation and
+scoring diagnostic policies preserve known codes/recovery.
+
+Reports retain 256 recent events with explicit eviction, immutable snapshots and
+retained-window summaries. SDK environment is explicit and validated before actions;
+no SDK clock/I/O is installed. The CLI projects actual Node major/platform family
+and rounded SDK execution duration, with no path/identity/raw version text. Its
+distinct diagnostic envelope exposes only fixed transport codes. Explicit report
+publication saves successful or SDK-failed evidence atomically, protects input aliases,
+requires force for an existing output and retains SDK evidence on publication failure.
+Usage/read/JSON failures publish no file. No authored file or remote endpoint is changed.
+
+`check` passed 182 tests / 2,491 assertions, quality/boundaries, builds, root/Svelte
+types, 111 documents / 358 links, packed root/subpath/no-DOM/classic SDK and 222
+installed Windows Node CLI checks. New fixtures prove single execution, environment
+prevalidation, actual successes/failure location, scoring/restore/checkpoint/snapshot,
+bounds, private-data/error-accessor exclusion and transport/publication behavior.
+Browser suites were not repeated: no Studio/renderer/framework source or automation
+consumer changed; previous production coverage remains distinct from these terminal
+fixtures. macOS/Linux executable, physical-device and hosted execution remain unverified;
+standalone contract/migration runners are unconfigured.
+
+Updated owning product/API/automation/diagnostic/compatibility contracts, ADR 0020,
+package/agent guidance, observability and validation. SDK/CLI additions are explicit;
+no DB, storage schema, dependency, hygiene or CI runner changes. Packed evidence
+runners were extended. Remaining milestone work is concrete incident/release/recovery
+procedures and a verified private reporting channel, measured performance and the
+all-72 final audit. Local diagnostic consumers do not establish hosted monitoring,
+publication or goal completion.

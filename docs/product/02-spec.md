@@ -232,7 +232,10 @@ history context. Cancellation and stale-response rejection are required.
 ## Consumer Experience
 
 Optional headless diagnostics provide explicit bounded operation evidence and
-safe failure/recovery identifiers. No implicit analytics, global error interception,
+safe failure/recovery identifiers. The automation SDK and optional terminal diagnose
+command execute canonical requests once on isolated state and return reviewed,
+bounded evidence without authored output; explicit CLI report publication protects
+input files and retains SDK failures. No implicit analytics, global error interception,
 authored data, raw messages/stacks, arbitrary metadata or environment fingerprint
 strings are recorded. Hosts own opt-in, reviewed download/sharing and retention;
 reports summarize retained local events only. See

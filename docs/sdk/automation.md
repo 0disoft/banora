@@ -5,7 +5,8 @@
 
 `@banora/sdk/automation` (also the root/global export) exposes
 `executeAutomation(unknown)`, `AUTOMATION_SCHEMA`, `AutomationRequest`,
-`AutomationOperation`, `AutomationResponse` and `AutomationError`. Importing and
+`AutomationOperation`, `AutomationResponse`, `AutomationError`, `diagnoseAutomation`
+and `AutomationDiagnosticResponse`. Importing and
 executing requires no browser globals, DOM types, framework or LLM dependency.
 
 ## Requests and Discovery
@@ -92,6 +93,11 @@ Failure returns `ok:false` and `error:{code,message,operationIndex?,reason?}`,
 without partially edited SGF or snapshot. The caller's input is unchanged.
 Operation indices are zero-based; stop and fix the reported operation before retry.
 Codes are `invalid-request`, `invalid-input` and `command-failed`.
+
+For reviewed support evidence, use `diagnoseAutomation` or `banora diagnose`.
+They execute the same request once and return bounded fixed operation/failure data
+with no authored result. See the [diagnostic contract](diagnostics.md#terminal-and-automation-consumer)
+for envelopes, privacy, retention, timing, publication and transport exit codes.
 
 ## External State Boundary
 

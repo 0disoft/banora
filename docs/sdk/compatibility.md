@@ -13,8 +13,11 @@ Node root/subpath/ES2022-only and classic VM consumers execute public artifacts.
 Separate production Studio Chrome 154 fixtures check opt-in/clear/reload, actual
 redacted JSON download and failed download, delayed-file consent epochs, local
 action/settings discovery, four languages, keyboard/mobile/menu and zero remote
-requests. CLI diagnostic commands, hosted telemetry, automatic environment detection
-and broader browser/physical-device behavior remain unclaimed.
+requests. Packed root/subpath/no-DOM/classic and installed Node terminal fixtures
+also execute canonical diagnostic requests, failure indices/codes, bounded reports,
+safe Node family/major/platform/timing projections and successful/failed atomic
+report publication without input replacement. SDK environment remains explicit.
+Hosted telemetry and broader browser/physical-device behavior remain unclaimed.
 
 Use Vite library builds for ESM entrypoints, TypeScript declarations, and a browser
 script distribution. React, Vue, and Svelte are optional dependencies of their

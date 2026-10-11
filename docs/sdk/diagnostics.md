@@ -32,7 +32,7 @@ Operations: `import`, `export`, `navigate`, `edit`, `batch`, `search`, `scoring`
 carries a required failure descriptor. Optional duration is finite 0–86,400,000ms,
 rounded to whole milliseconds; no clock is read.
 
-Domains: `controller`, `sgf`, `analysis`, `storage`, `io`. Project only SGF
+Domains: `controller`, `sgf`, `analysis`, `automation`, `scoring`, `storage`, `io`. Project only SGF
 `diagnostics[0]?.code`, controller/analysis `reason`, or the Studio draft error
 `code`, never the error object/message/stack. Unknown codes become `unknown` without
 coercing objects. Extra fields/accessors are rejected with fixed messages; failed
@@ -108,4 +108,38 @@ separate deletion. The Studio environment projection includes browser runtime an
 UI locale only; include actual SDK/consumer/browser versions separately in a report.
 English/Korean/Chinese/Japanese, 320px layout, focus/Escape, action/menu restoration,
 actual downloaded JSON and delayed-file consent transitions have browser fixtures.
-Terminal diagnostic commands and hosted collection remain separate work.
+Hosted collection remains host-owned.
+
+## Terminal and Automation Consumer
+
+`diagnoseAutomation(input, environment?)` is exported from `@banora/sdk/automation`,
+root and classic builds. It runs the same checked automation engine once on isolated
+state and returns frozen `banora.automation-diagnostics/v1` with `ok`, optional
+zero-based failed `operationIndex` and `diagnostics`. It returns no authored result,
+SGF, snapshot, tree, query results, target, key, raw message or stack. Environment
+is validated and copied before execution. No clock or file/network I/O is read by
+the SDK. Existing `executeAutomation` result contents remain unchanged.
+
+Import, optional restore/initial selection, each completed operation, successful
+output construction and optional checkpoint construction are recorded. Failures stop
+execution with actual earlier successes retained; these describe isolated work,
+not committed file changes. Snapshot requests record validation as `import` only.
+Navigation maps to `navigate`, comment batches to `batch`, scoring to `scoring`,
+search and legal-point enumeration to `search`, remaining edits/history to `edit`.
+Scoring failures retain known scoring codes; schema/input failures use automation
+codes and command failures retain controller reasons. Exceptions use fixed
+`invalid-input`, without reading messages during diagnostic execution. Reports hold
+256 events; a maximum batch plus initialization/output stages can evict older events.
+Inspect `dropped`; summaries cover only retained events. No per-step timing is inferred.
+
+Run `banora diagnose --request request.json --output diagnostics.json` using the
+same request discovered by `banora schema`; request defaults to stdin. The optional
+CLI returns `banora.cli-diagnostics/v1`, additionally projecting the actual Node
+major/platform family and rounded SDK execution duration, excluding file I/O.
+It saves only the diagnostic report, including SDK failures, never edited SGF.
+Existing output requires `--force`; input paths/aliases remain protected. File and
+stdout reports match. Transport failures return only fixed `error.code`, never
+paths/messages. Output failure retains SDK evidence and exits 4; SDK failure exits
+3, usage/read/JSON failures exit 2, success exits 0. Read/JSON/usage failures do not
+publish a file. Invocation is explicit consent for this one run; files remain
+caller-owned and no data is uploaded. Review usage/timing before sharing.

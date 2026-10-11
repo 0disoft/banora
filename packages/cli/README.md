@@ -27,14 +27,15 @@ Requests use `schemaVersion:"banora.automation/v1"`; results contain `ok` and ei
 data or structured `error:{code,message,operationIndex?,reason?}`. Schema discovery
 itself returns a JSON Schema rather than a result envelope.
 
-| Command                                              | Input                                              | Result                                                   |
-| ---------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------- |
-| `banora run --request request.json`                  | Full automation request; defaults to stdin         | Record operations/queries or snapshot validation         |
-| `banora create --size 9`                             | New square board; defaults to 19                   | Initial record/snapshot                                  |
-| `banora inspect --input game.sgf --tree`             | SGF file or `-`; optional full tree                | Root state, children, SGF and optional game trees        |
-| `banora search --input game.sgf --query text`        | SGF file or `-`; optional literal/property filters | Whole-record counts, paginated hits and portable targets |
-| `banora edit --input game.sgf --operations ops.json` | SGF plus JSON operation array                      | Edited SGF and selected state                            |
-| `banora snapshot --input state.json`                 | Plain `BoardSnapshot` JSON                         | Normalized external display state                        |
+| Command                                              | Input                                              | Result                                                    |
+| ---------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------- |
+| `banora run --request request.json`                  | Full automation request; defaults to stdin         | Record operations/queries or snapshot validation          |
+| `banora diagnose --request request.json`             | Same full request; defaults to stdin               | Safe bounded operation/failure report, no authored output |
+| `banora create --size 9`                             | New square board; defaults to 19                   | Initial record/snapshot                                   |
+| `banora inspect --input game.sgf --tree`             | SGF file or `-`; optional full tree                | Root state, children, SGF and optional game trees         |
+| `banora search --input game.sgf --query text`        | SGF file or `-`; optional literal/property filters | Whole-record counts, paginated hits and portable targets  |
+| `banora edit --input game.sgf --operations ops.json` | SGF plus JSON operation array                      | Edited SGF and selected state                             |
+| `banora snapshot --input state.json`                 | Plain `BoardSnapshot` JSON                         | Normalized external display state                         |
 
 `create` also accepts `--operations`; `create`/`inspect`/`edit` accept `--profile`
 with `japanese-territory`, `aga-territory`, `aga-area` or `tromp-taylor`. For initial
@@ -98,6 +99,25 @@ alone guards only each targeted comment. Apply is one request-local Undo unit;
 append an `undo` operation in that same request to reverse the entire batch.
 Wrong targets/conditions or exceeded limits publish no output file. Files/stdin
 are bounded to 8 MiB, including duplicated expected SGF in a guarded request.
+
+### Diagnostic Reports
+
+Run `banora diagnose --request request.json --output diagnostics.json` to reproduce
+one isolated request without returning edited SGF, snapshots, comments, queries,
+paths or raw errors. The JSON envelope is `banora.cli-diagnostics/v1`, with `ok`,
+`diagnostics`, optional zero-based failed `operationIndex`, rounded SDK execution
+`durationMs` and transport `error.code`. Environment contains Node major/platform
+family only. SDK operation events are untimed and summaries cover retained events,
+up to 256; check `dropped` for eviction.
+
+Unlike ordinary authored-output commands, `--output` saves a diagnostic report
+even when the SDK request fails (exit 3). Success exits 0. Usage/read/JSON failures
+exit 2 and do not publish a file. Output failure exits 4 with SDK evidence retained;
+transport errors include no message/path. Existing outputs require `--force`;
+inputs/aliases remain protected. File/stdout report contents match. No authored
+file is changed or data uploaded. Invocation opts in for that run; inspect before
+sharing and delete downloaded reports separately. Full stage/recovery definitions
+are in the [diagnostic contract](../../docs/sdk/diagnostics.md#terminal-and-automation-consumer).
 
 Operation names: `play`, `previous`, `next`, `goto`, `comment`, `marker`, `setup`,
 `connection`, `stroke`, `remove-stroke`, `clear-strokes`, `remove-branch`,

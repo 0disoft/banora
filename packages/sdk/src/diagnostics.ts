@@ -1,6 +1,8 @@
 import type { ControllerFailure } from './controller.js';
 import type { AnalysisFailureReason } from './analysis-types.js';
 import type { SgfDiagnostic } from './sgf.js';
+import type { AutomationError } from './automation.js';
+import type { ScoreFailure } from './scoring.js';
 
 export type DiagnosticRecovery =
   | 'correct-input'
@@ -57,6 +59,18 @@ const reasons = {
   controller,
   sgf,
   analysis,
+  automation: {
+    'invalid-request': 'correct-input',
+    'invalid-input': 'correct-input',
+    'command-failed': 'review-changes',
+  } satisfies Record<AutomationError['code'], DiagnosticRecovery>,
+  scoring: {
+    'invalid-profile': 'correct-input',
+    'invalid-position': 'choose-position',
+    'invalid-options': 'correct-input',
+    'invalid-selection': 'choose-position',
+    'profile-mismatch': 'review-changes',
+  } satisfies Record<ScoreFailure, DiagnosticRecovery>,
   storage: {
     unavailable: 'check-storage',
     blocked: 'check-storage',

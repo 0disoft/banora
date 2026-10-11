@@ -16,4 +16,4 @@
 Run `banora --help` and `banora schema` before constructing commands. Use JSON files or stdin; do not recreate rules, evaluate code, or infer the state from screenshots. CLI output is one JSON document. Each invocation is isolated; do not treat node IDs/Undo history as persistent or the CLI as automatic control over a running application.
 
 - [UI localization](docs/sdk/localization.md): Explicit English/Korean/Chinese/Japanese Viewer and playback options, message overrides, board labels and Studio language selection.
-- [Local diagnostics](docs/sdk/diagnostics.md): Headless explicit safe operation evidence, frozen reports, bounds and privacy. No implicit telemetry or CLI diagnostic command is implied.
+- [Local diagnostics](docs/sdk/diagnostics.md): Explicit safe operation evidence, frozen reports, bounds and privacy; diagnoseAutomation and banora diagnose run canonical requests once without authored output or implicit telemetry.

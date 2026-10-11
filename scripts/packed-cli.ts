@@ -76,6 +76,120 @@ check(
 );
 const toolsSgf =
   '(;SZ[5]XX[keep];B[aa](;W[bb]C[Needle first])(;W[cc]C[needle second]))(;SZ[9]C[needle other])';
+check(
+  cli(['--help']).commands.some((item: { name: string }) => item.name === 'diagnose'),
+  'Missing diagnostic command discovery',
+);
+const diagnosticRequest = JSON.stringify({
+  schemaVersion: 'banora.automation/v1',
+  kind: 'record',
+  sgf: '(;SZ[5]PB[PRIVATE PLAYER]C[PRIVATE COMMENT])',
+  stateKey: 'PRIVATE KEY',
+  includeTree: true,
+  operations: [
+    { op: 'search', query: 'PRIVATE QUERY' },
+    { op: 'play', point: { x: 0, y: 0 } },
+    { op: 'play', point: { x: 0, y: 0 } },
+  ],
+});
+await writeFile(resolve(directory, 'private-request.json'), diagnosticRequest);
+const diagnosed = cli(
+  ['diagnose', '--request', 'private-request.json', '--output', 'failure-report.json'],
+  3,
+);
+check(
+  diagnosed.schemaVersion === 'banora.cli-diagnostics/v1' &&
+    diagnosed.operationIndex === 2 &&
+    diagnosed.diagnostics.events.at(-1).failure.code === 'occupied',
+  'Missing actual failure evidence/index',
+);
+check(
+  !/PRIVATE|sgf|snapshot|properties|message|stack|output|query/.test(JSON.stringify(diagnosed)),
+  'Diagnostic output included private request or error data',
+);
+check(
+  diagnosed.diagnostics.environment.runtime === 'node' &&
+    diagnosed.diagnostics.environment.runtimeMajor ===
+      Number(
+        spawnSync('node', ['-p', 'process.versions.node.split(".")[0]'], {
+          encoding: 'utf8',
+        }).stdout.trim(),
+      ) &&
+    diagnosed.durationMs >= 0 &&
+    diagnosed.durationMs <= 86_400_000,
+  'Missing safe execution environment/timing',
+);
+check(
+  JSON.stringify(JSON.parse(await readFile(resolve(directory, 'failure-report.json'), 'utf8'))) ===
+    JSON.stringify(diagnosed),
+  'Failed SDK report was not explicitly saved',
+);
+check(
+  (await readFile(resolve(directory, 'private-request.json'), 'utf8')) === diagnosticRequest,
+  'Diagnostic execution overwrote input',
+);
+check(
+  cli(['diagnose', '--request', 'private-request.json', '--output', 'failure-report.json'], 4).error
+    .code === 'output',
+  'Diagnostic report replaced an existing output without force',
+);
+const blockedDiagnostic = cli(
+  ['diagnose', '--request', 'private-request.json', '--output', 'private-request.json', '--force'],
+  4,
+);
+check(
+  blockedDiagnostic.error.code === 'output' &&
+    blockedDiagnostic.operationIndex === 2 &&
+    blockedDiagnostic.diagnostics.events.at(-1).failure.code === 'occupied',
+  'Publication failure lost actual SDK evidence',
+);
+check(
+  (await readFile(resolve(directory, 'private-request.json'), 'utf8')) === diagnosticRequest,
+  'Forced diagnostic publication replaced input',
+);
+check(
+  cli(
+    ['diagnose', '--request', 'private-request.json', '--output', 'failure-report.json', '--force'],
+    3,
+  ).operationIndex === 2,
+  'Explicit diagnostic replacement failed',
+);
+const successfulDiagnostic = cli(
+  ['diagnose', '--output', 'success-report.json'],
+  0,
+  JSON.stringify({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    size: 9,
+    operations: [{ op: 'comment', text: 'PRIVATE EDIT' }],
+    includeCheckpoint: true,
+  }),
+);
+check(
+  successfulDiagnostic.ok &&
+    !('sgf' in successfulDiagnostic) &&
+    successfulDiagnostic.diagnostics.events.at(-1).operation === 'checkpoint',
+  'Successful stdin diagnostic failed',
+);
+for (const [args, input, code] of [
+  [['diagnose'], 'PRIVATE MALFORMED JSON', 'input'],
+  [['diagnose', '--request', 'PRIVATE MISSING PATH'], undefined, 'input'],
+  [['diagnose', '--PRIVATE'], undefined, 'usage'],
+  [['diagnose', '--force'], undefined, 'usage'],
+  [['diagnose', '--request', 'private-request.json', '--request', 'PRIVATE'], undefined, 'usage'],
+] as const) {
+  const rejected = cli([...args], 2, input);
+  check(
+    rejected.schemaVersion === 'banora.cli-diagnostics/v1' &&
+      rejected.error.code === code &&
+      !/PRIVATE|message|stack/.test(JSON.stringify(rejected)),
+    'Transport diagnostic leaked content or wrong envelope',
+  );
+}
+check(
+  cli(['diagnose'], 3, '{}').diagnostics.events[0].failure.code === 'invalid-request',
+  'Schema diagnostic failure was not projected',
+);
 await writeFile(resolve(directory, 'tools.sgf'), toolsSgf);
 const searched = cli([
   'search',

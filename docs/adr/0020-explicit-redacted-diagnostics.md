@@ -1,6 +1,6 @@
 # ADR 0020: Explicit Redacted Local Diagnostics
 
-- Status: Accepted; headless SDK and Studio integration implemented
+- Status: Accepted; headless SDK, Studio and terminal consumers implemented
 
 ## Decision
 
@@ -53,5 +53,13 @@ public declarations/runtime. Separate Studio production browser fixtures exercis
 opt-in, inspect/clear, actual download and failed-download handling, no authored data
 or remote requests, reload reset and consent changes during delayed public File reads.
 Localized help finds record actions, settings and all board-menu sections and routes
-to their actual controls. Hosted monitoring and terminal diagnostic commands remain
-separate work, not inferred from these local consumers.
+to their actual controls. Terminal SDK/installed executable fixtures run canonical
+requests once and expose safe evidence without authored output. The same execution
+engine preserves ordinary response contents; an optional internal journal observes
+actual completed steps, not a second replay or estimated trace. Automation/scoring
+failure maps exhaust typed codes. Diagnostic invocation is explicit per-run consent;
+CLI Node major/platform and execution timing are closed projections. Explicit report
+publication uses existing atomic output/input-alias protections, including SDK
+failure reports; publication failure retains evidence with a separate transport code.
+No CLI messages/paths enter diagnostic responses. Hosted monitoring remains separate
+work, not inferred from these local consumers.

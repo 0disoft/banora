@@ -18,6 +18,15 @@ This document owns stable validation names for this scaffold.
 - docs
 - check
 
+Terminal diagnostic coverage uses `packages/sdk/test/automation-diagnostics.test.ts`
+for actual completed-step/failure traces, one execution, environment prevalidation,
+private text/error-accessor exclusion, scoring/restore/checkpoint/snapshot and
+request/retention bounds. `scripts/packed-consumer.ts` checks root/subpath/no-DOM/
+classic public artifacts. `scripts/packed-cli.ts` exercises installed Node discovery,
+file/stdin requests, fixed transport envelopes, safe environment/timing, actual
+successful/failed report publication, existing-output/force and input protection.
+Normal automation/checkpoint fixtures continue to verify authored result compatibility.
+
 ## Required Final Report
 
 Final responses must list executed validations, passed validations, skipped validations, skip reasons, and remaining risk.

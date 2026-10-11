@@ -14,6 +14,12 @@ import type { RecordCheckpoint } from './checkpoint.js';
 import { isAutomationRequest } from './automation-schema.js';
 import { searchRecord } from './record-search.js';
 import type { RecordSearchOptions } from './record-search.js';
+import { DiagnosticJournal, describeDiagnosticFailure } from './diagnostics.js';
+import type {
+  DiagnosticEnvironment,
+  DiagnosticOperation,
+  DiagnosticFailure,
+} from './diagnostics.js';
 export { AUTOMATION_SCHEMA } from './automation-schema.js';
 
 export type AutomationOperation =
@@ -95,22 +101,83 @@ function snapshot(state: ControllerState, key: string) {
 }
 /** Execute a checked batch on an isolated record. Failure returns no partially edited document. */
 export function executeAutomation(input: unknown) {
-  if (!isAutomationRequest(input))
-    return failure({
-      code: 'invalid-request',
-      message: 'Request does not match AUTOMATION_SCHEMA.',
-    });
-  const request = input as AutomationRequest;
+  return runAutomation(input);
+}
+
+const diagnosticOperations = {
+  play: 'edit',
+  previous: 'navigate',
+  next: 'navigate',
+  goto: 'navigate',
+  undo: 'edit',
+  redo: 'edit',
+  comment: 'edit',
+  marker: 'edit',
+  setup: 'edit',
+  connection: 'edit',
+  stroke: 'edit',
+  'remove-stroke': 'edit',
+  'clear-strokes': 'edit',
+  'remove-branch': 'edit',
+  'reorder-branch': 'edit',
+  search: 'search',
+  'comment-batch': 'batch',
+  score: 'scoring',
+  'legal-points': 'search',
+} as const satisfies Record<AutomationOperation['op'], DiagnosticOperation>;
+
+/** Run once on an isolated record; return only bounded, content-free operation evidence. */
+export function diagnoseAutomation(input: unknown, environment: DiagnosticEnvironment = {}) {
+  const journal = new DiagnosticJournal({ capacity: 256 });
+  // Validate/copy the explicit environment before executing any request work.
+  const projectedEnvironment = journal.createReport(environment).environment;
+  const result = runAutomation(input, journal);
+  return Object.freeze({
+    schemaVersion: 'banora.automation-diagnostics/v1' as const,
+    ok: result.ok,
+    ...(!result.ok && result.error.operationIndex !== undefined
+      ? { operationIndex: result.error.operationIndex }
+      : {}),
+    diagnostics: journal.createReport(projectedEnvironment),
+  });
+}
+export type AutomationDiagnosticResponse = ReturnType<typeof diagnoseAutomation>;
+
+function runAutomation(input: unknown, journal?: DiagnosticJournal) {
   let controller: RecordController | undefined;
   let operationIndex: number | undefined;
+  let phase: DiagnosticOperation = 'import';
+  const succeeded = () => journal?.record({ operation: phase, status: 'success' });
+  const reject = (error: AutomationError, descriptor?: DiagnosticFailure) => {
+    journal?.record({
+      operation: phase,
+      status: 'failure',
+      failure:
+        descriptor ??
+        describeDiagnosticFailure(
+          error.reason === undefined ? 'automation' : 'controller',
+          error.reason ?? error.code,
+        ),
+    });
+    return failure(error);
+  };
   try {
-    if (request.kind === 'snapshot')
-      return {
+    if (!isAutomationRequest(input))
+      return reject({
+        code: 'invalid-request',
+        message: 'Request does not match AUTOMATION_SCHEMA.',
+      });
+    const request = input as AutomationRequest;
+    if (request.kind === 'snapshot') {
+      const response = {
         schemaVersion: 'banora.automation/v1' as const,
         ok: true as const,
         kind: 'snapshot' as const,
         snapshot: createBoardSnapshot(request.state),
       };
+      succeeded();
+      return response;
+    }
     if (
       request.checkpoint &&
       (request.sgf !== undefined ||
@@ -118,7 +185,7 @@ export function executeAutomation(input: unknown) {
         request.profile !== undefined ||
         request.selection !== undefined)
     )
-      return failure({
+      return reject({
         code: 'invalid-request',
         message: 'Checkpoint input cannot be combined with SGF, size, profile or selection.',
       });
@@ -127,33 +194,41 @@ export function executeAutomation(input: unknown) {
       size: request.size,
       rules: request.profile ? getRuleProfile(request.profile).play : undefined,
     });
+    succeeded();
     if (request.checkpoint) {
+      phase = 'restore';
       const restored = controller.loadCheckpoint(request.checkpoint);
       if (!restored.ok)
-        return failure({
+        return reject({
           code: 'invalid-input',
           message: 'Checkpoint could not be restored.',
           reason: restored.reason,
         });
+      succeeded();
     }
     const targetId = (target: RecordLocator) =>
       recordNodeAt(controller!.getState().record, target)?.id ?? '';
     if (request.selection) {
+      phase = 'navigate';
       const result = controller.goTo(targetId(request.selection));
       if (!result.ok)
-        return failure({
+        return reject({
           code: 'command-failed',
           message: 'Selection was not found.',
           reason: result.reason,
         });
+      succeeded();
     }
     const results: unknown[] = [];
     let legalPointBudget = 8192;
     let recordToolBudget = 8;
     for (const [index, operation] of (request.operations ?? []).entries()) {
       operationIndex = index;
+      phase = Object.hasOwn(diagnosticOperations, operation.op)
+        ? diagnosticOperations[operation.op]
+        : 'edit';
       if ((operation.op === 'search' || operation.op === 'comment-batch') && --recordToolBudget < 0)
-        return failure({
+        return reject({
           code: 'command-failed',
           message: 'Record tools exceed the per-request 8-call budget.',
           operationIndex: index,
@@ -187,7 +262,7 @@ export function executeAutomation(input: unknown) {
             result = { ok: true };
           } catch (error) {
             if (!(error instanceof TypeError) && !(error instanceof RangeError)) throw error;
-            return failure({
+            return reject({
               code: 'command-failed',
               message: 'Record search rejected its options or work/output bounds.',
               operationIndex: index,
@@ -275,12 +350,15 @@ export function executeAutomation(input: unknown) {
         case 'score': {
           const score = scorePosition(controller.getState().position, operation);
           if (!score.ok)
-            return failure({
-              code: 'command-failed',
-              message: score.message,
-              operationIndex: index,
-              reason: score.reason,
-            });
+            return reject(
+              {
+                code: 'command-failed',
+                message: score.message,
+                operationIndex: index,
+                reason: score.reason,
+              },
+              describeDiagnosticFailure('scoring', score.reason),
+            );
           results.push({ operationIndex: index, op: operation.op, value: score.value });
           result = { ok: true };
           break;
@@ -290,7 +368,7 @@ export function executeAutomation(input: unknown) {
             points: Point[] = [];
           legalPointBudget -= position.width * position.height;
           if (legalPointBudget < 0)
-            return failure({
+            return reject({
               code: 'command-failed',
               message: 'Legal-point queries exceed the per-request 8192-cell budget.',
               operationIndex: index,
@@ -305,16 +383,18 @@ export function executeAutomation(input: unknown) {
         }
       }
       if (!result.ok)
-        return failure({
+        return reject({
           code: 'command-failed',
           message: `Operation ${index} (${operation.op}) failed.`,
           operationIndex: index,
           reason: result.reason,
         });
+      succeeded();
     }
     operationIndex = undefined;
+    phase = 'export';
     const state = controller.getState();
-    return {
+    const response = {
       schemaVersion: 'banora.automation/v1' as const,
       ok: true as const,
       kind: 'record' as const,
@@ -332,13 +412,29 @@ export function executeAutomation(input: unknown) {
       history: { dirty: state.dirty, canUndo: state.canUndo, canRedo: state.canRedo },
       results,
       sgf: serializeSgf(state.record),
-      ...(request.includeCheckpoint ? { checkpoint: controller.createCheckpoint() } : {}),
       ...(request.includeTree ? { games: state.record.games } : {}),
     };
+    succeeded();
+    let checkpoint: RecordCheckpoint | undefined;
+    if (request.includeCheckpoint) {
+      phase = 'checkpoint';
+      checkpoint = controller.createCheckpoint();
+      succeeded();
+    }
+    return { ...response, ...(checkpoint ? { checkpoint } : {}) };
   } catch (error) {
-    return failure({
+    let message = 'Invalid input.';
+    // Diagnostic execution never accesses an arbitrary exception's message, even an accessor.
+    if (!journal) {
+      try {
+        if (error instanceof Error) message = error.message;
+      } catch {
+        /* Fixed fallback. */
+      }
+    }
+    return reject({
       code: 'invalid-input',
-      message: error instanceof Error ? error.message : 'Invalid input.',
+      message,
       ...(operationIndex === undefined ? {} : { operationIndex }),
     });
   } finally {

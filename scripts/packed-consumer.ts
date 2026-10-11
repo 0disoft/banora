@@ -30,7 +30,9 @@ const consumer = `import { RecordController, createPosition, play, stoneAt } fro
 import { parseSgf } from '@banora/sdk/sgf';
 import { searchRecord } from '@banora/sdk/record-search';
 import {DiagnosticJournal,describeDiagnosticFailure} from '@banora/sdk/diagnostics';
-import {DiagnosticJournal as RootDiagnosticJournal} from '@banora/sdk';
+import {DiagnosticJournal as RootDiagnosticJournal, diagnoseAutomation as rootDiagnose} from '@banora/sdk';
+import {diagnoseAutomation} from '@banora/sdk/automation';
+if (rootDiagnose!==diagnoseAutomation || diagnoseAutomation({}).diagnostics.events[0]?.failure?.code!=='invalid-request') throw Error('Packed diagnostic execution exports failed');
 const diagnosticJournal=new DiagnosticJournal({capacity:2});
 diagnosticJournal.record({operation:'import',status:'failure',failure:describeDiagnosticFailure('sgf','syntax')});
 if (RootDiagnosticJournal!==DiagnosticJournal || diagnosticJournal.createReport({runtime:'node',runtimeMajor:24}).events[0]?.failure?.code!=='syntax') throw Error('Packed diagnostic exports failed');
@@ -127,7 +129,8 @@ await writeFile(
   `import {createPosition, play} from '@banora/sdk/core';
 import {createBoardSnapshot} from '@banora/sdk/board-state';
 const external=createBoardSnapshot({key:'headless/host',width:2,height:3,stones:Array(6).fill(null)});
-import {executeAutomation, AUTOMATION_SCHEMA} from '@banora/sdk/automation';
+import {executeAutomation, diagnoseAutomation as headlessDiagnose, AUTOMATION_SCHEMA} from '@banora/sdk/automation';
+if (headlessDiagnose({}).ok) throw Error('Headless diagnostic execution failed');
 import {createUiMessages, createBoardLabels, formatUiMessage} from '@banora/sdk/locale';
 if (formatUiMessage(createUiMessages({locale:'ko'}).move,{number:23})!=='23\uC218' || createBoardLabels({locale:'ko'}).black!=='\uD751') throw Error('Packed headless localization failed');
 import {createRecordPlayback} from '@banora/sdk/playback';
@@ -283,6 +286,8 @@ if (typeof context.Banora?.mountViewer !== 'function') throw Error('Missing glob
 const evidence=new context.Banora.DiagnosticJournal();
 evidence.record({operation:'search',status:'success'});
 if (evidence.createReport().schemaVersion!=='banora.diagnostics/v1') throw Error('Missing global diagnostics');
+const executed=context.Banora.diagnoseAutomation({schemaVersion:'banora.automation/v1',kind:'record',size:5,operations:[{op:'play',point:{x:0,y:0}},{op:'play',point:{x:0,y:0}}]});
+if (executed.ok || executed.operationIndex!==1 || executed.diagnostics.events.at(-1).failure.code!=='occupied' || 'sgf' in executed) throw Error('Classic diagnostic execution failed');
 const model = new context.Banora.RecordController({size:9});
 if (!model.play({x:0,y:0}).ok || model.getState().position.moveNumber !== 1) throw Error('Classic artifact failed');
 model.dispose(); console.log('Packed classic global and ambient declarations passed');

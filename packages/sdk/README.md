@@ -30,6 +30,11 @@ clear/retention; the SDK adds no automatic collection, persistence or remote cal
 Studio Help separately demonstrates session-only opt-in, inspected JSON/download,
 clear/reload and diagnostic freshness without changing authored/export state.
 
+`diagnoseAutomation` from root/`@banora/sdk/automation` runs a canonical request
+once and returns bounded diagnostic evidence with no authored output. Optional
+`banora diagnose` adds reviewed JSON file publication and safe Node environment/
+execution timing. See the [terminal diagnostic contract](../../docs/sdk/diagnostics.md#terminal-and-automation-consumer).
+
 `@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.
 The separate DOM `playback-controls` mount is shared by Studio and every complete

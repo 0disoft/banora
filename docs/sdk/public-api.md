@@ -20,7 +20,11 @@ retry guidance and host opt-in/storage/sharing ownership. No automatic logging,
 network, timer or controller observation is installed. Studio separately consumes
 this module through opt-in session collection and Help inspection/clear/download;
 the [consumer contract](diagnostics.md#studio-consumer) names its exact coverage.
-Terminal diagnostic commands are not implied by this module or the Studio UI.
+`diagnoseAutomation` and `AutomationDiagnosticResponse` are additive automation/
+root/classic exports. They execute the canonical request once and return safe
+bounded evidence without authored output. The optional `banora diagnose` terminal
+command owns file/environment/timing projection; see the
+[terminal contract](diagnostics.md#terminal-and-automation-consumer).
 
 ## Implemented Core Exports
 

@@ -24,6 +24,15 @@ downloaded reports separately. Reports still reveal feature usage/timing.
 
 ## Reproduce and Escalate
 
+For terminal reproduction, inspect the canonical request privately, then run
+`banora diagnose --request request.json --output diagnostics.json` (or the built
+local Node executable). This executes once on isolated state and publishes only
+safe evidence, including SDK failure reports. No authored output is saved or sent.
+Review the report before sharing; its duration covers SDK execution only. Exit 3
+identifies SDK failure, 4 publication failure, 2 transport/usage failure. Input aliases
+are protected even with `--force`; existing report replacement requires that flag.
+See the [terminal contract](../sdk/diagnostics.md#terminal-and-automation-consumer).
+
 1. Record SDK/consumer version, runtime major, operation ID and code. Keep user,
    system and file identifiers out of public tickets.
 2. Reproduce using an authored/minimized SGF or request reviewed separately from
