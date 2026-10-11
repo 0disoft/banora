@@ -1,6 +1,7 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const chineseUi = {
+  'not specified': '未指定',
   'Reset saved display settings.': '重置已保存的显示设置。',
   'Board theme': '棋盘主题',
   'Choose a board theme.': '选择棋盘主题。',

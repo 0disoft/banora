@@ -66,3 +66,20 @@ The product specification and this evidence document changed. SDK API, storage,
 DB, dependency, hygiene and CI routing contracts are unchanged; the locale browser
 scenario additionally verifies a real exported pass record. Bugfix,
 test-hardening and Playwright procedures applied.
+
+## October 12: Missing Komi Presentation
+
+Review of the adjacent record-details rendering found another Korean/English-only
+fallback. The pass fixture deliberately contains no `KM`; an added real-page
+assertion failed with Chinese `5 × 5 / not specified` before the fix. Studio now
+uses the existing example translation catalog for this fallback in all four
+languages. The focused production locale route passed after rebuilding examples;
+its actual download additionally verifies that presentation does not create `KM`.
+The original explicit-komi/authored-data export checks remain enabled.
+
+This is an example-only text/catalog change with no SDK API, storage/DB,
+dependency, hygiene or CI routing changes. The product specification records the
+presentation boundary. The preceding full root check is complemented by current
+typecheck, lint, format and docs checks; full browser, engine and packed adapter
+runs were not repeated for the catalog fallback. Bugfix, test-hardening and
+Playwright procedures applied. Other engines and physical devices remain unverified.

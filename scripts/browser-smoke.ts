@@ -160,6 +160,7 @@ async function localeSmoke(): Promise<void> {
   const passes = await readFile(resolve(output, 'localized-pass-preserved.sgf'), 'utf8');
   for (const value of ['XX[pass-locale]', 'B[]', 'W[tt]', 'MN[9]'])
     if (!passes.includes(value)) throw Error('Localized pass export lost authored move data');
+  if (passes.includes('KM[')) throw Error('Missing komi presentation inserted an authored value');
   const sgf = await readFile(resolve(output, 'localized-preserved.sgf'), 'utf8');
   if (
     !sgf.includes('Authored English <tag> note') ||

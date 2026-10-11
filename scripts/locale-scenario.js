@@ -176,11 +176,11 @@ async (page) => {
     buffer: Buffer.from('(;SZ[5]XX[pass-locale];B[];W[tt]MN[9])'),
   });
   await page.locator('#last').click();
-  for (const [locale, labels] of [
-    ['en', ['1 · Black pass', '9 · White pass']],
-    ['ko', ['1 · 흑 패스', '9 · 백 패스']],
-    ['zh', ['1 · 黑停一手', '9 · 白停一手']],
-    ['ja', ['1 · 黒 パス', '9 · 白 パス']],
+  for (const [locale, labels, boardInfo] of [
+    ['en', ['1 · Black pass', '9 · White pass'], '5 × 5 / not specified'],
+    ['ko', ['1 · 흑 패스', '9 · 백 패스'], '5 × 5 / 미지정'],
+    ['zh', ['1 · 黑停一手', '9 · 白停一手'], '5 × 5 / 未指定'],
+    ['ja', ['1 · 黒 パス', '9 · 白 パス'], '5 × 5 / 未指定'],
   ]) {
     await page.locator('#language').selectOption(locale);
     for (const label of labels)
@@ -191,6 +191,10 @@ async (page) => {
         throw Error(
           `Localized pass caption missing: ${locale}: ${await page.locator('#tree button').allTextContents()}`,
         );
+    if ((await page.locator('#board-info').textContent()) !== boardInfo)
+      throw Error(
+        `Unlocalized missing komi: ${locale}: ${await page.locator('#board-info').textContent()}`,
+      );
     if (await page.locator('#dirty').evaluate((element) => element.classList.contains('changed')))
       throw Error('Pass caption localization changed authored data');
   }

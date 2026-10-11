@@ -1,6 +1,7 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const japaneseUi = {
+  'not specified': '未指定',
   'Reset saved display settings.': '保存した表示設定をリセットします。',
   'Board theme': '盤面テーマ',
   'Choose a board theme.': '盤面テーマを選びます。',

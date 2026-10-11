@@ -256,7 +256,7 @@ const renderState = (state: ControllerState) => {
   find('white-name').textContent = root.properties.PW?.[0] ?? ui.white;
   setUiText(
     find('board-info'),
-    `${state.position.width} × ${state.position.height} / ${root.properties.KM?.[0] ?? (getUiLocale() === 'ko' ? '미지정' : 'not specified')}`,
+    `${state.position.width} × ${state.position.height} / ${root.properties.KM?.[0] ?? translateUi('not specified')}`,
   );
   setUiText(find('turn'), `${state.position.toPlay === 'black' ? '● Black' : '○ White'} to play`);
   setUiText(

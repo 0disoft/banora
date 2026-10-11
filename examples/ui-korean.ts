@@ -1,4 +1,5 @@
 export const koreanUi = {
+  'not specified': '미지정',
   'Reset saved display settings.': '저장된 표시 설정을 초기화합니다.',
   'Board theme': '바둑판 테마',
   'Choose a board theme.': '바둑판 테마를 선택합니다.',
