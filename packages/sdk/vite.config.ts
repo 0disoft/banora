@@ -13,6 +13,7 @@ export default defineConfig({
         geometry: resolve(import.meta.dirname, 'src/geometry.ts'),
         sgf: resolve(import.meta.dirname, 'src/sgf.ts'),
         controller: resolve(import.meta.dirname, 'src/controller.ts'),
+        checkpoint: resolve(import.meta.dirname, 'src/checkpoint.ts'),
         automation: resolve(import.meta.dirname, 'src/automation.ts'),
         playback: resolve(import.meta.dirname, 'src/playback.ts'),
         'playback-controls': resolve(import.meta.dirname, 'src/playback-controls.ts'),

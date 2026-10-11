@@ -7,6 +7,7 @@
 
 - [Product specification](../product/02-spec.md): feature requirements and milestone scope.
 - [Public API](public-api.md): consumer contract direction and failure/lifecycle behavior.
+- [Record recovery](recovery.md): checkpoints, export baselines and host-owned persistence.
 - [Compatibility](compatibility.md): packaging, runtime support and migration policy.
 - [ADR 0001](../adr/0001-initial-architecture-boundaries.md): technology and module boundaries.
 - [ADR 0003](../adr/0003-studio-first-consumer.md): Studio and the first consumer workflows.

@@ -6,6 +6,12 @@ workspace. See the repository documentation
 for implementation status and the remaining milestones. No third-party runtime
 dependencies or external assets are included.
 
+`RecordController.createCheckpoint()` / `loadCheckpoint()` preserve a working
+record, export baseline, selected location and rules without selecting a storage
+service. `@banora/sdk/checkpoint` supplies checked parsing and schema discovery;
+terminal automation can emit/resume the same recovery data. Undo is session-local,
+and hosts own storage, privacy, retention and concurrent writes.
+
 `@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.
 The separate DOM `playback-controls` mount is shared by Studio and every complete

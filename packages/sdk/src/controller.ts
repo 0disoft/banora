@@ -22,6 +22,9 @@ import type { RecordIndex } from './record-runtime.js';
 import { createStroke, decodeStrokes, encodeStroke, strokeLimits } from './annotations.js';
 import type { Stroke, StrokeStyle } from './annotations.js';
 export type { Stroke, StrokeStyle } from './annotations.js';
+import { CHECKPOINT_SCHEMA, parseRecordCheckpoint } from './checkpoint.js';
+import type { RecordCheckpoint } from './checkpoint.js';
+import { matches } from './json-schema.js';
 
 export type MarkerKind = 'triangle' | 'square' | 'circle' | 'cross' | 'label';
 export interface Marker {
@@ -59,6 +62,7 @@ export type ControllerFailure =
   | 'invalid-edit'
   | 'import'
   | 'invalid-export'
+  | 'invalid-checkpoint'
   | 'limit';
 export type CommandResult =
   | { readonly ok: true }
@@ -98,6 +102,8 @@ export class RecordController {
   #rules: Partial<RulePolicy> | undefined;
   #limits: Partial<SgfLimits>;
   #baseline: string;
+  #baselineRecord: SgfRecord;
+  #serialized = new Map<SgfRecord, string>();
   #dirty = false;
   #undo: EditEntry[] = [];
   #redo: EditEntry[] = [];
@@ -113,7 +119,7 @@ export class RecordController {
   #strokeSequence = 0;
   #ticketSequence = 0;
   #lastAcknowledged = 0;
-  #tickets = new Map<number, string>();
+  #tickets = new Map<number, { signature: string; record: SgfRecord }>();
 
   constructor(options: ControllerOptions = {}) {
     this.#rules = options.rules ? Object.freeze({ ...options.rules }) : undefined;
@@ -125,6 +131,7 @@ export class RecordController {
     this.#record = parsed.record;
     this.#selected = parsed.record.games[0]!.id;
     this.#index = indexRecord(this.#record);
+    this.#baselineRecord = this.#record;
     this.#baseline = semanticRecord(this.#record);
     this.getState();
   }
@@ -645,24 +652,80 @@ export class RecordController {
     this.#redo = [];
     this.#tickets.clear();
     this.#baseline = semanticRecord(this.#record);
+    this.#baselineRecord = this.#record;
+    this.#serialized.clear();
     this.#dirty = false;
     this.#reindex();
+    this.#notify();
+    return { ok: true };
+  }
+  #serialize(record: SgfRecord): string {
+    const cached = this.#serialized.get(record);
+    if (cached !== undefined) return cached;
+    const text = serializeSgf(record);
+    this.#serialized.set(record, text);
+    if (this.#serialized.size > 2) this.#serialized.delete(this.#serialized.keys().next().value!);
+    return text;
+  }
+  /** Portable recovery data; creating a checkpoint never acknowledges an SGF export. */
+  createCheckpoint(): RecordCheckpoint {
+    this.#assertLive();
+    const state = this.getState();
+    let node = this.#record.games[state.gameIndex]!;
+    const path: number[] = [];
+    for (const id of state.path.slice(1)) {
+      const index = node.children.findIndex((child) => child.id === id);
+      path.push(index);
+      node = node.children[index]!;
+    }
+    const checkpoint: RecordCheckpoint = Object.freeze({
+      schemaVersion: 'banora.checkpoint/v1',
+      sgf: this.#serialize(this.#record),
+      baselineSgf: this.#serialize(this.#baselineRecord),
+      selection: Object.freeze({ gameIndex: state.gameIndex, path: Object.freeze(path) }),
+      rules: state.position.rules,
+    });
+    if (!matches(checkpoint, CHECKPOINT_SCHEMA))
+      throw new RangeError('Record exceeds the portable checkpoint envelope.');
+    return checkpoint;
+  }
+  /** Validate before replacement; restored history begins a new session. */
+  loadCheckpoint(input: unknown, options: { discardChanges?: boolean } = {}): CommandResult {
+    this.#assertLive();
+    const parsed = parseRecordCheckpoint(input, this.#limits);
+    if (!parsed.ok)
+      return { ok: false, reason: 'invalid-checkpoint', diagnostics: parsed.diagnostics };
+    if (this.#dirty && !options.discardChanges) return { ok: false, reason: 'unsaved-changes' };
+    this.endEditGroup();
+    this.#record = parsed.record;
+    this.#selected = parsed.node.id;
+    this.#rules = parsed.value.rules;
+    this.#baselineRecord = parsed.baseline;
+    this.#baseline = semanticRecord(parsed.baseline);
+    this.#recordGeneration++;
+    this.#undo = [];
+    this.#redo = [];
+    this.#tickets.clear();
+    this.#serialized.clear();
+    this.#reindex();
+    this.#refreshDirty();
     this.#notify();
     return { ok: true };
   }
   prepareExport(): ExportTicket {
     this.#assertLive();
     const id = ++this.#ticketSequence;
-    this.#tickets.set(id, semanticRecord(this.#record));
+    this.#tickets.set(id, { signature: semanticRecord(this.#record), record: this.#record });
     if (this.#tickets.size > 8) this.#tickets.delete(this.#tickets.keys().next().value!);
-    return Object.freeze({ id, text: serializeSgf(this.#record) });
+    return Object.freeze({ id, text: this.#serialize(this.#record) });
   }
   acknowledgeExport(id: number): CommandResult {
     this.#assertLive();
     const baseline = this.#tickets.get(id);
     if (baseline === undefined || id <= this.#lastAcknowledged)
       return { ok: false, reason: 'invalid-export' };
-    this.#baseline = baseline;
+    this.#baseline = baseline.signature;
+    this.#baselineRecord = baseline.record;
     this.#lastAcknowledged = id;
     for (const key of this.#tickets.keys()) if (key <= id) this.#tickets.delete(key);
     this.#refreshDirty();
@@ -681,5 +744,6 @@ export class RecordController {
     this.#notifications = [];
     this.#tickets.clear();
     this.#positionCache.clear();
+    this.#serialized.clear();
   }
 }

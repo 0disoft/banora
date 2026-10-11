@@ -81,6 +81,11 @@ headless types/runtime and independent adapter artifacts check playback props
 during SSR without starting timers. Background timer precision, physical devices
 and other browser engines remain unclaimed. See the [contract](playback.md).
 
+[Checkpoint recovery](recovery.md) additionally exposes a DOM-free
+`@banora/sdk/checkpoint` parser/schema and controller creation/restore methods.
+Packed SDK declarations/runtime and installed Node CLI resume checks cover this
+additive format; Undo remains session-local and Studio persistent storage is pending.
+
 Agent automation is available through DOM-free `@banora/sdk/automation` and the
 optional Node 24.x `@banora/cli` package. Installed SDK declarations/runtime and
 the actual CLI tarballs/bin have Windows Node 24 evidence for machine-readable

@@ -235,6 +235,13 @@ units. Snapshot identity and dirty-state recovery are checked through public API
 
 ## Hygiene Validation
 
+Checkpoint tests cover collection/branch selection, long paths, annotations and
+unknown values, semantic export baselines, rules/superko replay, clean/dirty recovery,
+future/malformed/oversized input, lower host limits, retained groups/history/tickets
+after refusal and terminal conflicts. Packed SDK consumers check the headless
+subpath/declarations; installed Node CLI checks resume a persisted JSON request and
+save/reopen its SGF. Studio browser persistence is not implemented by this evidence.
+
 Repository hygiene file changes must check line-ending churn, binary diff pollution,
 tracked secret files, ignored build/cache artifacts, and generated-output drift.
 

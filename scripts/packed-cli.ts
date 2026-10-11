@@ -69,6 +69,58 @@ check(
   'Installed executable shim failed',
 );
 check(cli(['schema']).oneOf.length === 2, 'Missing request discovery');
+const checkpointResult = cli(
+  ['run'],
+  0,
+  JSON.stringify({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    size: 5,
+    includeCheckpoint: true,
+    operations: [
+      { op: 'play', point: { x: 2, y: 2 } },
+      { op: 'comment', text: 'interrupted' },
+    ],
+  }),
+);
+check(
+  checkpointResult.checkpoint?.schemaVersion === 'banora.checkpoint/v1',
+  'Checkpoint discovery/output failed',
+);
+await writeFile(
+  resolve(directory, 'resume.json'),
+  JSON.stringify({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    checkpoint: checkpointResult.checkpoint,
+    includeCheckpoint: true,
+    operations: [{ op: 'comment', text: 'continued' }],
+  }),
+);
+const checkpointResumed = cli(['run', '--request', 'resume.json', '--output', 'resumed.sgf']);
+check(
+  checkpointResumed.snapshot.stones[12] === 'black' &&
+    checkpointResumed.history.dirty &&
+    checkpointResumed.selected.properties.C[0] === 'continued' &&
+    checkpointResumed.checkpoint.baselineSgf === checkpointResult.checkpoint.baselineSgf,
+  'Installed CLI checkpoint resume lost content or export baseline',
+);
+check(
+  (await readFile(resolve(directory, 'resumed.sgf'), 'utf8')).includes('C[continued]'),
+  'Checkpoint CLI output was not saved',
+);
+check(
+  cli(
+    ['run'],
+    3,
+    JSON.stringify({
+      schemaVersion: 'banora.automation/v1',
+      kind: 'record',
+      checkpoint: { ...checkpointResult.checkpoint, schemaVersion: 'banora.checkpoint/v99' },
+    }),
+  ).error.code === 'invalid-request',
+  'Future checkpoints must not be silently migrated',
+);
 check(cli(['--version']).version === '0.1.0-dev.0', 'Wrong packaged version');
 check(cli(['create', '--size', '5', '--output', 'new.sgf']).snapshot.width === 5, 'Create failed');
 await writeFile(resolve(directory, 'source.sgf'), '(;SZ[5]XX[retain])');

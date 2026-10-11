@@ -3,6 +3,7 @@ export * from './core.js';
 export * from './geometry.js';
 export * from './sgf.js';
 export * from './controller.js';
+export * from './checkpoint.js';
 export * from './automation.js';
 export * from './playback.js';
 export * from './playback-controls.js';

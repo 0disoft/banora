@@ -32,3 +32,6 @@ defines affected checks, local parity, read-only authority and supported-major u
 Update the owning ADR when a design changes and describe the consequences for
 consumers and validation. Keep unresolved choices explicit. Use the
 [ADR template](0000-template.md) for future decisions and link them here.
+
+The [recovery decision](0016-portable-record-recovery.md) defines portable working
+records, export baselines, selected locations and host-owned persistence.

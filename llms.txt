@@ -4,6 +4,8 @@
 
 ## Agent entrypoints
 
+- [Record recovery](https://github.com/0disoft/banora/blob/main/docs/sdk/recovery.md): Versioned checkpoints, exact export baselines, selected locations and terminal resume.
+
 - [CLI guide](https://github.com/0disoft/banora/blob/main/packages/cli/README.md): Build/install locally, command discovery, stdin/files, exit codes and output ownership.
 - [Automation contract](https://github.com/0disoft/banora/blob/main/docs/sdk/automation.md): Versioned request/response, logical coordinates, operations, isolated batches and limits.
 - [Public API](https://github.com/0disoft/banora/blob/main/docs/sdk/public-api.md): Common SDK modules and optional framework adapters.

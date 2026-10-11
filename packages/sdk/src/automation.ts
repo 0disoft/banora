@@ -10,6 +10,7 @@ import { scorePosition } from './scoring.js';
 import type { ScoreOptions } from './scoring.js';
 import { getRuleProfile } from './rules.js';
 import type { RuleProfileId } from './rules.js';
+import type { RecordCheckpoint } from './checkpoint.js';
 import { isAutomationRequest } from './automation-schema.js';
 export { AUTOMATION_SCHEMA } from './automation-schema.js';
 
@@ -32,6 +33,8 @@ export type AutomationRequest =
       schemaVersion: 'banora.automation/v1';
       kind: 'record';
       sgf?: string;
+      checkpoint?: RecordCheckpoint;
+      includeCheckpoint?: boolean;
       size?: number;
       profile?: RuleProfileId;
       stateKey?: string;
@@ -99,11 +102,31 @@ export function executeAutomation(input: unknown) {
         kind: 'snapshot' as const,
         snapshot: createBoardSnapshot(request.state),
       };
+    if (
+      request.checkpoint &&
+      (request.sgf !== undefined ||
+        request.size !== undefined ||
+        request.profile !== undefined ||
+        request.selection !== undefined)
+    )
+      return failure({
+        code: 'invalid-request',
+        message: 'Checkpoint input cannot be combined with SGF, size, profile or selection.',
+      });
     controller = new RecordController({
       sgf: request.sgf,
       size: request.size,
       rules: request.profile ? getRuleProfile(request.profile).play : undefined,
     });
+    if (request.checkpoint) {
+      const restored = controller.loadCheckpoint(request.checkpoint);
+      if (!restored.ok)
+        return failure({
+          code: 'invalid-input',
+          message: 'Checkpoint could not be restored.',
+          reason: restored.reason,
+        });
+    }
     const targetId = (target: RecordLocator) =>
       recordNodeAt(controller!.getState().record, target)?.id ?? '';
     if (request.selection) {
@@ -233,6 +256,7 @@ export function executeAutomation(input: unknown) {
       history: { dirty: state.dirty, canUndo: state.canUndo, canRedo: state.canRedo },
       results,
       sgf: serializeSgf(state.record),
+      ...(request.includeCheckpoint ? { checkpoint: controller.createCheckpoint() } : {}),
       ...(request.includeTree ? { games: state.record.games } : {}),
     };
   } catch (error) {

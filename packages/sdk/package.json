@@ -102,6 +102,10 @@
     "./analysis-view": {
       "types": "./dist/analysis-view.d.ts",
       "import": "./dist/analysis-view.js"
+    },
+    "./checkpoint": {
+      "types": "./dist/checkpoint.d.ts",
+      "import": "./dist/checkpoint.js"
     }
   },
   "engines": {

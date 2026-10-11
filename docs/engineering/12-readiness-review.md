@@ -70,7 +70,7 @@ This is an ownership decision, not evidence that such a service exists.
 | 27  | Templates for recurring work             | New record/example record and standalone app exist; index templates and portable automation recipes.                       |
 | 28  | One-place search and navigation          | Variation tree is bounded to 500 rows; add whole-record search with node/metadata/comment navigation.                      |
 | 29  | Bounded batch edit/export                | Automation supports operation arrays; add useful transaction/preview integration and user-facing batch workflow.           |
-| 30  | Autosave and resume                      | Studio remembers locale/size only; add recoverable local draft and selected-location persistence.                          |
+| 30  | Autosave and resume                      | SDK/terminal checkpoints preserve records, baselines and locations; Studio local drafts/restore UI remain pending.         |
 | 31  | Compare changes and Undo                 | Controller Undo/Redo and position comparison exist; verify new batch/recovery interactions.                                |
 | 32  | Preview before destructive/bulk changes  | Dirty replacement guards exist; add inspectable batch preview with atomic commit.                                          |
 | 33  | Import/export across tools               | SGF/UTF-8 and diagrams/CLI exist; verify new persistence and batch paths preserve unknown properties.                      |
@@ -193,3 +193,38 @@ fix; unchanged passed components were retained and the failed component was reru
 No successful hosted GitHub run, enabled Dependabot/branch protection or Linux
 compatibility is claimed. Those require external-state evidence after a reviewed
 push; the overall readiness goal remains active.
+
+### Portable SDK and terminal recovery
+
+Implemented the headless checkpoint parser/schema, `createCheckpoint()` and
+guarded `loadCheckpoint()` with both working SGF and acknowledged export baseline,
+collection/branch selection and explicit legal-play rules. Recovery preserves
+semantic dirty state, creates a new generation, clears session-local Undo/Redo and
+invalidates pending export tickets. Invalid/future/oversized data and guarded
+replacement retain the active record, edit group and tickets. Creating a checkpoint
+does not acknowledge an SGF download. A two-record serialization cache avoids
+repeated SGF serialization during navigation without retaining all edit versions.
+
+Automation/installed Node CLI can emit checkpoints explicitly and resume them
+through the same checked request schema. Conflicting input fields fail; response
+payloads do not include a second document unless requested. The SDK owns no storage
+or implicit network access. [ADR 0016](../adr/0016-portable-record-recovery.md),
+[recovery](../sdk/recovery.md), public API, automation and product specification
+own the additive format and its privacy/limits/history boundaries.
+
+Executed on Windows/Bun/Node:
+
+- `check` passed 151 tests / 2,118 assertions, Oxlint/Oxfmt, module boundaries,
+  SDK/adapter/CLI builds, root/Svelte types, docs and isolated packed SDK consumers.
+- Installed Node CLI passed 103 checks, including persisted checkpoint request,
+  restored content/baseline, real SGF output and rejection of future versions.
+- Production example build and the entire Chrome 154 browser suite passed existing
+  editing/export/Undo/import/sharing, framework/classic, keyboard/touch and optional
+  feature flows after the shared controller/export changes.
+
+Studio autosave, quota/failure feedback, persistent preferences, multi-tab storage,
+backup/restore/deletion UI and browser interruption recovery remain pending; this
+primitive does not close those rows. No database, public runner command, deployment
+or hosted-CI change is implied. Physical-device/other-browser coverage and hosted
+CI execution remain unverified. The next increment is the Studio host integration;
+the complete 72-question objective remains active.

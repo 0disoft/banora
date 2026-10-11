@@ -296,6 +296,11 @@ See [compatibility](compatibility.md#record-compatibility) for the supported sub
 
 `@banora/sdk/controller` exports `RecordController` and related state/command types.
 Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
+`createCheckpoint()` returns portable working/baseline SGF, selection and rules
+without marking an export complete. `loadCheckpoint(unknown, {discardChanges?})`
+validates before replacing; success starts a new generation/session with the exact
+dirty baseline and restored policy. See the [recovery contract](recovery.md) for
+limits, diagnostics, storage ownership and session-local Undo.
 `rules` accepts the same explicit superko policies as the core. History follows
 only the selected game's ancestor path; inspecting another node, visiting a sibling,
 cache eviction or editing comments does not add positions to that path's membership.

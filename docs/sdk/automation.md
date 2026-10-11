@@ -39,6 +39,10 @@ Coordinates are zero-based from the top left; a null play point means pass.
 indices. These locators refer to the current tree: edits/reordering can change
 paths. Node IDs, Undo/Redo and dirty state last only within one request. Do not
 persist controller IDs or expect separate CLI invocations to share Undo history.
+`includeCheckpoint:true` emits a portable recovery document; `checkpoint` input
+resumes its working SGF, baseline, selection and rules. Do not combine it with
+`sgf`, `size`, `profile` or initial `selection`. Dirty state can therefore persist
+across requests, while Undo/Redo remains request-local. See [recovery](recovery.md).
 
 Supported operation names are `play`, `previous`, `next`, `goto`, `comment`,
 `marker`, `setup`, `connection`, `stroke`, `remove-stroke`, `clear-strokes`,
