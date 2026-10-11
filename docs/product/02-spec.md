@@ -68,6 +68,8 @@ to their lower-page sections. Controls are moved temporarily and restored on
 Back, outside click, Escape or close; values, handlers and record history are shared.
 Comparison/scoring open on selection without resetting an already-open session.
 The menu follows all four Studio languages and restores keyboard focus on close.
+Its bounds follow the visual viewport, including pinch zoom, panning and on-screen
+keyboard resizing, rather than assuming the layout viewport remains fully visible.
 
 Studio control separators leave clearance on both sides: 16px on desktop and
 14px on narrow screens. Board, playback and workspace boundaries add the missing

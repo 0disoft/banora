@@ -674,6 +674,8 @@ body.dragging::after {
 }
 .board-menu-heading h2 {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .board-menu-heading .button {
   display: inline-grid;
@@ -691,12 +693,13 @@ body.dragging::after {
 }
 .board-menu-choices {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
   gap: 8px;
 }
 .board-menu-choices .button {
   text-align: left;
   min-height: 44px;
+  overflow-wrap: anywhere;
 }
 .board-menu-content > .editing-tools:first-child {
   border-top: 0;
@@ -718,5 +721,10 @@ body.dragging::after {
 }
 .board-menu-content input,
 .board-menu-content select {
+  min-width: 0;
+  max-width: 100%;
+}
+.board-menu-content label {
+  min-width: 0;
   max-width: 100%;
 }

@@ -203,6 +203,15 @@ general validation routes must stay stack-neutral unless a runner file explicitl
 
 sdk validation must stay repository-shape focused and must not imply generated application source code.
 
+## Board Menu Evidence
+
+After building examples, `bun scripts/browser-smoke.ts --menu-only` verifies Studio
+menu bounds at 320px/1440px, control restoration, Escape/focus, shared editing/Undo
+and retained scoring sessions. An emulated mobile Chromium context also verifies
+that 2x pinch zoom keeps the menu inside the visual viewport and leaves it operable.
+This scenario runs in the full browser suite; physical keyboard/zoom behavior on
+devices and other browsers remains unverified.
+
 ## UI Localization Evidence
 
 After building examples, `bun scripts/browser-smoke.ts --locale-only` checks

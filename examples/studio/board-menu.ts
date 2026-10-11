@@ -63,15 +63,22 @@ export function mountBoardMenu(): () => void {
   }
   function position() {
     if (!panel.matches(':popover-open')) return;
-    const anchor = trigger.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const width = viewport?.width ?? innerWidth;
+    const height = viewport?.height ?? innerHeight;
+    const offsetLeft = viewport?.offsetLeft ?? 0;
+    const offsetTop = viewport?.offsetTop ?? 0;
     const gutter = 12;
+    panel.style.maxWidth = `${Math.max(0, width - 2 * gutter)}px`;
+    panel.style.maxHeight = `${Math.max(0, height - 2 * gutter)}px`;
+    const anchor = trigger.getBoundingClientRect();
     const left = Math.max(
-      gutter,
-      Math.min(anchor.right - panel.offsetWidth, innerWidth - panel.offsetWidth - gutter),
+      offsetLeft + gutter,
+      Math.min(anchor.right - panel.offsetWidth, offsetLeft + width - panel.offsetWidth - gutter),
     );
     const top = Math.max(
-      gutter,
-      Math.min(anchor.bottom + 8, innerHeight - panel.offsetHeight - gutter),
+      offsetTop + gutter,
+      Math.min(anchor.bottom + 8, offsetTop + height - panel.offsetHeight - gutter),
     );
     panel.style.left = `${left}px`;
     panel.style.top = `${top}px`;
@@ -159,6 +166,8 @@ export function mountBoardMenu(): () => void {
   panel.addEventListener('toggle', position, { signal });
   panel.addEventListener('change', position, { signal });
   window.addEventListener('resize', position, { signal });
+  window.visualViewport?.addEventListener('resize', position, { signal });
+  window.visualViewport?.addEventListener('scroll', position, { signal });
   document.addEventListener('scroll', position, { capture: true, signal });
   const observer = new ResizeObserver(position);
   observer.observe(panel);

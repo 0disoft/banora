@@ -206,6 +206,11 @@ try {
     console.log(
       'Focused puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.',
     );
+  } else if (process.argv.includes('--menu-only')) {
+    await scenario('menu', 'banora-menu-complete');
+    console.log(
+      'Focused board menu smoke passed: control restoration, keyboard, shared Undo, scoring session and mobile zoom.',
+    );
   } else if (process.argv.includes('--scoring-only')) {
     await scoringSmoke();
     console.log(
@@ -236,6 +241,7 @@ try {
     console.log('Focused comparison smoke passed.');
   } else {
     await localeSmoke();
+    await scenario('menu', 'banora-menu-complete');
     await playbackSmoke();
     await scenario('controlled', 'banora-controlled-complete');
     await controlledConsumers();
