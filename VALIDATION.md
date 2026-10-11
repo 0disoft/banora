@@ -115,6 +115,12 @@ requires committed clean source and runs all nine gates against retained artifac
 see [release](docs/ops/release.md). Prepared reuse verifies integrity without rerunning
 gates. `verify` and `restore --bundle DIR` do not prove publication or live rollback.
 
+The latest executed preparation is clean source `fdea584`: all nine named gates
+passed against its retained 149-file bundle. Actual verification/restaging and
+installed copied SDK/classic/types/license plus 297 copied CLI checks also passed.
+See [release evidence](docs/engineering/15-release-preparation-evidence.md) for the
+source/tree, manifest hash, tools and exact preservation/publication boundary.
+
 Final responses must list executed validations, passed validations, skipped validations, skip reasons, and remaining risk.
 
 ## Runner Policy

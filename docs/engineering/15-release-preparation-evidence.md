@@ -3,6 +3,11 @@
 Status: scoped local tooling and clean-source preparation executed. This is not
 publication, hosted rollback or all-72 completion.
 
+Latest executed candidate: clean source `fdea584`, prepared and restaged after the
+successful remote-main CI and Firefox/WebKit desktop verification. Its exact
+evidence is recorded at the end of this document; older snapshots below remain
+historical and do not describe current GitHub or candidate state.
+
 ## Implementation and Initial Checks
 
 The repository `release` command prepares a clean commit's five packages and
@@ -60,7 +65,7 @@ DB/schema change, package version bump or physical-device test is included.
 Private reporting, remaining migration/automation work and the full current-source
 requirement-by-requirement audit remain active readiness work.
 
-## October 12: Current Prepared Candidate and Restaged Consumers
+## October 12: Prepared Candidate at d1ee675 and Restaged Consumers
 
 After the localized dialog/pass/komi and measured Studio tree improvements, actual
 `bun run release prepare` completed on a clean checkout at
@@ -105,3 +110,44 @@ SDK API, DB/schema, dependency, hygiene and runner contracts are unchanged.
 Ops-change and Playwright procedures applied. Documentation/format/whitespace
 checks cover the evidence update. Physical/other-engine, hosted CI/update delivery,
 off-device recovery and actual published-version rollback remain unverified.
+
+## October 12: Current Local-Main Candidate and Restaged Consumers
+
+Executed `bun run release prepare` on clean local main at
+`fdea58408b86aeca9024d018595f0e693d1a02f9`, tree
+`29f94c5b59415d7b9a3d77bf0614b7eb32b08fe7`. This source includes the newer browser
+engine guard, complete desktop profile, render-completion fixture and CI evidence.
+The command returned `ok: true`, `reused: false`, five `0.1.0-dev.0` package
+tarballs and 149 retained files under
+`.artifacts/releases/fdea58408b86aeca9024d018595f0e693d1a02f9/`.
+The actual tools were Bun 1.4.2/Node 24.14.0 on Windows x64.
+
+All nine named gates executed successfully: `check`, `security-files`,
+`security-deps`, `sdk-archive`, `cli-archive`, `adapter-archives`, `browser-bundle`,
+`starter-archive` and `recovery-drill`. These include installed public SDK/CLI and
+all native adapter types/SSR, the entire production browser suite served from
+the retained files, an independently installed/built starter browser and isolated
+recovery. The terminal receipt follows the actual serial child executions;
+raw child output was deliberately drained, so no new inner test count is inferred
+from this receipt or a manually edited manifest.
+
+The final manifest is `prepared`; SHA-256:
+`23661d09e231d408cca255ea909750bc9a09b7a940ced43a10eeb3d7ca28ee6b`.
+Actual `release verify` succeeded. `release restore` created the distinct
+`.artifacts/restores/fdea58408b86-a62747a6-cce3-4d3e-9f2c-579a2835148c/`, preserving
+the original and verifying both 149-file inventories. A separate verify on the
+copy succeeded, followed by installed public SDK/classic/declaration/license
+checks and an actual installed Node CLI run with 297 passing checks. These copied
+bytes are usable for this source; no deployment pointer or published-version
+rollback was exercised. Both earlier retained candidates remain available.
+
+The current remote-main hosted CI is independently recorded at `fed716a` in
+[run 38164778251](https://github.com/0disoft/banora/actions/runs/38164778251).
+Source/API, DB/schema, dependency, repository hygiene, runner and workflow
+definitions do not change in this evidence-only increment. Ops-change and SDK
+procedures applied. Documentation/format/whitespace checks cover the evidence
+update; physical devices, an approved policy/private reporting channel, registry
+scope/version/publication, actual hosted bot updates and remote rollback remain
+outside these executed gates. The local prepared source has not been published;
+preparation and unsigned hashes establish scoped execution/integrity, not release
+approval, authentication or an off-device backup.
