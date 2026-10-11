@@ -107,6 +107,42 @@ check(
   reopened.snapshot.stones[12] === 'black' && reopened.selected.properties.C[0] === 'Agent 日本',
   'Portable selection/reopen failed',
 );
+const longRecord = cli(
+  ['run'],
+  0,
+  JSON.stringify({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf: '(;SZ[5]XX[long]' + ';B[];W[]'.repeat(65) + ')',
+    operations: Array.from({ length: 130 }, () => ({ op: 'next' })),
+  }),
+);
+check(
+  longRecord.selection.path.length === 130 && longRecord.snapshot.moveNumber === 130,
+  'Long record replay returned the wrong location',
+);
+const resumed = cli(
+  ['run', '--output', 'long-resumed.sgf'],
+  0,
+  JSON.stringify({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf: longRecord.sgf,
+    selection: longRecord.selection,
+    operations: [{ op: 'comment', text: 'Resumed past move 128' }],
+  }),
+);
+check(
+  resumed.snapshot.moveNumber === 130 &&
+    resumed.selected.properties.C[0] === 'Resumed past move 128',
+  'Returned long location could not resume through installed CLI',
+);
+check(
+  (await readFile(resolve(directory, 'long-resumed.sgf'), 'utf8')).includes(
+    'C[Resumed past move 128]',
+  ),
+  'Resumed long record was not saved',
+);
 check(
   cli(['inspect', '--input', 'edited.sgf', '--tree']).games.length === 1,
   'Tree discovery failed',

@@ -16,7 +16,10 @@ allowed commands/fields, coordinate bounds and limits. All requests use
 geometric relationships, strokes, labels and game legality have further SDK checks.
 Record text is at most 5 MiB of characters (the SGF parser also enforces its byte
 limit), batches at most 256 operations, dimensions 2 through 52, and paths at most
-128 child indices. No field executes code, shell commands or remote tools.
+49,999 child indices, matching the 50,000-node SGF limit including the root.
+This move-path bound is separate from the parser's 128-level nested-variation
+limit. Returned locations can resume ordinary long games beyond move 128.
+No field executes code, shell commands or remote tools.
 Legal-point scans share a per-request budget of 8,192 candidate cells; larger
 query batches fail with reason `limit` instead of running unbounded repeated scans.
 

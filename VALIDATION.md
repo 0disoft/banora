@@ -63,6 +63,9 @@ assets nor substitute protocol fixtures for engine output. See the
 runs its local artifact. `bun run smoke:cli` builds and independently installs
 SDK/CLI tarballs with npm, then checks the actual installed bin and Node JSON,
 stdin/files, editing/reopen, snapshots, schema/errors/limits and output protection.
+Long-record checks resume an actual returned location beyond move 128 through
+the installed Node CLI and save its edited SGF; SDK tests also cover a late
+variation, portable reopen and the total-node locator bound.
 The default `check` also builds the CLI and runs that installed consumer after SDK
 smoke. Runtime CLI operations require no browser, framework or remote service.
 Each request is isolated; live app/engine bridges and headless diagram rendering

@@ -73,6 +73,56 @@ test('illegal moves abort a whole isolated batch and never expose partial output
   expect('sgf' in result).toBe(false);
   expect(JSON.stringify(request)).toBe(before);
 });
+
+test('automation resumes returned locations past move 128 and navigates long branches', () => {
+  const sgf = '(;SZ[5]XX[keep]' + ';B[];W[]'.repeat(177) + '(;B[aa])(;B[bb]))';
+  const first = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf,
+    operations: Array.from({ length: 130 }, () => ({ op: 'next' })),
+  });
+  if (!first.ok || first.kind !== 'record') throw Error('Expected long replay result');
+  expect(first.selection.path).toHaveLength(130);
+  const reopened = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf: first.sgf,
+    selection: first.selection,
+    operations: [
+      { op: 'goto', target: { gameIndex: 0, path: [...Array(354).fill(0), 1] } },
+      { op: 'comment', text: 'Reviewed late branch' },
+    ],
+  });
+  expect(reopened.ok).toBe(true);
+  if (!reopened.ok || reopened.kind !== 'record') throw Error('Expected resumed record');
+  expect(reopened.snapshot.moveNumber).toBe(355);
+  expect(reopened.snapshot.stones[6]).toBe('black');
+  expect(reopened.selected.properties.C).toEqual(['Reviewed late branch']);
+  expect(reopened.selection.path).toEqual([...Array(354).fill(0), 1]);
+  expect(reopened.sgf).toContain('XX[keep]');
+  const retained = executeAutomation({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf: reopened.sgf,
+    selection: reopened.selection,
+  });
+  expect(retained.ok && retained.snapshot.stones).toEqual(reopened.snapshot.stones);
+});
+
+test('automation locator limits follow total SGF nodes rather than variation nesting', () => {
+  for (const length of [49_999, 50_000]) {
+    const result = executeAutomation({
+      schemaVersion: 'banora.automation/v1',
+      kind: 'record',
+      selection: { gameIndex: 0, path: Array(length).fill(0) },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok)
+      expect(result.error.code).toBe(length === 49_999 ? 'command-failed' : 'invalid-request');
+    expect('sgf' in result).toBe(false);
+  }
+});
 test('setup, ink, branch changes and scoring share existing controller and rule authority', () => {
   const result = executeAutomation({
     schemaVersion: 'banora.automation/v1',

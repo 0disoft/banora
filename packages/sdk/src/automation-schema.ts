@@ -1,4 +1,5 @@
 import { RULE_PROFILES } from './rules.js';
+import { DEFAULT_SGF_LIMITS } from './sgf.js';
 
 type Schema = Readonly<Record<string, unknown>>;
 const text = (maxLength = 65_536): Schema => ({ type: 'string', maxLength });
@@ -20,7 +21,11 @@ const fractionalPoint = object({
   x: { type: 'number', minimum: 0, maximum: 51 },
   y: { type: 'number', minimum: 0, maximum: 51 },
 });
-const locator = object({ gameIndex: integer(0, 49_999), path: list(integer(0, 49_999), 128) });
+// Linear move paths are bounded by total nodes, not nested SGF variation depth.
+const locator = object({
+  gameIndex: integer(0, 49_999),
+  path: list(integer(0, 49_999), DEFAULT_SGF_LIMITS.maxNodes - 1),
+});
 const profile = choice(Object.keys(RULE_PROFILES));
 const style = { color: text(7), width: { type: 'number', minimum: 0.02, maximum: 0.5 } };
 const definitions: Record<string, Schema> = {
