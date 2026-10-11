@@ -167,6 +167,7 @@ not claim native operating-system file-drag automation.
 `--comparison-only` similarly selects the comparison scenario without rerunning
 unrelated browser flows during implementation.
 `--share-only` selects production link opening/creation, clipboard fallback,
+deferred copy completion/failure races against newer links, copies and import errors,
 position privacy, Export/Discard/Cancel and framework cleanup. Clipboard writes
 are stubbed in this check to avoid modifying the machine's clipboard.
 `--texture-only` selects public SDK texture preparation/rendering/diagram pixels,

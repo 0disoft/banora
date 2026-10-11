@@ -123,6 +123,47 @@ async (page) => {
     );
     verify(new URL(page.url()).hash === fixtures.node, `${name}: creation/copy navigated address`);
     await page.evaluate(() => {
+      window.__pendingCopies = [];
+      navigator.clipboard.writeText = () =>
+        new Promise((resolve, reject) => window.__pendingCopies.push({ resolve, reject }));
+    });
+    await selector('copy').click();
+    await selector('kind').selectOption('position');
+    await selector('create').click();
+    verify(
+      (await selector('output').inputValue()) !== dirtyLink,
+      `${name}: stale clipboard fixture did not change the displayed link`,
+    );
+    await page.evaluate(async () => {
+      window.__pendingCopies[0].resolve();
+      await new Promise(requestAnimationFrame);
+    });
+    verify(
+      (await selector('status').innerText()) === 'Link created.',
+      `${name}: old clipboard completion claimed the new link was copied`,
+    );
+    await selector('kind').selectOption('node');
+    await selector('create').click();
+    verify((await selector('output').inputValue()) === dirtyLink, `${name}: copy fixture changed`);
+    await selector('copy').click();
+    await selector('copy').click();
+    await page.evaluate(async () => {
+      window.__pendingCopies[2].resolve();
+      await new Promise(requestAnimationFrame);
+    });
+    verify(
+      (await selector('status').innerText()) === 'Link copied.',
+      `${name}: latest clipboard completion was not reported`,
+    );
+    await page.evaluate(async () => {
+      window.__pendingCopies[1].reject(Error('Older copy failed'));
+      await new Promise(requestAnimationFrame);
+    });
+    verify(
+      (await selector('status').innerText()) === 'Link copied.',
+      `${name}: old clipboard failure replaced the latest success`,
+    );
+    await page.evaluate(() => {
       navigator.clipboard.writeText = async () => {
         throw Error('Clipboard blocked');
       };
@@ -135,11 +176,24 @@ async (page) => {
       (await selector('output').inputValue()) === dirtyLink,
       `${name}: clipboard failure lost manual link`,
     );
+    await page.evaluate(() => {
+      navigator.clipboard.writeText = () =>
+        new Promise((resolve, reject) => window.__pendingCopies.push({ resolve, reject }));
+    });
+    await selector('copy').click();
     await selector('input').fill(path + '#banora=v2.AA');
     await selector('open').click();
     verify(
       (await selector('status').innerText()) === 'Unsupported Banora share version',
       `${name}: malformed link not reported`,
+    );
+    await page.evaluate(async () => {
+      window.__pendingCopies[3].resolve();
+      await new Promise(requestAnimationFrame);
+    });
+    verify(
+      (await selector('status').innerText()) === 'Unsupported Banora share version',
+      `${name}: clipboard completion hid a newer import error`,
     );
     verify(
       (await notes.inputValue()) === 'unsaved sharing note' &&

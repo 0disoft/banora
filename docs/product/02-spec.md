@@ -50,6 +50,9 @@ through localized tooltips rather than persistent paragraphs; texture help lists
 only accepted formats and size limits. The idle status is empty, while errors,
 active operations and unsaved-change confirmations remain visible. Sharing includes
 a concise link-access notice. Font families and authored SGF text are unchanged.
+Sharing controls report clipboard completion or failure only for the latest copy
+request, provided no newer link creation or import has superseded its feedback.
+Clipboard writes use the exact displayed link and leave the record unchanged.
 Default UI text sizes in Studio, the shared widgets and examples are increased by
 one CSS pixel across desktop and mobile tiers. Root-relative sizes retain the
 browser's root font preference, with a one-pixel addition rather than proportional

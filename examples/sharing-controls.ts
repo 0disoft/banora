@@ -46,8 +46,11 @@ export function mountSharing(
   panel.append(dialog);
   host.append(panel);
   const disposeLanguage = localizeUi(panel);
+  let feedbackRevision = 0;
   const report = (message: string) => {
-    if (!signal.aborted) setUiText(status, message);
+    if (signal.aborted) return;
+    feedbackRevision++;
+    setUiText(status, message);
   };
   const notice = () => {
     const position = kind.value === 'position';
@@ -85,14 +88,18 @@ export function mountSharing(
     () => {
       // Capture the exact displayed link before an asynchronous clipboard write.
       const text = output.value;
+      const revision = ++feedbackRevision;
+      const reportCopy = (message: string) => {
+        if (revision === feedbackRevision && output.value === text) report(message);
+      };
       output.focus();
       output.select();
       void (async () => {
         try {
           await navigator.clipboard.writeText(text);
-          report('Link copied.');
+          reportCopy('Link copied.');
         } catch {
-          report('Clipboard unavailable. Select the created link and copy it manually.');
+          reportCopy('Clipboard unavailable. Select the created link and copy it manually.');
         }
       })();
     },
@@ -146,6 +153,8 @@ export function mountSharing(
   let busy = false;
   async function openLink(text: string): Promise<void> {
     if (busy || signal.aborted) return;
+    // Pending clipboard feedback must not cover this import's result or approval.
+    feedbackRevision++;
     const decoded = decodeShareLink(text.trim());
     if (!decoded.ok) {
       report(decoded.message);
