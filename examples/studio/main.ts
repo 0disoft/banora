@@ -55,10 +55,15 @@ boardSize.addEventListener('change', () => {
   }
 });
 const language = find<HTMLSelectElement>('language');
-let initialLanguage: BanoraLocale = navigator.language.toLowerCase().startsWith('ko') ? 'ko' : 'en';
+const browserLanguage = navigator.language.toLowerCase();
+let initialLanguage: BanoraLocale = browserLanguage.startsWith('ko')
+  ? 'ko'
+  : browserLanguage.startsWith('zh')
+    ? 'zh'
+    : 'en';
 try {
   const stored = localStorage.getItem('banora.studio.locale');
-  if (stored === 'en' || stored === 'ko') initialLanguage = stored;
+  if (stored === 'en' || stored === 'ko' || stored === 'zh') initialLanguage = stored;
 } catch {
   /* Restricted storage still allows session-local language changes. */
 }
@@ -630,11 +635,15 @@ const disposeSharing = mountSharing(find('sharing-host'), controller, {
 });
 const disposeScoring = mountScoringControls(find('scoring-host'), controller);
 
+const localizedTitles: Record<BanoraLocale, string> = {
+  en: 'Banora Studio — Go record workspace',
+  ko: 'Banora Studio — 바둑 기보 작업 공간',
+  zh: 'Banora Studio — 围棋棋谱工作区',
+};
 const disposeLanguage = subscribeUiLanguage(() => {
   const locale = getUiLocale();
   document.documentElement.lang = locale;
-  document.title =
-    locale === 'ko' ? 'Banora Studio — 바둑 기보 작업 공간' : 'Banora Studio — Go record workspace';
+  document.title = localizedTitles[locale];
   ui = createUiMessages({ locale });
   lastTreeState = undefined;
   games.dataset.record = '';
@@ -643,7 +652,7 @@ const disposeLanguage = subscribeUiLanguage(() => {
   renderState(controller.getState());
   updateToolHint();
 });
-document.title = initialLanguage === 'ko' ? 'Banora Studio — 바둑 기보 작업 공간' : document.title;
+document.title = localizedTitles[initialLanguage];
 language.addEventListener('change', () => {
   const locale = language.value as BanoraLocale;
   setUiLocale(locale);

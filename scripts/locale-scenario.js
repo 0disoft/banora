@@ -83,6 +83,26 @@ async (page) => {
         container.querySelector('summary').textContent === '변화도',
       'Switch back failed',
     );
+    view.update({ locale: 'zh', messages: {} });
+    check(
+      container.querySelector('section').lang === 'zh' &&
+        container.querySelector('nav > span').textContent === '第 1 手' &&
+        container.querySelector('summary').textContent === '变化图' &&
+        container
+          .querySelector('svg[role="application"]')
+          .getAttribute('aria-label')
+          .startsWith('围棋棋盘。') &&
+        indicator()?.title === '有评注' &&
+        container.querySelector('.banora-record-playback').lang === 'zh',
+      'Chinese viewer/board/playback localization failed',
+    );
+    check(
+      controller.prepareExport().text === before &&
+        controller.getState().position.moveNumber === 1 &&
+        controller.getState().dirty &&
+        view.playback.getState().intervalMs === 500,
+      'Chinese update changed record, history or playback settings',
+    );
     view.dispose();
     controller.dispose();
     container.remove();
@@ -121,26 +141,68 @@ async (page) => {
     throw Error('Studio language switch lost state');
   await page.locator('#language').selectOption('ko');
   await page.getByRole('button', { name: '링크 만들기', exact: true }).click();
-  if (!(await page.locator('[data-share="output"]').inputValue()).includes('#banora='))
-    throw Error('Localized sharing failed');
   await page.getByRole('button', { name: '현재 위치 계가', exact: true }).click();
   if (!(await page.locator('#score-result').textContent()).startsWith('임시 결과:'))
-    throw Error('Scoring result untranslated');
+    throw Error('Korean scoring result untranslated');
   await page.getByRole('button', { name: '계가 닫기', exact: true }).click();
+  await page.locator('#language').selectOption('zh');
+  if (
+    (await page.locator('html').getAttribute('lang')) !== 'zh' ||
+    (await page.locator('#language option[value="zh"]').textContent()) !== '中文' ||
+    (await page.locator('#comment').inputValue()) !== 'Authored English <tag> note' ||
+    (await page.locator('#move').textContent()) !== '第 1 手' ||
+    (await page.locator('#dirty').textContent()) !== '有未保存的更改' ||
+    !(await page
+      .locator('#tree')
+      .getByRole('button', { name: '1 · 黑 G7', exact: true })
+      .count()) ||
+    (await page
+      .locator('#tree [aria-current="true"] .banora-comment-indicator')
+      .getAttribute('title')) !== '有评注'
+  )
+    throw Error('Chinese Studio switch lost data or labels');
+  await page.getByRole('button', { name: '生成链接', exact: true }).click();
+  if (!(await page.locator('[data-share="output"]').inputValue()).includes('#banora='))
+    throw Error('Localized sharing failed');
+  await page.getByRole('button', { name: '计算当前局面得分', exact: true }).click();
+  if (!(await page.locator('#score-result').textContent()).startsWith('暂定结果：'))
+    throw Error('Scoring result untranslated');
+  await page.getByRole('button', { name: '关闭计分', exact: true }).click();
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'SGF 저장', exact: true }).click();
+  await page.getByRole('button', { name: '保存 SGF', exact: true }).click();
   const exported = await download;
   await exported.saveAs('output/playwright/localized-preserved.sgf');
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.screenshot({ path: 'output/playwright/studio-ko-desktop.png', fullPage: true });
+  await page.screenshot({ path: 'output/playwright/studio-zh-desktop.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 1000 });
   if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth))
-    throw Error('Korean mobile layout overflow');
-  await page.screenshot({ path: 'output/playwright/studio-ko-mobile.png', fullPage: true });
+    throw Error('Chinese mobile layout overflow');
+  await page.screenshot({ path: 'output/playwright/studio-zh-mobile.png', fullPage: true });
   await page.reload();
-  if ((await page.locator('#language').inputValue()) !== 'ko')
+  if ((await page.locator('#language').inputValue()) !== 'zh')
     throw Error('Language preference not retained');
   await page.locator('#language').selectOption('en');
+  const context = await page
+    .context()
+    .browser()
+    .newContext({ locale: 'zh-CN', viewport: { width: 390, height: 1000 } });
+  try {
+    const chinesePage = await context.newPage();
+    await chinesePage.goto(`${origin}/studio/`);
+    await chinesePage.locator('#board svg').waitFor();
+    if (
+      (await chinesePage.locator('#language').inputValue()) !== 'zh' ||
+      (await chinesePage.locator('html').getAttribute('lang')) !== 'zh' ||
+      (await chinesePage.locator('#game-name').textContent()) !== 'Opening study'
+    )
+      throw Error('Chinese browser detection failed or translated authored title');
+    await chinesePage.locator('#language').selectOption('ko');
+    await chinesePage.reload();
+    if ((await chinesePage.locator('#language').inputValue()) !== 'ko')
+      throw Error('Saved selection did not override Chinese browser language');
+  } finally {
+    await context.close();
+  }
   await page.setViewportSize({ width: 1280, height: 1000 });
   return 'banora-locale-complete';
 };

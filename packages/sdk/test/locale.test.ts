@@ -19,9 +19,30 @@ test('UI locales are explicit, immutable and safe literal template substitutions
 test('invalid locales/message bags reject before mounting or presentation updates', () => {
   for (const options of [
     { locale: 'invalid' },
+    { locale: ['zh'] },
+    { locale: '__proto__' },
     { messages: null },
     { messages: { unknown: 'x' } },
     { messages: { play: 3 } },
   ])
     expect(() => createUiMessages(options as never)).toThrow(TypeError);
+});
+
+test('Chinese templates preserve every placeholder and support literal overrides', () => {
+  const english = createUiMessages();
+  const chinese = createUiMessages({ locale: 'zh' });
+  for (const key of Object.keys(english) as (keyof typeof english)[]) {
+    expect(chinese[key].length).toBeGreaterThan(0);
+    expect(chinese[key].match(/\{\w+\}/g)?.sort() ?? []).toEqual(
+      english[key].match(/\{\w+\}/g)?.sort() ?? [],
+    );
+  }
+  expect(formatUiMessage(chinese.move, { number: 23 })).toBe('第 23 手');
+  expect(formatUiMessage(chinese.selectNode, { label: '<tag>$&' })).toBe('选择<tag>$&');
+  expect(createBoardLabels({ locale: 'zh' }).black).toBe('黑');
+  expect(Object.isFrozen(chinese)).toBe(true);
+  expect(createUiMessages({ locale: 'zh', messages: { variations: 'Custom' } }).variations).toBe(
+    'Custom',
+  );
+  expect(createUiMessages().move).toBe('Move {number}');
 });

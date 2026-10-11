@@ -1,4 +1,4 @@
-export const koreanUi: Readonly<Record<string, string>> = {
+export const koreanUi = {
   'PNG / JPEG / WebP · max 2 MiB': 'PNG / JPEG / WebP · 최대 2 MiB',
   'SGF download started.': 'SGF 저장 시작',
   'Diagram download started.': '이미지 저장 시작',
@@ -191,4 +191,4 @@ export const koreanUi: Readonly<Record<string, string>> = {
   'SGF file exceeds the 5 MiB input limit.': 'SGF 파일이 5 MiB 제한을 초과했습니다.',
   'First 500 nodes shown. Move controls can navigate the whole record.':
     '처음 500개 위치를 표시합니다. 이동 버튼으로 전체 기보를 탐색할 수 있습니다.',
-};
+} as const;

@@ -206,9 +206,10 @@ sdk validation must stay repository-shape focused and must not imply generated a
 ## UI Localization Evidence
 
 After building examples, `bun scripts/browser-smoke.ts --locale-only` checks
-English/Korean Viewer updates, custom literal messages, rejection rollback,
+English/Korean/Chinese Viewer updates, custom literal messages, rejection rollback,
 localized board accessibility, authored content/selection/dirty-state preservation,
-Studio labels, sharing, manual scoring, SGF export, saved language preference and
+Studio labels, sharing, manual scoring, SGF export, saved language preference,
+Chinese browser-language detection and saved-selection precedence, and
 comment indicators (blank/whitespace, add/clear, Undo/Redo and localized accessible descriptions), plus
 390px/1440px layouts. It runs in the full browser suite. Existing role-based
 fixtures explicitly select English; they do not rely on the runner machine's

@@ -1,6 +1,6 @@
 import type { BoardLabels } from './board-state.js';
 
-export type BanoraLocale = 'en' | 'ko';
+export type BanoraLocale = 'en' | 'ko' | 'zh';
 const english = {
   viewer: 'Go record viewer',
   game: 'Game {number}',
@@ -97,11 +97,63 @@ const korean: UiMessages = {
   confirm: '{coordinate}에 착수 확인',
   cancel: '착수 취소',
 };
+const chinese: UiMessages = {
+  viewer: '围棋棋谱查看器',
+  game: '棋谱 {number}',
+  gameLabel: '棋谱 ',
+  selectGame: '选择棋谱',
+  navigation: '棋谱导航',
+  first: '初始局面',
+  previous: '上一手',
+  next: '下一手',
+  last: '最后局面',
+  pass: '停一手',
+  undo: '撤销',
+  redo: '重做',
+  variations: '变化图',
+  comments: '评注',
+  positionComments: '当前局面评注',
+  hasComment: '有评注',
+  start: '初始局面',
+  annotation: '注释',
+  black: '黑',
+  white: '白',
+  empty: '空交叉点',
+  colorPass: '{color}停一手',
+  selectNode: '选择{label}',
+  move: '第 {number} 手',
+  record: '围棋棋谱',
+  summary: '{black} / {white} · 轮到{color} · 提子 黑 {blackCaptures} / 白 {whiteCaptures}',
+  treeLimit: '显示前 500 个节点，可通过导航按钮浏览完整棋谱。',
+  rejected: '操作失败：{reason}',
+  playback: '棋谱自动播放',
+  interval: '间隔 ',
+  playbackInterval: '落子间隔',
+  seconds: '{number} 秒',
+  play: '播放',
+  pause: '暂停',
+  playRecord: '播放棋谱',
+  pausePlayback: '暂停播放',
+  playbackHint: '← / → 上一手、下一手 · 棋盘获得焦点时使用 Alt + ← / →',
+  board: '围棋棋盘。方向键移动光标，Enter 选择交叉点，Page Up 和 Page Down 浏览棋谱。',
+  boardPoint: '{coordinate}。{stone}。',
+  boardState: '第 {moveNumber} 手。轮到{toPlay}。提子：黑 {blackCaptures}，白 {whiteCaptures}。',
+  confirm: '确认在 {coordinate} 落子',
+  cancel: '取消落子',
+};
+const catalogs: Readonly<Record<BanoraLocale, UiMessages>> = {
+  en: english,
+  ko: korean,
+  zh: chinese,
+};
 /** Explicit and DOM-free: SDK defaults never depend on browser or machine language. */
 export function createUiMessages(options: LocaleOptions = {}): UiMessages {
-  if (options.locale !== undefined && options.locale !== 'en' && options.locale !== 'ko')
+  if (
+    options.locale !== undefined &&
+    (typeof options.locale !== 'string' || !Object.hasOwn(catalogs, options.locale))
+  )
     throw new TypeError('Unsupported UI locale');
-  const messages = { ...(options.locale === 'ko' ? korean : english) } as Record<string, string>;
+  const messages = { ...catalogs[options.locale ?? 'en'] } as Record<string, string>;
   if (options.messages !== undefined) {
     if (
       !options.messages ||
