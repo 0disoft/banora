@@ -19,6 +19,7 @@ test('draft metadata rejects unknown versions, unsafe names, invalid revisions a
     { filename: 'x'.repeat(101) },
     { updatedAt: -1 },
     { updatedAt: Infinity },
+    { updatedAt: Number.MAX_SAFE_INTEGER },
     { revision: 0 },
     { revision: 1.5 },
   ])

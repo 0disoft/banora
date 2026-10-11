@@ -44,6 +44,7 @@ export function mountBoardMenu(): () => void {
       },
     },
     { id: 'share', label: 'Share', controls: [find('sharing-host')] },
+    { id: 'drafts', label: 'Local drafts', controls: [find('drafts-host')] },
     {
       id: 'scoring',
       label: 'Score position',

@@ -1,6 +1,6 @@
 # Record Recovery
 
-- Status: Portable SDK/terminal checkpoints implemented; Studio autosave pending
+- Status: Portable SDK/terminal checkpoints and Studio local drafts implemented
 - Decision: [ADR 0016](../adr/0016-portable-record-recovery.md)
 
 `@banora/sdk/checkpoint` and the root export provide `RecordCheckpoint`,
@@ -69,5 +69,32 @@ document/revision checks. Use separate owners or transactions for concurrent tab
 Provide retention, deletion and explicit user-controlled backup/restore; storage
 access, encryption and authorization remain host responsibilities.
 
-Studio currently has no persistent drafts or restore UI. This primitive alone does
-not establish browser crash recovery, quota handling or multi-tab storage evidence.
+## Studio Local Drafts
+
+Studio autosaves interacted-with records and selected locations on this browser
+after a 500ms quiet interval. Open **Local drafts** above the board or in its menu
+to turn autosave off/on, refresh/select a draft, restore it or confirm deletion.
+Restore retains the original and creates a new session copy, so two tabs never
+take over each other's writing key. Dirty replacement offers Export / Discard /
+Cancel, and recovered edits remain dirty until SGF export.
+
+**Download backup** saves current work as `.banora.json`; **Back up draft** exports
+the selected draft without replacing current work, including raw unknown versions
+for preservation. **Open backup** validates the wrapper/checkpoint before asking
+for replacement approval. Backups include working/original SGF, selection and rules,
+not Undo or board images/preferences. JSON inputs/downloads are bounded to 64 MiB
+to accommodate escaped content in two default-limit documents.
+
+IndexedDB commits lightweight metadata and payloads atomically, checks revisions
+and caps storage at 20 drafts. It never evicts another session to make room. Full,
+denied, blocked or failed storage reports retry/delete/backup actions; editing and
+SGF export remain usable. Deleting the active draft turns autosave off; changed
+revisions require refreshing before deletion. Corrupt entries remain available
+for explicit backup/deletion. [ADR 0017](../adr/0017-studio-local-draft-storage.md)
+owns schema/time bounds and session ownership.
+
+Autosave is local to this origin/browser and survives ordinary reopen. It provides
+no upload, cloud backup or cross-device synchronization. Browser storage can be
+cleared/unavailable; abrupt exit can lose a pending debounce/transaction window.
+Keep important work in a downloaded file. Physical-device, non-Chromium, abrupt
+process-kill and OS/disk-failure durability are unverified.

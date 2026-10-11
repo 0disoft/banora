@@ -1,4 +1,41 @@
 export const koreanUi = {
+  'Draft changed. Refresh or retry.': '초안이 변경됐습니다. 새로고침하거나 다시 시도하세요.',
+  'Back up draft': '초안 백업',
+  'Confirm delete': '삭제 확인',
+  'Local drafts': '로컬 초안',
+  'Autosave on this browser': '이 브라우저에 자동 저장',
+  'Saving draft…': '초안 저장 중…',
+  'Draft saved': '초안 저장됨',
+  'Autosave off': '자동 저장 꺼짐',
+  'Saved drafts': '저장된 초안',
+  'Restore draft': '초안 복원',
+  'Delete draft': '초안 삭제',
+  'Download backup': '백업 저장',
+  'Open backup': '백업 열기',
+  'Invalid draft': '손상된 초안',
+  'No saved drafts': '저장된 초안 없음',
+  'Local storage unavailable. Download a backup.':
+    '로컬 저장소를 사용할 수 없습니다. 백업을 저장하세요.',
+  'Close other Studio tabs and retry.': '다른 Studio 탭을 닫고 다시 시도하세요.',
+  'Storage full. Delete a draft or download a backup.':
+    '저장 공간이 부족합니다. 초안을 삭제하거나 백업을 저장하세요.',
+  '20 drafts saved. Delete one to continue.':
+    '초안이 20개입니다. 하나를 삭제하면 계속 저장할 수 있습니다.',
+  'Draft changed in another tab. Refresh or retry.':
+    '다른 탭에서 초안이 변경됐습니다. 새로고침하거나 다시 시도하세요.',
+  'Invalid backup. Current record kept.': '백업이 올바르지 않습니다. 현재 기보는 유지됩니다.',
+  'Storage timed out. Retry or download a backup.':
+    '저장 시간이 초과됐습니다. 다시 시도하거나 백업을 저장하세요.',
+  'Draft not saved. Retry or download a backup.':
+    '초안을 저장하지 못했습니다. 다시 시도하거나 백업을 저장하세요.',
+  'Record changed. Try again.': '기보가 변경됐습니다. 다시 시도하세요.',
+  'Draft deleted.': '초안 삭제됨',
+  'Draft restored.': '초안 복원됨',
+  'Backup download started.': '백업 저장 시작',
+  'Delete this saved draft?': '이 초안을 삭제할까요?',
+  Refresh: '새로고침',
+  Retry: '다시 시도',
+  Close: '닫기',
   'Board menu': '바둑판 메뉴',
   'Close menu': '메뉴 닫기',
   Back: '뒤로',

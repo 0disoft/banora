@@ -924,7 +924,8 @@ not verified filesystem persistence.
 Studio offers Export / Discard / Cancel before replacing or closing a dirty record.
 Export continues only after success, Discard allows replacement/close, and Cancel
 retains the active record. The SDK exposes these operations/state without requiring
-a confirmation dialog in every host. Autosave and recovery are deferred.
+a confirmation dialog in every host. Portable checkpoints and Studio's local
+autosave/backup controls are covered by the [recovery contract](recovery.md).
 
 ## API Validation Priorities
 

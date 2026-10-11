@@ -70,7 +70,7 @@ This is an ownership decision, not evidence that such a service exists.
 | 27  | Templates for recurring work             | New record/example record and standalone app exist; index templates and portable automation recipes.                       |
 | 28  | One-place search and navigation          | Variation tree is bounded to 500 rows; add whole-record search with node/metadata/comment navigation.                      |
 | 29  | Bounded batch edit/export                | Automation supports operation arrays; add useful transaction/preview integration and user-facing batch workflow.           |
-| 30  | Autosave and resume                      | SDK/terminal checkpoints preserve records, baselines and locations; Studio local drafts/restore UI remain pending.         |
+| 30  | Autosave and resume                      | SDK/terminal checkpoints and Studio local drafts/guarded restore preserve records, baselines and selected locations.       |
 | 31  | Compare changes and Undo                 | Controller Undo/Redo and position comparison exist; verify new batch/recovery interactions.                                |
 | 32  | Preview before destructive/bulk changes  | Dirty replacement guards exist; add inspectable batch preview with atomic commit.                                          |
 | 33  | Import/export across tools               | SGF/UTF-8 and diagrams/CLI exist; verify new persistence and batch paths preserve unknown properties.                      |
@@ -228,3 +228,46 @@ primitive does not close those rows. No database, public runner command, deploym
 or hosted-CI change is implied. Physical-device/other-browser coverage and hosted
 CI execution remain unverified. The next increment is the Studio host integration;
 the complete 72-question objective remains active.
+
+### Studio local drafts, backups and guarded recovery
+
+Implemented origin-local IndexedDB drafts and the Studio consumer UI above the
+board and in its menu. Interacted-with records/selection save after 500ms; untouched
+samples stay ephemeral. Payload/metadata commit atomically, and distinct page/record
+owners plus transaction revision checks prevent competing tabs from taking over
+each other's work. Restore preserves the original draft and creates a session copy.
+The cap is 20 without silent eviction. Delete requires confirm/cancel; stale
+revisions require refresh. Current/selected drafts can be backed up explicitly;
+corrupt/future versions can be downloaded raw and deleted without replacing work.
+
+Storage error callbacks now preserve quota classification and abort both stores;
+ordinary record editing, Undo, SGF export and portable backup stay available on
+failure. Feedback is gated by the current owner/operation, and save requests are
+serialized. Routine status avoids live-region chatter. Nested modal replacement
+exports append their download action within the active modal. English, Korean,
+Chinese and Japanese controls share the same operations and responsive layout.
+
+Executed on Windows/Bun/Node/Chrome 154:
+
+- `check` passed 156 tests / 2,157 assertions, all quality/boundary/build/type/docs
+  gates, packed headless/root/global SDK consumers and 103 installed CLI checks.
+- Focused recovery passed actual IndexedDB, close/reopen/selected dirty branch,
+  new-session Undo, two simultaneous pages, injected quota denial/atomic rollback,
+  capacity/deletion/retry, stale deletion, invalid/future entries and real downloaded
+  backups/SGFs. Cancel and Export & continue protected the outgoing record.
+- Focused menu passed borrowed recovery-modal controls, restoration, keyboard,
+  existing Undo/scoring and emulated mobile zoom. Recovery screenshots at 320px
+  and 1440px were inspected and fit the available viewport.
+- The entire production browser suite also passed after integration, including
+  recovery, existing imports/encoding, all consumers and optional features.
+
+No SDK API, hosted database, repository hygiene or package release changed in this
+increment. The new database is Studio-owned/local version 1. Browser runner and
+affected CI routing now include `--recovery-only`. Owning product/API/runtime-flow,
+compatibility/recovery and ADR 0016/0017 documents were synchronized.
+
+Abrupt process-kill/OS durability, physical devices, other browser engines and hosted
+CI remain unverified; browser-local drafts are not a cloud/file backup guarantee.
+Consolidated versioned preferences/reset, whole-record search/batch preview,
+redacted diagnostics/help/operational tools, measured performance and the remaining
+release/audit rows still need work. The full objective remains active.

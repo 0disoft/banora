@@ -1,6 +1,6 @@
 # ADR 0017: Studio Local Draft Storage
 
-- Status: Accepted; storage implementation, consumer integration/browser evidence pending
+- Status: Accepted; storage and Studio integration with scoped production-browser evidence
 
 ## Decision
 
@@ -36,7 +36,22 @@ fields or silently discards content. Unsupported IndexedDB database versions fai
 
 ## Current Evidence
 
-Metadata bounds and storage-unavailable behavior have headless tests. Actual
-IndexedDB atomicity, simultaneous pages, quota failures, interruption/recovery and
-the mounted Studio workflow still require production-browser evidence in the next
-consumer increment. This decision does not yet claim a shipped autosave UI.
+Metadata bounds and storage-unavailable behavior have headless tests. Serialized
+save fixtures cover new owners, latest feedback, queued revisions, disable/dispose
+and explicit retry. Production Chrome checks real IndexedDB, page close/reopen,
+dirty baseline/selected branch, new-session Undo, simultaneous tabs, quota rollback,
+capacity/retry, stale deletion, corrupt/future entries and actual backup/SGF files.
+English/Korean/Chinese/Japanese and 320px controls have scoped browser evidence.
+
+Autosave defaults on after interaction and debounces changes for 500ms. Untouched
+samples stay ephemeral. Visibility loss/disposal capture changes best-effort;
+abrupt termination can lose a pending write. Restore creates a copy and retains
+the original draft. Undo/presentation settings are not stored. Consolidated
+versioned preferences/migration remain a later increment. Routine save status is
+quiet for assistive technology; failures use a polite live announcement.
+
+Delete requires confirm/cancel. Deleting the active draft turns autosave off;
+pending commits can require refreshing its revision. Current/selected drafts can
+be backed up without changing the export baseline. Unknown versions can be saved
+raw for preservation, but cannot replace the working record. Local storage is
+origin-specific, unencrypted and provides no cross-device service.

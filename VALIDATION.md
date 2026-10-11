@@ -235,12 +235,22 @@ units. Snapshot identity and dirty-state recovery are checked through public API
 
 ## Hygiene Validation
 
+After building examples, `bun scripts/browser-smoke.ts --recovery-only` verifies
+real IndexedDB saves, page close/reopen and selected dirty branch recovery,
+session-local Undo, independent two-tab edits, injected quota denial with atomic
+metadata rollback, cap/retry, stale deletion, corrupt/future records, confirm/cancel,
+guarded backup restore, actual portable backup/SGF files and disabled-storage export.
+English/Korean/Chinese/Japanese controls and 320px/1440px screenshots are checked.
+The full browser suite includes this scenario. The board-menu scope additionally
+opens/closes the recovery modal from borrowed controls and restores their handlers.
+These checks do not establish abrupt process-kill or physical-device durability.
+
 Checkpoint tests cover collection/branch selection, long paths, annotations and
 unknown values, semantic export baselines, rules/superko replay, clean/dirty recovery,
 future/malformed/oversized input, lower host limits, retained groups/history/tickets
 after refusal and terminal conflicts. Packed SDK consumers check the headless
 subpath/declarations; installed Node CLI checks resume a persisted JSON request and
-save/reopen its SGF. Studio browser persistence is not implemented by this evidence.
+save/reopen its SGF. Studio storage has the separate browser evidence above.
 
 Repository hygiene file changes must check line-ending churn, binary diff pollution,
 tracked secret files, ignored build/cache artifacts, and generated-output drift.

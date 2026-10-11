@@ -45,7 +45,9 @@ Export proceeds only after success, Discard permits the pending operation, and C
 keeps the active record. For replacement, validate the new input before offering to
 discard changes. A browser download request does not verify disk persistence; the
 host explicitly uses `prepareExport`/`acknowledgeExport` tickets to advance the
-baseline. Autosave and recovery are deferred.
+baseline. Portable checkpoints preserve both working record and export baseline;
+Studio owns local IndexedDB autosave and guarded recovery through public APIs.
+Storage completion does not acknowledge SGF export. See [recovery](../sdk/recovery.md).
 
 ## Analyze a Position (M4)
 

@@ -163,8 +163,12 @@ retains the current record. Hosts own this UI; the SDK supplies state and operat
 Studio ignores late file reads and read errors after a newer file selection,
 record replacement or page exit, so earlier input cannot overwrite the current record.
 Portable SDK/terminal checkpoints preserve the working record, export baseline,
-selected location and explicit rules. Hosts own persistence; Studio autosave and
-restore controls are pending. See [recovery](../sdk/recovery.md) and the
+selected location and explicit rules. Hosts own persistence; Studio implements
+bounded local autosave, guarded restore, selected/current portable backups and
+explicit revision-checked deletion. Sessions/tabs keep distinct drafts, storage
+failure retains editing/SGF export, and no unsaved work is silently evicted.
+Exit durability is best-effort; Undo/presentation are not stored in backups.
+See [recovery](../sdk/recovery.md) and the
 [API contract](../sdk/public-api.md).
 
 ## SGF Preservation

@@ -10,6 +10,10 @@ export interface CheckPlan {
 }
 const focused: readonly [RegExp, string][] = [
   [
+    /^(examples\/studio\/(draft-store|draft-session|recovery-controls)\.ts$|scripts\/(recovery-scenario\.js|draft-(store|session)\.test\.ts)$)/,
+    '--recovery-only',
+  ],
+  [
     /^(packages\/sdk\/src\/analysis|examples\/analysis\/|scripts\/analysis-scenario\.js$)/,
     '--analysis-only',
   ],

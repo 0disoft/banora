@@ -13,6 +13,12 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
     planChecks(['packages/sdk/src/analysis.ts', 'packages/sdk/src/playback.ts']).browser,
   ).toEqual(['--analysis-only', '--playback-only']);
   expect(planChecks(['packages/sdk/src/controller.ts']).browser).toEqual(['all']);
+  expect(
+    planChecks(['examples/studio/draft-store.ts', 'scripts/recovery-scenario.js']).browser,
+  ).toEqual(['--recovery-only']);
+  expect(
+    planChecks(['examples/studio/recovery-controls.ts', 'examples/ui-korean.ts']).browser,
+  ).toEqual(['--locale-only', '--recovery-only']);
   expect(planChecks(['packages/vue/src/index.ts']).adapters).toBe(true);
   expect(planChecks(['scripts/starter-scenario.js'])).toMatchObject({ starter: true, browser: [] });
   expect(planChecks(['scripts/packed-adapters.ts'])).toMatchObject({ adapters: true, browser: [] });

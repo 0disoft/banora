@@ -44,6 +44,7 @@ export function isDraftEntry(input: unknown): input is DraftEntry {
     safeDraftFilename(data.filename) === data.filename &&
     Number.isSafeInteger(data.updatedAt) &&
     (data.updatedAt as number) >= 0 &&
+    (data.updatedAt as number) <= 8_640_000_000_000_000 &&
     Number.isSafeInteger(data.revision) &&
     (data.revision as number) >= 1
   );
@@ -54,6 +55,15 @@ function storageError(error: unknown): DraftError {
   return new DraftError(
     name === 'QuotaExceededError' ? 'quota' : name === 'SecurityError' ? 'unavailable' : 'failed',
   );
+}
+function guarded(fail: (error: DraftError) => void, action: () => void): () => void {
+  return () => {
+    try {
+      action();
+    } catch (error) {
+      fail(storageError(error));
+    }
+  };
 }
 export interface DraftListing {
   readonly entries: readonly { id: string; entry: DraftEntry | null }[];
@@ -197,7 +207,7 @@ export class DraftStore {
     return this.#transaction('readwrite', (transaction, result, fail) => {
       const entries = transaction.objectStore('entries');
       const existing = entries.get(draft.id);
-      existing.onsuccess = () => {
+      existing.onsuccess = guarded(fail, () => {
         if (
           expectedRevision === 0
             ? existing.result !== undefined
@@ -207,7 +217,7 @@ export class DraftStore {
           return;
         }
         const count = entries.count();
-        count.onsuccess = () => {
+        count.onsuccess = guarded(fail, () => {
           if (expectedRevision === 0 && count.result >= DRAFT_LIMIT) {
             fail(new DraftError('full'));
             return;
@@ -216,15 +226,15 @@ export class DraftStore {
           entries.put(entry);
           transaction.objectStore('drafts').put(draft);
           result(undefined);
-        };
-      };
+        });
+      });
     });
   }
   /** A changed draft requires refreshing the list before explicit deletion. */
   remove(id: string, expectedRevision: number | null): Promise<void> {
     return this.#transaction('readwrite', (transaction, result, fail) => {
       const request = transaction.objectStore('entries').get(id);
-      request.onsuccess = () => {
+      request.onsuccess = guarded(fail, () => {
         const entry = request.result;
         if (
           entry !== undefined &&
@@ -236,7 +246,7 @@ export class DraftStore {
         transaction.objectStore('entries').delete(id);
         transaction.objectStore('drafts').delete(id);
         result(undefined);
-      };
+      });
     });
   }
   close(): void {

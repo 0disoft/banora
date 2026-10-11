@@ -30,6 +30,7 @@ async (page) => {
       'animation',
       'comparison',
       'share',
+      'drafts',
       'scoring',
     ]) {
       await open(section);
@@ -47,6 +48,15 @@ async (page) => {
       await close();
     }
   }
+  await open('drafts');
+  await panel.locator('#drafts-open').click();
+  await page.locator('#drafts-dialog').waitFor({ state: 'visible' });
+  await page.locator('#draft-close').click();
+  if (await panel.evaluate((element) => element.matches(':popover-open'))) await close();
+  verify(
+    (await page.locator('.file-toolbar #drafts-open').count()) === 1,
+    'Recovery controls were not restored after opening a modal from the menu',
+  );
   await open('tools');
   await panel.locator('#tool').selectOption('play');
   await page.keyboard.press('Escape');

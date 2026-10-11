@@ -315,6 +315,8 @@ engine/model now have their own headless evidence above.
 Studio's custom Export/Discard/Cancel dialog applies to its record replacement
 actions. Tab closing/reloading uses the browser's native unsaved-change warning;
 the browser controls that dialog and may suppress it. Download initiation updates
-the export baseline without proving persistence to disk. Autosave/recovery is deferred.
+the export baseline without proving persistence to disk. The subsequent
+[readiness work](12-readiness-review.md) implements bounded local autosave/recovery
+and portable backups; its [contract](../sdk/recovery.md) owns durability limits.
 The tree shows the first 500 nodes plus the selected node; navigation still traverses
 the complete record. Large-record editing cost needs profiling before speed claims.

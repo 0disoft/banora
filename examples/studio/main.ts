@@ -15,6 +15,7 @@ import {
   mountComparison,
   mountPlaybackControls,
   parseSgf,
+  parseRecordCheckpoint,
 } from '@banora/sdk';
 import type {
   BoardRotation,
@@ -34,6 +35,8 @@ import { mountSharing } from '../sharing-controls.js';
 import { mountTextureControls } from '../texture-controls.js';
 import { mountScoringControls } from '../scoring-controls.js';
 import { mountBoardMenu } from './board-menu.js';
+import { mountRecoveryControls } from './recovery-controls.js';
+import { safeDraftFilename } from './draft-store.js';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const boardSize = find<HTMLSelectElement>('board-size');
@@ -311,7 +314,9 @@ function exportRecord(): boolean {
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
-    document.body.append(link);
+    // A second modal (recovery) may remain open after replacement approval.
+    // Keep the download action inside the active modal's non-inert subtree.
+    (document.querySelector<HTMLDialogElement>('dialog:modal') ?? document.body).append(link);
     link.click();
     link.remove();
     report(controller.acknowledgeExport(ticket.id));
@@ -368,7 +373,7 @@ async function openRecord(
       return false;
     }
     const previousName = filename;
-    filename = name.replace(/[\\/:*?"<>|]/g, '-').slice(0, 100);
+    filename = safeDraftFilename(name);
     const result = controller.loadSgf(input, { discardChanges: true, locator });
     if (!result.ok) {
       filename = previousName;
@@ -399,6 +404,35 @@ async function openFile(selected?: File): Promise<void> {
     await openRecord(bytes, selected.name);
   } catch (error) {
     if (current()) setUiText(status, `Could not open file: ${String(error)}`);
+  }
+}
+async function openCheckpoint(input: unknown, name: string, signal: AbortSignal): Promise<boolean> {
+  if (opening || disposed || signal.aborted) return false;
+  opening = true;
+  try {
+    const parsed = parseRecordCheckpoint(input);
+    if (!parsed.ok) {
+      setUiText(status, 'Invalid backup. Current record kept.');
+      return false;
+    }
+    const approved = await mayReplace(signal);
+    if (!approved || disposed || signal.aborted) return false;
+    if (controller.getState().record !== approved) {
+      setUiText(status, 'Record changed during approval. Open it again.');
+      return false;
+    }
+    const previousName = filename;
+    filename = safeDraftFilename(name);
+    const result = controller.loadCheckpoint(parsed.value, { discardChanges: true });
+    if (!result.ok) {
+      filename = previousName;
+      report(result);
+      return false;
+    }
+    setUiText(status, 'Draft restored.');
+    return true;
+  } finally {
+    opening = false;
   }
 }
 find('open').addEventListener('click', () => file.click());
@@ -598,6 +632,7 @@ window.addEventListener('pagehide', (event) => {
   playbackControls.playback.pause();
   if (!event.persisted) {
     disposed = true;
+    disposeRecovery();
     disposeLanguage();
     disposeStaticLanguage();
     disposeBoardMenu();
@@ -651,6 +686,10 @@ const disposeSharing = mountSharing(find('sharing-host'), controller, {
     ),
 });
 const disposeScoring = mountScoringControls(find('scoring-host'), controller);
+const disposeRecovery = mountRecoveryControls(find('drafts-host'), controller, {
+  filename: () => filename,
+  replace: openCheckpoint,
+});
 const disposeBoardMenu = mountBoardMenu();
 
 const localizedTitles: Record<BanoraLocale, string> = {

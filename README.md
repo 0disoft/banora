@@ -89,6 +89,11 @@ bridges ordered stdio and performs one explicit analysis with a selected binary/
 
 ## Direction
 
+Studio's **Local drafts** controls save interacted-with records on this browser,
+restore a chosen draft, download/open portable backups and explicitly delete stored
+work. Storage failures retain editing and SGF export. See the
+[recovery guide](docs/sdk/recovery.md) for privacy, retention and exit durability.
+
 Legal play can opt into positional or situational superko through the core or
 controller's `rules` option; simple ko remains the default. For example:
 

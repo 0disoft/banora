@@ -84,7 +84,10 @@ and other browser engines remain unclaimed. See the [contract](playback.md).
 [Checkpoint recovery](recovery.md) additionally exposes a DOM-free
 `@banora/sdk/checkpoint` parser/schema and controller creation/restore methods.
 Packed SDK declarations/runtime and installed Node CLI resume checks cover this
-additive format; Undo remains session-local and Studio persistent storage is pending.
+additive format; Undo remains session-local. Studio's IndexedDB autosave/backup
+consumer has Chrome 154 checks for separate tabs, close/reopen, quotas, guards,
+corrupt input and actual files. Broader storage/OS durability is not claimed;
+see the [recovery limits](recovery.md#studio-local-drafts).
 
 Agent automation is available through DOM-free `@banora/sdk/automation` and the
 optional Node 24.x `@banora/cli` package. Installed SDK declarations/runtime and

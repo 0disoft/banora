@@ -29,15 +29,15 @@ Run parity against the matching clean worktree. The planner prints its paths,
 decision and real commands; the runner executes them serially and stops on the
 first failed command, preserving its nonzero status.
 
-| Change                                                                                   | Evidence                                                                                |
-| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Only Markdown/Mermaid                                                                    | Format, docs and file/permission security signals; no builds/browser.                   |
-| SDK/CLI code or tests                                                                    | `check` plus file/permission signals; check includes installed SDK/CLI.                 |
-| Known optional analysis/puzzle/playback/locale/scoring/share/texture/animation/menu code | Relevant focused browser scopes, built once; combined changes keep all relevant scopes. |
-| Shared/unknown SDK, browser or toolchain code                                            | Full production browser suite instead of guessing a smaller impact.                     |
-| Framework adapter                                                                        | Installed adapter consumers plus browser consumers.                                     |
-| Standalone editor                                                                        | Independently installed starter and its own browser flow.                               |
-| Manifests/lockfile                                                                       | All installed consumers, full browser suite and dependency audit.                       |
+| Change                                                                                            | Evidence                                                                                |
+| ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Only Markdown/Mermaid                                                                             | Format, docs and file/permission security signals; no builds/browser.                   |
+| SDK/CLI code or tests                                                                             | `check` plus file/permission signals; check includes installed SDK/CLI.                 |
+| Known optional analysis/puzzle/playback/locale/scoring/share/texture/animation/menu/recovery code | Relevant focused browser scopes, built once; combined changes keep all relevant scopes. |
+| Shared/unknown SDK, browser or toolchain code                                                     | Full production browser suite instead of guessing a smaller impact.                     |
+| Framework adapter                                                                                 | Installed adapter consumers plus browser consumers.                                     |
+| Standalone editor                                                                                 | Independently installed starter and its own browser flow.                               |
+| Manifests/lockfile                                                                                | All installed consumers, full browser suite and dependency audit.                       |
 
 The monthly scheduled run performs only file/permission signals and dependency
 audit. It does not rerun unchanged browser/build checks. Browser installation is

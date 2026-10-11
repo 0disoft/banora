@@ -1,6 +1,43 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const japaneseUi = {
+  'Draft changed. Refresh or retry.': '下書きが変更されました。更新または再試行してください。',
+  'Back up draft': '下書きをバックアップ',
+  'Confirm delete': '削除を確認',
+  'Local drafts': 'ローカル下書き',
+  'Autosave on this browser': 'このブラウザーに自動保存',
+  'Saving draft…': '下書きを保存中…',
+  'Draft saved': '下書きを保存しました',
+  'Autosave off': '自動保存オフ',
+  'Saved drafts': '保存した下書き',
+  'Restore draft': '下書きを復元',
+  'Delete draft': '下書きを削除',
+  'Download backup': 'バックアップを保存',
+  'Open backup': 'バックアップを開く',
+  'Invalid draft': '無効な下書き',
+  'No saved drafts': '保存した下書きはありません',
+  'Local storage unavailable. Download a backup.':
+    'ローカル保存を利用できません。バックアップを保存してください。',
+  'Close other Studio tabs and retry.': 'ほかの Studio タブを閉じて再試行してください。',
+  'Storage full. Delete a draft or download a backup.':
+    '保存容量が不足しています。下書きを削除するかバックアップを保存してください。',
+  '20 drafts saved. Delete one to continue.':
+    '下書きが 20 件あります。1 件削除すると保存できます。',
+  'Draft changed in another tab. Refresh or retry.':
+    'ほかのタブで下書きが変更されました。更新または再試行してください。',
+  'Invalid backup. Current record kept.': 'バックアップが無効です。現在の棋譜は保持されています。',
+  'Storage timed out. Retry or download a backup.':
+    '保存がタイムアウトしました。再試行するかバックアップを保存してください。',
+  'Draft not saved. Retry or download a backup.':
+    '下書きを保存できませんでした。再試行するかバックアップを保存してください。',
+  'Record changed. Try again.': '棋譜が変更されました。再試行してください。',
+  'Draft deleted.': '下書きを削除しました',
+  'Draft restored.': '下書きを復元しました',
+  'Backup download started.': 'バックアップの保存を開始しました',
+  'Delete this saved draft?': 'この下書きを削除しますか？',
+  Refresh: '更新',
+  Retry: '再試行',
+  Close: '閉じる',
   'Board menu': '盤面メニュー',
   'Close menu': 'メニューを閉じる',
   Back: '戻る',

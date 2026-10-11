@@ -171,6 +171,25 @@ async function playbackSmoke(): Promise<void> {
   )
     throw new Error('Timed playback changed the original SGF or recorded moves');
 }
+async function recoverySmoke(): Promise<void> {
+  await scenario('recovery', 'banora-recovery-complete');
+  const backup = JSON.parse(await readFile(resolve(output, 'recovery.banora.json'), 'utf8'));
+  const denied = JSON.parse(await readFile(resolve(output, 'recovery-denied.banora.json'), 'utf8'));
+  const future = JSON.parse(await readFile(resolve(output, 'recovery-future.banora.json'), 'utf8'));
+  if (future.schemaVersion !== 'banora.studio-draft/v2')
+    throw Error('Unknown draft backup was silently migrated or lost');
+  const before = await readFile(resolve(output, 'recovery-before-restore.sgf'), 'utf8');
+  const after = await readFile(resolve(output, 'recovery-reopened.sgf'), 'utf8');
+  if (
+    !backup.checkpoint.sgf.includes('unfinished 한국어 <tag>') ||
+    !backup.checkpoint.baselineSgf.includes('C[original]') ||
+    !denied.checkpoint.sgf.includes('denied but editable') ||
+    !before.includes('C[before restore]') ||
+    !after.includes('XX[keep]') ||
+    !after.includes('unfinished 한국어 <tag>')
+  )
+    throw Error('Recovery backup/export downloads lost authored content or baseline');
+}
 try {
   const address = `http://127.0.0.1:${server.port}`;
   await cli('open', `${address}/studio/`);
@@ -182,7 +201,12 @@ try {
     'run-code',
     'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
   );
-  if (process.argv.includes('--locale-only')) {
+  if (process.argv.includes('--recovery-only')) {
+    await recoverySmoke();
+    console.log(
+      'Focused recovery smoke passed: real IndexedDB, reload, two tabs, quotas/cap, backups, guards, deletion and locale/mobile controls.',
+    );
+  } else if (process.argv.includes('--locale-only')) {
     await localeSmoke();
     console.log('Focused UI localization smoke passed.');
   } else if (process.argv.includes('--playback-only')) {
@@ -240,6 +264,8 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await recoverySmoke();
+    await cli('goto', `${address}/studio/`);
     await localeSmoke();
     await scenario('menu', 'banora-menu-complete');
     await playbackSmoke();

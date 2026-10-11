@@ -53,7 +53,7 @@ The [terminal automation contract](sdk/automation.md) documents machine-readable
 commands, input limits and the external state authority boundary.
 
 The [record recovery contract](sdk/recovery.md) documents portable checkpoints,
-export baselines and host-owned storage; Studio autosave is still pending.
+export baselines, host-owned storage and Studio's bounded local autosave/backups.
 
 The additive [host-controlled board guide](sdk/controlled-board.md) documents
 external snapshot/intention integration and its implementation status.

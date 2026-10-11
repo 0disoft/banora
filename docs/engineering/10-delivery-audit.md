@@ -143,7 +143,9 @@ connection. The subsequent [live-engine audit](11-live-katago-evidence.md) estab
 one actual local KataGo CPU/model/config on Bun and Node; broader engine evidence
 remains unclaimed. Native Puzzle/Analysis components and server-rendered board HTML are
 not promised by the implemented adapter contract. Canvas/workers/Rust/WASM require
-a measured bottleneck; autosave/recovery and managed collaboration/storage are deferred.
+a measured bottleneck. Bounded local autosave/recovery was subsequently implemented
+by the [readiness work](12-readiness-review.md); managed collaboration/cloud storage
+remain host-owned and outside this SDK/consumer's service scope.
 
 Package registry ownership, release version promotion/publication, public hosting,
 external provider credentials and services are separate operational actions, not

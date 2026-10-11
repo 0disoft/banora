@@ -1,6 +1,6 @@
 # ADR 0016: Portable Record Recovery
 
-- Status: Accepted; SDK/terminal implementation, Studio persistence pending
+- Status: Accepted; SDK/terminal and Studio local persistence implemented
 
 ## Decision
 
@@ -18,7 +18,7 @@ new play still uses the restored legality/repetition policy.
 
 Hosts own storage, retention, access control, encryption, quotas and concurrent
 writes. SDK imports never access browser storage or remote services. Studio's
-autosave/backup integration will be a separate consumer increment, with explicit
+autosave/backup integration is a separate consumer module, with explicit
 recovery and deletion controls, failure feedback and isolation between tabs.
 The existing SGF/share formats do not acquire hidden recovery metadata.
 
