@@ -140,6 +140,12 @@ exceptions and dependency-update behavior.
 
 ## Release Readiness
 
+Use `bun run migration-check` for the narrower saved-data matrix: public artifact
+rebuild, checkpoint/backup restoration, supported legacy settings, interrupted
+write/cleanup reopening and unknown-version preservation. This operates on authored
+fixtures and isolated state, not a live profile. See
+[migration operations](docs/ops/data-migrations.md) before changing a saved format.
+
 Before publishing, establish MIT licensing and asset provenance, actual package
 exports/types, tested runtime versions, consumer examples and migration policy.
 The user's implementation delegation authorizes SDK and example development.

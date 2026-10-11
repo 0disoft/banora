@@ -121,3 +121,70 @@ test('the envelope bound measures UTF-8 bytes while preserving oversized future 
   expect(prefs.set('theme', 'flat')).toBe(false);
   expect(values.get(PREFERENCE_PREFIX + 'theme')).toBe(text);
 });
+
+test('interrupted field migration resumes without losing published values or unrelated storage', () => {
+  const { values, storage } = fixture();
+  values.set('banora.studio.locale', 'ja');
+  values.set('banora.studio.board-size', 'large');
+  values.set('banora.studio.drafts-enabled', 'false');
+  values.set('host.document', 'Authored unrelated document');
+  let denied = false;
+  const interrupted = new PreferenceStore(
+    {
+      ...storage,
+      setItem(key, value) {
+        if (key === PREFERENCE_PREFIX + 'boardSize' && !denied) {
+          denied = true;
+          throw Error('Authored interrupted write');
+        }
+        storage.setItem(key, value);
+      },
+    },
+    defaultPreferences('en'),
+  );
+  expect(interrupted.getStatus()).toBe('unavailable');
+  expect(values.get('banora.studio.board-size')).toBe('large');
+  expect(values.has(PREFERENCE_PREFIX + 'boardSize')).toBe(false);
+  expect(values.get(PREFERENCE_PREFIX + 'locale')).toBe(encode('ja'));
+  expect(values.get(PREFERENCE_PREFIX + 'autosave')).toBe(encode(false));
+  const resumed = new PreferenceStore(storage, defaultPreferences('en'));
+  expect(resumed.getStatus()).toBe('ready');
+  expect(resumed.get('locale')).toBe('ja');
+  expect(resumed.get('boardSize')).toBe('large');
+  expect(resumed.get('autosave')).toBe(false);
+  expect(values.has('banora.studio.board-size')).toBe(false);
+  const published = [...values.entries()];
+  new PreferenceStore(storage, defaultPreferences('ko'));
+  expect([...values.entries()]).toEqual(published);
+  expect(values.get('host.document')).toBe('Authored unrelated document');
+});
+
+test('cleanup failure resumes from validated new data and never falls back over a future envelope', () => {
+  const { values, storage } = fixture();
+  values.set('banora.studio.locale', 'ja');
+  const initial = new PreferenceStore(
+    {
+      ...storage,
+      removeItem() {
+        throw Error('Authored interrupted cleanup');
+      },
+    },
+    defaultPreferences('en'),
+  );
+  expect(initial.get('locale')).toBe('ja');
+  expect(values.get(PREFERENCE_PREFIX + 'locale')).toBe(encode('ja'));
+  expect(values.get('banora.studio.locale')).toBe('ja');
+  values.set('banora.studio.locale', 'ko');
+  const resumed = new PreferenceStore(storage, defaultPreferences('en'));
+  expect(resumed.get('locale')).toBe('ja');
+  expect(values.has('banora.studio.locale')).toBe(false);
+  const future = JSON.stringify({ schemaVersion: 'banora.studio-preference/v2', value: 'future' });
+  values.set(PREFERENCE_PREFIX + 'locale', future);
+  values.set('banora.studio.locale', 'ko');
+  const unknown = new PreferenceStore(storage, defaultPreferences('en'));
+  expect(unknown.getStatus()).toBe('newer');
+  expect(values.get(PREFERENCE_PREFIX + 'locale')).toBe(future);
+  expect(values.get('banora.studio.locale')).toBe('ko');
+  expect(unknown.set('locale', 'zh')).toBe(false);
+  expect(values.get(PREFERENCE_PREFIX + 'locale')).toBe(future);
+});

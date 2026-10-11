@@ -98,7 +98,13 @@ and case results under `.tmp`; they assert actual metrics/coordinates/PVs/owners
 source preservation and termination/failure/exit behavior. They neither download
 assets nor substitute protocol fixtures for engine output. See the
 [live evidence](docs/engineering/11-live-katago-evidence.md) for the exact tested matrix.
-`contract` and `migration-check` are not configured; report them as skipped when relevant. Manual
+`bun run migration-check` rebuilds public SDK artifacts and runs checkpoint,
+preference, draft metadata and isolated operations regressions. It checks supported
+legacy-field migration, interrupted write/cleanup reopening, idempotence, future-data
+preservation and actual serialized restoration. It does not modify a user profile,
+upgrade a future browser database or claim power-loss durability; see the
+[migration procedure](docs/ops/data-migrations.md).
+Standalone `contract` is not configured; interface gates run inside `check`. Manual
 `git diff --check` is whitespace evidence, not an invented lint result.
 
 ## Code Quality Tooling

@@ -543,3 +543,30 @@ Node execution supplies the relevant consumer evidence. The requests require rev
 before substituting user data. Host timers/file locks/live approval remain host-owned,
 not a claimed background automation service. Migration/release-access/security policy
 and the final requirement-by-requirement audit remain active work.
+
+## October 12: Supported Saved-Data Migration Check
+
+Configured `bun run migration-check` as a focused public-artifact rebuild followed
+by checkpoint, preference, draft metadata and isolated operations regressions.
+Added actual preference-store reopening cases after an interrupted field write and
+legacy-key cleanup. They verify retained legacy sources, authority of validated new
+fields, retry/idempotence, preservation of unrelated data and prevention of fallback/
+ordinary overwrite over future envelopes. Existing checkpoint/recovery cases still
+exercise actual serialized controller restoration, baselines/selection/rules, dirty
+guards, future/corrupt rejection and source ownership.
+
+The named command passed 18 tests/402 assertions across four files. Root `check`
+passed 197 tests/2,742 assertions, builds/types/quality/boundaries, 119 documents/436
+links, public SDK/classic declarations and the installed CLI's 297 checks. Updated
+the owning migration procedure, recovery, operational/development/validation and
+readiness documents. No migration reader/writer behavior, saved schema, public API,
+database, dependency or repository hygiene changed; the root runner and regression
+coverage were added. The existing three-field migration is supported, not a converter
+for hypothetical future versions.
+
+Browser repetition was skipped because the preference/storage implementation was
+unchanged; interruption injection checks actual store reopening using authored
+in-memory storage. Existing separate browser scenarios own IndexedDB transactions,
+concurrent owners and denial. Power loss, live browser DB upgrades and remote schema
+rollback are not proven here. The ops-change/test-hardening procedures apply;
+private reporting/access and the full current-source 72-row audit remain active.

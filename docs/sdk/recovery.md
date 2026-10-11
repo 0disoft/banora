@@ -116,6 +116,12 @@ tabs retain their session values until reload. Unavailable storage leaves settin
 usable in the session and starts unreadable autosave off. See
 [ADR 0018](../adr/0018-versioned-studio-preferences.md) for the field/ownership contract.
 
+Interrupted field writes preserve the legacy source; successful new envelopes
+remain authoritative after interrupted cleanup. Reopening retries remaining work
+without changing already migrated values or unrelated data. Future envelopes block
+legacy fallback and ordinary overwrite. `bun run migration-check` exercises those
+paths and current-format recovery; see [migration operations](../ops/data-migrations.md).
+
 ## Operational Recovery Checks
 
 After repository setup/build, `bun run ops recovery-check --input backup.banora.json`

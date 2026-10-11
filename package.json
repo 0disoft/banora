@@ -31,6 +31,7 @@
     "format": "oxfmt . --check",
     "format:write": "oxfmt .",
     "test": "bun test packages scripts/*.test.ts",
+    "migration-check": "bun run build && bun test packages/sdk/test/checkpoint.test.ts scripts/preferences.test.ts scripts/draft-store.test.ts scripts/operations.test.ts",
     "docs": "bun scripts/check-docs.ts",
     "smoke": "bun run build && bun scripts/packed-consumer.ts",
     "smoke:adapters": "bun run build:adapters && bun scripts/packed-adapters.ts",

@@ -33,7 +33,8 @@ against the committed study fixture. Neither command writes/uploads authored dat
 or opens browser storage. JSON results exclude content, names, paths and raw errors.
 
 Use [incident response](incident-response.md), [configuration](config-and-env.md),
-[secrets](secrets.md), [backup/restore](backup-and-restore.md) and
+[secrets](secrets.md), [backup/restore](backup-and-restore.md),
+[data migration](data-migrations.md) and
 [diagnostics](observability.md) for action-specific procedures. Release and rollback
 preparation use [release](release.md) and [rollback](rollback.md): clean-source,
 retained-artifact checks and isolated restaging. They do not establish a working
