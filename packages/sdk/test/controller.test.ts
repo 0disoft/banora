@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { RecordController } from '../src/controller.js';
 import { stoneAt } from '../src/core.js';
 
@@ -229,5 +229,37 @@ describe('authoritative record editing', () => {
     expect(controller.setComment('\\'.repeat(8)).ok).toBe(false);
     expect(controller.getState().record).toBe(original);
     expect(controller.getState().canUndo).toBe(false);
+  });
+  test('notification failures omit host exception content and preserve later subscribers and Undo', () => {
+    const controller = new RecordController();
+    const log = spyOn(console, 'error').mockImplementation(() => {});
+    let fail = false;
+    let inspected = 0;
+    const privateFailure = Object.defineProperty({}, 'message', {
+      get() {
+        inspected++;
+        return 'Authored private callback content';
+      },
+    });
+    const observed: string[] = [];
+    try {
+      controller.subscribe(() => {
+        if (fail) throw privateFailure;
+      });
+      controller.subscribe((state) => observed.push(state.node.properties.C?.[0] ?? ''));
+      fail = true;
+      expect(controller.setComment('Authored edit').ok).toBe(true);
+      expect(controller.undo().ok).toBe(true);
+      expect(observed).toEqual(['', 'Authored edit', '']);
+      expect(controller.getState().dirty).toBe(false);
+      expect(log.mock.calls).toEqual([
+        ['Banora state listener failed'],
+        ['Banora state listener failed'],
+      ]);
+      expect(inspected).toBe(0);
+    } finally {
+      log.mockRestore();
+      controller.dispose();
+    }
   });
 });

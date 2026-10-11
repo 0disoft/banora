@@ -259,8 +259,8 @@ export class RecordController {
           if (!this.#listeners.has(listener)) continue;
           try {
             listener(state);
-          } catch (error) {
-            console.error('Banora state listener failed', error);
+          } catch {
+            console.error('Banora state listener failed');
           }
         }
       }

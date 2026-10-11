@@ -485,3 +485,33 @@ CI planner routing were added; browser runner/workflow permissions are unchanged
 Standalone contract/migration runners are unconfigured. Physical/low-spec/other
 engines, paint latency and memory peak remain unmeasured. Release/rollback tooling,
 private reporting access and the 72-question final audit remain active.
+
+## October 12: Notification Failure Privacy
+
+Source review found three inconsistent SDK notification catch paths: the record
+controller and puzzle state/event publication forwarded arbitrary thrown host
+values to `console.error`. Such values can contain private comments, filenames or
+provider messages. Other SDK console failure paths already used fixed labels.
+These three paths now match that policy without inspecting the exception. Immediate
+subscription failures retain their existing caller-owned throw/unregistration
+semantics. This is a bug fix, not a new global error collector or diagnostic API.
+
+Focused tests passed 25 cases/245 assertions across controller and puzzle tests.
+New cases verify exact one-argument fixed console labels, zero reads of private
+error accessors, continued later notification delivery, edit Undo/dirty baseline and
+puzzle hint/restart state. Latest root `check` passed 195 tests/2,720 assertions,
+lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types, 116 documents/411
+relative links, public SDK/classic declarations and installed Node CLI's 222 checks.
+The owning public API and observability contracts now describe fixed notification
+labels and immediate subscription behavior.
+
+The full retained-artifact browser/adapter/starter run immediately before this
+three-path logging fix belongs to source `2b8b67e`, as recorded in
+[release evidence](15-release-preparation-evidence.md). It is not a prepared bundle
+of this later source. Browser repetition was skipped for the logging-only change:
+no DOM/UI/event types or committed-state behavior changed, and the actual callback
+failure paths are covered headlessly. Physical devices, other browser engines and
+hosted publication remain unverified. No public API signature, DB, saved-data
+schema, dependency, repository hygiene or runner changed in this increment.
+The bugfix/SDK/test-hardening procedures were applied. Private reporting and the
+current-source all-72 audit remain active work.

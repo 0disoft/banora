@@ -279,6 +279,46 @@ test('notification commands reject reentrancy; throws/unsubscribe/disposal canno
     session.dispose();
   }
 });
+test('state and event notification failures log fixed labels without inspecting private host errors', () => {
+  const session = new PuzzleSession(fixture());
+  const log = spyOn(console, 'error').mockImplementation(() => {});
+  let fail = false;
+  let inspected = 0;
+  const privateFailure = Object.defineProperty({}, 'stack', {
+    get() {
+      inspected++;
+      return 'Authored private callback stack';
+    },
+  });
+  const events: string[] = [];
+  const statuses: string[] = [];
+  try {
+    session.subscribe(() => {
+      if (fail) throw privateFailure;
+    });
+    session.subscribe((value) => statuses.push(value.status));
+    session.onEvent(() => {
+      throw privateFailure;
+    });
+    session.onEvent((event) => events.push(event.type));
+    fail = true;
+    expect(session.requestHint().ok).toBe(true);
+    expect(session.restart().ok).toBe(true);
+    expect(events).toEqual(['hint', 'restart']);
+    expect(statuses).toEqual(['active', 'active', 'active']);
+    expect(session.getState().hints).toEqual([]);
+    expect(log.mock.calls).toEqual([
+      ['Banora puzzle state listener failed'],
+      ['Banora puzzle event listener failed'],
+      ['Banora puzzle state listener failed'],
+      ['Banora puzzle event listener failed'],
+    ]);
+    expect(inspected).toBe(0);
+  } finally {
+    log.mockRestore();
+    session.dispose();
+  }
+});
 test('invalid or ambiguous authored definitions fail before exposing a session', () => {
   const invalid = (change: Partial<PuzzleDefinition>, message?: string) => {
     expect(() => new PuzzleSession({ ...fixture(), ...change })).toThrow(message);

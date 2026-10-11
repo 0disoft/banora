@@ -224,7 +224,9 @@ feedback and last answer, emitting only a restart event. Successful commands ret
 `subscribe(listener)` immediately supplies current state and returns unsubscribe.
 `onEvent(listener)` subscribes to later discriminated `answer`, `hint` and `restart`
 events, each containing the committed state. Commands during notification return
-`busy`. Listener errors are logged and isolated; unsubscribe/dispose during a
+`busy`. Later notification errors are isolated and log only a fixed callback label,
+never the host's thrown value/message/stack. The immediate subscription callback
+still throws to its caller and removes the failed registration. Unsubscribe/dispose during a
 notification suppress later callbacks to detached listeners. `dispose()` is
 idempotent, releases owned state/listeners and emits no answer; later commands
 return `disposed`, while getState/subscription throws. No timers, workers, remote
@@ -402,7 +404,9 @@ acknowledgments cannot replace a newer acknowledged baseline. Import invalidates
 tickets. Keep at most eight outstanding tickets, 100 edit history entries and 128
 cached positions. Parsed node IDs remain stable through editing, not across
 serialization. Subscriber reentrancy delivers snapshots in order; notification errors
-are logged without rolling back committed commands. Root exports include all these APIs.
+log only a fixed callback label without inspecting or retaining the thrown host
+value. Later subscribers still receive the committed state. An immediate subscription
+callback failure removes its registration and throws to the caller. Root exports include all these APIs.
 `getState()` retains the same immutable snapshot identity until a committed state
 change. Failed commands, export preparation and selecting the already active node
 leave it unchanged. This contract supports external-store framework bindings.

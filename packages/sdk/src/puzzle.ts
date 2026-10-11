@@ -93,16 +93,16 @@ export class PuzzleSession {
         if (!this.#listeners.has(listener)) continue;
         try {
           listener(state);
-        } catch (error) {
-          console.error('Banora puzzle state listener failed', error);
+        } catch {
+          console.error('Banora puzzle state listener failed');
         }
       }
       for (const listener of [...this.#events]) {
         if (!this.#events.has(listener)) continue;
         try {
           listener(event);
-        } catch (error) {
-          console.error('Banora puzzle event listener failed', error);
+        } catch {
+          console.error('Banora puzzle event listener failed');
         }
       }
     } finally {

@@ -24,6 +24,11 @@ downloaded reports separately. Reports still reveal feature usage/timing.
 
 ## Reproduce and Escalate
 
+SDK controller/puzzle notification failures emit a fixed callback label only;
+thrown host values, messages and stacks are omitted. Immediate subscription failures
+are returned to the caller instead of being logged by the SDK. Hosts still own
+their callback logging and must apply the same private-data policy there.
+
 For terminal reproduction, inspect the canonical request privately, then run
 `banora diagnose --request request.json --output diagnostics.json` (or the built
 local Node executable). This executes once on isolated state and publishes only
