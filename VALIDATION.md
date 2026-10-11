@@ -146,11 +146,14 @@ verification for release-only orchestration while retaining all mixed SDK gates.
 Actual hosted artifact retention and downloaded-byte verification require separate
 execution evidence; workflow/static checks alone do not prove those outcomes.
 
-The latest executed preparation is hosted clean source `ff9edb7`: all nine named
-gates passed against its retained 149-file bundle, which was uploaded and actually
-downloaded with the matching manifest hash. Downloaded Linux-built SDK/classic/
-types/license and 297 installed CLI checks also passed on Windows. The earlier
-cb53a96 local bundle remains verified/restaged and preserved.
+The latest executed preparation is hosted clean source `52f7c3f`: all nine named
+gates passed against its retained 149-file bundle. The actual separate hosted
+publication preview downloaded its immutable ID and confirmed all reviewed byte
+bindings; its publishing job was skipped. The independent local download matched
+the manifest hash and passed verification/preview. Its five package tarballs are
+byte-identical to the earlier downloaded ff9edb7 candidate, whose SDK/classic/
+types/license and 297 installed CLI checks passed on Windows. Earlier bundles
+remain preserved; source-specific execution and policy approval are separate.
 See [release evidence](docs/engineering/15-release-preparation-evidence.md) for the
 source/tree, manifest hash, tools and exact preservation/publication boundary.
 

@@ -3,10 +3,10 @@
 Status: scoped local tooling and clean-source preparation executed. This is not
 publication, hosted rollback or all-72 completion.
 
-Latest executed candidate: hosted clean source `ff9edb7`, retained in GitHub Actions
-and downloaded/verified locally. The earlier cb53a96 Windows candidate is preserved.
-Their exact
-evidence is recorded at the end of this document; older snapshots below remain
+Latest executed candidate: hosted clean source `52f7c3f`, retained in GitHub Actions,
+downloaded/verified locally and consumed by the actual read-only publication workflow.
+The earlier ff9edb7 and cb53a96 candidates are preserved. The newest execution
+evidence is recorded first; older snapshots below remain
 historical and do not describe current GitHub or candidate state.
 
 After [ADR 0023](../adr/0023-existing-publisher-package-identity.md), current source
@@ -15,6 +15,65 @@ previous `@banora/*` identities and cannot be published under the new names.
 Its 149 files verified successfully with the updated verifier; originals were
 not rewritten. The newly prepared candidate contains the current package names.
 Use the recorded source commit for executable legacy-bundle consumers.
+
+## October 12: Hosted Publication Preview from Exact Prepared Bytes
+
+[Preparation run 38175691497](https://github.com/0disoft/banora/actions/runs/38175691497)
+completed successfully in one 4m42s Ubuntu job at clean main source
+`52f7c3f2b1bccc7726119c8b48af757138a969f5`, tree
+`efe2a71b23636daa8b7c68c5a0eef852cba939bf`. Its downloaded manifest records
+Bun 1.4.3 / Node 24.21.0, all five `0.1.0-dev.0` packages and 149 files.
+The terminal preparation receipt confirms `reused: false` and all nine successful
+gates: check, security-files, security-deps, sdk-archive, cli-archive,
+adapter-archives, browser-bundle, starter-archive and recovery-drill. Browser,
+independent starter and framework consumers ran against these retained bytes.
+No additional inner test count is inferred from drained child output.
+
+The one retained artifact is:
+
+- ID `11715474426`; name
+  `banora-candidate-52f7c3f2b1bccc7726119c8b48af757138a969f5-38175691497-1`.
+- Archive SHA-256 `5380c2025185e4a69497a35fca9d1dfc08ec25b7d5e3778cc430ffa468b2b319`.
+  Upload output, API metadata and the actual hosted download action's computed
+  digest agree. The separate local downloaded ZIP was not independently hashed.
+- Size 681,035 bytes; API expiry `2026-10-25T21:21:18Z`.
+- Manifest SHA-256 `3a9764f89f697945d3f1c69aa8a5d592fd5e5682a1924200831decc4d42f9d64`.
+
+[Publication preview run 38176068080](https://github.com/0disoft/banora/actions/runs/38176068080)
+was explicitly dispatched with `execute=false`, that preparation run/source/hash
+and channel `dev`. Its preview job completed successfully in 12s. The collector
+accepted the actual successful main run and matching artifact identity/digest;
+download-artifact@v8 downloaded exactly that ID into the fresh checkout.
+The file/permission gate passed 361 files, and the guarded command returned
+`operation: preview`, the exact reviewed source/hash and all five archive SHA-256/
+SHA-512 values. No dependencies or package rebuild was needed for this workflow.
+The separate publishing job is explicitly `skipped`, not a successful npm upload
+or OIDC/environment approval test. Preview retains read-only token permissions.
+
+The candidate was independently downloaded locally to
+`.artifacts/downloads/38175691497-f1dc6406-e73c-4cf1-9d6a-5a38b3495d6d/`.
+Its manifest matched the hosted receipt, `release verify` checked all 149 hashes,
+and actual Windows `release publish` offline preview passed the same binding.
+All five package archive hashes/byte lengths equal the earlier ff9edb7 downloaded
+candidate's verified archives. That exact SDK/CLI byte identity preserves the
+earlier Windows installed-consumer evidence below; it is not a claim of another
+fresh Windows installed run. Original bundles remain unchanged.
+
+Ordinary [CI run 38175680890](https://github.com/0disoft/banora/actions/runs/38175680890)
+also completed successfully at this source in one 41s job. It selected code-only
+release verification, correctly skipped unrelated extra browser/adapter/starter/
+audit gates, and passed 210 tests / 2,939 assertions, quality/boundaries/builds,
+root/Svelte types, installed SDK/classic and 297 installed CLI checks plus
+361-file permission signals. The explicit preparation above ran the full release
+gates independently of this narrow ordinary-CI choice.
+
+Temporary artifact retention, successful preview and matching byte hashes do not
+establish public visibility, trusted-publisher settings, owner policy approval/
+private reporting, npm publication, registry-installed consumer health or live
+rollback. A later evidence-only main commit is not this candidate's source;
+if main advances, prepare/review a new matching candidate before approving
+execution. No automatic repeated preparation or publication follows from the
+unchanged external handoff.
 
 ## October 12: Hosted Candidate Retained and Downloaded
 

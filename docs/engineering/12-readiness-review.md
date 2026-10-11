@@ -332,3 +332,27 @@ release checks for these workflow/helper edits while mixed SDK changes retain
 their broader gates. Hosted preparation/preview execution from this new source,
 owner policy approval/private reporting, visibility/destination and per-package
 trusted publishers remain separate gates; no actual `--execute` run was performed.
+
+### October 12: Hosted Publication Preview Executed
+
+The configured-only candidate download/preview gap is now closed by actual
+[preparation 38175691497](https://github.com/0disoft/banora/actions/runs/38175691497)
+and [publication preview 38176068080](https://github.com/0disoft/banora/actions/runs/38176068080)
+at `52f7c3f`. All nine preparation gates passed, one 149-file candidate was retained,
+and the read-only preview downloaded that exact artifact ID and verified the
+reviewed manifest/file hashes. The publishing job was explicitly skipped. An
+independent Windows download/verify/preview also passed; all five tarballs are
+byte-identical to the earlier verified Windows-consumed ff9edb7 archives. See
+[release evidence](15-release-preparation-evidence.md#october-12-hosted-publication-preview-from-exact-prepared-bytes)
+for source/tree, manifest/archive hashes, expiry and evidence limits.
+
+Ordinary scoped Linux CI at this source passed 210 tests / 2,939 assertions,
+installed SDK/classic and 297 CLI checks in 41s, without unrelated extra gates.
+The full release preparation separately executed those extra gates. No repository
+visibility, environment/reviewer settings, npm trusted publishers, registry version,
+private reporting route or root SECURITY.md was changed. Actual execution and
+registry-installed health/rollback remain gated on the existing owner handoff.
+This evidence update changes no SDK API, database, dependency, hygiene or runner;
+docs/format/whitespace checks cover it. A later main commit requires a newly
+reviewed matching candidate before execution; do not rerun unchanged full suites
+or use synthetic accounts/contact values to substitute for missing owner decisions.
