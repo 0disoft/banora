@@ -303,3 +303,32 @@ boundaries, builds, root/Svelte types, 122 documents / 489 relative links, insta
 SDK/classic declarations and 297 installed CLI checks. File/permission signals
 passed on 358 files. Browser suites were not repeated for private release-tool
 changes; the retained candidate's hosted browser evidence remains separately scoped.
+
+### October 12: Manual Publication Workflow and Policy Boundary
+
+The separate `publish.yml` workflow now defaults to a read-only preview. It binds
+the successful main preparation run, source identity, run attempt, one unexpired
+artifact ID and the reviewed manifest/file hashes without rebuilding. Explicit
+execution additionally requires public source and a pre-existing `npm-release`
+environment with actual required reviewers; then only its environment-gated
+publishing job receives `id-token: write`. No provider settings or registry state
+are configured by installing this workflow. Receipts preserve uncertain/confirmed
+progress for 14 days, not permanent backup or verified registry-installed health.
+
+The narrow permission exception binds the entire reviewed parsed workflow,
+pathname/job/permission. Mutation regressions reject changed conditions, inputs,
+environment, checkout, steps, foreign filenames and broader authority. Failed,
+stale/foreign and expired/wrong/extra provider artifacts are rejected; a wait timer
+does not satisfy reviewer protection. The collector accepted freshly read actual
+metadata for preparation run 38173047836 and artifact 11714732515; this is metadata
+validation, not execution from a matching new checkout or hosted publication.
+
+Local `check` passed 210 tests / 2,939 assertions, quality/boundaries/builds,
+root/Svelte types, 122 documents / 491 relative links, installed SDK/classic and
+297 installed CLI checks. Focused CI/candidate tests passed six cases / 136
+assertions; file/permission signals passed 361 files. SDK API, database, version,
+dependencies and repository hygiene are unchanged. Ordinary CI selects private
+release checks for these workflow/helper edits while mixed SDK changes retain
+their broader gates. Hosted preparation/preview execution from this new source,
+owner policy approval/private reporting, visibility/destination and per-package
+trusted publishers remain separate gates; no actual `--execute` run was performed.

@@ -1,8 +1,8 @@
 # Release
 
-Status: artifact preparation and guarded publication tooling implemented; the
-publishing workflow, registry authority and hosted application deployment remain
-unconfigured. Preparation and preview do not establish a published release.
+Status: artifact preparation, guarded publication tooling and a manual publishing
+workflow implemented; protected environment, registry authority and hosted application
+deployment remain unconfigured. Preparation and preview do not establish a published release.
 
 ## Hosted Candidate Preparation
 
@@ -101,8 +101,8 @@ The proposed Trusted Publisher settings are GitHub user `0disoft`, repository
 `banora`, the supplied workflow filename and optional environment, configured
 separately for each package. Direct `npm publish` permission must be enabled.
 `workflowFileExists` reports only local regular-file presence; it proves neither
-workflow behavior nor npm/GitHub permissions. No publishing workflow is currently
-installed. Existing npm packages do not authorize new Banora packages. Follow
+workflow behavior nor npm/GitHub permissions. The guarded manual publisher is
+described below. Existing npm packages do not authorize new Banora packages. Follow
 [npm's trusted publishing instructions](https://docs.npmjs.com/trusted-publishers/)
 for the actual package configuration, supported CLI and hosted runner.
 
@@ -142,14 +142,14 @@ publication path. It requires this public repository's manual main `publish.yml`
 job, `npm-release` environment, matching `GITHUB_SHA`, available OIDC context,
 no static npm token environment and a regular root SECURITY.md. These process
 checks do not replace actual npm/GitHub authorization or a verified private
-reporting channel. npm 11.5.1 or later within major 11 is required. A future
-workflow must provide `BANORA_REPOSITORY_PUBLIC=true` and
-`BANORA_PUBLISH_ENVIRONMENT=npm-release` only in its gated publishing job.
+reporting channel. npm 11.5.1 or later within major 11 is required. The reviewed
+workflow provides `BANORA_REPOSITORY_PUBLIC=true` and
+`BANORA_PUBLISH_ENVIRONMENT=npm-release` in its gated publishing job.
 
 The publishing job's commit must equal the reviewed candidate's source, so
 provenance cannot describe a different checkout. If main has advanced, prepare
 and review a new candidate before approval; never silently rebuild an approved
-candidate during publication. No publishing workflow is installed yet.
+candidate during publication.
 
 Execution exclusively restages the verified bundle, preserves all original
 manifest fields/inventories and uses empty isolated npm configuration with static
@@ -170,6 +170,67 @@ and the attempted name/version. Do not blindly retry: inspect registry state and
 retain the reviewed bytes. A later approved run may resume confirmed matching
 versions. Fresh registry-installed consumers and actual previous-version rollback
 remain separate required evidence after publication.
+
+### Manual Workflow and Approval Boundary
+
+The [publish workflow](../../.github/workflows/publish.yml) accepts a preparation
+run ID, source commit, manifest SHA-256, channel and an `execute` boolean that
+defaults to false. Inputs enter quoted arguments through environment values;
+they are not interpolated into shell source. Only this repository's main checkout
+is eligible. Global publication concurrency queues runs without cancelling a
+possibly partial upload.
+
+The read-only preview job checks that the selected run completed successfully
+through `prepare-release.yml`, on the same main commit and repository, with
+exactly one unexpired candidate matching its run attempt. Provider reads have
+bounded deadlines/output; the compressed artifact is limited to 128 MiB.
+It downloads that immutable artifact ID with `actions: read`, runs the local
+permission policy and verifies the entire bundle plus the reviewed manifest hash.
+No rebuilding, registry request or OIDC permission is used in this job. The
+Actions archive digest is metadata; the reviewed manifest and every file hash
+are the independent byte-binding checks.
+
+For `execute=true`, preflight additionally refuses private source and an absent
+or unprotected `npm-release` environment. A real configured required reviewer
+must be present in the read-only environment API response. A solo maintainer can
+review their own dispatch when their environment permits it; this does not invent
+a second operator. Create/configure this environment deliberately before execution,
+and review GitHub's actual protection UI. The tool does not configure it or treat
+a wait timer as approval. See [environment protection](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
+and [environment API](https://docs.github.com/en/rest/deployments/environments#get-an-environment).
+
+Only the subsequent environment-gated publishing job requests `id-token: write`.
+It downloads the same candidate ID, runs the file/permission gate and executes
+the guarded publisher with the same source/hash/channel. Checkout credentials
+remain disabled and no static npm secret or broad write token is configured.
+The JSON receipt is retained for 14 days even after an uncertain upload. Missing
+receipts or failed post-checks are failures, not a release success.
+
+The sole OIDC exception in `scripts/security.ts` binds the exact parsed workflow
+SHA-256, pathname, job and permission. Any parsed workflow edit, including extra
+steps, changed inputs, environment or trigger/conditions, fails closed until that
+whole policy is intentionally reviewed again. This local drift check is not a
+signature or a grant of provider authority. Other workflow write permissions
+and secret injection remain rejected. Current major-range action versions are
+retained; compatible upstream updates do not require YAML changes.
+
+After committing the publisher workflow, prepare and review a candidate at that
+same remote main SHA. Dispatch the read-only route with the reviewed values:
+
+```sh
+gh workflow run publish.yml --ref main \
+  -f prepare_run_id=PREPARATION_RUN_ID \
+  -f source_commit=REVIEWED_FULL_SHA \
+  -f manifest_sha256=REVIEWED_MANIFEST_SHA256 \
+  -f tag=dev -F execute=false
+```
+
+Placeholders above are operator-supplied receipts, not generated credentials or
+an approval. Inspect the terminal preview result before an explicitly authorized
+`execute=true` dispatch and subsequent environment review. Preview success does
+not test trusted-publisher settings, npm uploads, fresh registry-installed
+consumers or live rollback. First publication and destination decisions remain
+the owner's external handoff below.
 
 ### Owner Decisions
 
@@ -195,8 +256,9 @@ not allow reusing a published name/version, as documented by
 
 A demo host is not selected. Its operator must stage the retained examples and
 matching browser SDK, check asset paths and open/edit/export/reopen, then switch its
-own deployment pointer only after verification. No command here publishes packages,
-uploads files, changes registry tags or migrates user data. Actual remote health,
+own deployment pointer only after verification. Preparation, offline preview and
+restore do not publish packages, change registry tags or migrate user data.
+Explicit publication has the separate gates above. Actual remote health,
 rollback and access remain prerequisites for a future deployment task.
 
 ## October 12: Executed Access Preflight
@@ -231,7 +293,9 @@ source and workflow/artifact deployment to be configured; see
 For subsequent npm automation, prefer a package-configured trusted publisher
 with short-lived OIDC authority after account/package ownership is established;
 see [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
-Neither provider configuration nor extra CI write authority has been applied.
+At that preflight, neither provider configuration nor extra CI write authority
+had been applied. The subsequently installed manual workflow has the strictly
+scoped OIDC permission described above; its external provider setup is still pending.
 
 ### Owner Package Inventory and Existing OIDC Workflow
 

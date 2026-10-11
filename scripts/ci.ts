@@ -79,7 +79,9 @@ export function planChecks(paths: readonly string[] | null): CheckPlan {
       starter = true;
     } else if (path === 'scripts/packed-adapters.ts') {
       adapters = true;
-    } else if (path === '.github/workflows/prepare-release.yml') {
+    } else if (
+      ['.github/workflows/prepare-release.yml', '.github/workflows/publish.yml'].includes(path)
+    ) {
       // Manual-only orchestration; source/runtime changes in the same diff still select their gates.
     } else if (path === 'scripts/build-adapters.ts' || path.startsWith('.github/workflows/')) {
       adapters = true;
@@ -94,7 +96,7 @@ export function planChecks(paths: readonly string[] | null): CheckPlan {
       if (match) browser.add(match[1]);
       else if (path.startsWith('packages/sdk/src/katago')) browser.add('--analysis-only');
       else if (
-        /^(scripts\/(ci|security|repository-policy|development|operations|performance|release|publication|publication-plan)(\.test)?\.ts|config\/|\.github\/dependabot\.yml)/.test(
+        /^(scripts\/(ci|security|repository-policy|development|operations|performance|release|publication|publication-plan|publication-candidate)(\.test)?\.ts|config\/|\.github\/dependabot\.yml)/.test(
           path,
         )
       ) {

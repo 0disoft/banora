@@ -1,6 +1,13 @@
 import { readFile, lstat, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+
+// Deliberate, whole-workflow review binding for the sole OIDC permission exception.
+// Any parsed change (including extra steps/conditions/inputs) requires this policy to be reviewed again.
+// This is a local drift gate, not a signature, environment protection or npm publishing authority.
+const reviewedPublicationWorkflow =
+  'ae668dc420ea47806f63f6a52d4abea5c6fb68c93a51a60f97b07f3676579ad5';
 
 /** Signal-only gate: never print credential material or surrounding content. */
 export function secretSignals(path: string, text: string): string[] {
@@ -22,10 +29,16 @@ export function secretSignals(path: string, text: string): string[] {
     signals.push('literal registry credential');
   return signals;
 }
-export function workflowSignals(input: unknown): string[] {
+export function workflowSignals(input: unknown, path = ''): string[] {
   const workflow = input as Record<string, unknown>;
   if (!workflow || typeof workflow !== 'object') return ['invalid workflow'];
   const signals: string[] = [];
+  const publication = path === '.github/workflows/publish.yml';
+  const reviewed =
+    publication &&
+    createHash('sha256').update(JSON.stringify(workflow)).digest('hex') ===
+      reviewedPublicationWorkflow;
+  if (publication && !reviewed) signals.push('publication workflow differs from reviewed policy');
   if (/\$\{\{\s*secrets\./.test(JSON.stringify(workflow)))
     signals.push('secret injection requires a reviewed workflow policy change');
   const event = workflow.on;
@@ -35,15 +48,16 @@ export function workflowSignals(input: unknown): string[] {
     (event && typeof event === 'object' && Object.hasOwn(event, 'pull_request_target'))
   )
     signals.push('privileged pull_request_target trigger');
-  const permissions = (value: unknown) => {
+  const permissions = (value: unknown, jobId?: string) => {
     if (value === undefined) return;
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       signals.push('unbounded workflow permissions');
       return;
     }
-    for (const access of Object.values(value))
+    for (const [permission, access] of Object.entries(value))
       if (access !== 'read' && access !== 'none')
-        signals.push('write workflow permission requires a reviewed policy change');
+        if (!(reviewed && jobId === 'publish' && permission === 'id-token' && access === 'write'))
+          signals.push('write workflow permission requires a reviewed policy change');
   };
   if (!Object.hasOwn(workflow, 'permissions'))
     signals.push('explicit workflow permissions required');
@@ -54,8 +68,8 @@ export function workflowSignals(input: unknown): string[] {
         { permissions?: unknown; steps?: { uses?: string; with?: Record<string, unknown> }[] }
       >
     | undefined;
-  for (const job of Object.values(jobs ?? {})) {
-    permissions(job.permissions);
+  for (const [jobId, job] of Object.entries(jobs ?? {})) {
+    permissions(job.permissions, jobId);
     for (const step of job.steps ?? []) {
       if (
         step.uses?.startsWith('actions/checkout@') &&
@@ -110,7 +124,7 @@ if (import.meta.main) {
       console.error(`.github/workflows/${file}: invalid YAML; content redacted`);
       continue;
     }
-    for (const signal of workflowSignals(parsed)) {
+    for (const signal of workflowSignals(parsed, `.github/workflows/${file}`)) {
       failures++;
       console.error(`.github/workflows/${file}: ${signal}`);
     }

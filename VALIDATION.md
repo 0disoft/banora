@@ -129,6 +129,16 @@ late-package conflicts, registry failure and uncertain partial-upload stop/recei
 Simulation does not establish live npm publication or permission. The separate
 actual SDK tarball npm `--dry-run` checked its name/version/SHA-512 without upload.
 
+The manual `.github/workflows/publish.yml` defaults to read-only preview of a
+successful matching preparation run's immutable artifact ID. Candidate regressions
+reject stale/foreign/failed runs, expired/wrong/extra artifacts and missing real
+reviewer protection for explicit execution. Workflow mutations reject altered
+inputs, conditions, environment, checkout, steps or authority under the exact
+reviewed parsed-workflow policy binding. Only the named publishing job's OIDC
+permission is exempted; other write permissions and secret injection remain denied.
+Static/local evidence does not prove hosted download, environment approval or npm
+authority. Executed hosted results belong to the release preparation evidence.
+
 The manual-only `.github/workflows/prepare-release.yml` runs the full nine-gate
 preparation on the dispatched main commit and retains its verified directory for
 14 days. CI planner regressions preserve read-only authority and narrow ordinary

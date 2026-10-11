@@ -1,0 +1,135 @@
+name: Publish reviewed candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      prepare_run_id:
+        description: Successful preparation run ID
+        required: true
+        type: string
+      source_commit:
+        description: Reviewed full source commit (must equal this main checkout)
+        required: true
+        type: string
+      manifest_sha256:
+        description: Reviewed manifest SHA-256
+        required: true
+        type: string
+      tag:
+        description: Reviewed npm channel
+        required: true
+        default: dev
+        type: string
+      execute:
+        description: Publish the reviewed bytes after environment approval
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: banora-npm-publication
+  cancel-in-progress: false
+
+env:
+  BANORA_PREPARE_RUN_ID: ${{ inputs.prepare_run_id }}
+  BANORA_APPROVED_SOURCE: ${{ inputs.source_commit }}
+  BANORA_APPROVED_MANIFEST: ${{ inputs.manifest_sha256 }}
+  BANORA_APPROVED_TAG: ${{ inputs.tag }}
+  BANORA_EXECUTE: ${{ inputs.execute }}
+  BANORA_REPOSITORY_PUBLIC: ${{ github.event.repository.private == false }}
+
+jobs:
+  preview:
+    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      artifact_id: ${{ steps.candidate.outputs.artifact_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+      - name: Validate successful preparation and source
+        id: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bun scripts/publication-candidate.ts
+      - name: Download the immutable candidate
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ steps.candidate.outputs.artifact_id }}
+          path: .artifacts/publication
+          github-token: ${{ github.token }}
+          repository: 0disoft/banora
+          run-id: ${{ inputs.prepare_run_id }}
+      - name: Verify reviewed bytes and preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun run security:files
+          bun scripts/release.ts publish \
+            --bundle .artifacts/publication \
+            --manifest-sha256 "$BANORA_APPROVED_MANIFEST" \
+            --source-commit "$BANORA_APPROVED_SOURCE" \
+            --tag "$BANORA_APPROVED_TAG"
+
+  publish:
+    needs: preview
+    if: inputs.execute == true && github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false
+    environment: npm-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      BANORA_REPOSITORY_PUBLIC: ${{ github.event.repository.private == false }}
+      BANORA_PUBLISH_ENVIRONMENT: npm-release
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: mise.toml
+          package-manager-cache: false
+      - name: Download the same approved candidate
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.preview.outputs.artifact_id }}
+          path: .artifacts/publication
+          github-token: ${{ github.token }}
+          repository: 0disoft/banora
+          run-id: ${{ inputs.prepare_run_id }}
+      - name: Publish exact tarballs and confirm registry state
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun run security:files
+          bun scripts/release.ts publish \
+            --bundle .artifacts/publication \
+            --manifest-sha256 "$BANORA_APPROVED_MANIFEST" \
+            --source-commit "$BANORA_APPROVED_SOURCE" \
+            --tag "$BANORA_APPROVED_TAG" \
+            --execute > "$RUNNER_TEMP/banora-publication.json"
+      - name: Preserve confirmed or uncertain publication receipt
+        if: always() && steps.publish.outcome != 'skipped'
+        uses: actions/upload-artifact@v7
+        with:
+          name: banora-publication-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/banora-publication.json
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 14

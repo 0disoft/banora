@@ -77,7 +77,7 @@ the verified commit's release directory with a unique name and 14-day retention.
 It retains exact reviewed tarballs/examples without registry publication or OIDC
 authority. See [release](release.md) for receipts, retrieval and approval limits.
 
-Changes only to this orchestration, release helpers or their tests select root
+Changes only to this orchestration, manual publication, release helpers or their tests select root
 check and file/permission signals in ordinary CI, without rebuilding unchanged
 browser consumers. Mixed SDK/manifest changes still select their broader gates;
 other workflow changes still use the complete route. The explicit candidate run
@@ -85,12 +85,20 @@ executes all consumer/browser/security gates regardless of ordinary CI selection
 
 ## Permissions and Failures
 
-Workflow token permissions are explicitly `contents: read`; checkout does not
-persist credentials. No `pull_request_target`, write token, publish/deploy step,
-production environment or secret is available. `security:files` rejects high-signal
+Ordinary CI and preparation token permissions are explicitly `contents: read`;
+checkout does not persist credentials. No `pull_request_target`, write token,
+publish/deploy step, production environment or secret is available in those jobs.
+The separate manual [publication workflow](release.md#manual-workflow-and-approval-boundary)
+defaults to a read-only preview (`contents: read`, `actions: read`). Only its explicitly
+selected, public-source, environment-gated publishing job receives `id-token: write`.
+Its exact parsed workflow, pathname/job/permission are bound by the signal gate's
+reviewed policy hash; changes fail closed pending intentional whole-workflow review.
+This drift check does not configure required reviewers or grant npm authority.
+No static npm secrets, broad write token or automatic push publication is configured.
+`security:files` rejects high-signal
 credential/private-file patterns and dangerous workflow permission/trigger changes;
 new secret injection also requires an intentional policy review.
-it prints only paths/reasons. This is a limited signal gate, not a complete secret
+It prints only paths/reasons. This is a limited signal gate, not a complete secret
 or vulnerability scan. `security:deps` uses the registry audit and fails on high/
 critical advisories or unavailable service. Review other security risks separately.
 
