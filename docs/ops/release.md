@@ -1,7 +1,8 @@
 # Release
 
-Status: local artifact preparation implemented; registry publication and hosted
-deployment are not configured or established by a successful preparation.
+Status: artifact preparation and guarded publication tooling implemented; the
+publishing workflow, registry authority and hosted application deployment remain
+unconfigured. Preparation and preview do not establish a published release.
 
 ## Hosted Candidate Preparation
 
@@ -124,6 +125,53 @@ prepared artifacts before a real publication. No automatic pruning deletes the
 last recovery copy. Restore procedures are in [rollback](rollback.md).
 
 ## Publication Handoff
+
+### Preview or Execute Reviewed Tarballs
+
+`bun run release publish --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag dev`
+defaults to an offline preview. It verifies the complete prepared bundle, binds
+its exact manifest hash and source to the supplied review values and computes
+each tarball's npm-compatible SHA-512 integrity. The existing publication plan
+uses explicit `./packages/*.tgz` arguments so npm reads local archives, as required
+by [npm's package-spec documentation](https://docs.npmjs.com/cli/v11/commands/npm-publish/).
+The preview runs no child commands, performs no registry requests and changes no
+files or settings. A matching hash is a byte binding, not owner approval.
+
+Only an explicitly authorized future invocation with `--execute` enters the
+publication path. It requires this public repository's manual main `publish.yml`
+job, `npm-release` environment, matching `GITHUB_SHA`, available OIDC context,
+no static npm token environment and a regular root SECURITY.md. These process
+checks do not replace actual npm/GitHub authorization or a verified private
+reporting channel. npm 11.5.1 or later within major 11 is required. A future
+workflow must provide `BANORA_REPOSITORY_PUBLIC=true` and
+`BANORA_PUBLISH_ENVIRONMENT=npm-release` only in its gated publishing job.
+
+The publishing job's commit must equal the reviewed candidate's source, so
+provenance cannot describe a different checkout. If main has advanced, prepare
+and review a new candidate before approval; never silently rebuild an approved
+candidate during publication. No publishing workflow is installed yet.
+
+Execution exclusively restages the verified bundle, preserves all original
+manifest fields/inventories and uses empty isolated npm configuration with static
+token/config environment overrides removed. No package lifecycle scripts run.
+Before the first upload it checks all five existing public package identities,
+versions, SHA-512 values and the selected channel. Establish each new registry
+identity and trusted publisher separately: any metadata failure, including 404,
+stops rather than being interpreted as availability or authority. Matching already
+published versions may resume only when both bytes and the selected channel match;
+conflicting bytes or channel selection stop without upload or automatic retagging.
+
+It then uploads SDK before CLI/adapters, without rebuilding, and checks each
+registry version/integrity/channel before continuing. Commands use argument arrays
+and fixed public registry selection, with bounded deadlines/output and no raw
+child logs in receipts. Any failed/timed-out upload or inconclusive post-check stops
+later packages as `publication-uncertain`, returning confirmed package progress
+and the attempted name/version. Do not blindly retry: inspect registry state and
+retain the reviewed bytes. A later approved run may resume confirmed matching
+versions. Fresh registry-installed consumers and actual previous-version rollback
+remain separate required evidence after publication.
+
+### Owner Decisions
 
 Before any publication, identify the primary maintainer, account/artifact recovery
 procedure and a real private

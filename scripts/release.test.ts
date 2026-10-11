@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
@@ -13,6 +14,8 @@ import {
 import type { ReleaseManifest } from './release-artifacts.js';
 import { releaseSource, runReleaseCheck } from './release.js';
 import { publicationOptions, publicationPlan } from './publication-plan.js';
+import { parsePublicationRequest, publishRelease, PublicationError } from './publication.js';
+import type { PublicationIO } from './publication.js';
 
 async function fixture(prepared = false) {
   await mkdir('.tmp', { recursive: true });
@@ -50,6 +53,195 @@ async function fixture(prepared = false) {
   await writeFile(resolve(bundle, 'manifest.json'), JSON.stringify(manifest));
   return { root, bundle, manifest };
 }
+
+async function publisherFixture() {
+  const value = await fixture(true);
+  // File-presence fixture only, in an isolated test root; never the repository policy.
+  await writeFile(resolve(value.root, 'SECURITY.md'), 'Authored isolated policy gate fixture.\n');
+  const request = {
+    bundle: value.bundle,
+    sourceCommit: value.manifest.source.commit,
+    manifestSha256: createHash('sha256')
+      .update(await readFile(resolve(value.bundle, 'manifest.json')))
+      .digest('hex'),
+    tag: 'dev',
+    execute: true,
+  };
+  const preview = await publishRelease(value.root, { ...request, execute: false });
+  if (preview.operation !== 'preview') throw Error('Expected preview fixture');
+  const packages = preview.packages;
+  const published = new Set<string>();
+  const calls: { argv: readonly string[]; cwd: string }[] = [];
+  const io: PublicationIO = {
+    context: {
+      githubActions: true,
+      repository: '0disoft/banora',
+      ref: 'refs/heads/main',
+      event: 'workflow_dispatch',
+      workflowRef: '0disoft/banora/.github/workflows/publish.yml@refs/heads/main',
+      sourceCommit: request.sourceCommit,
+      publicRepository: true,
+      environment: 'npm-release',
+      oidcAvailable: true,
+      staticTokenPresent: false,
+    },
+    run(argv, cwd) {
+      calls.push({ argv, cwd });
+      if (argv[1] === '--version') return { status: 0, stdout: '11.21.0\n' };
+      if (argv[1] === 'publish') {
+        const item = packages.find((item) => './' + item.archive === argv[2])!;
+        published.add(item.name);
+        return { status: 0, stdout: '' };
+      }
+      if (argv[3] === 'dist.integrity') {
+        const item = packages.find((item) => `${item.name}@${item.version}` === argv[2])!;
+        return { status: 0, stdout: JSON.stringify(item.registryIntegrity) };
+      }
+      const item = packages.find((item) => item.name === argv[2])!;
+      return {
+        status: 0,
+        stdout: JSON.stringify({
+          name: item.name,
+          versions: published.has(item.name) ? ['0.0.0-stage', item.version] : ['0.0.0-stage'],
+          'dist-tags': { dev: published.has(item.name) ? item.version : '0.0.0-stage' },
+        }),
+      };
+    },
+  };
+  return { ...value, request, io, calls, packages, published };
+}
+
+test('actual publication preview binds reviewed source/hash without commands or mutations and uses explicit local tarball paths', async () => {
+  const { root, bundle, request, io, calls } = await publisherFixture();
+  const original = await readFile(resolve(bundle, 'manifest.json'));
+  const preview = await publishRelease(root, { ...request, execute: false }, io);
+  if (preview.operation !== 'preview') throw Error('Expected offline preview');
+  expect(preview.operation).toBe('preview');
+  expect(calls).toEqual([]);
+  expect(preview.packages[0]!.publishArgv[2]).toBe('./packages/sdk.tgz');
+  const processResult = Bun.spawnSync(
+    [
+      process.execPath,
+      'scripts/release.ts',
+      'publish',
+      '--bundle',
+      bundle,
+      '--manifest-sha256',
+      request.manifestSha256,
+      '--source-commit',
+      request.sourceCommit,
+      '--tag',
+      'dev',
+    ],
+    { stdout: 'pipe', stderr: 'pipe', timeout: 5000 },
+  );
+  expect(processResult.exitCode).toBe(0);
+  expect(JSON.parse(processResult.stdout.toString()).publication.operation).toBe('preview');
+  expect(processResult.stderr.toString()).toBe('');
+  await expect(
+    publishRelease(root, { ...request, sourceCommit: 'c'.repeat(40) }, io),
+  ).rejects.toThrow('integrity');
+  await expect(
+    publishRelease(root, { ...request, manifestSha256: 'c'.repeat(64) }, io),
+  ).rejects.toThrow('integrity');
+  expect(calls).toEqual([]);
+  expect(await readFile(resolve(bundle, 'manifest.json'))).toEqual(original);
+  expect(() => parsePublicationRequest(['--bundle', bundle, '--execute', '--execute'])).toThrow(
+    'usage',
+  );
+});
+
+test('simulated registry execution checks all versions before writes, resumes matching versions and preserves original bytes', async () => {
+  const { root, bundle, request, io, calls, packages, published } = await publisherFixture();
+  published.add(packages[0]!.name);
+  const original = await readFile(resolve(bundle, 'packages/sdk.tgz'));
+  const result = await publishRelease(root, request, io);
+  if (result.operation !== 'published') throw Error('Expected simulated completion');
+  expect(result.operation).toBe('published');
+  expect(result.packages[0]!.state).toBe('already-published');
+  const writes = calls.filter((item) => item.argv[1] === 'publish');
+  expect(writes.map((item) => item.argv[2])).toEqual(
+    packages.slice(1).map((item) => './' + item.archive),
+  );
+  expect([
+    ...new Set(
+      calls
+        .slice(0, calls.indexOf(writes[0]!))
+        .filter((item) => item.argv[3] === 'name')
+        .map((item) => item.argv[2]),
+    ),
+  ]).toEqual(packages.map((item) => item.name));
+  expect(
+    writes.every((item) => item.argv.includes('--ignore-scripts') && item.cwd !== bundle),
+  ).toBe(true);
+  expect(await readFile(resolve(bundle, 'packages/sdk.tgz'))).toEqual(original);
+  expect(await readFile(resolve(writes[0]!.cwd, 'packages/sdk.tgz'))).toEqual(original);
+  expect((await verifyRelease(writes[0]!.cwd)).manifest.source.commit).toBe(request.sourceCommit);
+});
+
+test('authority, registry errors and mismatched existing bytes stop simulated publication before any upload', async () => {
+  const { root, request, io, calls, packages, published } = await publisherFixture();
+  await expect(
+    publishRelease(root, request, { ...io, context: { ...io.context, publicRepository: false } }),
+  ).rejects.toThrow('authority');
+  expect(calls).toEqual([]);
+  for (const failure of ['registry', 'version-conflict', 'channel-conflict'] as const) {
+    published.clear();
+    calls.length = 0;
+    if (failure !== 'registry') published.add(packages[2]!.name);
+    const broken: PublicationIO = {
+      ...io,
+      run(argv, cwd) {
+        if (argv[1] === 'view' && failure === 'registry')
+          return { status: 1, stdout: 'Authored private backend detail' };
+        if (argv[3] === 'dist.integrity' && failure === 'version-conflict')
+          return { status: 0, stdout: JSON.stringify('sha512-conflicting-bytes') };
+        const result = io.run(argv, cwd);
+        if (argv[3] === 'name' && argv[2] === packages[2]!.name && failure === 'channel-conflict') {
+          const value = JSON.parse(result.stdout);
+          value['dist-tags'].dev = '0.0.0-stage';
+          return { status: 0, stdout: JSON.stringify(value) };
+        }
+        return result;
+      },
+    };
+    try {
+      await publishRelease(root, request, broken);
+      throw Error('Expected rejection');
+    } catch (error) {
+      expect(error).toBeInstanceOf(PublicationError);
+      expect((error as PublicationError).code).toBe(failure);
+      expect((error as Error).message).not.toContain('Authored private backend detail');
+    }
+    expect(calls.some((item) => item.argv[1] === 'publish')).toBe(false);
+  }
+});
+
+test('an uncertain simulated upload stops subsequent packages and reports confirmed progress without retry', async () => {
+  const { root, request, io, calls, packages } = await publisherFixture();
+  const failing: PublicationIO = {
+    ...io,
+    run(argv, cwd) {
+      const result = io.run(argv, cwd);
+      return argv[1] === 'publish' && argv[2] === './packages/cli.tgz'
+        ? { status: null, stdout: '' }
+        : result;
+    },
+  };
+  let failure: PublicationError | undefined;
+  try {
+    await publishRelease(root, request, failing);
+  } catch (error) {
+    if (error instanceof PublicationError) failure = error;
+    else throw error;
+  }
+  expect(failure?.code).toBe('publication-uncertain');
+  expect(failure?.completed).toEqual([
+    { name: packages[0]!.name, version: packages[0]!.version, state: 'published' },
+  ]);
+  expect(failure?.attempted).toEqual({ name: packages[1]!.name, version: packages[1]!.version });
+  expect(calls.filter((item) => item.argv[1] === 'publish')).toHaveLength(2);
+});
 test('release schema rejects future, traversing, duplicate and incomplete evidence; candidate does not imply prepared', async () => {
   const { bundle, manifest } = await fixture();
   expect(isReleaseManifest(manifest)).toBe(true);

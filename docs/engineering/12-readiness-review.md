@@ -278,3 +278,28 @@ for immutable identifiers and coverage limits. Ordinary scoped CI also passed
 at ff9edb7 in 35s, correctly omitting unrelated extra browser/dependency gates.
 Both Dependabot ecosystem jobs were verified successful at fed716a with no needed
 updates; this does not establish an updated-lockfile PR or auto-merge.
+
+### October 12: Reviewed-Byte Publication Tooling
+
+The maintainer `release publish` command defaults to offline preview and requires
+an exact manifest SHA-256/source/channel binding. Existing plan tarball arguments
+were corrected to explicit `./` paths. The actual downloaded hosted SDK archive
+passed npm `publish --dry-run --ignore-scripts --provenance=false`; npm reported
+the expected current name/version and SHA-512 matching the preview. The dry run
+warned about unauthenticated registry access, as expected; it did not upload or
+test OIDC permission. Existing public-package metadata was read only to verify
+the npm multi-field JSON shape used by preflight.
+
+An explicit execution path now enforces the public manual main job/environment,
+reviewed source identity and policy-file presence, uses isolated reviewed bytes
+and npm configuration, prechecks every existing public identity/version, orders
+SDK first and preserves confirmed progress on uncertain upload. Twelve scoped
+release tests passed 109 assertions, including real preview processes and authored
+registry simulations. Those simulations are not a live publish or permission test.
+The publishing workflow and package-specific trusted publishers remain absent;
+no SDK API, package version, database or actual registry state was changed by this work.
+The complete local `check` also passed 207 tests / 2,868 assertions, quality,
+boundaries, builds, root/Svelte types, 122 documents / 489 relative links, installed
+SDK/classic declarations and 297 installed CLI checks. File/permission signals
+passed on 358 files. Browser suites were not repeated for private release-tool
+changes; the retained candidate's hosted browser evidence remains separately scoped.

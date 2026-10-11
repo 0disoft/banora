@@ -121,6 +121,14 @@ exercise the actual command with an empty executable search path, preserve bundl
 bytes and reject unprepared/legacy/damaged artifacts, unsafe options and prerelease
 promotion to `latest`. A workflow file's presence is not publication authority.
 
+`publish --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG` is
+offline preview unless explicitly passed `--execute` in the guarded public
+GitHub OIDC context. Release tests execute the actual preview process and exercise
+simulated registry preflight, matching-version resume, isolated byte preservation,
+late-package conflicts, registry failure and uncertain partial-upload stop/receipts.
+Simulation does not establish live npm publication or permission. The separate
+actual SDK tarball npm `--dry-run` checked its name/version/SHA-512 without upload.
+
 The manual-only `.github/workflows/prepare-release.yml` runs the full nine-gate
 preparation on the dispatched main commit and retains its verified directory for
 14 days. CI planner regressions preserve read-only authority and narrow ordinary

@@ -15,6 +15,7 @@ import {
 } from './release-artifacts.js';
 import type { ReleaseManifest } from './release-artifacts.js';
 import { publicationOptions, publicationPlan } from './publication-plan.js';
+import { parsePublicationRequest, publishRelease, PublicationError } from './publication.js';
 
 function git(root: string, args: string[]) {
   const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 5000 });
@@ -190,9 +191,10 @@ if (import.meta.main) {
           'verify --bundle DIR',
           'restore --bundle DIR',
           'publication-plan --bundle DIR --workflow FILE [--environment NAME] [--tag TAG]',
+          'publish --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG [--execute]',
         ],
         scope:
-          'Local immutable artifacts and isolated restaging. No registry publication, host deployment or data migration.',
+          'Local preparation and offline preview by default. Explicit publish --execute requires the reviewed public GitHub OIDC job context; no host deployment or data migration.',
       };
     else if (action === 'prepare' && !args.length) {
       const prepared = await prepareRelease(root);
@@ -205,6 +207,12 @@ if (import.meta.main) {
         files: prepared.manifest.files.length,
         checks: prepared.manifest.checks,
         reused: prepared.reused,
+      };
+    } else if (action === 'publish') {
+      result = {
+        schemaVersion: 'banora.release-command/v1',
+        ok: true,
+        publication: await publishRelease(root, parsePublicationRequest(args)),
       };
     } else if (action === 'publication-plan') {
       const parsed = publicationOptions(args);
@@ -239,7 +247,16 @@ if (import.meta.main) {
       JSON.stringify({
         schemaVersion: 'banora.release-command/v1',
         ok: false,
-        error: { code: error instanceof ReleaseError ? error.code : 'io' },
+        error: {
+          code:
+            error instanceof ReleaseError || error instanceof PublicationError ? error.code : 'io',
+          ...(error instanceof PublicationError
+            ? {
+                completed: error.completed,
+                ...(error.attempted ? { attempted: error.attempted } : {}),
+              }
+            : {}),
+        },
       }) + '\n',
     );
   }

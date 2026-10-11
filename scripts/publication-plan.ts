@@ -119,7 +119,7 @@ export async function publicationPlan(root: string, bundle: string, options: Pub
       publishArgv: [
         'npm',
         'publish',
-        item.archive,
+        `./${item.archive}`,
         '--ignore-scripts',
         '--access',
         'public',
