@@ -44,7 +44,9 @@ UNDECIDED and must not be claimed without consumer evidence.
 The complete production suite passed on Windows x64 Headless Chrome 154 and on
 hosted Ubuntu x64 Headless Chrome 155 (Bun 1.4.3/Node 24.21.0); the hosted run also
 executed packed adapter types/SSR and the independently installed starter browser
-flow. See [hosted execution evidence](../engineering/16-product-flow-audit.md).
+flow. The current default-main run at `fed716a` also passed that complete hosted
+scope; earlier private-PR execution remains historical evidence. See
+[hosted execution evidence](../engineering/16-product-flow-audit.md).
 
 Windows x64 Firefox 156 additionally passed the focused `--search-only`,
 `--tree-only` and `--accessibility-only` production routes. These cover collection/

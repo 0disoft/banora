@@ -135,6 +135,43 @@ dependency or repository-hygiene settings changed. Subsequent evidence-only
 documentation commits are held for the next validated push batch, avoiding a
 second full pull-request run for identical executable code.
 
+## October 12: Default-Main Hosted CI
+
+Following the user's direct-main workflow choice, the validated commit batch was
+pushed once from `64fdb5b` to `fed716ad65623c929c4af2b1d2ab505534eb7056`.
+The repository remains private. GitHub marked the existing draft PR #2 merged/
+closed because its commits are now included on main; no new branch/PR or separate
+merge command was used. The previous side branch was preserved.
+
+[Main run 38164778251](https://github.com/0disoft/banora/actions/runs/38164778251)
+completed successfully with one Ubuntu x64 validate job in 3m46s. Its actual
+logs identify Bun 1.4.3, Node 24.21.0 and Headless Chrome 155. Frozen setup/tool
+checks, source-based change planning, quality/boundaries/builds/root and Svelte
+types, 198 tests/2,770 assertions, packed SDK/classic and 297 installed CLI checks,
+354-file permission/private-file signals and the dependency audit (165 packages,
+no reported advisories) executed. React/Vue/Svelte installed types/SSR, the complete
+production browser suite and independently installed/built starter browser
+import/edit/download/reopen also passed. The monthly-only step was correctly
+skipped for this push, while both security commands ran in the ordinary code route.
+The terminal watcher and completed run/job metadata agree on success.
+
+The remote default-main `.github/dependabot.yml` blob
+`2100da9095a24aa75ba02b1faab50e283172db4d` matches the reviewed local source;
+its grouped monthly configuration is now on the default branch. No open bot
+update PR or successful update job was observed. This is not update-execution,
+branch-protection, security-report access or publication evidence. The retained
+release candidate still belongs to d1ee675; no registry/demo release, version bump,
+visibility change or live rollback occurred.
+
+Validation, compatibility, readiness and CI-operation owners record this newer
+main result; earlier PR evidence is retained as history. The evidence commit is
+held locally for the next validated batch rather than triggering another full CI
+for unchanged executable source. SDK/API, DB, dependencies, repository hygiene,
+runner and workflow definitions do not change in this increment. Ops-change and
+SDK procedures applied; documentation/format/whitespace checks cover the changed
+files. Local full suites were not repeated for evidence-only changes, and physical
+devices, publication/private reporting and actual bot updates remain unverified.
+
 ## October 12: WebKit and Keyboard Activation
 
 Windows x64 Playwright WebKit 26.6 installed through `browser:install` and passed

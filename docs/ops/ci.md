@@ -1,9 +1,19 @@
 # CI
 
-Status: workflow and local parity configured; hosted Linux execution passed at
-`b5d1d5e` in [CI run 38160771867](https://github.com/0disoft/banora/actions/runs/38160771867).
+Status: workflow and local parity configured; hosted Linux default-main execution passed at
+`fed716a` in [CI run 38164778251](https://github.com/0disoft/banora/actions/runs/38164778251).
 Branch-protection settings and dependency-update PR execution remain separate
 evidence requirements.
+
+The October 12 validated push batch put the current SDK/tooling and grouped monthly
+Dependabot configuration on the remote default branch. Its single Ubuntu CI job
+passed in 3m46s: frozen setup, 198 tests/2,770 assertions, 297 installed CLI checks,
+SDK/classic and native adapter types/SSR, file/dependency signals, complete Chrome
+155 browser smoke and the independently installed starter browser flow. The
+monthly-only step correctly skipped the push event; the ordinary code route
+executed both security commands. The default-main Dependabot blob was separately
+checked against local source, but no successful bot update is inferred from it.
+See [execution evidence](../engineering/16-product-flow-audit.md).
 
 ## One Job, Affected Checks
 
