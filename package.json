@@ -9,6 +9,7 @@
     "setup": "bun scripts/development.ts setup",
     "doctor": "bun scripts/development.ts doctor",
     "commands": "bun scripts/development.ts commands",
+    "ops": "bun scripts/operations.ts",
     "clean": "bun scripts/development.ts clean",
     "boundaries": "bun scripts/repository-policy.ts",
     "ci:plan": "bun scripts/ci.ts plan",

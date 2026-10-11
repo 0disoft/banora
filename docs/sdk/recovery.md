@@ -115,3 +115,14 @@ change only one field, preserving unrelated choices from another tab. Already-op
 tabs retain their session values until reload. Unavailable storage leaves settings
 usable in the session and starts unreadable autosave off. See
 [ADR 0018](../adr/0018-versioned-studio-preferences.md) for the field/ownership contract.
+
+## Operational Recovery Checks
+
+After repository setup/build, `bun run ops recovery-check --input backup.banora.json`
+accepts raw checkpoints or Studio backups and actually restores into an isolated
+controller, comparing working/baseline documents, selection, rules, dirty state and
+new-session history. It does not modify the input, access IndexedDB or emit authored
+data. `bun run ops drill-recovery` exercises the committed study and replacement/
+Undo guards. These repository tools are not published SDK exports or provenance/
+disk-durability verification. See the [backup procedure](../ops/backup-and-restore.md)
+and [ADR 0021](../adr/0021-isolated-operational-recovery-checks.md).

@@ -47,3 +47,6 @@ defines whole-record search and controller-owned atomic comment previews/applica
 
 The [diagnostics decision](0020-explicit-redacted-diagnostics.md) defines explicit
 bounded local operation evidence, safe failure policy and a closed support-report projection.
+
+The [operational recovery decision](0021-isolated-operational-recovery-checks.md)
+defines isolated backup validation/drills, safe reports and concrete local runbooks.

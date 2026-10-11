@@ -33,6 +33,7 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
     planChecks(['examples/studio/recovery-controls.ts', 'examples/ui-korean.ts']).browser,
   ).toEqual(['--locale-only', '--recovery-only']);
   expect(planChecks(['packages/vue/src/index.ts']).adapters).toBe(true);
+  expect(planChecks(['scripts/operations.ts', 'scripts/operations.test.ts']).browser).toEqual([]);
   expect(planChecks(['scripts/starter-scenario.js'])).toMatchObject({ starter: true, browser: [] });
   expect(planChecks(['scripts/packed-adapters.ts'])).toMatchObject({ adapters: true, browser: [] });
   expect(planChecks(['.github/workflows/ci.yml'])).toMatchObject({

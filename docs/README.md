@@ -65,7 +65,9 @@ documentation and contributor-facing examples use English.
 
 Remaining generic engineering/operations templates are scaffolds, not evidence of
 implemented infrastructure. The [operational contract](ops/00-operational-contract.md)
-can be filled when actual release or hosted-service responsibilities are defined.
+now owns executable local recovery, incident, configuration and private-data procedures.
+Release/rollback preparation and private reporting remain explicit readiness work;
+these procedures do not establish hosted-service infrastructure or publication.
 
 Diagrams are explanatory views of the documented architecture; see the
 [diagram index](../diagrams/README.md). Change the owning contract before updating

@@ -231,6 +231,13 @@ history context. Cancellation and stale-response rejection are required.
 
 ## Consumer Experience
 
+Repository operational checks validate checkpoints/Studio backups by actual isolated
+restoration and fixed content-free comparisons, never modifying source files or
+opening live browser storage. Authored recovery drills and concrete incident/config/
+secret/backup runbooks are described in the
+[operational contract](../ops/00-operational-contract.md). No hosted infrastructure,
+service SLA, remote release/rollback or disk-durability claim follows from these tools.
+
 Optional headless diagnostics provide explicit bounded operation evidence and
 safe failure/recovery identifiers. The automation SDK and optional terminal diagnose
 command execute canonical requests once on isolated state and return reviewed,

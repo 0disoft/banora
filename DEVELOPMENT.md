@@ -31,6 +31,13 @@ servers/builds, `bun run clean --apply` removes only the displayed allowlisted
 directories. It never removes source, `node_modules`, lockfiles or local SGF files.
 Linked artifact targets are refused before any deletion.
 
+After `bun run build`, use `bun run ops --help` for safe operational commands.
+`bun run ops recovery-check --input backup.banora.json` validates and actually
+restores a checkpoint/Studio backup in isolation, without changing the input,
+opening browser storage or emitting authored data. `bun run ops drill-recovery`
+rehearses guarded recovery/Undo on the committed study fixture. See the
+[operational contract](docs/ops/00-operational-contract.md) for scope and prerequisites.
+
 `bun run boundaries` validates classified SDK runtime dependency directions,
 public consumer imports and framework isolation. Files above 40 KB are reported
 as review candidates. Type-only/computed imports are not a source-scanner support
