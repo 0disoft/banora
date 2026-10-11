@@ -4,6 +4,7 @@ import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
 import type { RecordController } from './controller.js';
 import { displayCrop, normalizeBoardTransform } from './geometry.js';
 import { normalizeStoneTextures } from './stone-textures.js';
+import { selectStyles } from './select-style.js';
 
 export type ComparisonSide = 'left' | 'right';
 export type ComparisonBoardOptions = Pick<
@@ -65,6 +66,7 @@ export function mountComparison(
   const style = document.createElement('style');
   style.textContent = `.banora-comparison{font:15px system-ui;color:#173d31}.banora-comparison [data-panes]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.banora-comparison [data-pane]{min-width:0}.banora-comparison label{display:block;font-weight:600;margin-bottom:8px}.banora-comparison select{width:100%;font:inherit;color:inherit;padding:8px;border:1px solid #cfd9cb;border-radius:7px;background:#fff;margin:6px 0}.banora-comparison [data-notes]{font-size:13px;white-space:pre-wrap;margin:10px 0;overflow-wrap:anywhere}.banora-comparison [data-result]{line-height:1.6}.banora-comparison [data-limit]{font-size:13px;color:#687b69}@media(max-width:700px){.banora-comparison [data-panes]{grid-template-columns:1fr}}`;
   const summary = document.createElement('p');
+  style.textContent += selectStyles('.banora-comparison');
   summary.setAttribute('data-result', '');
   summary.setAttribute('role', 'status');
   const grid = document.createElement('div');

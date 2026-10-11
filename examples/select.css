@@ -1,0 +1,23 @@
+/* Native single-select controls retain their keyboard and touch behavior. */
+select:not([multiple]):not([size]),
+select[size='1']:not([multiple]) {
+  appearance: none;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding-inline-end: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23738078' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+}
+select:not([multiple]):not([size]):dir(rtl),
+select[size='1']:not([multiple]):dir(rtl) {
+  background-position: left 12px center;
+}
+@media (forced-colors: active) {
+  select:not([multiple]):not([size]),
+  select[size='1']:not([multiple]) {
+    appearance: auto;
+    background-image: none;
+  }
+}

@@ -9,6 +9,7 @@ import type { SgfNode } from './sgf.js';
 import { mountPlaybackControls } from './playback-controls.js';
 import { normalizePlaybackInterval } from './playback.js';
 import type { PlaybackOptions, RecordPlayback } from './playback.js';
+import { selectStyles } from './select-style.js';
 
 export interface ViewerOptions extends LocaleOptions {
   readonly controller?: RecordController;
@@ -28,7 +29,7 @@ export interface ViewerView {
   dispose(): void;
 }
 
-const stylesheet = `
+const stylesheet = `${selectStyles('.banora-viewer')}
 .banora-viewer{font:15px system-ui;color:var(--banora-text,#294738);background:var(--banora-surface,#fafbf5);border:1px solid #d9e1d4;border-radius:12px;padding:18px;box-sizing:border-box;max-width:100%;min-width:0}
 .banora-viewer header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.banora-viewer h2{font-size:17px;margin:0}.banora-viewer button,.banora-viewer select{font:inherit;color:inherit;border:1px solid #cfd9cb;background:#fff;border-radius:7px;padding:8px 11px;cursor:pointer}.banora-viewer button:disabled{opacity:.4;cursor:default}.banora-viewer button:focus-visible,.banora-viewer select:focus-visible,.banora-viewer textarea:focus-visible{outline:3px solid #589474;outline-offset:3px}
 .banora-viewer nav{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:7px;margin-top:14px}.banora-viewer [data-summary]{font-size:13px;text-align:center;margin:12px 0}.banora-viewer [data-tree]{max-height:220px;overflow:auto;display:grid;gap:3px;margin-top:10px}.banora-viewer [data-tree] button{display:flex;align-items:center;gap:8px;text-align:left;width:100%;border:0;background:transparent}.banora-viewer [data-tree] button[aria-current=true]{background:#e3efdf;font-weight:600}.banora-viewer .banora-comment-indicator{display:inline-flex;flex:none;margin-left:auto;opacity:.8}.banora-viewer details{margin-top:16px}.banora-viewer summary{cursor:pointer}.banora-viewer [data-notes]{display:block;margin-top:16px}.banora-viewer textarea{display:block;width:100%;min-height:100px;box-sizing:border-box;resize:vertical;font:inherit;line-height:1.6;border:1px solid #d2dccd;border-radius:8px;margin-top:7px;padding:10px;background:#fff;color:inherit}.banora-viewer [data-status]{font-size:13px;color:#687b69;margin:12px 0 0}.banora-viewer [hidden]{display:none!important}

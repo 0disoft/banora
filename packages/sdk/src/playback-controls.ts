@@ -3,6 +3,7 @@ import type { LocaleOptions } from './locale.js';
 import { createRecordPlayback } from './playback.js';
 import type { PlaybackOptions, RecordPlayback } from './playback.js';
 import type { RecordController, CommandResult } from './controller.js';
+import { selectStyles } from './select-style.js';
 
 export interface PlaybackControlsOptions extends PlaybackOptions, LocaleOptions {
   readonly controller: RecordController;
@@ -44,7 +45,9 @@ export function mountPlaybackControls(
     interval.append(option);
   }
   label.append(interval);
-  root.append(toggle, label);
+  const style = document.createElement('style');
+  style.textContent = selectStyles('.banora-record-playback');
+  root.append(style, toggle, label);
   container.append(root);
   function render() {
     const state = playback.getState();

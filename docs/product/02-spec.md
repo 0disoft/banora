@@ -56,6 +56,11 @@ browser's root font preference, with a one-pixel addition rather than proportion
 page scaling. SVG coordinates, stone numbers and diagram labels retain their
 board-space sizing so they continue to scale with the board.
 
+Single-select dropdowns in Studio, shared widgets and examples place their chevron
+12px inside the trailing edge and reserve 32px of trailing padding for the label.
+They remain native controls, with system appearance restored in forced-colors mode.
+SDK styles are scoped to owned widgets; host dropdowns and listboxes are unaffected.
+
 Studio control separators leave clearance on both sides: 16px on desktop and
 14px on narrow screens. Board, playback and workspace boundaries add the missing
 clearance before their separator; consecutive control rows use their existing
