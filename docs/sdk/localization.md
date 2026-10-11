@@ -38,3 +38,18 @@ CLI machine output and protocol/error diagnostics retain their original content.
 Localization changes presentation only; no record rewrite or remote translation
 service is used. Puzzle and analysis widgets currently have their existing English
 labels and are outside the built-in Viewer language bundle.
+
+## Studio Language Selection
+
+Studio detects Korean browser language on first load, otherwise English. Its header
+selector switches between English and Korean without reloading or editing the
+record. An explicit selection is stored under `banora.studio.locale`; unavailable
+storage falls back to session-only selection. `html.lang` and the document title
+follow the selection. Authored SGF fields always retain their source language.
+
+Studio's tools, navigation, variations, touch controls, file/unsaved-change dialogs,
+texture controls, sharing and manual scoring use example-owned catalogs. Static
+labels bind before authored data is populated; dynamic UI setters explicitly mark
+UI text. No global DOM observer or heuristic translation of user data is used.
+Underlying protocol/diagnostic details and rule IDs remain English/stable, and
+linked puzzle/analysis consumer pages and the comparison widget retain their current English UI.

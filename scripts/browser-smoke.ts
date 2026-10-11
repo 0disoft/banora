@@ -151,6 +151,16 @@ async function controlledConsumers(): Promise<void> {
       );
   }
 }
+async function localeSmoke(): Promise<void> {
+  await scenario('locale', 'banora-locale-complete');
+  const sgf = await readFile(resolve(output, 'localized-preserved.sgf'), 'utf8');
+  if (
+    !sgf.includes('Authored English <tag> note') ||
+    !sgf.includes('GN[Opening study]') ||
+    !sgf.includes('PB[Black]')
+  )
+    throw Error('Localized export changed authored content');
+}
 async function playbackSmoke(): Promise<void> {
   await scenario('playback', 'banora-playback-complete: studio viewer react vue svelte browser');
   const sgf = await readFile(resolve(output, 'playback-preserved.sgf'), 'utf8');
@@ -167,8 +177,13 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
+  // Pin English for existing role-based fixtures; Studio itself follows host preferences.
+  await cli(
+    'run-code',
+    'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
+  );
   if (process.argv.includes('--locale-only')) {
-    await scenario('locale', 'banora-locale-complete');
+    await localeSmoke();
     console.log('Focused UI localization smoke passed.');
   } else if (process.argv.includes('--playback-only')) {
     await playbackSmoke();
@@ -220,6 +235,7 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await localeSmoke();
     await playbackSmoke();
     await scenario('controlled', 'banora-controlled-complete');
     await controlledConsumers();

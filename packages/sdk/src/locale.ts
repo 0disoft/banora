@@ -43,8 +43,8 @@ const english = {
   boardPoint: '{coordinate}. {stone}.',
   boardState:
     'Move {moveNumber}. {toPlay} to play. Black captures {blackCaptures}, white captures {whiteCaptures}.',
-  confirm: 'Confirm',
-  cancel: 'Cancel',
+  confirm: 'Confirm placement at {coordinate}',
+  cancel: 'Cancel placement',
 } as const;
 export type UiMessages = { readonly [Key in keyof typeof english]: string };
 export interface LocaleOptions {
@@ -92,8 +92,8 @@ const korean: UiMessages = {
     '바둑판. 방향키로 커서를 이동하고 Enter로 교차점을 선택합니다. Page Up과 Page Down으로 수를 이동합니다.',
   boardPoint: '{coordinate}. {stone}.',
   boardState: '{moveNumber}수. {toPlay} 차례. 잡은 돌 흑 {blackCaptures}, 백 {whiteCaptures}.',
-  confirm: '확인',
-  cancel: '취소',
+  confirm: '{coordinate}에 착수 확인',
+  cancel: '착수 취소',
 };
 /** Explicit and DOM-free: SDK defaults never depend on browser or machine language. */
 export function createUiMessages(options: LocaleOptions = {}): UiMessages {

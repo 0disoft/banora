@@ -1,3 +1,4 @@
+import { localizeUi, setUiText } from './ui-language.js';
 import {
   RecordController,
   createSgfNode,
@@ -31,6 +32,7 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
       <div class="score-layout"><div id="score-board"></div><table id="score-breakdown"><caption>Score components</caption><thead><tr><th>Component</th><th>Black</th><th>White</th></tr></thead><tbody></tbody></table></div>
       <p class="small muted">This counting preset does not change live move rules. Scoring marks are temporary and are not written to SGF.</p></section>`;
   container.append(root);
+  const disposeLanguage = localizeUi(root);
   const abort = new AbortController();
   const find = <T extends HTMLElement>(id: string) => root.querySelector<T>(`#${id}`)!;
   const preset = find<HTMLSelectElement>('score-profile'),
@@ -40,7 +42,7 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
   for (const profile of Object.values(RULE_PROFILES)) {
     const option = document.createElement('option');
     option.value = profile.id;
-    option.textContent = profile.label;
+    setUiText(option, profile.label);
     preset.append(option);
   }
   let opened = false,
@@ -117,7 +119,7 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
       row.dataset.component = key;
       const title = document.createElement('th');
       title.scope = 'row';
-      title.textContent = label;
+      setUiText(title, label);
       row.append(title);
       for (const color of ['black', 'white'] as const) {
         const cell = document.createElement('td');
@@ -127,16 +129,24 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
       }
       body.append(row);
     }
-    result.textContent = `Provisional: ${value.winner === 'draw' ? 'Draw' : `${value.winner === 'black' ? 'Black' : 'White'} +${value.margin}`} · ${value.deadStones.length} dead stones · ${value.sekiStones.length} seki stones · ${value.neutral} neutral points`;
-    warning.textContent = value.warnings.includes('white-last-pass-required')
-      ? 'AGA requires White to make the last pass.'
-      : value.warnings.length
-        ? 'This position has not ended with two alternating passes.'
-        : 'Pass sequence complete. Confirm the marked status before using this result.';
-    find('score-formula').textContent =
+    setUiText(
+      result,
+      `Provisional: ${value.winner === 'draw' ? 'Draw' : `${value.winner === 'black' ? 'Black' : 'White'} +${value.margin}`} · ${value.deadStones.length} dead stones · ${value.sekiStones.length} seki stones · ${value.neutral} neutral points`,
+    );
+    setUiText(
+      warning,
+      value.warnings.includes('white-last-pass-required')
+        ? 'AGA requires White to make the last pass.'
+        : value.warnings.length
+          ? 'This position has not ended with two alternating passes.'
+          : 'Pass sequence complete. Confirm the marked status before using this result.',
+    );
+    setUiText(
+      find('score-formula'),
       value.method === 'area'
         ? 'Area total = living stones + territory + komi + handicap bonus + adjustment. Prisoners are shown for reference.'
-        : 'Territory total = territory + captured/dead/pass prisoners + komi + adjustment. Living stones are shown for reference.';
+        : 'Territory total = territory + captured/dead/pass prisoners + komi + adjustment. Living stones are shown for reference.',
+    );
   }
   function calculate() {
     if (!opened || disposed || !bound) return;
@@ -170,9 +180,12 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
       report = undefined;
       clearView();
       find<HTMLTableElement>('score-breakdown').tBodies[0]!.replaceChildren();
-      warning.textContent = '';
-      find('score-formula').textContent = '';
-      result.textContent = `Cannot calculate: ${error instanceof Error ? error.message : String(error)}`;
+      setUiText(warning, '');
+      setUiText(find('score-formula'), '');
+      setUiText(
+        result,
+        `Cannot calculate: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
   function markGroup(point: Point) {
@@ -269,6 +282,7 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
     abort.abort();
     unsubscribe();
     clearView();
+    disposeLanguage();
     root.remove();
   };
 }

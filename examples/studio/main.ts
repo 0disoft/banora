@@ -1,3 +1,12 @@
+import { createUiMessages, createBoardLabels } from '@banora/sdk/locale';
+import type { BanoraLocale } from '@banora/sdk/locale';
+import {
+  getUiLocale,
+  setUiLocale,
+  localizeUi,
+  setUiText,
+  subscribeUiLanguage,
+} from '../ui-language.js';
 import {
   RecordController,
   decodeSgf,
@@ -25,12 +34,25 @@ import { mountTextureControls } from '../texture-controls.js';
 import { mountScoringControls } from '../scoring-controls.js';
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+const language = find<HTMLSelectElement>('language');
+let initialLanguage: BanoraLocale = navigator.language.toLowerCase().startsWith('ko') ? 'ko' : 'en';
+try {
+  const stored = localStorage.getItem('banora.studio.locale');
+  if (stored === 'en' || stored === 'ko') initialLanguage = stored;
+} catch {
+  /* Restricted storage still allows session-local language changes. */
+}
+setUiLocale(initialLanguage);
+language.value = initialLanguage;
+const disposeStaticLanguage = localizeUi(document.documentElement);
+let ui = createUiMessages({ locale: initialLanguage });
+document.documentElement.lang = initialLanguage;
 const controller = new RecordController({ sgf: sample });
 const comment = find<HTMLTextAreaElement>('comment');
 const tool = find<HTMLSelectElement>('tool');
 const penOption = document.createElement('option');
 penOption.value = 'pen';
-penOption.textContent = 'Freehand ink';
+setUiText(penOption, 'Freehand ink');
 tool.append(penOption);
 const status = find('status');
 const dialog = find<HTMLDialogElement>('unsaved');
@@ -45,12 +67,15 @@ let stoneTextures: StoneTextures | null = null;
 
 function report(result: CommandResult): void {
   if (!result.ok)
-    status.textContent =
+    setUiText(
+      status,
       result.diagnostics?.map((item) => item.message).join('; ') ??
-      `Action rejected: ${result.reason.replaceAll('-', ' ')}.`;
+        `Action rejected: ${result.reason.replaceAll('-', ' ')}.`,
+    );
 }
 const view = mountBoard(find('board'), {
   controller,
+  labels: createBoardLabels({ locale: getUiLocale() }),
   touch: { mode: 'release' },
   onPoint(point) {
     const mode = tool.value;
@@ -68,7 +93,7 @@ const view = mountBoard(find('board'), {
       const state = controller.getState();
       if (!connectionStart || connectionStart.node !== state.node.id) {
         connectionStart = { point, node: state.node.id };
-        status.textContent = `Choose the second point for this ${mode}. Escape cancels.`;
+        setUiText(status, `Choose the second point for this ${mode}. Escape cancels.`);
       } else {
         const start = connectionStart.point;
         connectionStart = undefined;
@@ -81,7 +106,10 @@ const view = mountBoard(find('board'), {
         );
         const result = controller.setConnection(start, point, mode, !existing);
         if (result.ok)
-          status.textContent = `${mode === 'arrow' ? 'Arrow' : 'Line'} ${existing ? 'removed' : 'added'}. Choose two points to draw another.`;
+          setUiText(
+            status,
+            `${mode === 'arrow' ? 'Arrow' : 'Line'} ${existing ? 'removed' : 'added'}. Choose two points to draw another.`,
+          );
         else report(result);
       }
     } else {
@@ -97,15 +125,17 @@ const view = mountBoard(find('board'), {
 const playbackControls = mountPlaybackControls(find('playback'), {
   controller,
   scope: document.body,
+  locale: getUiLocale(),
   onAction: report,
 });
 
 function nodeTitle(node: SgfNode, depth: number, width: number, height: number): string {
   const value = node.properties.B?.[0] ?? node.properties.W?.[0];
-  const color = node.properties.B ? 'Black' : 'White';
+  const color = node.properties.B ? ui.black : ui.white;
   if (value === undefined)
-    return depth === 0 ? 'Start position' : (node.properties.N?.[0] ?? 'Annotation');
-  if (!value || (value === 'tt' && width <= 19 && height <= 19)) return `${color} pass`;
+    return depth === 0 ? ui.start : (node.properties.N?.[0] ?? ui.annotation);
+  if (!value || (value === 'tt' && width <= 19 && height <= 19))
+    return `${color} ${getUiLocale() === 'ko' ? '패스' : 'pass'}`;
   const letters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
   const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const x = alphabet.indexOf(value[0]!);
@@ -155,29 +185,36 @@ function renderTree(state: ControllerState): void {
   if (!shown.has(state.node.id))
     row(state.node, state.path.length - 1, 0, state.position.moveNumber);
   find('tree').replaceChildren(fragment);
-  find('tree-note').textContent = pending.length
-    ? 'First 500 nodes shown. Move controls can navigate the whole record.'
-    : '';
+  setUiText(
+    find('tree-note'),
+    pending.length ? 'First 500 nodes shown. Move controls can navigate the whole record.' : '',
+  );
 }
-const unsubscribe = controller.subscribe((state) => {
+const renderState = (state: ControllerState) => {
   if (connectionStart?.node !== state.node.id) connectionStart = undefined;
   const root = state.record.games[state.gameIndex]!;
   find('game-name').textContent = root.properties.GN?.[0] ?? filename.replace(/\.sgf$/i, '');
-  find('black-name').textContent = root.properties.PB?.[0] ?? 'Black';
-  find('white-name').textContent = root.properties.PW?.[0] ?? 'White';
-  find('board-info').textContent =
-    `${state.position.width} × ${state.position.height} / ${root.properties.KM?.[0] ?? 'not specified'}`;
-  find('turn').textContent = `${state.position.toPlay === 'black' ? '● Black' : '○ White'} to play`;
-  find('captures').textContent =
-    `Captures  ● ${state.position.captures.black}  ○ ${state.position.captures.white}`;
-  find('move').textContent = `Move ${state.position.moveNumber}`;
-  find('dirty').textContent = state.dirty ? 'Unsaved changes' : 'No changes';
+  find('black-name').textContent = root.properties.PB?.[0] ?? ui.black;
+  find('white-name').textContent = root.properties.PW?.[0] ?? ui.white;
+  setUiText(
+    find('board-info'),
+    `${state.position.width} × ${state.position.height} / ${root.properties.KM?.[0] ?? (getUiLocale() === 'ko' ? '미지정' : 'not specified')}`,
+  );
+  setUiText(find('turn'), `${state.position.toPlay === 'black' ? '● Black' : '○ White'} to play`);
+  setUiText(
+    find('captures'),
+    `Captures  ● ${state.position.captures.black}  ○ ${state.position.captures.white}`,
+  );
+  setUiText(find('move'), `Move ${state.position.moveNumber}`);
+  setUiText(find('dirty'), state.dirty ? 'Unsaved changes' : 'No changes');
   find('dirty').classList.toggle('changed', state.dirty);
   find<HTMLButtonElement>('undo').disabled = !state.canUndo;
   find<HTMLButtonElement>('redo').disabled = !state.canRedo;
   find<HTMLButtonElement>('clear-ink').disabled = state.strokes.length === 0;
-  find('ink-count').textContent =
-    `${state.strokes.length} stroke${state.strokes.length === 1 ? '' : 's'} on this node`;
+  setUiText(
+    find('ink-count'),
+    `${state.strokes.length} stroke${state.strokes.length === 1 ? '' : 's'} on this node`,
+  );
   find<HTMLButtonElement>('previous').disabled = state.path.length <= 1;
   find<HTMLButtonElement>('first').disabled = state.path.length <= 1;
   find<HTMLButtonElement>('next').disabled = state.node.children.length === 0;
@@ -201,7 +238,7 @@ const unsubscribe = controller.subscribe((state) => {
       ...state.record.games.map((root, index) => {
         const option = document.createElement('option');
         option.value = String(index);
-        option.textContent = root.properties.GN?.[0] ?? `Game ${index + 1}`;
+        setUiText(option, root.properties.GN?.[0] ?? `Game ${index + 1}`);
         return option;
       }),
     );
@@ -211,7 +248,8 @@ const unsubscribe = controller.subscribe((state) => {
   }
   games.value = String(state.gameIndex);
   renderTree(state);
-});
+};
+const unsubscribe = controller.subscribe(renderState);
 
 function findNode(root: SgfNode, id: string): SgfNode | undefined {
   const pending = [root];
@@ -236,11 +274,11 @@ function exportRecord(): boolean {
     link.click();
     link.remove();
     report(controller.acknowledgeExport(ticket.id));
-    status.textContent = 'SGF download started. Keep the exported file before leaving this page.';
+    setUiText(status, 'SGF download started. Keep the exported file before leaving this page.');
     return true;
   } catch (error) {
     controller.cancelExport(ticket.id);
-    status.textContent = `Export failed: ${String(error)}`;
+    setUiText(status, `Export failed: ${String(error)}`);
     return false;
   } finally {
     if (url) setTimeout(() => URL.revokeObjectURL(url!), 30_000);
@@ -279,13 +317,13 @@ async function openRecord(
   try {
     const parsed = typeof input === 'string' ? parseSgf(input) : decodeSgf(input);
     if (!parsed.ok) {
-      status.textContent = parsed.diagnostics.map((item) => item.message).join('; ');
+      setUiText(status, parsed.diagnostics.map((item) => item.message).join('; '));
       return false;
     }
     const approved = await mayReplace(signal);
     if (!approved || signal?.aborted) return false;
     if (controller.getState().record !== approved) {
-      status.textContent = 'Record changed during approval. Open it again.';
+      setUiText(status, 'Record changed during approval. Open it again.');
       return false;
     }
     const previousName = filename;
@@ -296,7 +334,7 @@ async function openRecord(
       report(result);
       return false;
     }
-    status.textContent = `Opened ${filename}. Everything stays local.`;
+    setUiText(status, `Opened ${filename}. Everything stays local.`);
     return true;
   } finally {
     opening = false;
@@ -305,13 +343,13 @@ async function openRecord(
 async function openFile(selected?: File): Promise<void> {
   if (!selected) return;
   if (selected.size > 5 * 1024 * 1024) {
-    status.textContent = 'SGF file exceeds the 5 MiB input limit.';
+    setUiText(status, 'SGF file exceeds the 5 MiB input limit.');
     return;
   }
   try {
     await openRecord(new Uint8Array(await selected.arrayBuffer()), selected.name);
   } catch (error) {
-    status.textContent = `Could not open file: ${String(error)}`;
+    setUiText(status, `Could not open file: ${String(error)}`);
   }
 }
 find('open').addEventListener('click', () => file.click());
@@ -376,13 +414,17 @@ tool.addEventListener('change', () => {
   find('label-control').hidden = tool.value !== 'label';
   find('ink-control').hidden = tool.value !== 'pen';
   updateInk();
-  find('keyboard-hint').textContent =
+  setUiText(
+    find('keyboard-hint'),
     tool.value === 'pen'
       ? 'Arrow keys move · Space adds an ink point · Enter finishes · Escape cancels'
-      : 'Arrow keys move the board cursor · Enter places · Page Up / Down navigates';
+      : 'Arrow keys move the board cursor · Enter places · Page Up / Down navigates',
+  );
   if (tool.value === 'pen')
-    status.textContent =
-      'Drag to draw. Escape cancels; Undo removes a completed stroke. Keyboard: Space adds a point, Enter finishes.';
+    setUiText(
+      status,
+      'Drag to draw. Escape cancels; Undo removes a completed stroke. Keyboard: Space adds a point, Enter finishes.',
+    );
 });
 find('ink-color').addEventListener('input', updateInk);
 find('ink-width').addEventListener('change', updateInk);
@@ -438,10 +480,9 @@ async function exportDiagram(format: 'svg' | 'png') {
     link.download = name;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
-    status.textContent =
-      'Diagram download started. Export SGF separately to save your record edits.';
+    setUiText(status, 'Diagram download started. Export SGF separately to save your record edits.');
   } catch (error) {
-    status.textContent = `Diagram export failed: ${String(error)}`;
+    setUiText(status, `Diagram export failed: ${String(error)}`);
   }
 }
 find('svg-export').addEventListener('click', () => {
@@ -455,7 +496,7 @@ find('compare').addEventListener('click', () => {
     comparison.dispose();
     comparison = undefined;
     find('comparison-panel').hidden = true;
-    find('compare').textContent = 'Compare positions';
+    setUiText(find('compare'), 'Compare positions');
   } else {
     const state = controller.getState();
     find('comparison-panel').hidden = false;
@@ -473,7 +514,7 @@ find('compare').addEventListener('click', () => {
         },
       },
     });
-    find('compare').textContent = 'Close comparison';
+    setUiText(find('compare'), 'Close comparison');
   }
   find<HTMLButtonElement>('pin-left').disabled = find<HTMLButtonElement>('pin-right').disabled =
     !comparison;
@@ -490,7 +531,7 @@ games.addEventListener('change', () =>
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && connectionStart) {
     connectionStart = undefined;
-    status.textContent = 'Connection cancelled.';
+    setUiText(status, 'Connection cancelled.');
   }
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
     return;
@@ -508,6 +549,8 @@ window.addEventListener('beforeunload', (event) => {
 window.addEventListener('pagehide', (event) => {
   playbackControls.playback.pause();
   if (!event.persisted) {
+    disposeLanguage();
+    disposeStaticLanguage();
     disposeScoring();
     disposeTextures();
     disposeSharing();
@@ -558,3 +601,26 @@ const disposeSharing = mountSharing(find('sharing-host'), controller, {
     ),
 });
 const disposeScoring = mountScoringControls(find('scoring-host'), controller);
+
+const disposeLanguage = subscribeUiLanguage(() => {
+  const locale = getUiLocale();
+  document.documentElement.lang = locale;
+  document.title =
+    locale === 'ko' ? 'Banora Studio — 바둑 기보 작업 공간' : 'Banora Studio — Go record workspace';
+  ui = createUiMessages({ locale });
+  lastTreeState = undefined;
+  games.dataset.record = '';
+  view.update({ labels: createBoardLabels({ locale }) });
+  playbackControls.update({ locale });
+  renderState(controller.getState());
+});
+document.title = initialLanguage === 'ko' ? 'Banora Studio — 바둑 기보 작업 공간' : document.title;
+language.addEventListener('change', () => {
+  const locale = language.value as BanoraLocale;
+  setUiLocale(locale);
+  try {
+    localStorage.setItem('banora.studio.locale', locale);
+  } catch {
+    /* Optional preference persistence. */
+  }
+});

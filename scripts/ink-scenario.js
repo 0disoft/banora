@@ -380,7 +380,12 @@ async (page) => {
     const mobileContext = await page
       .context()
       .browser()
-      .newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      .newContext({
+        locale: 'en-US',
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      });
     try {
       const mobile = await mobileContext.newPage();
       mobile.on('pageerror', onError);

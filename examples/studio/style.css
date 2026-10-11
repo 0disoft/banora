@@ -593,3 +593,23 @@ body.dragging::after {
     order: 1;
   }
 }
+
+.language-select {
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 7px 8px;
+  max-width: 100px;
+}
+@media (max-width: 700px) {
+  .header {
+    height: auto;
+    min-height: 66px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-block: 12px;
+  }
+  .header-actions {
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+}

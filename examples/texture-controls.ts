@@ -1,3 +1,4 @@
+import { localizeUi, setUiText } from './ui-language.js';
 import { prepareStoneTexture } from '@banora/sdk';
 import type { Color, StoneTexture, StoneTextures } from '@banora/sdk';
 import './texture-controls.css';
@@ -42,19 +43,21 @@ export function mountTextureControls(
   const panel = document.createElement('section');
   panel.className = 'texture-controls';
   const title = document.createElement('h2');
-  title.textContent = 'Stone textures';
+  setUiText(title, 'Stone textures');
   panel.append(title);
   const note = document.createElement('p');
-  note.textContent =
-    'Choose a PNG, JPEG or WebP up to 2 MiB. Images are center-cropped. Textures stay local and are not included in SGF or share links.';
+  setUiText(
+    note,
+    'Choose a PNG, JPEG or WebP up to 2 MiB. Images are center-cropped. Textures stay local and are not included in SGF or share links.',
+  );
   panel.append(note);
   for (const color of ['black', 'white'] as const) {
     const row = document.createElement('fieldset');
     row.dataset.textureControl = color;
     const legend = document.createElement('legend');
-    legend.textContent = `${color === 'black' ? 'Black' : 'White'} stones`;
+    setUiText(legend, `${color === 'black' ? 'Black' : 'White'} stones`);
     const label = document.createElement('label');
-    label.textContent = 'Choose an image ';
+    setUiText(label, 'Choose an image ');
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/png,image/jpeg,image/webp';
@@ -62,22 +65,22 @@ export function mountTextureControls(
     label.append(input);
     const demo = document.createElement('button');
     demo.type = 'button';
-    demo.textContent = 'Use demo tile';
+    setUiText(demo, 'Use demo tile');
     demo.dataset.textureDemo = color;
     const reset = document.createElement('button');
     reset.type = 'button';
-    reset.textContent = 'Use default';
+    setUiText(reset, 'Use default');
     reset.dataset.textureReset = color;
     reset.disabled = !current[color];
     const status = document.createElement('p');
     status.dataset.textureStatus = color;
     status.setAttribute('role', 'status');
-    status.textContent = current[color] ? 'Custom texture active.' : 'Default stone color.';
+    setUiText(status, current[color] ? 'Custom texture active.' : 'Default stone color.');
     async function load(source: Blob | Promise<Blob>): Promise<void> {
       pending[color]?.abort();
       const operation = new AbortController();
       pending[color] = operation;
-      status.textContent = 'Preparing texture…';
+      setUiText(status, 'Preparing texture…');
       try {
         const blob = await source;
         if (operation.signal.aborted || abort.signal.aborted) return;
@@ -87,10 +90,10 @@ export function mountTextureControls(
         options.onChange(color, texture);
         current[color] = texture;
         reset.disabled = false;
-        status.textContent = 'Custom texture active. SGF edits are unchanged.';
+        setUiText(status, 'Custom texture active. SGF edits are unchanged.');
       } catch (error) {
         if (!operation.signal.aborted && !abort.signal.aborted)
-          status.textContent = `Texture unchanged: ${String(error)}`;
+          setUiText(status, `Texture unchanged: ${String(error)}`);
       } finally {
         if (pending[color] === operation) delete pending[color];
       }
@@ -119,7 +122,7 @@ export function mountTextureControls(
         options.onChange(color, null);
         current[color] = null;
         reset.disabled = true;
-        status.textContent = 'Default stone color.';
+        setUiText(status, 'Default stone color.');
       },
       { signal: abort.signal },
     );
@@ -127,10 +130,12 @@ export function mountTextureControls(
     panel.append(row);
   }
   host.append(panel);
+  const disposeLanguage = localizeUi(panel);
   const dispose = () => {
     abort.abort();
     pending.black?.abort();
     pending.white?.abort();
+    disposeLanguage();
     panel.remove();
   };
   window.addEventListener(

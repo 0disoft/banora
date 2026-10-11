@@ -1,3 +1,4 @@
+import { localizeUi, setUiText } from './ui-language.js';
 import { createShareLink, decodeShareLink } from '@banora/sdk/share';
 import type { ShareKind, SharedRecord } from '@banora/sdk/share';
 import type { RecordController, SgfRecord } from '@banora/sdk';
@@ -44,15 +45,19 @@ export function mountSharing(
     '<form method="dialog"><h2>This record has changes.</h2><p>Export a copy before opening the shared record, or discard your changes.</p><div class="sharing-row"><button value="cancel">Cancel</button><button value="discard">Discard</button><button value="export">Export &amp; continue</button></div></form>';
   panel.append(dialog);
   host.append(panel);
+  const disposeLanguage = localizeUi(panel);
   const report = (message: string) => {
-    if (!signal.aborted) status.textContent = message;
+    if (!signal.aborted) setUiText(status, message);
   };
   const notice = () => {
     const position = kind.value === 'position';
     find('comment-control').hidden = !position;
-    find('notice').textContent = position
-      ? 'Shares the visible stones, turn and local marks/ink. No move history, capture totals or game metadata. Comments are optional. Anyone with the link can read its content.'
-      : 'Shares every game, branch, comment and metadata field in this record. Anyone with the link can read its content.';
+    setUiText(
+      find('notice'),
+      position
+        ? 'Shares the visible stones, turn and local marks/ink. No move history, capture totals or game metadata. Comments are optional. Anyone with the link can read its content.'
+        : 'Shares every game, branch, comment and metadata field in this record. Anyone with the link can read its content.',
+    );
   };
   notice();
   kind.addEventListener('change', notice, { signal });
@@ -208,6 +213,7 @@ export function mountSharing(
   if (!initialHandled) openAddress();
   const dispose = () => {
     abort.abort();
+    disposeLanguage();
     panel.remove();
   };
   window.addEventListener(

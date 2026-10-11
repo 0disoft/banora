@@ -209,6 +209,7 @@ async (page) => {
       .context()
       .browser()
       .newContext({
+        locale: 'en-US',
         viewport: { width: 390, height: 844 },
         isMobile: true,
         hasTouch: true,
