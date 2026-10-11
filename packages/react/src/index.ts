@@ -75,6 +75,7 @@ export function Board(props: BoardProps) {
   const container = useRef<HTMLDivElement>(null);
   const options = useMemo(
     () => ({
+      labels: props.labels,
       readOnly: props.readOnly,
       theme: props.theme,
       coordinates: props.coordinates,
@@ -91,6 +92,7 @@ export function Board(props: BoardProps) {
       onPoint: props.onPoint,
     }),
     [
+      props.labels,
       props.readOnly,
       props.theme,
       props.coordinates,
@@ -120,13 +122,23 @@ export function Viewer(props: ViewerProps) {
   const container = useRef<HTMLDivElement>(null);
   const options = useMemo(
     () => ({
+      locale: props.locale,
+      messages: props.messages,
       editable: props.editable,
       comments: props.comments,
       variations: props.variations,
       playback: props.playback,
       board: props.board,
     }),
-    [props.editable, props.comments, props.variations, props.playback, props.board],
+    [
+      props.locale,
+      props.messages,
+      props.editable,
+      props.comments,
+      props.variations,
+      props.playback,
+      props.board,
+    ],
   );
   useMount('viewer', container, props.controller, options, props.onStateChange, props.onView);
   // oxlint-disable-next-line react/refs -- createElement forwards the ref object; render never reads current.

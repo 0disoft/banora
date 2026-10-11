@@ -167,7 +167,10 @@ try {
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
-  if (process.argv.includes('--playback-only')) {
+  if (process.argv.includes('--locale-only')) {
+    await scenario('locale', 'banora-locale-complete');
+    console.log('Focused UI localization smoke passed.');
+  } else if (process.argv.includes('--playback-only')) {
     await playbackSmoke();
     console.log(
       'Playback smoke passed: speed/pause/end, keyboard guards, import, SGF preservation and six consumer lifecycles.',

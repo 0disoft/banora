@@ -32,6 +32,7 @@ const placementDuration = (value: BoardOptions['placementAnimation']) =>
 const common = { controller: Object as PropType<ControllerHandle> };
 const boardProps = {
   ...common,
+  labels: Object as PropType<BoardOptions['labels']>,
   readOnly: Boolean,
   theme: { type: String as PropType<'wood' | 'flat'>, default: 'wood' },
   coordinates: { type: Boolean, default: true },
@@ -52,6 +53,8 @@ const boardProps = {
 };
 const viewerProps = {
   ...common,
+  locale: String as PropType<ViewerOptions['locale']>,
+  messages: Object as PropType<ViewerOptions['messages']>,
   editable: Boolean,
   comments: { type: Boolean, default: true },
   variations: { type: Boolean, default: true },
@@ -73,6 +76,7 @@ export const Board = defineComponent({
     let view: BoardView | undefined;
     let unsubscribe: (() => void) | undefined;
     const options = (): Omit<BoardOptions, 'controller'> => ({
+      labels: props.labels,
       readOnly: props.readOnly,
       theme: props.theme,
       coordinates: props.coordinates,
@@ -104,6 +108,7 @@ export const Board = defineComponent({
     watch(() => toRaw(props.controller), mount, { flush: 'post' });
     watch(
       () => [
+        props.labels,
         props.readOnly,
         props.theme,
         props.coordinates,
@@ -154,6 +159,8 @@ export const Viewer = defineComponent({
     let view: ViewerView | undefined;
     let unsubscribe: (() => void) | undefined;
     const options = (): Omit<ViewerOptions, 'controller' | 'sgf'> => ({
+      locale: props.locale,
+      messages: props.messages,
       editable: props.editable,
       comments: props.comments,
       variations: props.variations,
@@ -176,6 +183,8 @@ export const Viewer = defineComponent({
     watch(() => toRaw(props.controller), mount, { flush: 'post' });
     watch(
       () => [
+        props.locale,
+        props.messages,
         props.editable,
         props.comments,
         props.variations,

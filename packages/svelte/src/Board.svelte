@@ -3,6 +3,7 @@
   import type { BoardProps } from './types.js';
   let {
     controller,
+    labels,
     readOnly,
     theme,
     coordinates,
@@ -29,6 +30,7 @@
   kind="board"
   {controller}
   options={{
+    labels,
     readOnly,
     theme,
     coordinates,

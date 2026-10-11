@@ -1,3 +1,5 @@
+import { createUiMessages, createBoardLabels, formatUiMessage } from './locale.js';
+import type { LocaleOptions } from './locale.js';
 import { mountBoard } from './board.js';
 import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
 import { RecordController } from './controller.js';
@@ -8,7 +10,7 @@ import { mountPlaybackControls } from './playback-controls.js';
 import { normalizePlaybackInterval } from './playback.js';
 import type { PlaybackOptions, RecordPlayback } from './playback.js';
 
-export interface ViewerOptions {
+export interface ViewerOptions extends LocaleOptions {
   readonly controller?: RecordController;
   readonly sgf?: string | Uint8Array;
   readonly editable?: boolean;
@@ -35,6 +37,7 @@ const stylesheet = `
 export function mountViewer(container: HTMLElement, initial: ViewerOptions = {}): ViewerView {
   if (initial.controller && initial.sgf !== undefined)
     throw new TypeError('Supply a controller or SGF, not both');
+  let ui = createUiMessages(initial);
   const initialInterval = normalizePlaybackInterval(initial.playback?.intervalMs);
   const document = container.ownerDocument;
   const owned = !initial.controller;
@@ -49,6 +52,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   };
   const abort = new AbortController();
   const root = document.createElement('section');
+  root.lang = initial.locale ?? 'en';
   root.className = 'banora-viewer';
   root.setAttribute('aria-label', 'Go record viewer');
   const style = document.createElement('style');
@@ -74,7 +78,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     status.textContent = result.ok
       ? ''
       : (result.diagnostics?.map((item) => item.message).join('; ') ??
-        `Action rejected: ${result.reason}`);
+        formatUiMessage(ui.rejected, { reason: result.reason }));
   };
   const button = (label: string, text: string, action: () => CommandResult) => {
     const element = document.createElement('button');
@@ -119,6 +123,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   try {
     board = mountBoard(boardContainer, {
       ...options.board,
+      labels: { ...createBoardLabels(options), ...options.board?.labels },
       controller,
       readOnly: !options.editable,
       nodeId: null,
@@ -134,6 +139,8 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     controller,
     scope: root,
     intervalMs: initialInterval,
+    locale: options.locale,
+    messages: options.messages,
     onAction: report,
   });
 
@@ -142,11 +149,11 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     if (value === undefined)
       return (
         node.properties.N?.[0] ??
-        (node.id === state.record.games[state.gameIndex]!.id ? 'Start position' : 'Annotation')
+        (node.id === state.record.games[state.gameIndex]!.id ? ui.start : ui.annotation)
       );
-    const color = node.properties.B ? 'Black' : 'White';
+    const color = node.properties.B ? ui.black : ui.white;
     if (!value || (value === 'tt' && state.position.width <= 19 && state.position.height <= 19))
-      return `${color} pass`;
+      return formatUiMessage(ui.colorPass, { color });
     const point = pointFromSgf(value, state.position.width, state.position.height);
     return `${color} ${'ABCDEFGHJKLMNOPQRSTUVWXYZ'[point.x] ?? point.x + 1}${state.position.height - point.y}`;
   }
@@ -165,7 +172,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       entry.type = 'button';
       const label = `${moveNumber} · ${nodeName(node, state)}`;
       entry.textContent = label;
-      entry.setAttribute('aria-label', `Select ${label}`);
+      entry.setAttribute('aria-label', formatUiMessage(ui.selectNode, { label }));
       entry.dataset.node = node.id;
       entry.style.paddingLeft = `${10 + Math.min(indent, 8) * 12}px`;
       entry.setAttribute('aria-current', String(node.id === state.node.id));
@@ -189,31 +196,58 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     }
     if (!selected) row(state.node, 0, state.position.moveNumber);
     tree.replaceChildren(fragment);
-    treeNote.textContent = pending.length
-      ? 'First 500 nodes shown; move controls navigate the complete record.'
-      : '';
+    treeNote.textContent = pending.length ? ui.treeLimit : '';
     if (focusInside) selected?.focus({ preventScroll: true });
   }
+  function renderLabels(): void {
+    root.setAttribute('aria-label', ui.viewer);
+    nav.setAttribute('aria-label', ui.navigation);
+    gameLabel.firstChild!.textContent = ui.gameLabel;
+    games.setAttribute('aria-label', ui.selectGame);
+    treeTitle.textContent = ui.variations;
+    notes.firstChild!.textContent = ui.comments;
+    comment.setAttribute('aria-label', ui.positionComments);
+    for (const [element, key] of [
+      [first, 'first'],
+      [previous, 'previous'],
+      [next, 'next'],
+      [last, 'last'],
+      [pass, 'pass'],
+      [undo, 'undo'],
+      [redo, 'redo'],
+    ] as const) {
+      element.setAttribute('aria-label', ui[key]);
+      if (key === 'pass' || key === 'undo' || key === 'redo') element.textContent = ui[key];
+    }
+  }
+  renderLabels();
   function render(state: ControllerState): void {
     const game = state.record.games[state.gameIndex]!;
-    title.textContent = game.properties.GN?.[0] ?? 'Go record';
+    title.textContent = game.properties.GN?.[0] ?? ui.record;
     games.replaceChildren(
       ...state.record.games.map((game, index) => {
         const option = document.createElement('option');
         option.value = String(index);
-        option.textContent = game.properties.GN?.[0] ?? `Game ${index + 1}`;
+        option.textContent =
+          game.properties.GN?.[0] ?? formatUiMessage(ui.game, { number: index + 1 });
         return option;
       }),
     );
     games.value = String(state.gameIndex);
     gameLabel.hidden = state.record.games.length < 2;
-    move.textContent = `Move ${state.position.moveNumber}`;
+    move.textContent = formatUiMessage(ui.move, { number: state.position.moveNumber });
     first.disabled = previous.disabled = state.path.length < 2;
     next.disabled = last.disabled = state.node.children.length === 0;
     undo.disabled = !state.canUndo;
     redo.disabled = !state.canRedo;
     undo.hidden = redo.hidden = pass.hidden = !options.editable;
-    summary.textContent = `${game.properties.PB?.[0] ?? 'Black'} / ${game.properties.PW?.[0] ?? 'White'} · ${state.position.toPlay} to play · Captures ${state.position.captures.black} / ${state.position.captures.white}`;
+    summary.textContent = formatUiMessage(ui.summary, {
+      black: game.properties.PB?.[0] ?? ui.black,
+      white: game.properties.PW?.[0] ?? ui.white,
+      color: ui[state.position.toPlay],
+      blackCaptures: state.position.captures.black,
+      whiteCaptures: state.position.captures.white,
+    });
     comment.readOnly = !options.editable;
     const text = state.node.properties.C?.[0] ?? '';
     if (comment.value !== text) comment.value = text;
@@ -267,8 +301,19 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
           ? undefined
           : normalizePlaybackInterval(next.playback.intervalMs);
       const merged = { ...options, ...next, board: { ...options.board, ...next.board } };
-      board.update({ ...merged.board, readOnly: !merged.editable, nodeId: null });
+      const nextUi = createUiMessages(merged);
+      board.update({
+        ...merged.board,
+        labels: { ...createBoardLabels(merged), ...merged.board.labels },
+        readOnly: !merged.editable,
+        nodeId: null,
+      });
       options = merged;
+      ui = nextUi;
+      root.lang = options.locale ?? 'en';
+      lastTree = undefined;
+      renderLabels();
+      playbackControls.update(options);
       if (interval !== undefined) playbackControls.playback.setInterval(interval);
       if ((previous.editable && !options.editable) || next.comments === false) endCommentGroup();
       render(controller.getState());

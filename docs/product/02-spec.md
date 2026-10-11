@@ -32,6 +32,9 @@ internal source files or require demo-only SDK hooks. A second, minimal read-onl
 embedding example verifies that the API also fits simpler consumers. Accounts,
 cloud storage and AI analysis are not part of Studio's initial workflow.
 
+Studio and the common Viewer support English and Korean presentation. SDK locale
+selection is explicit, preserves record state and never translates authored SGF text.
+
 ## Capability Scope
 
 | Area                      | Capability                                                                                                      | First milestone |

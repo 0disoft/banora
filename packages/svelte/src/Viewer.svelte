@@ -3,6 +3,8 @@
   import type { ViewerProps } from './types.js';
   let {
     controller,
+    locale,
+    messages,
     editable,
     comments,
     variations,
@@ -19,7 +21,7 @@
 <Mount
   kind="viewer"
   {controller}
-  options={{ editable, comments, variations, playback, board }}
+  options={{ locale, messages, editable, comments, variations, playback, board }}
   {onStateChange}
   {onView}
   class={className}

@@ -8,6 +8,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(import.meta.dirname, 'src/index.ts'),
+        locale: resolve(import.meta.dirname, 'src/locale.ts'),
         core: resolve(import.meta.dirname, 'src/core.ts'),
         geometry: resolve(import.meta.dirname, 'src/geometry.ts'),
         sgf: resolve(import.meta.dirname, 'src/sgf.ts'),

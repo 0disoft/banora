@@ -1,3 +1,4 @@
+export * from './locale.js';
 export * from './core.js';
 export * from './geometry.js';
 export * from './sgf.js';

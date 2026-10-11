@@ -1,8 +1,10 @@
+import { createUiMessages, formatUiMessage } from './locale.js';
+import type { LocaleOptions } from './locale.js';
 import { createRecordPlayback } from './playback.js';
 import type { PlaybackOptions, RecordPlayback } from './playback.js';
 import type { RecordController, CommandResult } from './controller.js';
 
-export interface PlaybackControlsOptions extends PlaybackOptions {
+export interface PlaybackControlsOptions extends PlaybackOptions, LocaleOptions {
   readonly controller: RecordController;
   /** Keyboard/input boundary. Use one scope per record; defaults to the container. */
   readonly scope?: HTMLElement;
@@ -10,12 +12,14 @@ export interface PlaybackControlsOptions extends PlaybackOptions {
 }
 export interface PlaybackControls {
   readonly playback: RecordPlayback;
+  update(options: LocaleOptions): void;
   dispose(): void;
 }
 export function mountPlaybackControls(
   container: HTMLElement,
   options: PlaybackControlsOptions,
 ): PlaybackControls {
+  let ui = createUiMessages(options);
   const playback = createRecordPlayback(options.controller, options);
   const document = container.ownerDocument,
     scope = options.scope ?? container;
@@ -45,19 +49,29 @@ export function mountPlaybackControls(
   hint.style.cssText = 'flex-basis:100%;text-align:center;font-size:12px;opacity:.75';
   root.append(toggle, label, hint);
   container.append(root);
-  const unsubscribe = playback.subscribe((state) => {
-    toggle.textContent = state.playing ? 'Pause' : 'Play';
-    toggle.setAttribute('aria-label', state.playing ? 'Pause playback' : 'Play record');
+  function render() {
+    const state = playback.getState();
+    root.lang = locale;
+    root.setAttribute('aria-label', ui.playback);
+    label.firstChild!.textContent = ui.interval;
+    interval.setAttribute('aria-label', ui.playbackInterval);
+    hint.textContent = ui.playbackHint;
+    for (const option of interval.options)
+      option.textContent = formatUiMessage(ui.seconds, { number: Number(option.value) / 1000 });
+    toggle.textContent = state.playing ? ui.pause : ui.play;
+    toggle.setAttribute('aria-label', state.playing ? ui.pausePlayback : ui.playRecord);
     toggle.setAttribute('aria-pressed', String(state.playing));
     toggle.disabled = !state.canPlay;
     if (![...interval.options].some((option) => Number(option.value) === state.intervalMs)) {
       const custom = document.createElement('option');
       custom.value = String(state.intervalMs);
-      custom.textContent = `${state.intervalMs / 1000} s`;
+      custom.textContent = formatUiMessage(ui.seconds, { number: state.intervalMs / 1000 });
       interval.append(custom);
     }
     interval.value = String(state.intervalMs);
-  });
+  }
+  let locale = options.locale ?? 'en';
+  const unsubscribe = playback.subscribe(render);
   toggle.addEventListener(
     'click',
     () => (playback.getState().playing ? playback.pause() : playback.play()),
@@ -129,6 +143,13 @@ export function mountPlaybackControls(
   let disposed = false;
   return Object.freeze({
     playback,
+    update(next: LocaleOptions) {
+      if (disposed) throw new Error('Playback controls are disposed');
+      const nextUi = createUiMessages(next);
+      ui = nextUi;
+      locale = next.locale ?? 'en';
+      render();
+    },
     dispose() {
       if (disposed) return;
       disposed = true;

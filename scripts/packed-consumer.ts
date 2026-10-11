@@ -113,6 +113,8 @@ await writeFile(
 import {createBoardSnapshot} from '@banora/sdk/board-state';
 const external=createBoardSnapshot({key:'headless/host',width:2,height:3,stones:Array(6).fill(null)});
 import {executeAutomation, AUTOMATION_SCHEMA} from '@banora/sdk/automation';
+import {createUiMessages, createBoardLabels, formatUiMessage} from '@banora/sdk/locale';
+if (formatUiMessage(createUiMessages({locale:'ko'}).move,{number:23})!=='23\uC218' || createBoardLabels({locale:'ko'}).black!=='\uD751') throw Error('Packed headless localization failed');
 import {createRecordPlayback} from '@banora/sdk/playback';
 const playbackController=new RecordController({sgf:'(;SZ[9];B[aa])'});
 const playback=createRecordPlayback(playbackController,{intervalMs:500});

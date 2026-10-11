@@ -1,3 +1,4 @@
+import type { BoardLabels } from './board-state.js';
 import type { Point } from './core.js';
 import type { RecordController } from './controller.js';
 import type { BoardCrop, BoardTransform } from './geometry.js';
@@ -13,6 +14,7 @@ export { prepareStoneTexture } from './texture-loader.js';
 export type { TexturePreparationOptions } from './texture-loader.js';
 export type { PlacementAnimationOptions } from './placement-animation.js';
 export interface BoardOptions {
+  readonly labels?: BoardLabels;
   readonly controller?: RecordController;
   readonly readOnly?: boolean;
   readonly theme?: 'wood' | 'flat';

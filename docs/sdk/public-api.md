@@ -734,6 +734,9 @@ Studio's Save SVG/PNG actions and all three framework examples exercise this con
 
 ## Complete Viewer
 
+The [UI localization contract](localization.md) defines English/Korean `locale`,
+message overrides, native props and localized board accessibility labels.
+
 The [record playback contract](playback.md) describes the optional headless
 coordinator, timer lifetime and recorded-node navigation without game edits.
 
