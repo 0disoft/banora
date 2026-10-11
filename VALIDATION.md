@@ -115,7 +115,13 @@ requires committed clean source and runs all nine gates against retained artifac
 see [release](docs/ops/release.md). Prepared reuse verifies integrity without rerunning
 gates. `verify` and `restore --bundle DIR` do not prove publication or live rollback.
 
-The latest executed preparation is clean source `fdea584`: all nine named gates
+`publication-plan --bundle DIR --workflow FILE` verifies prepared current-family
+bytes and emits an offline SDK-first registry/OIDC handoff. Release regressions
+exercise the actual command with an empty executable search path, preserve bundle
+bytes and reject unprepared/legacy/damaged artifacts, unsafe options and prerelease
+promotion to `latest`. A workflow file's presence is not publication authority.
+
+The latest executed preparation is clean source `cb53a96`: all nine named gates
 passed against its retained 149-file bundle. Actual verification/restaging and
 installed copied SDK/classic/types/license plus 297 copied CLI checks also passed.
 See [release evidence](docs/engineering/15-release-preparation-evidence.md) for the

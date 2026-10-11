@@ -14,6 +14,7 @@ import {
   verifyRelease,
 } from './release-artifacts.js';
 import type { ReleaseManifest } from './release-artifacts.js';
+import { publicationOptions, publicationPlan } from './publication-plan.js';
 
 function git(root: string, args: string[]) {
   const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 5000 });
@@ -184,7 +185,12 @@ if (import.meta.main) {
       result = {
         schemaVersion: 'banora.release-command/v1',
         ok: true,
-        commands: ['prepare', 'verify --bundle DIR', 'restore --bundle DIR'],
+        commands: [
+          'prepare',
+          'verify --bundle DIR',
+          'restore --bundle DIR',
+          'publication-plan --bundle DIR --workflow FILE [--environment NAME] [--tag TAG]',
+        ],
         scope:
           'Local immutable artifacts and isolated restaging. No registry publication, host deployment or data migration.',
       };
@@ -199,6 +205,13 @@ if (import.meta.main) {
         files: prepared.manifest.files.length,
         checks: prepared.manifest.checks,
         reused: prepared.reused,
+      };
+    } else if (action === 'publication-plan') {
+      const parsed = publicationOptions(args);
+      result = {
+        schemaVersion: 'banora.release-command/v1',
+        ok: true,
+        plan: await publicationPlan(root, parsed.bundle, parsed.options),
       };
     } else if (
       (action === 'verify' || action === 'restore') &&

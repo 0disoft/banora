@@ -43,6 +43,43 @@ maintainer-reviewed provenance, even when hashes match. An unsigned manifest can
 be replaced together with its files, so integrity is not authentication or proof
 that an unknown author ran checks.
 
+## Inspect a Publication Handoff
+
+Run `bun run release publication-plan --bundle DIR --workflow publish.yml` on a
+reviewed prepared bundle. Optionally add `--environment npm-release` to match an
+intended GitHub environment, or `--tag next` for an explicitly selected channel.
+The command emits the `banora.publication-plan/v1` JSON plan inside the existing
+release-command envelope. It makes no network requests, starts no child commands,
+reads no credentials and writes no configuration or artifacts.
+
+The plan verifies all retained hashes, requires the current complete `@0disoft`
+package family, records the manifest hash/source/version and lists SDK-first
+package archives, hashes and npm argument arrays. Run those arrays only in a
+separately authorized publication task from the verified bundle directory. They
+disable lifecycle scripts, target the public npm registry and preserve the
+reviewed tarballs. They are instructions, not executed operations.
+
+Development versions default to `dev`; alpha/beta/rc versions use their matching
+channel, other prereleases use `next`, and stable versions default to `latest`.
+A prerelease cannot select `latest`. Unsafe workflow filenames, duplicate or
+unknown options, unprepared/legacy bundles and damaged inventories fail with
+the existing bounded release error envelope.
+
+The proposed Trusted Publisher settings are GitHub user `0disoft`, repository
+`banora`, the supplied workflow filename and optional environment, configured
+separately for each package. Direct `npm publish` permission must be enabled.
+`workflowFileExists` reports only local regular-file presence; it proves neither
+workflow behavior nor npm/GitHub permissions. No publishing workflow is currently
+installed. Existing npm packages do not authorize new Banora packages. Follow
+[npm's trusted publishing instructions](https://docs.npmjs.com/trusted-publishers/)
+for the actual package configuration, supported CLI and hosted runner.
+
+Before executing a plan, approve source/version/destination, establish the private
+reporting route, verify public-source provenance and each package's publication
+authority. Inspect existing versions without treating registry failures as absence.
+Stop on any conflicting version or partial failure; verify registry integrity and
+fresh installed consumers before continuing or promoting a channel.
+
 Preparing again at the same commit returns an intact prepared bundle with
 `reused: true`; it does not repeat checks or claim a fresh dependency audit. A valid
 candidate resumes checks against its existing bytes. A partial directory without

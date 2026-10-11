@@ -3,17 +3,49 @@
 Status: scoped local tooling and clean-source preparation executed. This is not
 publication, hosted rollback or all-72 completion.
 
-Latest executed candidate: clean source `fdea584`, prepared and restaged after the
-successful remote-main CI and Firefox/WebKit desktop verification. Its exact
+Latest executed candidate: clean source `cb53a96`, prepared and restaged after the
+package identity change. Its exact
 evidence is recorded at the end of this document; older snapshots below remain
 historical and do not describe current GitHub or candidate state.
 
 After [ADR 0023](../adr/0023-existing-publisher-package-identity.md), current source
-uses `@0disoft/banora*` identities. The retained fdea584 bundle still uses the
+and the cb53a96 candidate use `@0disoft/banora*` identities. The older fdea584 bundle still uses the
 previous `@banora/*` identities and cannot be published under the new names.
 Its 149 files verified successfully with the updated verifier; originals were
-not rewritten. A newly prepared candidate is required for current package names.
+not rewritten. The newly prepared candidate contains the current package names.
 Use the recorded source commit for executable legacy-bundle consumers.
+
+## October 12: Current Publisher Identities Prepared and Restaged
+
+Executed `bun run release prepare` against clean committed source
+`cb53a9620ae949d5764a425429b83ebad304dd12`, tree
+`c54b1a7b66e63439e8228fd4c5922757465f52f9`, on Windows with Bun 1.4.2 and
+Node 24.14.0. This is a new candidate after the package identity change, not reuse
+of the old namespace's tarballs. All five packages remain `0.1.0-dev.0`.
+
+The terminal receipt reported `reused: false`, 149 retained files and all nine
+successful checks: root check, file/permission and dependency gates, installed
+SDK/CLI/adapter archives, the full production browser suite served from retained
+files, independently installed starter/browser and the isolated recovery drill.
+Child output was drained by the runner; no new inner assertion count is inferred.
+This complete browser execution covers the current renamed examples, whereas
+earlier Firefox/WebKit evidence remains scoped to its recorded source.
+
+Manifest SHA-256:
+`97fccd4a3eddaa514f2b9accee73cb08cd0a9206d101b7b6299261c0263cf3c7`.
+Actual verify succeeded, followed by exclusive restaging to
+`.artifacts/restores/cb53a9620ae9-9bd2fe85-b3ae-4bd2-86c6-ba7f0fa169c5/`.
+The copied 149-file inventory verified separately. Actual SDK/classic/global/
+declaration/license consumers passed from the copy, followed by 297 installed
+Node CLI checks. Original and older bundles remain preserved.
+
+The new offline publication-plan command inspected this actual candidate and
+returned its exact manifest hash, `dev` channel and the five current package
+identities. The supplied `publish.yml` workflow does not exist, accurately
+reported as `workflowFileExists: false`; no npm/GitHub settings or publication
+were attempted. Plan implementation is subsequent local tooling and does not
+change the prepared package or example bytes. No new hosted CI, physical device,
+external authority or deployed rollback claim follows from this local evidence.
 
 ## Implementation and Initial Checks
 
