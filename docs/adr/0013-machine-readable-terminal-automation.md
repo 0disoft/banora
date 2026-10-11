@@ -35,3 +35,11 @@ The additional public schema is versioned independently from package versions.
 Installed CLI/SDK artifacts, actual Node processes, pipe/error/write handling and
 headless types require consumer evidence. Browser-only textures/motion/PNG are not
 invented as headless capabilities; existing diagram views remain DOM APIs.
+
+The additive `recipe` CLI command returns a fixed catalog or an original complete
+automation request. Embed requests in the built artifact so independent consumers
+do not need a checkout. Discovery does not execute requests, look up user-supplied
+filenames or introduce a template language. Standard request guards, checkpoints,
+output protection and explicit scheduling ownership remain unchanged. The installed
+Node consumer executes every recipe and guarded review/resume workflows; JSON shape
+alone is insufficient evidence. See [workflows](../../examples/automation/README.md).

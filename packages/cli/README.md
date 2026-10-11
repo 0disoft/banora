@@ -100,6 +100,23 @@ append an `undo` operation in that same request to reverse the entire batch.
 Wrong targets/conditions or exceeded limits publish no output file. Files/stdin
 are bounded to 8 MiB, including duplicated expected SGF in a guarded request.
 
+### Reusable Requests
+
+`banora recipe` lists original named workflows and expected success/failure.
+`banora recipe --name create-study` returns a complete `banora.automation/v1`
+request; save it as UTF-8 JSON or pipe it into `banora run`. Discovery executes
+nothing and never interprets a name as a file. Included names are `create-study`,
+`inspect-branches`, `review-preview`, `score-agreed` and the intentional failure
+fixture `occupied-point` (exit 3 when executed). Review/replace authored SGF,
+coordinates, changes and scoring agreement before adapting to real work.
+
+The requests are embedded in the built CLI, so they also work in an independently
+installed tarball. Save response checkpoints separately from SGF output. Preview
+responses require an explicit approved request with unchanged `expectedSgf` to
+apply; scheduling, concurrent-file authority and live-app permissions stay host-owned.
+See [the workflow guide](https://github.com/0disoft/banora/blob/main/examples/automation/README.md)
+for checkpoint resume, preview/apply/Undo and bounded retry examples.
+
 ### Diagnostic Reports
 
 Run `banora diagnose --request request.json --output diagnostics.json` to reproduce

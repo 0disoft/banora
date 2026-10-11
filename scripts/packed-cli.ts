@@ -80,6 +80,123 @@ check(
   cli(['--help']).commands.some((item: { name: string }) => item.name === 'search'),
   'Missing search command discovery',
 );
+check(
+  cli(['--help']).commands.some((item: { name: string }) => item.name === 'recipe'),
+  'Missing recipe command discovery',
+);
+const recipeNames = [
+  'create-study',
+  'inspect-branches',
+  'review-preview',
+  'score-agreed',
+  'occupied-point',
+];
+const catalog = cli(['recipe']);
+check(
+  catalog.schemaVersion === 'banora.cli-recipes/v1' &&
+    JSON.stringify(catalog.recipes.map((item: { name: string }) => item.name)) ===
+      JSON.stringify(recipeNames) &&
+    catalog.recipes.at(-1).expected === 'command-failed',
+  'Incomplete recipe catalog or unmarked failure fixture',
+);
+const recipe = (name: string) => cli(['recipe', '--name', name]);
+const automate = (request: unknown, exit = 0) => cli(['run'], exit, JSON.stringify(request));
+const createdStudy = automate(recipe('create-study'));
+check(
+  createdStudy.snapshot.moveNumber === 2 &&
+    createdStudy.snapshot.stones[20] === 'black' &&
+    createdStudy.snapshot.stones[60] === 'white' &&
+    createdStudy.results[0].value.total === 1 &&
+    createdStudy.history.dirty &&
+    createdStudy.checkpoint &&
+    createdStudy.sgf.includes('CR[cc]'),
+  'Create/annotate/search/checkpoint recipe did not produce its authored study',
+);
+const resumedStudy = automate({
+  schemaVersion: 'banora.automation/v1',
+  kind: 'record',
+  checkpoint: createdStudy.checkpoint,
+});
+check(
+  resumedStudy.sgf === createdStudy.sgf &&
+    resumedStudy.history.dirty &&
+    !resumedStudy.history.canUndo &&
+    JSON.stringify(resumedStudy.selection) === JSON.stringify(createdStudy.selection),
+  'Recipe checkpoint did not resume across actual processes with a fresh Undo boundary',
+);
+const inspectedBranches = automate(recipe('inspect-branches'));
+check(
+  inspectedBranches.games.length === 2 &&
+    inspectedBranches.results[0].value.total === 3 &&
+    inspectedBranches.selected.properties.C[0] === 'Original branch note' &&
+    !inspectedBranches.history.dirty &&
+    inspectedBranches.sgf.includes('XX[keep]'),
+  'Read-only collection/branch recipe edited or omitted its authored data',
+);
+const previewRequest = recipe('review-preview');
+const previewResult = automate(previewRequest);
+check(
+  !previewResult.results[0].value.applied &&
+    previewResult.results[0].value.edits.length === 2 &&
+    !previewResult.history.dirty &&
+    previewResult.sgf.includes('C[Obsolete note]'),
+  'Preview recipe applied changes prematurely',
+);
+const approvedRequest = {
+  ...previewRequest,
+  operations: [
+    { ...previewRequest.operations[0], previewOnly: false, expectedSgf: previewResult.sgf },
+  ],
+};
+const approved = automate(approvedRequest);
+check(
+  approved.results[0].value.applied &&
+    approved.history.dirty &&
+    approved.sgf.includes('C[Reviewed note]') &&
+    !approved.sgf.includes('C[Obsolete note]') &&
+    approved.sgf.includes('XX[keep]') &&
+    JSON.stringify(approved.selection) === JSON.stringify(previewResult.selection),
+  'Explicit approval recipe failed to preserve selection/unknown properties',
+);
+check(
+  automate({ ...approvedRequest, operations: [...approvedRequest.operations, { op: 'undo' }] })
+    .sgf === previewResult.sgf,
+  'Approved recipe batch did not Undo as one request-local edit',
+);
+const staleApproval = automate(
+  { ...approvedRequest, sgf: previewRequest.sgf.replace('XX[keep]', 'XX[changed]') },
+  3,
+);
+check(
+  staleApproval.error.reason === 'stale-preview' && !('sgf' in staleApproval),
+  'Recipe approval silently accepted intervening changes or exposed partial edits',
+);
+const agreedScore = automate(recipe('score-agreed'));
+check(
+  agreedScore.results[0].value.method === 'area' &&
+    agreedScore.results[0].value.winner === 'white' &&
+    agreedScore.results[0].value.margin === 6.5 &&
+    !agreedScore.history.dirty,
+  'Explicitly agreed area-score recipe used incorrect values or edited input',
+);
+const occupiedRecipe = automate(recipe('occupied-point'), 3);
+check(
+  occupiedRecipe.error.code === 'command-failed' &&
+    occupiedRecipe.error.operationIndex === 1 &&
+    !('sgf' in occupiedRecipe) &&
+    !('snapshot' in occupiedRecipe),
+  'Failure recipe returned partial authored state or an incorrect failed operation',
+);
+for (const args of [
+  ['recipe', '--name', '../outside'],
+  ['recipe', '--name', 'missing'],
+  ['recipe', '--name', 'create-study', '--name', 'score-agreed'],
+  ['recipe', '--output', 'recipe.json'],
+])
+  check(
+    cli(args, 2).error.code === 'usage',
+    'Recipe discovery accepted invalid flags or a filesystem lookup',
+  );
 const toolsSgf =
   '(;SZ[5]XX[keep];B[aa](;W[bb]C[Needle first])(;W[cc]C[needle second]))(;SZ[9]C[needle other])';
 check(

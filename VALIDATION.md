@@ -27,6 +27,12 @@ file/stdin requests, fixed transport envelopes, safe environment/timing, actual
 successful/failed report publication, existing-output/force and input protection.
 Normal automation/checkpoint fixtures continue to verify authored result compatibility.
 
+The installed Node CLI check discovers and executes every embedded `recipe`, checks
+read-only branch/search and agreed scoring outcomes, resumes an actual returned
+checkpoint across processes, and explicitly applies/Undo/rejects stale preview
+requests. Discovery misuse/traversal/repeated flags return fixed usage errors;
+no source checkout, browser or extra template interpreter is required.
+
 `scripts/performance.test.ts` checks legal authored workloads and fresh warm/sample
 measurement/verification/disposal behavior without time thresholds. The opt-in `perf`
 runner rebuilds public Node SDK artifacts and records 24 original/authored workload

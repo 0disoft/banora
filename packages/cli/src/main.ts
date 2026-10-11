@@ -4,9 +4,11 @@ import { decodeSgf, serializeSgf } from '@banora/sdk/sgf';
 import { CliError, json, readInput, saveOutput } from './io.js';
 import metadata from '../package.json';
 import { diagnose, diagnosticError } from './diagnostics.js';
+import { getRecipe, listRecipes } from './recipes.js';
 
 const commands = {
   schema: [],
+  recipe: ['name'],
   run: ['request', 'output', 'force'],
   diagnose: ['request', 'output', 'force'],
   inspect: ['input', 'tree', 'profile'],
@@ -23,7 +25,7 @@ const help = {
     flags: flags.map((flag) => `--${flag}`),
   })),
   usage:
-    'banora schema | run --request FILE | diagnose --request FILE | inspect --input SGF | search --input SGF --query TEXT | edit --input SGF --operations JSON | create --size N | snapshot --input JSON',
+    'banora schema | recipe [--name NAME] | run --request FILE | diagnose --request FILE | inspect --input SGF | search --input SGF --query TEXT | edit --input SGF --operations JSON | create --size N | snapshot --input JSON',
   stdin: 'Use - instead of a filename. run and diagnose default to stdin.',
   output:
     'One JSON response on stdout. --output saves successful SGF or normalized snapshot JSON; existing files require --force. Inputs are never overwritten.',
@@ -63,6 +65,12 @@ async function main() {
     }
   }
   if (command === 'schema') return AUTOMATION_SCHEMA;
+  if (command === 'recipe') {
+    if (typeof flags.name !== 'string') return listRecipes();
+    const request = getRecipe(flags.name);
+    if (!request) throw new CliError('usage', 'Unknown recipe. Run banora recipe.');
+    return request;
+  }
   if (flags.force && !flags.output) throw new CliError('usage', '--force requires --output.');
   const inputPaths: string[] = [];
   const read = async (path: string) => {

@@ -515,3 +515,31 @@ hosted publication remain unverified. No public API signature, DB, saved-data
 schema, dependency, repository hygiene or runner changed in this increment.
 The bugfix/SDK/test-hardening procedures were applied. Private reporting and the
 current-source all-72 audit remain active work.
+
+## October 12: Reusable CLI Requests and Fixture Navigation
+
+The built CLI now embeds five original ordinary automation requests and exposes
+`recipe` catalog discovery / `recipe --name NAME` request retrieval. Discovery
+executes nothing, reads no user file and interprets no name as a path. The source
+requests remain reviewable JSON with explicit outcome metadata; no new DSL, SDK
+signature, runtime dependency or scheduler was added. A workflow guide connects
+saved requests, actual checkpoint resume and explicit preview/approval/Undo; the
+development fixture index maps normal/error/boundary cases to reproduction/reset.
+
+Actual independent SDK/CLI tarball installation and Node processes passed 297
+checks, including executing every discovered recipe, read-only branches/search,
+agreed area scoring, returned checkpoint resume with fresh Undo, guarded application
+and one-step Undo, changed-source approval rejection, indexed occupied-point
+failure without partial authored state, invalid names/traversal/repeated flags and
+existing output/input protection. Root `check` passed 195 tests/2,720 assertions,
+builds/types/quality/boundaries, 118 documents/430 links and public SDK/classic/CLI
+consumers. Security file/permission signals also passed; this is not a complete scan.
+
+Updated CLI guide, automation/spec/ADR 0013, validation and readiness owners. CLI
+command discovery is additive; no shared SDK API, database, saved schema, dependency,
+repository hygiene or root runner changed. Browser repetition was skipped because
+only terminal discovery/authored requests and documentation changed; actual installed
+Node execution supplies the relevant consumer evidence. The requests require review
+before substituting user data. Host timers/file locks/live approval remain host-owned,
+not a claimed background automation service. Migration/release-access/security policy
+and the final requirement-by-requirement audit remain active work.

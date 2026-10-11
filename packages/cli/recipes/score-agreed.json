@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "banora.automation/v1",
+  "kind": "record",
+  "sgf": "(;FF[4]GM[1]CA[UTF-8]SZ[5]AB[aa][ab]AW[ee][de]KM[6.5]XX[keep])",
+  "profile": "tromp-taylor",
+  "operations": [
+    {
+      "op": "score",
+      "profile": "tromp-taylor",
+      "komi": 6.5,
+      "deadStones": [],
+      "sekiStones": []
+    }
+  ]
+}

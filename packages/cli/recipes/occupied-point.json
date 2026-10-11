@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "banora.automation/v1",
+  "kind": "record",
+  "size": 9,
+  "operations": [
+    { "op": "play", "point": { "x": 2, "y": 2 } },
+    { "op": "play", "point": { "x": 2, "y": 2 } }
+  ]
+}

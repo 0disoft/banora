@@ -231,6 +231,14 @@ history context. Cancellation and stale-response rejection are required.
 
 ## Consumer Experience
 
+The optional CLI embeds original reusable JSON requests, discoverable through
+`recipe` and `recipe --name NAME`. Discovery executes nothing. Requests exercise
+study creation/checkpoints, branch search, explicit review previews, agreed scoring
+and an intentional failure. The [workflow guide](../../examples/automation/README.md)
+connects save/reuse, cross-process resume and guarded preview approval/Undo; actual
+installed consumers verify those paths. Host scheduling and live-state authority
+remain separate responsibilities.
+
 Repository operational checks validate checkpoints/Studio backups by actual isolated
 restoration and fixed content-free comparisons, never modifying source files or
 opening live browser storage. Authored recovery drills and concrete incident/config/

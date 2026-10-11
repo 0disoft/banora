@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "banora.automation/v1",
+  "kind": "record",
+  "sgf": "(;FF[4]GM[1]CA[UTF-8]SZ[9]XX[keep];B[cc](;W[gg]C[Original main note])(;W[gc]C[Original branch note]))(;SZ[5]C[Original second game])",
+  "selection": { "gameIndex": 0, "path": [0, 1] },
+  "includeTree": true,
+  "operations": [{ "op": "search", "query": "Original", "properties": ["C"] }]
+}

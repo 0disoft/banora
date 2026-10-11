@@ -131,3 +131,16 @@ normalization, schema/error/limit handling and file preservation. Headless SDK
 types/runtime/global distribution have separate packed consumer evidence.
 CLI native-engine/puzzle/analysis-session commands and headless SVG/PNG rendering
 are absent; use their existing public SDK APIs/explicit engine example instead.
+
+## Reusable Workflows
+
+`banora recipe` discovers five original workflows with explicit expected outcomes;
+`banora recipe --name NAME` emits a complete ordinary automation request without
+executing or reading user data. Save reviewed JSON or pipe it into `run`. The
+installed CLI embeds the requests; no source checkout or template interpreter is
+needed after installation. They demonstrate checkpoint resume, branch inspection,
+search, preview, agreed scoring and an intentionally failed move. The
+[workflow guide](../../examples/automation/README.md) connects explicit preview
+approval, whole-record guards and one-step Undo across actual CLI requests.
+Hosts own scheduling, file overlap prevention, authorization and reviewed data
+replacement. The CLI starts no background worker or live-app session.

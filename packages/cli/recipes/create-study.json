@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "banora.automation/v1",
+  "kind": "record",
+  "size": 9,
+  "includeCheckpoint": true,
+  "operations": [
+    { "op": "play", "point": { "x": 2, "y": 2 } },
+    { "op": "play", "point": { "x": 6, "y": 6 } },
+    { "op": "comment", "text": "Authored study note" },
+    { "op": "marker", "point": { "x": 2, "y": 2 }, "kind": "circle" },
+    { "op": "search", "query": "Authored study note", "properties": ["C"] }
+  ]
+}

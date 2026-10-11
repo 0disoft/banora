@@ -42,7 +42,7 @@ This is an ownership decision, not evidence that such a service exists.
 | 4   | Design decisions and rejected alternatives       | ADRs 0001-0013 exist; record new readiness decisions and link their owners.                                                                       |
 | 5   | Interface types, documents and compatibility     | Public declarations, automation schema and packed consumers exist; audit export/document synchronization.                                         |
 | 6   | Validated configuration and safe secrets         | SDK options validate locally; ops templates need actual defaults and host secret boundaries.                                                      |
-| 7   | Normal/error/boundary development fixtures       | Authored SGF, puzzles and analysis fixtures exist; index reproducible cases and reset paths.                                                      |
+| 7   | Normal/error/boundary development fixtures       | Fixture index connects authored SGF/puzzle/analysis, recovery/storage/protocol and long-record cases to executed regressions and safe resets.     |
 | 8   | Fast regression checks with repro cases          | Bun tests and focused browser scenarios exist; add readiness regression coverage.                                                                 |
 | 9   | Change-aware CI and caching                      | No hosted workflow exists; implement bounded routing and cache policy.                                                                            |
 | 10  | Stable updates within supported majors           | Manifest ranges/lockfile exist; automate reviewed update candidates and major promotion gates.                                                    |
@@ -63,32 +63,32 @@ This is an ownership decision, not evidence that such a service exists.
 
 ## Product Workflows
 
-| ID  | Requested outcome                        | Current evidence / work to verify                                                                                                              |
-| --- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 25  | First-run guidance to a first result     | Standalone guide and Studio exist; audit clean setup and add concise contextual help.                                                          |
-| 26  | Trial space and samples                  | Static Studio/viewer/puzzle/analysis consumers exist; verify built artifacts and sample reset.                                                 |
-| 27  | Templates for recurring work             | New record/example record and standalone app exist; index templates and portable automation recipes.                                           |
-| 28  | One-place search and navigation          | Whole-record search plus Studio Help action/settings discovery navigate to actual positions, dialogs and menu controls.                        |
-| 29  | Bounded batch edit/export                | SDK/CLI/Studio support guarded comment batches with preview and one-step Undo; exported SGF preserves all selected edits.                      |
-| 30  | Autosave and resume                      | SDK/terminal checkpoints and Studio local drafts/guarded restore preserve records, baselines and selected locations.                           |
-| 31  | Compare changes and Undo                 | Controller Undo/Redo, position comparison and batch/recovery interactions have unit and production browser evidence.                           |
-| 32  | Preview before destructive/bulk changes  | Inspectable comment previews require explicit atomic apply; source changes invalidate approval without losing typed input.                     |
-| 33  | Import/export across tools               | SGF/UTF-8 and diagrams/CLI exist; verify new persistence and batch paths preserve unknown properties.                                          |
-| 34  | Share and collaborative review           | Embedded links/comments exist; collaborative authority remains host-owned, with explicit privacy/permission contracts.                         |
-| 35  | Personal workspace/preferences           | Twelve versioned scalar settings, safe legacy migration and explicit bounded reset preserve record semantics; browser evidence in ADR 0018.    |
-| 36  | Completion/action-required feedback      | Live statuses/dirty dialog exist; audit actionable feedback and pending-work visibility.                                                       |
-| 37  | Saved recurring multi-step automation    | JSON automation/CLI exists; provide validated reusable recipes; scheduling remains host-owned.                                                 |
-| 38  | Roles and access control                 | Local SDK has no users; controlled intentions/read-only are presentation only, hosts enforce authorization.                                    |
-| 39  | Review/approve/apply important changes   | Local bulk preview requires explicit apply and preserves Undo; multi-user approval authority remains host-owned.                               |
-| 40  | Operator management                      | No hosted accounts/jobs exist; local diagnostics/recovery tools must avoid a fictitious admin service.                                         |
-| 41  | Redacted support bundle                  | SDK/Studio provide explicit opt-in, safe inspect/clear/download and pending-work consent guards with actual file evidence.                     |
-| 42  | In-product examples/help                 | Localized opt-in Help provides action/settings discovery and concise instructions, accessed above/near the board.                              |
-| 43  | Bug/feature feedback and status          | Help links to enabled GitHub Issues; local bug/feature templates updated. Repository is private; public access/publishing remain release work. |
-| 44  | Usage/failure dashboard                  | Opt-in Studio shows retained-window outcome/timing summaries and fixed failure guidance; no lifetime analytics or hosted telemetry claim.      |
-| 45  | Progress/cancel/retry for long work      | Analysis session and file cancellation gates exist; audit bounded import/batch/backup work and status.                                         |
-| 46  | User-selectable backup/restore           | Studio draft/backup controls and isolated operations checks preserve selection/baseline/rules; production download artifacts verified.         |
-| 47  | External API/webhook/service integration | Host snapshots/intentions and provider/transport interfaces exist; document authorization/deadline/event bridge ownership.                     |
-| 48  | Extension architecture                   | Selective modules, framework adapters, overlays and providers exist; verify no extension requires private imports.                             |
+| ID  | Requested outcome                        | Current evidence / work to verify                                                                                                                    |
+| --- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 25  | First-run guidance to a first result     | Standalone guide and Studio exist; audit clean setup and add concise contextual help.                                                                |
+| 26  | Trial space and samples                  | Static Studio/viewer/puzzle/analysis consumers exist; verify built artifacts and sample reset.                                                       |
+| 27  | Templates for recurring work             | Five embedded CLI JSON recipes, copyable standalone app and fixture/workflow indexes exist; installed consumers execute every recipe.                |
+| 28  | One-place search and navigation          | Whole-record search plus Studio Help action/settings discovery navigate to actual positions, dialogs and menu controls.                              |
+| 29  | Bounded batch edit/export                | SDK/CLI/Studio support guarded comment batches with preview and one-step Undo; exported SGF preserves all selected edits.                            |
+| 30  | Autosave and resume                      | SDK/terminal checkpoints and Studio local drafts/guarded restore preserve records, baselines and selected locations.                                 |
+| 31  | Compare changes and Undo                 | Controller Undo/Redo, position comparison and batch/recovery interactions have unit and production browser evidence.                                 |
+| 32  | Preview before destructive/bulk changes  | Inspectable comment previews require explicit atomic apply; source changes invalidate approval without losing typed input.                           |
+| 33  | Import/export across tools               | SGF/UTF-8 and diagrams/CLI exist; verify new persistence and batch paths preserve unknown properties.                                                |
+| 34  | Share and collaborative review           | Embedded links/comments exist; collaborative authority remains host-owned, with explicit privacy/permission contracts.                               |
+| 35  | Personal workspace/preferences           | Twelve versioned scalar settings, safe legacy migration and explicit bounded reset preserve record semantics; browser evidence in ADR 0018.          |
+| 36  | Completion/action-required feedback      | Live statuses/dirty dialog exist; audit actionable feedback and pending-work visibility.                                                             |
+| 37  | Saved recurring multi-step automation    | Discover/save/reuse ordinary CLI requests; actual cross-process checkpoint and guarded preview/apply/Undo paths pass; scheduling remains host-owned. |
+| 38  | Roles and access control                 | Local SDK has no users; controlled intentions/read-only are presentation only, hosts enforce authorization.                                          |
+| 39  | Review/approve/apply important changes   | Local bulk preview requires explicit apply and preserves Undo; multi-user approval authority remains host-owned.                                     |
+| 40  | Operator management                      | No hosted accounts/jobs exist; local diagnostics/recovery tools must avoid a fictitious admin service.                                               |
+| 41  | Redacted support bundle                  | SDK/Studio provide explicit opt-in, safe inspect/clear/download and pending-work consent guards with actual file evidence.                           |
+| 42  | In-product examples/help                 | Localized opt-in Help provides action/settings discovery and concise instructions, accessed above/near the board.                                    |
+| 43  | Bug/feature feedback and status          | Help links to enabled GitHub Issues; local bug/feature templates updated. Repository is private; public access/publishing remain release work.       |
+| 44  | Usage/failure dashboard                  | Opt-in Studio shows retained-window outcome/timing summaries and fixed failure guidance; no lifetime analytics or hosted telemetry claim.            |
+| 45  | Progress/cancel/retry for long work      | Analysis session and file cancellation gates exist; audit bounded import/batch/backup work and status.                                               |
+| 46  | User-selectable backup/restore           | Studio draft/backup controls and isolated operations checks preserve selection/baseline/rules; production download artifacts verified.               |
+| 47  | External API/webhook/service integration | Host snapshots/intentions and provider/transport interfaces exist; document authorization/deadline/event bridge ownership.                           |
+| 48  | Extension architecture                   | Selective modules, framework adapters, overlays and providers exist; verify no extension requires private imports.                                   |
 
 ## End-to-End Audit
 

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "banora.automation/v1",
+  "kind": "record",
+  "sgf": "(;FF[4]GM[1]CA[UTF-8]SZ[9]XX[keep];B[cc]C[Original note];W[gg]C[Obsolete note])",
+  "selection": { "gameIndex": 0, "path": [0, 0] },
+  "operations": [
+    {
+      "op": "comment-batch",
+      "previewOnly": true,
+      "changes": [
+        {
+          "target": { "gameIndex": 0, "path": [0] },
+          "text": "Reviewed note",
+          "expectedText": "Original note"
+        },
+        {
+          "target": { "gameIndex": 0, "path": [0, 0] },
+          "text": "",
+          "expectedText": "Obsolete note"
+        }
+      ]
+    }
+  ]
+}
