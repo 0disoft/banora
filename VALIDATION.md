@@ -78,6 +78,18 @@ to verify imports reject old results and clear selections without changing the
 new record. No fixed sleep or relaxed stale-result assertion substitutes for
 import completion.
 
+The browser smoke runner accepts one optional
+`--browser=chrome|msedge|firefox|webkit` and verifies the launched engine before
+running a scenario; Chrome remains the default. Install the selected browser
+explicitly with `bun run browser:install firefox`, for example.
+After `bun run build:examples`, focused routes can run as
+`bun scripts/browser-smoke.ts --search-only --browser=firefox` (also `--tree-only`
+and `--accessibility-only`). Invalid/duplicate options fail before server/browser
+startup. CDP performance measurements reject Firefox/WebKit; selecting a browser
+does not assert that every scenario or device-emulation feature supports it.
+Current executed engine/scenario coverage belongs to
+[compatibility](docs/sdk/compatibility.md#executed-browser-scope).
+
 `scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
 modified/extra files, directory links, source-preserving isolated restaging, actual
 Git source guards and failed/timed-out check processes. `bun run release prepare`

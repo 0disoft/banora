@@ -41,6 +41,7 @@
     "smoke:katago": "bun run build && bun scripts/live-katago.ts",
     "smoke:katago:node": "bun run build && bun build scripts/live-katago.ts --target=node --packages=external --outfile .tmp/live-katago-runner.mjs && node .tmp/live-katago-runner.mjs",
     "smoke:browser": "bun run build:examples && bun scripts/browser-smoke.ts",
+    "browser:install": "bun run playwright-cli install-browser",
     "typecheck:svelte": "bun run --cwd packages/svelte typecheck",
     "check": "bun run lint && bun run format && bun run boundaries && bun run build:adapters && bun scripts/build-cli.ts && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts && bun scripts/packed-cli.ts"
   },

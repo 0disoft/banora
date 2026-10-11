@@ -135,6 +135,31 @@ dependency or repository-hygiene settings changed. Subsequent evidence-only
 documentation commits are held for the next validated push batch, avoiding a
 second full pull-request run for identical executable code.
 
+## October 12: Focused Firefox Execution
+
+After the successful hosted Chrome run, the production smoke runner gained an
+explicit browser selection with an actual engine identity guard. Windows Firefox
+156 was installed through the existing Playwright CLI and passed focused search,
+variation-tree and accessibility routes against the built public-package examples.
+The scenario assertions and authored SGF checks were preserved. Variation focus/
+tail replacement and four-language/narrow native dialogs were exercised; the
+actual variation screenshot was inspected.
+
+The default Chrome search route also passed with the new explicit launch/identity
+guard. Root `check` passed 198 tests/2,770 assertions, builds/types/quality/boundaries,
+121 documents/463 links, packed SDK/classic consumers and 297 installed CLI checks.
+The root `browser:install` command exposes the existing CLI installer without adding
+dependencies or starting a browser by default; development/validation guides name it.
+
+New process-boundary regression checks reject unknown, empty, malformed or
+duplicate selections and Firefox/WebKit CDP performance requests before launching
+a browser. Chrome remains the default; CI permissions/jobs and SDK/API/storage/DB
+contracts do not change. The validation owner and compatibility scope record the
+optional commands and observed limits. Test-hardening, SDK, Playwright and
+ops-change procedures applied. Full Firefox, WebKit/Safari, physical devices, arbitrary zoom
+and real assistive technology remain unverified; these passing focused routes
+must not be expanded into a general browser-support claim.
+
 ## October 12: Workflow and Promise Review
 
 Reviewed current Studio import/replacement/export and search/support controls,

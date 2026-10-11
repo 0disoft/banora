@@ -7,6 +7,17 @@ import { releaseInput } from './release-artifacts.js';
 import { syntheticReview } from './performance.js';
 
 const root = process.cwd();
+const browserOptions = process.argv.slice(2).filter((arg) => arg.startsWith('--browser'));
+const browser = browserOptions[0]?.slice('--browser='.length) ?? 'chrome';
+if (
+  browserOptions.length > 1 ||
+  (browserOptions.length && !browserOptions[0]!.startsWith('--browser=')) ||
+  !['chrome', 'msedge', 'firefox', 'webkit'].includes(browser)
+)
+  throw Error('Use one --browser=chrome|msedge|firefox|webkit option.');
+const engine = browser === 'firefox' || browser === 'webkit' ? browser : 'chromium';
+if (process.argv.includes('--performance-only') && engine !== 'chromium')
+  throw Error('Browser performance requires a Chromium engine for CDP measurements.');
 const release = await releaseInput();
 const output = resolve(root, 'output/playwright');
 await mkdir(output, { recursive: true });
@@ -327,7 +338,16 @@ async function supportSmoke() {
 }
 try {
   const address = `http://127.0.0.1:${server.port}`;
-  await cli('open', `${address}/studio/`);
+  await cli('open', `${address}/studio/`, '--browser', browser);
+  requireScenarioResult(
+    await cli(
+      'run-code',
+      `async (page) => { if (page.context().browser().browserType().name() !== '${engine}') throw Error('Unexpected browser engine'); return 'banora-engine-${engine}'; }`,
+    ),
+    `banora-engine-${engine}`,
+  );
+  console.log(`Browser engine: ${engine} (${browser})`);
+  console.log((await cli('eval', '() => navigator.userAgent')).trim());
   // Capture actual UI references before interacting; scenario uses public roles
   // and selectors, never private SDK/controller hooks.
   await cli('snapshot');
@@ -545,7 +565,6 @@ try {
     console.log(
       'Browser smoke passed: SGF editing/reopen, guards, keyboard, touch, read-only lifecycle, crop, disposal and local-only requests.',
     );
-    console.log((await cli('eval', '() => navigator.userAgent')).trim());
   }
 } finally {
   try {

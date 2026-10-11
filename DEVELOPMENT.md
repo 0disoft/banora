@@ -50,6 +50,14 @@ as review candidates. Type-only/computed imports are not a source-scanner suppor
 claim; installed declarations/headless/SSR checks remain required. See
 [ADR 0014](docs/adr/0014-development-bootstrap-and-boundary-gates.md).
 
+For an additional browser, install it explicitly with
+`bun run browser:install firefox`, build examples once with
+`bun run build:examples`, then run a focused scenario such as
+`bun scripts/browser-smoke.ts --search-only --browser=firefox`.
+The runner verifies the actual launched engine; Chrome remains the default.
+See [executed browser scope](docs/sdk/compatibility.md#executed-browser-scope) for
+tested routes and the limits of other engine/device combinations.
+
 Use TypeScript for the SDK and SGF model, SVG/CSS for the initial renderer, Vite
 for library/demo builds, and Bun for dependency installation and package scripts.
 Use one common SDK package in M1 and three separate optional React, Vue and Svelte

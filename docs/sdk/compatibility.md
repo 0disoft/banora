@@ -39,6 +39,31 @@ UNDECIDED and must not be claimed without consumer evidence.
 
 ## Runtime Boundaries
 
+### Executed Browser Scope
+
+The complete production suite passed on Windows x64 Headless Chrome 154 and on
+hosted Ubuntu x64 Headless Chrome 155 (Bun 1.4.3/Node 24.21.0); the hosted run also
+executed packed adapter types/SSR and the independently installed starter browser
+flow. See [hosted execution evidence](../engineering/16-product-flow-audit.md).
+
+Windows x64 Firefox 156 additionally passed the focused `--search-only`,
+`--tree-only` and `--accessibility-only` production routes. These cover collection/
+branch search, paged selection, preview/apply/Undo and downloaded SGF preservation;
+bounded variation navigation/MN/annotations, keyboard focus, comment indicators,
+locale/import changes and actual export/reopen; four-language Studio replacement/
+removal dialogs and English React/Vue/Svelte sharing-cancel guards at desktop/320px
+widths. The variation screenshot was inspected. This is not full Firefox feature,
+mobile/physical-touch or screen-reader certification.
+
+`scripts/browser-smoke.ts` accepts a single
+`--browser=chrome|msedge|firefox|webkit` alongside its existing focused flags.
+It explicitly launches and verifies that engine, and emits its actual user agent.
+The default and existing CI remain Chrome: no extra matrix/job or browser download
+is added to CI. Other selections require an explicitly installed browser. Invalid/
+duplicate selections fail before launch, and Firefox/WebKit reject Chromium-only
+CDP performance measurement. WebKit/Safari, Edge, other operating systems,
+physical devices and browser floors are not verified by these focused executions.
+
 | Surface                   | Intended environment                                    | Support status                                                                                                    |
 | ------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Core and SGF              | Browser and Node.js, no DOM required                    | Node 24.14.0 packed consumer and Chrome 154 browser flows; broader floors pending                                 |
