@@ -55,13 +55,22 @@ removal dialogs and English React/Vue/Svelte sharing-cancel guards at desktop/32
 widths. The variation screenshot was inspected. This is not full Firefox feature,
 mobile/physical-touch or screen-reader certification.
 
+Windows x64 Playwright WebKit 26.6 also passed the same three focused routes.
+The accessibility scenario now explicitly focuses and activates guard buttons
+with Enter before checking modal Tab/Escape and focus restoration. Its original
+pointer-triggered focus assumption failed in WebKit; the corrected keyboard
+workflow passed in Chrome 154, Firefox 156 and WebKit 26.6 with the original
+state/focus assertions retained. The narrow Korean dialog screenshot was inspected.
+This Windows WebKit build reports a Safari/macOS-style user agent; neither that
+string nor these results prove a real macOS Safari or iOS device was tested.
+
 `scripts/browser-smoke.ts` accepts a single
 `--browser=chrome|msedge|firefox|webkit` alongside its existing focused flags.
 It explicitly launches and verifies that engine, and emits its actual user agent.
 The default and existing CI remain Chrome: no extra matrix/job or browser download
 is added to CI. Other selections require an explicitly installed browser. Invalid/
 duplicate selections fail before launch, and Firefox/WebKit reject Chromium-only
-CDP performance measurement. WebKit/Safari, Edge, other operating systems,
+CDP performance measurement. Full WebKit/Firefox, actual Safari, Edge, other operating systems,
 physical devices and browser floors are not verified by these focused executions.
 
 | Surface                   | Intended environment                                    | Support status                                                                                                    |

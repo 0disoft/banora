@@ -58,8 +58,8 @@ Full functional smoke does not automatically run this measurement; changing its
 scenario selects the focused measurement route in the existing single CI job.
 
 `scripts/accessibility-scenario.js` runs against actual built production pages.
-It checks Studio replacement/removal dialog names in four languages, native modal
-keyboard focus/Escape, preserved authored state and selection, and three framework
+It checks Studio replacement/removal dialog names in four languages, keyboard
+activation plus native modal focus/Escape, preserved authored state and selection, and three framework
 sharing guards at desktop/320px widths. `--accessibility-only` selects this focused
 browser route; full browser and sharing routes include it. This does not prove
 physical screen-reader or untested engine support.

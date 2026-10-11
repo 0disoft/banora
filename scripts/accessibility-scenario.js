@@ -58,7 +58,8 @@ async (rootPage) => {
         await page.locator('#comment').blur();
         const dirty = await page.locator('#dirty').textContent();
         const count = await page.locator('#tree button').count();
-        await page.locator('#new').click();
+        await page.locator('#new').focus();
+        await page.keyboard.press('Enter');
         await guard(unsaved, `unsaved-${locale}-${width}`);
         check(
           (await page.locator('#comment').inputValue()) === note &&
@@ -74,7 +75,8 @@ async (rootPage) => {
         const move = await page.locator('#move').textContent();
         await page.locator('#board-menu').click();
         await page.locator('[data-board-menu-section="tools"]').click();
-        await page.locator('#remove-branch').click();
+        await page.locator('#remove-branch').focus();
+        await page.keyboard.press('Enter');
         await guard(removal, `removal-${locale}-${width}`);
         check(
           (await page.locator('#tree button').count()) === count &&
@@ -118,7 +120,8 @@ async (rootPage) => {
           const svg = page.locator('#board-host svg');
           const dimension = await svg.getAttribute('data-board-width');
           await page.locator('[data-share="input"]').fill(link);
-          await page.locator('[data-share="open"]').click();
+          await page.locator('[data-share="open"]').focus();
+          await page.keyboard.press('Enter');
           await guard(titles.en[0], `${framework}-sharing-en-${width}`, '#theme');
           check(
             (await notes.inputValue()) === note &&

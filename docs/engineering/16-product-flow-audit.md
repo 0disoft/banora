@@ -135,6 +135,31 @@ dependency or repository-hygiene settings changed. Subsequent evidence-only
 documentation commits are held for the next validated push batch, avoiding a
 second full pull-request run for identical executable code.
 
+## October 12: WebKit and Keyboard Activation
+
+Windows x64 Playwright WebKit 26.6 installed through `browser:install` and passed
+focused search and variation-tree routes at the existing public-package examples.
+The first accessibility attempt failed its invoking-button focus assertion.
+Inspection found that it activated the guard with a pointer click, then expected
+keyboard focus restoration. Studio already uses native modal focus and the product
+contract requires keyboard cancellation without changing authored work.
+
+The scenario now focuses guard buttons and activates them with Enter for new
+records, continuation removal and framework sharing. The existing modal name,
+background-focus/Tab containment, Escape, invoking-control focus and authored-state
+assertions remain enabled. Focused accessibility passed after this setup correction
+on WebKit 26.6, Firefox 156 and Chrome 154; the narrow Korean modal screenshot was
+inspected. Runtime confirmation code, SDK API, DB, dependencies, hygiene and
+runner definitions were not changed by this increment.
+
+The WebKit user agent identifies Safari/macOS even on this Windows host. Actual
+machine/engine identity is recorded separately; no real Safari, iOS or physical
+assistive-device certification follows. Full non-Chromium suites still contain
+Chromium-only CDP touch/zoom fixtures, so broader desktop coverage needs an explicit
+scope while keeping the existing Chrome full suite intact. Test-hardening, bugfix,
+SDK and Playwright procedures applied; the validation/compatibility owners and
+readiness worklist record only executed evidence.
+
 ## October 12: Focused Firefox Execution
 
 After the successful hosted Chrome run, the production smoke runner gained an
