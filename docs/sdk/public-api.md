@@ -751,6 +751,11 @@ move controls, branch selection, player information/captures and comments.
 The returned `ViewerView` exposes `controller`, `playback`, `update(options)`, board-only diagram
 exports and idempotent `dispose()`. Updating presentation/editability retains the same controller and
 record. Enable editing for legal board moves/pass, grouped comments and Undo/Redo.
+Nested board updates merge only explicitly supplied settings. If navigation or
+record replacement makes a crop extend beyond the board, it resets to the full
+board; later language, theme or visibility updates preserve that reset. Crops
+that still fit are retained. Explicitly supplying an invalid crop throws without
+changing the previous presentation.
 Hosts can supply `board.onPoint` for other editing/inspection modes. Hosts still
 own unsaved-change confirmation and file export transport.
 

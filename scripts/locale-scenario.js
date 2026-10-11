@@ -123,6 +123,45 @@ async (page) => {
         view.playback.getState().intervalMs === 500,
       'Japanese update changed record, history or playback settings',
     );
+    controller.loadSgf('(;SZ[19])(;SZ[13])(;SZ[9])', { discardChanges: true });
+    view.update({ board: { crop: { x: 10, y: 10, width: 3, height: 3 } } });
+    controller.goTo(controller.getState().record.games[1].id);
+    check(
+      container.querySelector('svg').getAttribute('viewBox') === '10 10 4.5 4.5',
+      'Valid crop was discarded on a board size change',
+    );
+    controller.goTo(controller.getState().record.games[2].id);
+    check(
+      container.querySelector('svg').getAttribute('viewBox') === '0 0 10.5 10.5',
+      'Invalid inherited crop was not cleared on a smaller game',
+    );
+    const selected = controller.getState();
+    view.update({ locale: 'ko', board: { theme: 'flat' }, playback: { intervalMs: 1500 } });
+    check(
+      container.querySelector('section').lang === 'ko' &&
+        container.querySelector('svg').getAttribute('viewBox') === '0 0 10.5 10.5' &&
+        view.playback.getState().intervalMs === 1500 &&
+        controller.getState() === selected,
+      'Unrelated Viewer update revived a cleared crop or changed record state',
+    );
+    controller.loadSgf('(;SZ[7])');
+    view.update({ comments: false });
+    check(
+      container.querySelector('svg').getAttribute('viewBox') === '0 0 8.5 8.5' &&
+        container.querySelector('[data-notes]').hidden,
+      'Update after record replacement revived the old crop',
+    );
+    try {
+      view.update({ locale: 'en', board: { crop: { x: 10, y: 10, width: 3, height: 3 } } });
+      throw Error('Explicit invalid crop accepted');
+    } catch (error) {
+      if (!(error instanceof RangeError)) throw error;
+    }
+    check(
+      container.querySelector('section').lang === 'ko' &&
+        container.querySelector('svg').getAttribute('viewBox') === '0 0 8.5 8.5',
+      'Explicit invalid crop changed Viewer presentation',
+    );
     view.dispose();
     controller.dispose();
     container.remove();

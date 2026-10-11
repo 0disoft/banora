@@ -221,6 +221,8 @@ devices and other browsers remains unverified.
 
 After building examples, `bun scripts/browser-smoke.ts --locale-only` checks
 English/Korean/Chinese/Japanese Viewer updates, custom literal messages, rejection rollback,
+crop retention/reset across differently sized games and imports, later partial
+Viewer updates and explicit invalid-crop rollback,
 localized board accessibility, authored content/selection/dirty-state preservation,
 Studio labels, sharing, manual scoring, SGF export, saved language preference,
 Chinese/Japanese browser-language detection and saved-selection precedence, and

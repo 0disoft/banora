@@ -314,7 +314,9 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       const merged = { ...options, ...next, board: { ...options.board, ...next.board } };
       const nextUi = createUiMessages(merged);
       board.update({
-        ...merged.board,
+        // The board owns resolved settings, including crops cleared on size changes.
+        // Do not replay old board options during unrelated Viewer updates.
+        ...next.board,
         labels: { ...createBoardLabels(merged), ...merged.board.labels },
         readOnly: !merged.editable,
         nodeId: null,
