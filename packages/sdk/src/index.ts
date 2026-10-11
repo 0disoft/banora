@@ -5,6 +5,7 @@ export * from './sgf.js';
 export * from './controller.js';
 export * from './checkpoint.js';
 export * from './record-search.js';
+export * from './diagnostics.js';
 export * from './automation.js';
 export * from './playback.js';
 export * from './playback-controls.js';

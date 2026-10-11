@@ -34,32 +34,32 @@ This is an ownership decision, not evidence that such a service exists.
 
 ## Engineering and Operations
 
-| ID  | Requested outcome                                | Current evidence / work to verify                                                                               |
-| --- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| 1   | Reproducible tools and initial setup             | Bun/Node majors and lockfile exist; add bootstrap and executable environment checks.                            |
-| 2   | Common run/build/check/cleanup commands          | Root package scripts exist; add discovery, setup and bounded cleanup.                                           |
-| 3   | Module responsibility and dependency enforcement | Architecture and packed headless checks exist; add a source import gate.                                        |
-| 4   | Design decisions and rejected alternatives       | ADRs 0001-0013 exist; record new readiness decisions and link their owners.                                     |
-| 5   | Interface types, documents and compatibility     | Public declarations, automation schema and packed consumers exist; audit export/document synchronization.       |
-| 6   | Validated configuration and safe secrets         | SDK options validate locally; ops templates need actual defaults and host secret boundaries.                    |
-| 7   | Normal/error/boundary development fixtures       | Authored SGF, puzzles and analysis fixtures exist; index reproducible cases and reset paths.                    |
-| 8   | Fast regression checks with repro cases          | Bun tests and focused browser scenarios exist; add readiness regression coverage.                               |
-| 9   | Change-aware CI and caching                      | No hosted workflow exists; implement bounded routing and cache policy.                                          |
-| 10  | Stable updates within supported majors           | Manifest ranges/lockfile exist; automate reviewed update candidates and major promotion gates.                  |
-| 11  | Format/static/forbidden-pattern/size rules       | Oxlint/Oxfmt exist; enforce dependency, quality and review-size policies.                                       |
-| 12  | Error classes, messages, causes and retryability | Controller/SGF/analysis/CLI failures exist; audit consistency and safe recovery guidance.                       |
-| 13  | Structured operation identifiers/logs            | Analysis and automation IDs exist; add redacted diagnostic records without implicit logging.                    |
-| 14  | Latency/failure/resource visibility and alerts   | Hosted monitoring is host-owned; provide local diagnostics/measurements and real ops guidance.                  |
-| 15  | Timeout/retry/rate limits/failure containment    | Analysis cancellation/capacity and host process deadlines exist; audit disconnect/retry boundaries.             |
-| 16  | Versioned data, migration and recovery           | SGF and automation versions exist; version new local drafts/preferences and test invalid/future versions.       |
-| 17  | Rebuildable infrastructure and permissions       | SDK needs no server infrastructure; CI/static artifacts must be declarative and least-privilege.                |
-| 18  | Pre-release verification environment             | Production examples and isolated installed consumers exist; provide a repeatable release-preparation path.      |
-| 19  | Release verification and rollback automation     | Packed checks exist; operational release/rollback documents are empty scaffolds.                                |
-| 20  | Feature activation and emergency disable         | Explicit optional modules/providers and read-only options exist; audit capability control without remote flags. |
-| 21  | Automatic backups and verified restore           | SGF export exists; add local draft backup/restore and document portable backup limits.                          |
-| 22  | Executable operational procedures                | Existing ops documents are placeholders; replace with actual tools and recovery steps.                          |
-| 23  | Secret/dependency/permission security gates      | Input-boundary tests exist; add repository/CI security checks and documented vulnerability reporting.           |
-| 24  | Code/document synchronization                    | Relative-link/docs and packed declarations checks exist; add command/export policy evidence.                    |
+| ID  | Requested outcome                                | Current evidence / work to verify                                                                                  |
+| --- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| 1   | Reproducible tools and initial setup             | Bun/Node majors and lockfile exist; add bootstrap and executable environment checks.                               |
+| 2   | Common run/build/check/cleanup commands          | Root package scripts exist; add discovery, setup and bounded cleanup.                                              |
+| 3   | Module responsibility and dependency enforcement | Architecture and packed headless checks exist; add a source import gate.                                           |
+| 4   | Design decisions and rejected alternatives       | ADRs 0001-0013 exist; record new readiness decisions and link their owners.                                        |
+| 5   | Interface types, documents and compatibility     | Public declarations, automation schema and packed consumers exist; audit export/document synchronization.          |
+| 6   | Validated configuration and safe secrets         | SDK options validate locally; ops templates need actual defaults and host secret boundaries.                       |
+| 7   | Normal/error/boundary development fixtures       | Authored SGF, puzzles and analysis fixtures exist; index reproducible cases and reset paths.                       |
+| 8   | Fast regression checks with repro cases          | Bun tests and focused browser scenarios exist; add readiness regression coverage.                                  |
+| 9   | Change-aware CI and caching                      | No hosted workflow exists; implement bounded routing and cache policy.                                             |
+| 10  | Stable updates within supported majors           | Manifest ranges/lockfile exist; automate reviewed update candidates and major promotion gates.                     |
+| 11  | Format/static/forbidden-pattern/size rules       | Oxlint/Oxfmt exist; enforce dependency, quality and review-size policies.                                          |
+| 12  | Error classes, messages, causes and retryability | Typed SDK reason/recovery projection implemented; consumer messaging and retry safety need integration.            |
+| 13  | Structured operation identifiers/logs            | Explicit SDK journal generates bounded safe local evidence/IDs; Studio/terminal integration follows.               |
+| 14  | Latency/failure/resource visibility and alerts   | SDK retained-window outcome/timing summaries and real ops guide implemented; hosted monitoring remains host-owned. |
+| 15  | Timeout/retry/rate limits/failure containment    | Analysis cancellation/capacity and host process deadlines exist; audit disconnect/retry boundaries.                |
+| 16  | Versioned data, migration and recovery           | SGF and automation versions exist; version new local drafts/preferences and test invalid/future versions.          |
+| 17  | Rebuildable infrastructure and permissions       | SDK needs no server infrastructure; CI/static artifacts must be declarative and least-privilege.                   |
+| 18  | Pre-release verification environment             | Production examples and isolated installed consumers exist; provide a repeatable release-preparation path.         |
+| 19  | Release verification and rollback automation     | Packed checks exist; operational release/rollback documents are empty scaffolds.                                   |
+| 20  | Feature activation and emergency disable         | Explicit optional modules/providers and read-only options exist; audit capability control without remote flags.    |
+| 21  | Automatic backups and verified restore           | SGF export exists; add local draft backup/restore and document portable backup limits.                             |
+| 22  | Executable operational procedures                | Existing ops documents are placeholders; replace with actual tools and recovery steps.                             |
+| 23  | Secret/dependency/permission security gates      | Input-boundary tests exist; add repository/CI security checks and documented vulnerability reporting.              |
+| 24  | Code/document synchronization                    | Relative-link/docs and packed declarations checks exist; add command/export policy evidence.                       |
 
 ## Product Workflows
 
@@ -81,10 +81,10 @@ This is an ownership decision, not evidence that such a service exists.
 | 38  | Roles and access control                 | Local SDK has no users; controlled intentions/read-only are presentation only, hosts enforce authorization.                                 |
 | 39  | Review/approve/apply important changes   | Local bulk preview requires explicit apply and preserves Undo; multi-user approval authority remains host-owned.                            |
 | 40  | Operator management                      | No hosted accounts/jobs exist; local diagnostics/recovery tools must avoid a fictitious admin service.                                      |
-| 41  | Redacted support bundle                  | Add environment/operation diagnostics that exclude SGF, names, comments, file paths and secrets by default.                                 |
+| 41  | Redacted support bundle                  | SDK reports exclude authored data/raw errors/fingerprints; add explicit Studio opt-in/inspect/clear/download.                               |
 | 42  | In-product examples/help                 | Tooltips exist; provide concise opt-in help near relevant actions, not permanent explanatory prose.                                         |
 | 43  | Bug/feature feedback and status          | GitHub templates exist; connect help to the real repository issue/feedback channel.                                                         |
-| 44  | Usage/failure dashboard                  | No implicit analytics by invariant; provide opt-in local inspection and host instrumentation guidance.                                      |
+| 44  | Usage/failure dashboard                  | Explicit bounded SDK summaries and host instrumentation guidance implemented; local inspection UI follows.                                  |
 | 45  | Progress/cancel/retry for long work      | Analysis session and file cancellation gates exist; audit bounded import/batch/backup work and status.                                      |
 | 46  | User-selectable backup/restore           | Add local draft restore and portable backup controls with validation and replacement guards.                                                |
 | 47  | External API/webhook/service integration | Host snapshots/intentions and provider/transport interfaces exist; document authorization/deadline/event bridge ownership.                  |
@@ -404,3 +404,40 @@ Record-data search and comment batching now have SDK, terminal and Studio consum
 Function/settings discovery is still separate work under question 28. Diagnostics/
 help/ops, measured performance, release/rollback and the final all-72 audit remain
 active. Physical devices, other browser engines and hosted CI are not claimed.
+
+## Execution: Explicit Redacted Diagnostic SDK
+
+Added optional headless `@banora/sdk/diagnostics`, root/classic exports and readonly
+typed contracts for bounded local operation evidence. Hosts explicitly submit fixed
+operation/status/domain/code values and optional rounded durations; no automatic
+record observation, timer, global error interception, console, persistence or
+network is installed. Unknown codes are discarded to `unknown`. Typed SDK reason
+maps exhaust controller/SGF/analysis failures and reconstruct manual recovery advice.
+Unsupported non-Go/FF4 input requires correction, not an assumed package upgrade.
+
+Generated local IDs, 1–256 recent-event retention, eviction counts, immutable
+snapshots and retained-window outcome/timing summaries support issue correlation
+and local inspection. Clear drops current history without changing caller-held
+snapshots or reusing already displayed IDs. Environment accepts only explicit
+family/major/locale values, excluding raw UA/URL/path/version text and authored
+content. Invalid extra fields/accessors/proxy exceptions fail atomically with fixed
+messages; unknown text and forged retry advice cannot enter a report.
+
+`check` passed 174 tests / 2,432 assertions, builds, root/Svelte types, quality,
+boundaries, 110-document checks, packed root/selective/no-DOM/classic SDK consumers
+and 169 installed CLI checks. Final recovery-policy refinement passed 4 focused
+cases / 110 assertions, typecheck/lint and rebuilt packed SDK smoke. Browser checks
+were not repeated: no Studio code imports the new module yet. Broader devices,
+hosted telemetry/CI and standalone contract/migration runners are not claimed.
+
+Updated product/API/package/compatibility/validation sources and ADR 0020; added
+the diagnostic consumer guide and replaced the observability placeholder with actual
+commands, privacy/retention and host/maintainer responsibilities. No DB, dependency,
+storage/hygiene or existing result-contract changes. The packed SDK runner and
+headless module classification cover the new public export.
+
+Next milestone-5 increments: Studio opt-in/inspect/clear/download and concise help/
+feature discovery, terminal diagnostic workflows, actual incident/release/recovery
+procedures and a verified private vulnerability-report channel. Measured performance,
+release/rollback and all-72 final audit remain active; this SDK capability does not
+close a consumer workflow or prove hosted monitoring.

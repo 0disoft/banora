@@ -16,6 +16,7 @@
     "checkpoint",
     "comment-batch",
     "controller",
+    "diagnostics",
     "geometry",
     "json-schema",
     "katago",

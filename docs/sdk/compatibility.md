@@ -5,6 +5,14 @@
 
 ## Distribution Direction
 
+Selective `@banora/sdk/diagnostics`, root and classic exports expose an optional
+headless local journal. Type-only SDK reason dependencies import no runtime
+controller/DOM/provider code. Unit fixtures verify actual failure projection,
+cross-realm data, bounded immutable reports and no raw-text retention; packed
+Node root/subpath/ES2022-only and classic VM consumers execute public artifacts.
+This does not claim Studio support-download, CLI diagnostic commands, hosted
+telemetry or automatic environment detection.
+
 Use Vite library builds for ESM entrypoints, TypeScript declarations, and a browser
 script distribution. React, Vue, and Svelte are optional dependencies of their
 respective adapters and are not bundled into the core or required by other adapters.

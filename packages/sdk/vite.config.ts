@@ -15,6 +15,7 @@ export default defineConfig({
         controller: resolve(import.meta.dirname, 'src/controller.ts'),
         checkpoint: resolve(import.meta.dirname, 'src/checkpoint.ts'),
         'record-search': resolve(import.meta.dirname, 'src/record-search.ts'),
+        diagnostics: resolve(import.meta.dirname, 'src/diagnostics.ts'),
         automation: resolve(import.meta.dirname, 'src/automation.ts'),
         playback: resolve(import.meta.dirname, 'src/playback.ts'),
         'playback-controls': resolve(import.meta.dirname, 'src/playback-controls.ts'),

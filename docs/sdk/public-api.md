@@ -5,6 +5,21 @@
 - Architecture: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 - Initial contracts: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
 
+## Explicit Local Diagnostics
+
+Root and selective `@banora/sdk/diagnostics` exports expose `DiagnosticJournal`,
+`describeDiagnosticFailure` and their readonly input/event/environment/report types.
+The journal records explicitly submitted closed operation/status/code data, gives
+each occurrence a local ID and returns frozen bounded snapshots/retained summaries.
+`clear()` removes current evidence without mutating historical caller-held reports.
+Unknown reason text becomes `unknown`; raw errors or arbitrary metadata are not
+accepted. Typed controller/SGF/analysis maps exhaust their existing reasons and add
+safe recovery guidance without changing those commands' return contracts.
+See [diagnostics](diagnostics.md) for all limits, identifiers, environment privacy,
+retry guidance and host opt-in/storage/sharing ownership. No automatic logging,
+network, timer or controller observation is installed. Studio UI and terminal
+diagnostic commands are not implied by this headless module.
+
 ## Implemented Core Exports
 
 The [terminal automation API](automation.md) exposes discoverable, versioned JSON

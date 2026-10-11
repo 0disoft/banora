@@ -231,6 +231,15 @@ history context. Cancellation and stale-response rejection are required.
 
 ## Consumer Experience
 
+Optional headless diagnostics provide explicit bounded operation evidence and
+safe failure/recovery identifiers. No implicit analytics, global error interception,
+authored data, raw messages/stacks, arbitrary metadata or environment fingerprint
+strings are recorded. Hosts own opt-in, reviewed download/sharing and retention;
+reports summarize retained local events only. See
+[ADR 0020](../adr/0020-explicit-redacted-diagnostics.md) and the
+[diagnostic contract](../sdk/diagnostics.md). SDK support is implemented; Studio
+opt-in/support-download/help integration follows separately.
+
 - No account or remote dependency for local board, rules, or SGF functionality.
 - All framework adapters are optional. The headless core and record parser import
   no DOM, React, Vue, or Svelte; the shared browser SDK requires no UI framework.

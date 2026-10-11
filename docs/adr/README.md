@@ -44,3 +44,6 @@ scalar settings, safe legacy migration and reset independent of authored records
 
 The [record tools decision](0019-record-search-and-atomic-comment-batches.md)
 defines whole-record search and controller-owned atomic comment previews/application.
+
+The [diagnostics decision](0020-explicit-redacted-diagnostics.md) defines explicit
+bounded local operation evidence, safe failure policy and a closed support-report projection.

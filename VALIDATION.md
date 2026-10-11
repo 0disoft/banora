@@ -367,3 +367,29 @@ The final focused route also passed after giving search selection its own transl
 caption and revoking preview approval synchronously on Close/navigation/Escape.
 An earlier focused run caught delayed native-close cleanup retaining Apply briefly;
 the cancellation fix preserves typed input and passes the same regression scenario.
+
+## Explicit Diagnostic Journal Evidence
+
+`packages/sdk/test/diagnostics.test.ts` projects actual controller and SGF failures
+without changing controller state, maps unsupported game input to correction rather
+than an assumed upgrade, and tests unknown/prototype-like codes without coercion.
+It covers bounded eviction/retained summaries, immutable historical snapshots,
+clear/nonreused IDs, cross-realm plain data, capacity shadowing, forged advice,
+malformed-input atomicity, raw-text/fingerprint exclusion and accessor/proxy failures.
+
+`check` passed 174 tests / 2,432 assertions, quality/boundaries/builds/root/Svelte
+types, 110 documents / 351 links, packed SDK and 169 installed CLI checks. After
+the unsupported-input recovery refinement, focused tests passed 4 cases / 110
+assertions and final typecheck/lint/build/packed SDK smoke passed. Independent
+Node consumers execute root/selective/no-DOM declarations and classic VM reports.
+`@banora/sdk/diagnostics` is additive; no controller/automation return contract,
+DB, storage schema, dependency or hygiene change. Packed consumer runner and source
+boundary classification include the new headless entrypoint.
+
+Browser suites were not repeated for this isolated headless module; Studio does
+not import it yet and the prior production suite covers the existing UI. No Studio
+opt-in/download/help or CLI diagnostic-command evidence is inferred. Physical
+devices, other engines and hosted CI/monitoring remain unverified. Separate
+`contract`/`migration-check` intents are unconfigured. The operational guide now
+uses real local commands and identifies the missing private security-report channel
+instead of inventing a contact or a hosted collector.

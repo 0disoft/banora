@@ -22,6 +22,12 @@ preview-only diffs and optional exact-source guards. Studio demonstrates record-
 search, navigation and selected comment preview/application through these public
 exports, with session-local selection and one-step Undo.
 
+`@banora/sdk/diagnostics` exposes an explicit `DiagnosticJournal` and safe failure
+projection. It retains at most 256 fixed operation/code events and produces frozen
+local summaries/support reports, without recording authored data, raw exceptions,
+fingerprint strings or arbitrary metadata. Hosts own opt-in, reviewed sharing and
+clear/retention; the SDK adds no automatic collection, persistence or remote calls.
+
 `@banora/sdk/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.
 The separate DOM `playback-controls` mount is shared by Studio and every complete
