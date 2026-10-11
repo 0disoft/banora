@@ -154,3 +154,13 @@ The mise installer itself has not been run on a fresh OS; automatic tool install
 is configured from its documented installer contract. No browser, hosted CI or
 publication evidence is implied by this development-tool increment. Remaining
 rows and delivery increments are still active.
+
+### Standalone consumer regression
+
+The complete local CI route exposed a stale starter browser selector: `#viewer svg`
+matched the board plus the newer comment-indicator icons. The starter fixture now
+selects `svg[data-board-width]` consistently for desktop keyboard and mobile touch.
+The already independently installed/built consumer passed the focused production
+browser rerun: file open, old/new variations, comments/Undo, replacement guards,
+real SGF download/reopen, invalid input and keyboard/emulated touch. The SDK and
+standalone application implementation did not change.

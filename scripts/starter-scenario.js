@@ -25,7 +25,7 @@ async (page) => {
     );
   };
   try {
-    await page.locator('#viewer svg').waitFor();
+    await page.locator('#viewer svg[data-board-width]').waitFor();
     await upload(Buffer.from(archive));
     await opened('my-study.sgf');
     verify((await page.locator('#viewer [data-stone]').count()) === 2, 'Opening SGF lost setup');
@@ -48,7 +48,7 @@ async (page) => {
     );
 
     // Public board keyboard creates a new continuation; no private app/model hooks.
-    const board = page.locator('#viewer svg');
+    const board = page.locator('#viewer svg[data-board-width]');
     await board.focus();
     for (let i = 0; i < 9; i++) {
       await board.press('ArrowLeft');
@@ -174,11 +174,11 @@ async (page) => {
       phone.on('pageerror', onError);
       phone.on('request', onRequest);
       await phone.goto(`${origin}/`);
-      await phone.locator('#viewer svg').waitFor();
+      await phone.locator('#viewer svg[data-board-width]').waitFor();
       await upload(Buffer.from(archive), 'phone.sgf', phone);
       await opened('phone.sgf', phone);
-      await phone.locator('#viewer svg').scrollIntoViewIfNeeded();
-      const point = await phone.locator('#viewer svg').evaluate((svg) => {
+      await phone.locator('#viewer svg[data-board-width]').scrollIntoViewIfNeeded();
+      const point = await phone.locator('#viewer svg[data-board-width]').evaluate((svg) => {
         const point = svg.createSVGPoint();
         point.x = 1.25;
         point.y = 1.25;
