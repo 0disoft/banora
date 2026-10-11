@@ -420,18 +420,48 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
     ...limits,
     maxBytes: limits.maxBytes * 2,
   });
-  if (!probe.ok) return probe;
   const utf8Bom = bytes[0] === 239 && bytes[1] === 187 && bytes[2] === 191;
   const normalize = (label: string) => label.toLowerCase().replace(/[_\s]/g, '-');
-  const encodings = probe.record.games.map((root) =>
-    normalize(root.properties.CA?.[0] ?? (utf8Bom ? 'utf-8' : 'iso-8859-1')),
-  );
-  if (new Set(encodings).size !== 1)
+  const encodingOf = (record: SgfRecord) => {
+    const encodings = record.games.map((root) =>
+      normalize(root.properties.CA?.[0] ?? (utf8Bom ? 'utf-8' : 'iso-8859-1')),
+    );
+    return new Set(encodings).size === 1 ? encodings[0]! : undefined;
+  };
+  const decoderLabel = (encoding: string) =>
+    encoding === 'sjis' ? 'shift-jis' : encoding === 'utf8' ? 'utf-8' : encoding;
+  const decode = (encoding: string): SgfResult => {
+    try {
+      const text = ['iso-8859-1', 'latin1'].includes(encoding)
+        ? latin1(bytes)
+        : new TextDecoder(decoderLabel(encoding), { fatal: true }).decode(bytes);
+      return parseSgf(text, limits);
+    } catch {
+      return {
+        ok: false,
+        diagnostics: [{ code: 'encoding', message: `Invalid bytes for SGF encoding: ${encoding}` }],
+      };
+    }
+  };
+  if (!probe.ok) {
+    // Multibyte trail bytes can resemble SGF escapes/delimiters, and the ASCII
+    // probe counts bytes rather than decoded characters. Accept recovery only
+    // when a real root CA (or UTF-8 BOM) agrees with the strict decoder.
+    for (const encoding of ['utf-8', 'shift-jis', 'gb18030', 'euc-kr']) {
+      const decoded = decode(encoding);
+      if (decoded.ok) {
+        const declared = encodingOf(decoded.record);
+        if (declared !== undefined && decoderLabel(declared) === encoding) return decoded;
+      }
+    }
+    return probe;
+  }
+  const encoding = encodingOf(probe.record);
+  if (encoding === undefined)
     return {
       ok: false,
       diagnostics: [{ code: 'encoding', message: 'Mixed-encoding collections are not supported' }],
     };
-  const encoding = encodings[0]!;
   const supported = new Set([
     'utf-8',
     'utf8',
@@ -448,19 +478,13 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
       ok: false,
       diagnostics: [{ code: 'encoding', message: `Unsupported SGF encoding: ${encoding}` }],
     };
-  try {
-    const text = ['iso-8859-1', 'latin1'].includes(encoding)
-      ? latin1(bytes)
-      : new TextDecoder(encoding === 'sjis' ? 'shift-jis' : encoding, { fatal: true }).decode(
-          bytes,
-        );
-    return parseSgf(text, limits);
-  } catch {
+  const decoded = decode(encoding);
+  if (decoded.ok && encodingOf(decoded.record) !== encoding)
     return {
       ok: false,
-      diagnostics: [{ code: 'encoding', message: `Invalid bytes for SGF encoding: ${encoding}` }],
+      diagnostics: [{ code: 'encoding', message: 'Mixed-encoding collections are not supported' }],
     };
-  }
+  return decoded;
 }
 
 function escapeValue(value: string): string {

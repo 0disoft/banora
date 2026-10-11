@@ -189,6 +189,10 @@ Supported byte-input encodings are UTF-8, ISO-8859-1 (true Latin-1), Windows-125
 Shift_JIS, GB18030 and EUC-KR, including common aliases in the decoder. Absent CA
 defaults to Latin-1; a UTF-8 BOM selects UTF-8 when CA is absent. Mixed encoding
 collections and invalid/unsupported byte encodings are rejected explicitly.
+Multibyte trail bytes are decoded before treating them as SGF escapes or
+delimiters; property character limits apply to decoded text. Recovery from an
+ambiguous byte probe requires a matching real root `CA` declaration (or UTF-8
+BOM); it does not guess an undeclared legacy encoding from comment content.
 String input is already decoded, so CA does not re-decode it. Only UTF-8/Latin-1
 have fixture evidence so far; other decoder paths need fixtures before broad
 encoding compatibility claims. Missing FF/GM are accepted under this FF4 Go subset;

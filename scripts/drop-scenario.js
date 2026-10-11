@@ -38,6 +38,49 @@ async (page) => {
   try {
     await page.goto(`${origin}/studio/`);
     await page.locator('#board svg').waitFor();
+    await drop(
+      Buffer.from([
+        ...Buffer.from('(;SZ[9]CA[Shift_JIS]GN[Japanese archive]PB['),
+        0x83,
+        0x5c,
+        0x95,
+        0x5c,
+        ...Buffer.from(']C['),
+        0x83,
+        0x5c,
+        0x95,
+        0x5c,
+        ...Buffer.from(']LB[aa:'),
+        0x83,
+        0x5c,
+        ...Buffer.from('])'),
+      ]),
+      'japanese.sgf',
+    );
+    await page.waitForFunction(() =>
+      document.querySelector('#status').textContent.includes('Opened japanese.sgf'),
+    );
+    verify(
+      (await page.locator('#black-name').innerText()) === 'ソ表' &&
+        (await page.locator('#comment').inputValue()) === 'ソ表' &&
+        (await page.locator('#board [data-marker]').textContent()) === 'ソ',
+      'Shift_JIS dropped metadata/comment/label lost',
+    );
+    await page.locator('#comment').fill('Edited 日本');
+    await page.locator('#comment').blur();
+    const japaneseSaved = page.waitForEvent('download');
+    await page.locator('#export').click();
+    await (await japaneseSaved).saveAs('output/playwright/japanese-roundtrip.sgf');
+    await page.locator('#file').setInputFiles('output/playwright/japanese-roundtrip.sgf');
+    await page.waitForFunction(() =>
+      document.querySelector('#status').textContent.includes('Opened japanese-roundtrip.sgf'),
+    );
+    verify(
+      (await page.locator('#black-name').innerText()) === 'ソ表' &&
+        (await page.locator('#comment').inputValue()) === 'Edited 日本' &&
+        (await page.locator('#board [data-marker]').textContent()) === 'ソ',
+      'Japanese edit/export/reopen lost text',
+    );
     const archive =
       '(;FF[4]GM[1]CA[UTF-8]SZ[9]GN[Drop archive]PB[Black & 日本]PW[White <tag>]KM[6.5]HA[2]AB[cc][gg]C[Imported notes]XX[drop-preserve](;W[ee]C[Main line]LB[ee:A])(;W[df]C[Alternative]))';
     await drop(Buffer.from(archive), 'drop-archive.sgf');

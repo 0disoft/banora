@@ -73,6 +73,32 @@ check(cli(['--version']).version === '0.1.0-dev.0', 'Wrong packaged version');
 check(cli(['create', '--size', '5', '--output', 'new.sgf']).snapshot.width === 5, 'Create failed');
 await writeFile(resolve(directory, 'source.sgf'), '(;SZ[5]XX[retain])');
 await writeFile(
+  resolve(directory, 'shift-jis.sgf'),
+  Buffer.from([
+    ...Buffer.from('(;SZ[5]CA[Shift_JIS]PB['),
+    0x83,
+    0x5c,
+    0x95,
+    0x5c,
+    ...Buffer.from(']C['),
+    0x83,
+    0x5c,
+    0x95,
+    0x5c,
+    ...Buffer.from(']LB[aa:'),
+    0x83,
+    0x5c,
+    ...Buffer.from('])'),
+  ]),
+);
+const japanese = cli(['inspect', '--input', 'shift-jis.sgf']);
+check(
+  japanese.selected.properties.PB[0] === 'ソ表' &&
+    japanese.selected.properties.C[0] === 'ソ表' &&
+    japanese.snapshot.markers[0].label === 'ソ',
+  'Installed CLI lost multibyte comments, player name or label',
+);
+await writeFile(
   resolve(directory, 'ops.json'),
   JSON.stringify([
     { op: 'play', point: { x: 2, y: 2 } },
@@ -89,6 +115,12 @@ const edited = cli([
   '--output',
   'edited.sgf',
 ]);
+cli(['edit', '--input', 'shift-jis.sgf', '--operations', 'ops.json', '--output', 'japanese.sgf']);
+check(
+  (await readFile(resolve(directory, 'japanese.sgf'), 'utf8')).includes('PB[ソ表]') &&
+    cli(['inspect', '--input', 'japanese.sgf']).selected.properties.C[0] === 'ソ表',
+  'Installed CLI edit/export/reopen lost Japanese root data',
+);
 check(
   edited.snapshot.stones[12] === 'black' && edited.sgf.includes('XX[retain]'),
   'Edit did not preserve record/state',

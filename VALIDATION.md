@@ -66,6 +66,9 @@ stdin/files, editing/reopen, snapshots, schema/errors/limits and output protecti
 Long-record checks resume an actual returned location beyond move 128 through
 the installed Node CLI and save its edited SGF; SDK tests also cover a late
 variation, portable reopen and the total-node locator bound.
+Installed CLI checks also inspect Shift_JIS multibyte comments/player names/labels,
+edit the record and reopen its UTF-8 output. SGF tests cover escaped-looking trail
+bytes, decoded character limits and rejection of fake/mixed encoding declarations.
 The default `check` also builds the CLI and runs that installed consumer after SDK
 smoke. Runtime CLI operations require no browser, framework or remote service.
 Each request is isolated; live app/engine bridges and headless diagram rendering
@@ -162,6 +165,7 @@ SGF downloads and an actual six-stone PV SVG excluding predictions/cursor are
 required with the exact completion Result. It is included in the complete suite;
 illustrative protocol data does not establish actual engine/model compatibility.
 `--drop-only` exercises Studio's production DOM file drag/drop boundary, metadata,
+Shift_JIS comments/names/labels and their edited UTF-8 export/reopen,
 deferred read completion/error races against newer valid/invalid selections and
 new/example record replacement,
 handicap/setup and branch rendering, Cancel/Export & continue, actual export/reopen
