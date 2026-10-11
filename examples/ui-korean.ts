@@ -46,7 +46,7 @@ export const koreanUi: Readonly<Record<string, string>> = {
   Pass: '패스',
   Tool: '도구',
   'Play stone': '착수',
-  'Move numbers': '수 번호',
+  'Move numbers': '번호 표시',
   Undo: '실행 취소',
   Redo: '다시 실행',
   'Black setup': '흑돌 배치',
