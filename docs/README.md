@@ -62,6 +62,8 @@ maintainer-only asset capture and independently reviewed restoration.
 records the current 22-scope Firefox/WebKit profile and its device exclusions.
 [Browser memory lifecycles](engineering/22-browser-memory-lifecycle-evidence.md)
 record actual repeated import/mount/dispose results and controller collection.
+[Package channel preflight](engineering/23-channel-preflight-execution-evidence.md)
+records the complete-family public registry inspection and prior-version limits.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable

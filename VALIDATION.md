@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; hosted Linux main CI passed at 9f083df
+- Status: Active local validation; hosted Linux main CI passed at 6778a08
 
 ## Validation Source of Truth
 
@@ -31,6 +31,9 @@ rejection of forward/stage/invalid/execute requests. The private
 or prior-version rollback follows from a successful plan. Release and CI tests
 cover its existing command/error envelope and narrow tooling route. No additional
 browser job or privileged workflow is selected for isolated plan changes.
+The [actual channel observation](docs/engineering/23-channel-preflight-execution-evidence.md)
+confirmed five unchanged development tags, reviewed integrity and no older common
+version beyond excluded placeholders. It did not mutate a tag or rehearse rollback.
 
 Terminal diagnostic coverage uses `packages/sdk/test/automation-diagnostics.test.ts`
 for actual completed-step/failure traces, one execution, environment prevalidation,
