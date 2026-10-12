@@ -4,7 +4,8 @@ import { localizeUi, setUiText, subscribeUiLanguage, translateUi } from '../ui-l
 export function mountBoardMenu(): () => void {
   const find = (id: string) => document.getElementById(id)!;
   const row = (id: string) => find(id).closest<HTMLElement>('.editing-tools')!;
-  const trigger = find('board-menu') as HTMLButtonElement;
+  const triggers = [find('board-menu'), find('app-menu')] as HTMLButtonElement[];
+  let trigger = triggers[0]!;
   const panel = document.createElement('div');
   panel.id = 'board-menu-panel';
   panel.className = 'board-menu-panel';
@@ -17,21 +18,24 @@ export function mountBoardMenu(): () => void {
     <button type="button" class="button icon" data-close aria-label="Close menu" title="Close menu"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
     </div><div class="board-menu-choices"></div><div class="board-menu-content"></div>`;
   document.body.append(panel);
-  trigger.setAttribute('popovertarget', panel.id);
-  trigger.setAttribute('aria-haspopup', 'dialog');
-  trigger.setAttribute('aria-expanded', 'false');
+  for (const entry of triggers) {
+    entry.setAttribute('popovertarget', panel.id);
+    entry.setAttribute('aria-haspopup', 'dialog');
+    entry.setAttribute('aria-expanded', 'false');
+  }
   const title = panel.querySelector<HTMLElement>('h2')!;
   const back = panel.querySelector<HTMLButtonElement>('[data-back]')!;
   const close = panel.querySelector<HTMLButtonElement>('[data-close]')!;
   const choices = panel.querySelector<HTMLElement>('.board-menu-choices')!;
   const content = panel.querySelector<HTMLElement>('.board-menu-content')!;
   const groups = [
+    { id: 'record', label: 'Game', controls: [find('record-actions'), find('record-details')] },
     {
       id: 'tools',
       label: 'Tool',
       controls: [row('tool'), find('ink-control'), row('next-player')],
     },
-    { id: 'view', label: 'View', controls: [row('rotation')] },
+    { id: 'view', label: 'View', controls: [find('board-settings'), row('rotation')] },
     { id: 'textures', label: 'Stone textures', controls: [find('texture-host')] },
     { id: 'touch', label: 'Touch placement', controls: [row('touch-mode')] },
     { id: 'animation', label: 'Animation', controls: [row('animation')] },
@@ -46,7 +50,7 @@ export function mountBoardMenu(): () => void {
     { id: 'share', label: 'Share', controls: [find('sharing-host')] },
     { id: 'drafts', label: 'Local drafts', controls: [find('drafts-host')] },
     { id: 'search', label: 'Search record', controls: [find('search-host')] },
-    { id: 'support', label: 'Help', controls: [find('support-host')] },
+    { id: 'support', label: 'Help', controls: [find('support-host'), find('example-links')] },
     { id: 'preferences', label: 'Settings', controls: [find('preferences-host')] },
     {
       id: 'scoring',
@@ -61,6 +65,15 @@ export function mountBoardMenu(): () => void {
   let borrowed: { control: HTMLElement; placeholder: Comment }[] = [];
   const abort = new AbortController();
   const { signal } = abort;
+  for (const entry of triggers) {
+    entry.addEventListener(
+      'click',
+      () => {
+        trigger = entry;
+      },
+      { signal },
+    );
+  }
   function restore() {
     for (const { control, placeholder } of borrowed) placeholder.replaceWith(control);
     borrowed = [];
@@ -126,14 +139,18 @@ export function mountBoardMenu(): () => void {
   }
   const disposeStatic = localizeUi(panel);
   const disposeLanguage = subscribeUiLanguage(() => {
-    trigger.setAttribute('aria-label', translateUi('Board menu'));
-    trigger.title = translateUi('Board menu');
+    for (const entry of triggers) {
+      entry.setAttribute('aria-label', translateUi('Board menu'));
+      entry.title = translateUi('Board menu');
+    }
     setUiText(title, active?.label ?? 'Board menu');
     position();
   });
   select();
-  trigger.setAttribute('aria-label', translateUi('Board menu'));
-  trigger.title = translateUi('Board menu');
+  for (const entry of triggers) {
+    entry.setAttribute('aria-label', translateUi('Board menu'));
+    entry.title = translateUi('Board menu');
+  }
   back.addEventListener(
     'click',
     () => {
@@ -157,7 +174,8 @@ export function mountBoardMenu(): () => void {
     'beforetoggle',
     (event) => {
       const opened = (event as ToggleEvent).newState === 'open';
-      trigger.setAttribute('aria-expanded', String(opened));
+      for (const entry of triggers)
+        entry.setAttribute('aria-expanded', String(opened && entry === trigger));
       if (opened) select();
       else {
         const returnFocus = panel.contains(document.activeElement);
@@ -198,6 +216,6 @@ export function mountBoardMenu(): () => void {
     disposeStatic();
     disposeLanguage();
     panel.remove();
-    trigger.removeAttribute('popovertarget');
+    for (const entry of triggers) entry.removeAttribute('popovertarget');
   };
 }

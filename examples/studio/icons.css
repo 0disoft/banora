@@ -1,0 +1,97 @@
+/* Phosphor Regular, MIT. Only the referenced SVG assets enter the example bundle. */
+#board-menu,
+#app-menu {
+  --icon: var(--icon-menu);
+}
+#undo {
+  --icon: var(--icon-undo);
+}
+#redo {
+  --icon: var(--icon-redo);
+}
+#first {
+  --icon: var(--icon-first);
+}
+#previous {
+  --icon: var(--icon-previous);
+}
+#next {
+  --icon: var(--icon-next);
+}
+#last {
+  --icon: var(--icon-last);
+}
+#playback button {
+  --icon: var(--icon-play);
+}
+#playback button[aria-pressed='true'] {
+  --icon: var(--icon-pause);
+}
+#open {
+  --icon: var(--icon-open);
+}
+#export {
+  --icon: var(--icon-save);
+}
+[data-back] {
+  --icon: var(--icon-back);
+}
+[data-close] {
+  --icon: var(--icon-close);
+}
+#board-menu,
+#app-menu,
+#undo,
+#redo,
+.navigation .button,
+[data-back],
+[data-close] {
+  font-size: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#undo,
+#redo {
+  width: 38px;
+  padding: 0;
+}
+#board-menu svg,
+[data-back] svg,
+[data-close] svg {
+  display: none;
+}
+#board-menu::before,
+#app-menu::before,
+#undo::before,
+#redo::before,
+.navigation .button::before,
+#open::before,
+#export::before,
+[data-back]::before,
+[data-close]::before {
+  content: '';
+  display: inline-block;
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+  background: currentColor;
+  mask: var(--icon) center / contain no-repeat;
+}
+#open,
+#export {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.tree-comment svg {
+  display: none;
+}
+.tree-comment::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  mask: var(--icon-comment) center / contain no-repeat;
+}

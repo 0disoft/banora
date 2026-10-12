@@ -23,6 +23,7 @@ async (page) => {
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 900 });
     for (const section of [
+      'record',
       'tools',
       'view',
       'textures',
@@ -51,6 +52,18 @@ async (page) => {
       await close();
     }
   }
+  await page.locator('#app-menu').click();
+  await page.locator('[data-board-menu-section="record"]').click();
+  verify(
+    await panel.locator('#games').isVisible(),
+    'Header menu did not expose collection selection',
+  );
+  verify(await panel.locator('#new').isVisible(), 'Header menu did not expose new record');
+  await panel.locator('[data-close]').click();
+  verify(
+    await page.locator('#app-menu').evaluate((element) => element === document.activeElement),
+    'Header menu did not restore its own focus',
+  );
   await open('drafts');
   await panel.locator('#drafts-open').click();
   await page.locator('#drafts-dialog').waitFor({ state: 'visible' });

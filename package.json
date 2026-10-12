@@ -46,10 +46,11 @@
     "check": "bun run lint && bun run format && bun run boundaries && bun run build:adapters && bun scripts/build-cli.ts && bun run typecheck && bun run typecheck:svelte && bun run test && bun run docs && bun scripts/packed-consumer.ts && bun scripts/packed-cli.ts"
   },
   "devDependencies": {
-    "@0disoft/banora-react": "workspace:*",
     "@0disoft/banora": "workspace:*",
+    "@0disoft/banora-react": "workspace:*",
     "@0disoft/banora-svelte": "workspace:*",
     "@0disoft/banora-vue": "workspace:*",
+    "@phosphor-icons/core": "2.x",
     "@playwright/cli": "0.x",
     "@sveltejs/vite-plugin-svelte": "7.x",
     "@types/bun": "1.x",

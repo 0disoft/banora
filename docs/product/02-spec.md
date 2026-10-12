@@ -187,6 +187,14 @@ an external application's rules or persistence into the SDK.
 
 ## Editing History and Unsaved Changes
 
+Studio uses the selected Atelier workspace: an ivory surface, terracotta accents,
+left-side record metadata, variations and comment editor, a toolbar beside the
+board, and a compact playback dock. Advanced controls are available through both
+the header and board menus; each control has one DOM owner and is temporarily
+borrowed into the active menu. Menus return controls and focus to their original
+locations. Narrow screens place the board first and the record panels below it.
+This is consumer presentation, not a required SDK skin or framework dependency.
+
 Keep previous/next/branch navigation separate from edit Undo/Redo. Variation creation,
 comment changes and marker changes are undoable; a comment editing session is one
 undo unit. Navigation creates no edit entry and restores the selected path's rule

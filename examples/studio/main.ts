@@ -44,6 +44,13 @@ import { StudioDiagnostics } from './diagnostics.js';
 import { mountSupportControls } from './support-controls.js';
 import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
 import type { DiagnosticOperation } from '@0disoft/banora/diagnostics';
+import { arrangeStudio } from './layout.js';
+import { applyStudioIcons } from './icons.js';
+import './atelier.css';
+import './icons.css';
+
+arrangeStudio();
+applyStudioIcons();
 
 const find = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 let preferenceStorage: Storage | undefined;
