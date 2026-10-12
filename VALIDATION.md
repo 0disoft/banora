@@ -43,6 +43,8 @@ rejection and preservation of ordinary post-publication health's tag requirement
 Authored hash fixtures and mock check callbacks prove control flow, not a live
 consumer result. The [target-health record](docs/engineering/25-registry-target-health-evidence.md)
 keeps actual execution separate. Its private tooling route adds no browser job.
+The original five `dev.0` packages have now passed fresh registry SDK/CLI/framework
+health while `dev` stayed `dev.1`; this did not switch a tag or roll back host data.
 
 Publication propagation tests cover metadata missing beyond the old five-read
 limit, eventual success without repeated uploads, the eighteen-read cap and the

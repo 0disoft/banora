@@ -124,7 +124,7 @@ These statements replace stale work plans, not the outstanding distribution gate
 | 67  | Trace a reported failure                        | Local diagnostic operation IDs/codes and safe summaries connect an observed failure to corrective guidance; installed diagnose executes once with protected output. Private minimized repro input is reviewed separately; IDs are not global traces or upload authority.                                                                                   |
 | 68  | Routine operator tasks without code edits       | Doctor/discovery/safe cleanup, migration checks, recovery checks/drill and retained-release commands execute without code edits. Runbooks name failure actions and owners; public Issues and private security reporting are enabled; hosted administration remains owner-controlled.                                                                       |
 | 69  | Verified failure recovery                       | Corrupt/future/quota/conflict/cancel recovery fixtures pass. Actual Pages recovery restored preserved original tar bytes and verified 46 live files plus Studio export/reopen. Disk/data and npm-channel recovery remain unverified.                                                                                                                       |
-| 70  | Fresh install/update/release and rollback       | Fresh SDK/CLI/framework health confirms five dev.1 packages. [Previous-version preflight](24-package-readme-correction.md#actual-previous-version-preflight) binds dev.0 target against dev.1 twice. No tag mutation or host/data rollback was performed; fresh rollback-target installed health remains required.                                         |
+| 70  | Fresh install/update/release and rollback       | Current dev.1 health and [fresh dev.0 target health](25-registry-target-health-evidence.md) passed actual registry downloads and independent SDK/CLI/framework installs. Target checking preserved current dev.1 tags and original reviewed bytes. Live channel mutation and host/data rollback remain unperformed.                                        |
 | 71  | Match user-facing promises to reality           | Published [dev.1 READMEs](24-package-readme-correction.md) contain usable installation and links. Default npm pages/latest remain dev.0 with the old immutable README, so explicit @dev selection is required. No stable-support promotion or broader compatibility is claimed.                                                                            |
 | 72  | Next three priorities and deferred work         | Next priorities: decide default npm-channel promotion; rehearse prior-version/host recovery; review backup retention/account recovery. Heap attribution/peaks remain measurement follow-up. Defer accounts/cloud collaboration/schedulers to hosts; avoid infrastructure without a consumer.                                                               |
 
@@ -138,9 +138,10 @@ pointer-focus fixture assumption and full profile results. Compatibility keeps
 CDP/native controlled-input exclusions explicit; actual Safari/iOS, physical touch,
 assistive speech and browser floors remain unverified.
 
-The latest hosted candidate at `41e0e89` passed all nine preparation gates and
-retained 149 files. Actual publication/health run `38212158941` verified all five
-public development versions and passed fresh-registry installed consumers.
+The latest hosted candidate at `932b583` passed nine preparation gates and retained
+149 files. Publication/health `38264045296` verified five dev.1 packages. The
+[previous target](25-registry-target-health-evidence.md) also passed fresh installed
+SDK/CLI/framework health at dev.0 while dev remained dev.1; no tag switch occurred.
 Earlier candidates remain preserved; later artifact changes require a new version
 and reviewed candidate. These results do not close unrelated service or device rows.
 

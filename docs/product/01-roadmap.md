@@ -1,14 +1,16 @@
 # Roadmap
 
 - Status: M1-M4 implementation/local exit evidence complete in the declared matrix;
-  see the [delivery audit](../engineering/10-delivery-audit.md). No published release
+  see the [delivery audit](../engineering/10-delivery-audit.md). Development prerelease
+  `0.1.0-dev.1` is published with independent installed-consumer health;
+  see the [publication record](../engineering/24-package-readme-correction.md).
 - Source of truth for capabilities: [Product specification](02-spec.md)
 
 Milestones establish delivery order, not release dates or completed functionality.
 Each implementation task should produce a small usable increment and a focused
-commit. The development packages are `0.1.0-dev.0`; release versions remain
-UNDECIDED. Local implementation evidence does not establish publication or broader
-runtime support.
+commit. The development packages are `0.1.0-dev.1`; future non-prerelease versions
+and default-channel promotion remain UNDECIDED. Local implementation evidence
+alone does not establish publication or broader runtime support.
 
 ## M1: Banora Studio and Read-Only Embedding
 

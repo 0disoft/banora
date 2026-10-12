@@ -319,6 +319,11 @@ tag, publishes a package, rebuilds an artifact or changes host data. Observation
 are not a registry lock; repeat preflight immediately before a separately authorized
 mutation. No new workflow, publisher permission or long-lived credential is added.
 
+The [actual previous-version target check](../engineering/25-registry-target-health-evidence.md)
+downloaded and installed all five original `dev.0` packages while `dev` remained
+`dev.1`. This establishes fresh target health at that recorded time, not a tag
+switch or permanent freshness guarantee.
+
 ### Manual Workflow and Approval Boundary
 
 The [publish workflow](../../.github/workflows/publish.yml) accepts a preparation
