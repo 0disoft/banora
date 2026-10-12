@@ -56,6 +56,8 @@ Detailed historical records are separate: [development/product increments](engin
 and [release/publication tooling](engineering/18-release-tooling-execution-evidence.md).
 [Actual public demo recovery](engineering/19-demo-recovery-execution-evidence.md)
 records the retained tar, real deployment transition and live artifact/Studio checks.
+[Draft demo backups](engineering/20-draft-demo-backup-execution-evidence.md) record
+maintainer-only asset capture and independently reviewed restoration.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable

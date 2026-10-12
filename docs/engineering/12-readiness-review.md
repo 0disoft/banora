@@ -54,9 +54,9 @@ This is an ownership decision, not evidence that such a service exists.
 | 16  | Versioned data, migration and recovery           | [migration-check](../ops/data-migrations.md) passed 18 tests/402 assertions for legacy-field interrupted resume/idempotence, future-data preservation and actual checkpoint/backup restoration. No silent unknown-version conversion or downgrade.                                                                                                                                             |
 | 17  | Rebuildable infrastructure and permissions       | SDK owns no server/network/account infrastructure. CI authority and static package/example builds are declarative; reviewed release artifacts are retained locally. Host deployment/IaC is neither selected nor claimed implemented.                                                                                                                                                           |
 | 18  | Pre-release verification environment             | Independent installed SDK/CLI/native framework and retained browser/starter checks executed at 52f7c3f. Its 149-file hosted candidate was downloaded and consumed by the read-only publication preview; no public staging service is implied.                                                                                                                                                  |
-| 19  | Release verification and rollback automation     | Five-package development registry health and retained-tar Pages recovery passed. Independent automatic live health verified 47 new-build / 46 restored files; failure receipts preserve progress. npm-channel and consuming-host rollback remain unverified.                                                                                                                                   |
+| 19  | Release verification and rollback automation     | Five-package registry health, retained-tar and [draft backup recovery](20-draft-demo-backup-execution-evidence.md) passed. Automatic health verified 47 new/draft and 46 legacy files; failures preserve progress. npm-channel and consuming-host rollback remain unverified.                                                                                                                  |
 | 20  | Feature activation and emergency disable         | Optional modules/providers, explicit configuration/read-only presentation and owned cancellation/disposal enable host-controlled activation. They do not replace server authorization or imply remote cohort/flag infrastructure.                                                                                                                                                              |
-| 21  | Automatic backups and verified restore           | Studio bounded autosave/revisions, user-selected portable backups and guarded recovery execute with reload/conflict/denial coverage. [Recovery limits](../ops/backup-and-restore.md) distinguish local transactions, downloaded files and off-device host backups.                                                                                                                             |
+| 21  | Automatic backups and verified restore           | Studio autosave/portable guarded recovery covers reload/conflict/denial. Healthy demos automatically retain exact draft assets; release-only restore passed. [Recovery limits](../ops/backup-and-restore.md) distinguish local transactions and host/provider durability.                                                                                                                      |
 | 22  | Executable operational procedures                | Doctor/discovery/cleanup, redacted recovery checks/drill, migration check and retained prepare/verify/restage commands execute; [runbooks](../ops/00-operational-contract.md) name ownership and failure actions. No fictional live admin service is introduced.                                                                                                                               |
 | 23  | Secret/dependency/permission security gates      | File/permission signals, fail-closed dependency audit and exact parsed-workflow OIDC policy are active. Ancestor npm configuration inheritance was reproduced and fixed. Root policy is approved and installed; GitHub private reporting is enabled.                                                                                                                                           |
 | 24  | Code/document synchronization                    | Declarations and frozen schema/help come from source; command discovery reads actual metadata. Docs checks verify English/LF/links/root command references; packed consumers verify public artifacts. Behavioral/default consistency also requires source review, not a link-only green check.                                                                                                 |
@@ -165,8 +165,8 @@ required in-scope implementation is complete.
 
 ## Execution Evidence
 
-Latest observed code CI is [run 38247061471](https://github.com/0disoft/banora/actions/runs/38247061471)
-at `eb731d0`: 230 tests / 3,193 assertions, installed SDK/classic and 297 installed
+Latest observed code CI is [run 38251380507](https://github.com/0disoft/banora/actions/runs/38251380507)
+at `aa98362`: 234 tests / 3,277 assertions, installed SDK/classic and 297 installed
 CLI checks passed on Linux with the narrow release-tool route. Windows root
 checks and actual SDK/CLI/native framework installation are scoped in the history.
 
@@ -190,7 +190,7 @@ Detailed implementation and execution evidence:
 
 - [Earlier readiness increments](13-readiness-execution-evidence.md).
 - [Release tooling history](18-release-tooling-execution-evidence.md).
-- [Actual public demo recovery](19-demo-recovery-execution-evidence.md).
+- [Actual public demo recovery](19-demo-recovery-execution-evidence.md) and [draft backups](20-draft-demo-backup-execution-evidence.md).
 - [Prepared artifacts and actual hosted transfer](15-release-preparation-evidence.md).
 - [Production product-flow audit](16-product-flow-audit.md).
 - [Measured SDK performance](14-sdk-performance-evidence.md) and [browser measurements](17-browser-performance-evidence.md).

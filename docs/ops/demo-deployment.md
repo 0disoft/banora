@@ -66,8 +66,11 @@ See [draft recovery](rollback.md#restore-a-draft-demo-backup-without-original-ac
 and [ADR 0024](../adr/0024-draft-release-demo-backups.md). A failed archive may
 leave an already healthy deployed site and an incomplete draft; preserve its
 receipt and inspect before another deliberate build. Drafts can be edited/deleted
-and do not protect against provider/account loss. Hosted execution of this new
-path is pending its separate evidence record.
+and do not protect against provider/account loss. Actual normal capture and
+older-draft recovery passed with independent 47-file health and exact original
+tar hashes in the [draft execution record](../engineering/20-draft-demo-backup-execution-evidence.md).
+The live build receipt selects source `8d9c213` / original run `38250495418`;
+the recovery workflow checkout is separately recorded as `aa98362`.
 
 The first [deployment run 38204372917](https://github.com/0disoft/banora/actions/runs/38204372917)
 completed successfully. Live Chrome verification imported an authored SGF, edited

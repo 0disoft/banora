@@ -164,8 +164,10 @@ dependencies or rebuild. The existing Pages deployment job deploys the
 exact reuploaded tar; independent health checks its original live bytes. The
 archive job skips recovery, preventing duplicate backup loops. Mixed or partial
 selections stop before deployment. See [ADR 0024](../adr/0024-draft-release-demo-backups.md).
-Hosted capture and restoration must be recorded after real runs; local fixture
-success does not establish provider draft access or observed artifact expiration.
+Actual hosted capture/restoration and independent 47-file health passed in the
+[draft execution record](../engineering/20-draft-demo-backup-execution-evidence.md).
+The original Actions artifact was still retained; this establishes a release-only
+recovery route, without claiming observed expiry or provider/account recovery.
 
 ## Read-Only Live Demo Health
 
