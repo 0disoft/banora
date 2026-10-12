@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 // This is a local drift gate, not a signature, environment protection or npm publishing authority.
 const reviewedPublicationWorkflow =
   '6d935218e0cd61bd240e24db81d2d4eb0cd7c645ee780102cf30f94d0e244844';
-const reviewedPagesWorkflow = 'c51a2d64bbf95e6f823014de3653d0317ee9cc44554e9cc79110667908849672';
+const reviewedPagesWorkflow = 'f08fc4728a0d0cb6fd62e91ac51b286dd1d61829d93b0900a7032b88459a154d';
 
 /** Signal-only gate: never print credential material or surrounding content. */
 export function secretSignals(path: string, text: string): string[] {

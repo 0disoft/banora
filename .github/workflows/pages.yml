@@ -38,6 +38,9 @@ jobs:
     if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      artifact_id: ${{ steps.original.outputs.artifact_id || steps.restored.outputs['artifact-id'] }}
+      tar_sha256: ${{ steps.fingerprint.outputs.tar_sha256 || inputs.recovery_tar_sha256 }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -74,10 +77,18 @@ jobs:
         run: |
           bun -e 'await Bun.write("dist/examples/banora-build.json", JSON.stringify({ schemaVersion: "banora.demo-build/v1", sourceCommit: process.env.GITHUB_SHA, sourceRunId: process.env.GITHUB_RUN_ID }) + "\n")'
       - uses: actions/upload-pages-artifact@v5
+        id: original
         if: inputs.recovery_run_id == ''
         with:
           path: dist/examples
           retention-days: 14
+      - name: Fingerprint the original built tar
+        if: inputs.recovery_run_id == ''
+        id: fingerprint
+        env:
+          BANORA_REPOSITORY_PUBLIC: 'true'
+        run: |
+          bun scripts/demo-health.ts fingerprint --archive "$RUNNER_TEMP/artifact.tar"
       - name: Validate original recovery candidate
         if: inputs.recovery_run_id != ''
         id: recovery
@@ -109,6 +120,7 @@ jobs:
           bun scripts/demo-recovery.ts archive --directory .artifacts/demo-recovery --sha256 "$BANORA_RECOVERY_TAR"
       - name: Retain original verified tar for deployment
         if: inputs.recovery_run_id != ''
+        id: restored
         uses: actions/upload-artifact@v7
         with:
           name: github-pages
@@ -133,3 +145,38 @@ jobs:
       - name: Deploy static artifact
         id: deployment
         uses: actions/deploy-pages@v5
+
+  health:
+    needs: [build, deploy]
+    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false && needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+      - name: Download the exact deployed artifact
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact_id }}
+          path: .artifacts/demo-health
+          merge-multiple: true
+      - name: Check live file bytes against the deployed tar
+        env:
+          BANORA_DEPLOYED_TAR: ${{ needs.build.outputs.tar_sha256 }}
+        run: |
+          bun scripts/demo-health.ts check --directory .artifacts/demo-health --sha256 "$BANORA_DEPLOYED_TAR" --receipt .artifacts/demo-health-receipt.json
+      - name: Preserve successful or failed live health receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: banora-demo-health
+          path: .artifacts/demo-health-receipt.json
+          if-no-files-found: ignore
+          retention-days: 14

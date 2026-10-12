@@ -42,6 +42,14 @@ policy; no npm publication authority is available in this workflow.
 Wait for the actual run to finish. Verify the live Studio and nested consumers,
 asset response codes, SVG board and import/navigation/export flow before recording
 success. A Pages configuration response alone does not prove a deployed site.
+The separate read-only `health` job downloads the exact newly deployed artifact
+ID, verifies its builder/recovery tar hash and checks all live file bytes. Both
+normal deployment and recovery use it; no dependency installation, build, OIDC
+or deployment write permission is present in that job. A success or failure JSON
+receipt is retained as `banora-demo-health` for 14 days when the checker executes.
+If health fails, the site may already be deployed: preserve the receipt and
+inspect the previous known-good candidate. No deployment retry or rollback is
+automatic. File-byte health does not replace a browser flow or data recovery.
 Investigate a failed deployment before retrying. The reviewed manual recovery
 path redeploys exact retained original bytes. Actual recovery and live file/Studio
 health passed in the [execution record](../engineering/19-demo-recovery-execution-evidence.md);

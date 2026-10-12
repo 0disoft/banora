@@ -96,13 +96,39 @@ export function recoveryCandidate(
     throw Error('candidate');
   if (
     !object(listing) ||
-    listing.total_count !== 1 ||
     !Array.isArray(listing.artifacts) ||
-    listing.artifacts.length !== 1 ||
-    !object(listing.artifacts[0])
+    ![1, 2].includes(Number(listing.total_count)) ||
+    listing.total_count !== listing.artifacts.length ||
+    listing.artifacts.some(
+      (artifact: unknown) =>
+        !object(artifact) ||
+        !['github-pages', 'banora-demo-health'].includes(String(artifact.name)),
+    )
   )
     throw Error('candidate');
-  const artifact = listing.artifacts[0];
+  const artifacts = listing.artifacts;
+  const matching = artifacts.filter(
+    (artifact: unknown) => object(artifact) && artifact.name === 'github-pages',
+  );
+  if (
+    matching.length !== 1 ||
+    !object(matching[0]) ||
+    (artifacts.length === 2 &&
+      !artifacts.some(
+        (artifact: unknown) => object(artifact) && artifact.name === 'banora-demo-health',
+      ))
+  )
+    throw Error('candidate');
+  const healthJobs = deployedJobs.filter((job: unknown) => object(job) && job.name === 'health');
+  if (
+    (artifacts.length === 2 || healthJobs.length > 0) &&
+    (healthJobs.length !== 1 ||
+      !object(healthJobs[0]) ||
+      healthJobs[0].status !== 'completed' ||
+      healthJobs[0].conclusion !== 'success')
+  )
+    throw Error('candidate');
+  const artifact = matching[0];
   if (
     !Number.isSafeInteger(artifact.id) ||
     Number(artifact.id) < 1 ||
@@ -218,7 +244,7 @@ if (import.meta.main) {
       result = recoveryCandidate(
         request,
         read(path),
-        read(path + '/artifacts?per_page=2'),
+        read(path + '/artifacts?per_page=3'),
         read(path + '/jobs?filter=latest&per_page=100'),
       );
       if (process.env.GITHUB_OUTPUT)

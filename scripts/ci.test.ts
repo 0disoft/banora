@@ -136,6 +136,7 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
     on: Record<string, unknown>;
     jobs: {
       build: Job;
+      health: Job & { needs: string[]; permissions: Record<string, string> };
       deploy: Job & {
         needs: string;
         environment: { name: string };
@@ -147,6 +148,19 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
   expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch']);
   expect(workflow.jobs.deploy.needs).toBe('build');
   expect(workflow.jobs.deploy.environment.name).toBe('github-pages');
+  expect(workflow.jobs.health.needs).toEqual(['build', 'deploy']);
+  expect(workflow.jobs.health.if).toContain("needs.deploy.result == 'success'");
+  expect(workflow.jobs.health.permissions).toEqual({ contents: 'read', actions: 'read' });
+  expect(
+    workflow.jobs.health.steps.find((step) => step.uses === 'actions/download-artifact@v8')?.with?.[
+      'artifact-ids'
+    ],
+  ).toBe('${{ needs.build.outputs.artifact_id }}');
+  expect(
+    workflow.jobs.health.steps.find(
+      (step) => step.name === 'Preserve successful or failed live health receipt',
+    )?.if,
+  ).toBe('always()');
   const recoveryDownload = workflow.jobs.build.steps.find(
     (step) => step.uses === 'actions/download-artifact@v8',
   );
@@ -199,6 +213,17 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
     },
     (copy: typeof workflow) => {
       copy.jobs.deploy.steps.push({ run: 'npm publish' });
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.health.permissions['id-token'] = 'write';
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.health.needs = ['build'];
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.health.steps.find((step) => step.uses === 'actions/download-artifact@v8')!.with![
+        'artifact-ids'
+      ] = 'other';
     },
     (copy: typeof workflow) => {
       copy.jobs.build.steps.find((step) => step.uses === 'actions/download-artifact@v8')!.with![

@@ -119,6 +119,39 @@ test('recovery requires the reviewed successful original public main deployment 
   ).toThrow();
 });
 
+test('original deployment health receipts are allowed only with a successful independent health job', () => {
+  const withReceipt = {
+    total_count: 2,
+    artifacts: [...listing.artifacts, { name: 'banora-demo-health' }],
+  };
+  const health = { name: 'health', status: 'completed', conclusion: 'success', steps: [] };
+  expect(
+    recoveryCandidate(request, run, withReceipt, { jobs: [...jobs.jobs, health] }).artifactId,
+  ).toBe('456');
+  expect(() => recoveryCandidate(request, run, withReceipt, jobs)).toThrow();
+  expect(() =>
+    recoveryCandidate(request, run, withReceipt, {
+      jobs: [...jobs.jobs, { ...health, conclusion: 'failure' }],
+    }),
+  ).toThrow();
+  expect(() =>
+    recoveryCandidate(
+      request,
+      run,
+      { total_count: 2, artifacts: [...listing.artifacts, { name: 'unexpected' }] },
+      { jobs: [...jobs.jobs, health] },
+    ),
+  ).toThrow();
+  expect(() =>
+    recoveryCandidate(
+      request,
+      run,
+      { total_count: 3, artifacts: [...withReceipt.artifacts, listing.artifacts[0]] },
+      { jobs: [...jobs.jobs, health] },
+    ),
+  ).toThrow();
+});
+
 test('ambiguous inputs and nonmanual Actions output contexts fail before reads or writes', () => {
   for (const changed of [
     [...args, '--execute'],

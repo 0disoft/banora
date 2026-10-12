@@ -71,6 +71,11 @@ This payload check is required even if the downloader merely warns about a ZIP
 digest mismatch. Corruption, extra files and links stop; originals are preserved.
 JSON failures contain fixed codes and no provider logs, authored text or paths.
 Neither successful inspection switches the live site.
+New original runs also retain one `banora-demo-health` receipt. The candidate
+validator allows that additional artifact only alongside a successful independent
+health job, still requiring exactly one matching `github-pages` artifact.
+Unknown, duplicate or incomplete artifact listings stop; older original runs
+without the later health job remain eligible under their recorded review scope.
 
 ## Recover the Public Demo Without Rebuilding
 
@@ -145,6 +150,9 @@ completed-file and attempt counts with fixed failure codes, not provider message
 or file paths. Receipt creation is exclusive; existing reports remain unchanged.
 An interrupted or unwritable report is not successful health evidence. Byte
 checks do not execute a browser or certify user-data/device/host recovery.
+The Pages workflow now executes this checker after successful deployment using
+the exact deployed artifact ID and independently bound tar hash. A failed health
+job never initiates another upload, retag, rebuild or automatic rollback.
 
 For a future authorized npm release, a maintainer may move a channel using
 `npm dist-tag add <package>@<reviewed-previous-version> <channel>`, then inspect
