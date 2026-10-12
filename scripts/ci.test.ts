@@ -15,7 +15,15 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
   expect(planChecks(['packages/sdk/src/controller.ts']).browser).toEqual(['all']);
   expect(planChecks(['scripts/tree-navigation-scenario.js']).browser).toEqual(['--tree-only']);
   expect(
-    commandsFor(planChecks(['scripts/registry-health.ts', 'scripts/channel-plan.test.ts'])),
+    commandsFor(
+      planChecks([
+        'scripts/registry-health.ts',
+        'scripts/channel-plan.test.ts',
+        'scripts/consumer-recovery.ts',
+        'scripts/consumer-recovery.test.ts',
+        'scripts/consumer-recovery-probe.js',
+      ]),
+    ),
   ).toEqual([
     ['run', 'check'],
     ['run', 'security:files'],

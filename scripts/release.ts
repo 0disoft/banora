@@ -20,6 +20,7 @@ import { publicationOptions, publicationPlan } from './publication-plan.js';
 import { parsePublicationRequest, publishRelease, PublicationError } from './publication.js';
 import { registryHealth, registryTargetHealth, RegistryHealthError } from './registry-health.js';
 import { channelOptions, channelPlan, ChannelPlanError } from './channel-plan.js';
+import { consumerRecovery, recoveryOptions, ConsumerRecoveryError } from './consumer-recovery.js';
 
 function git(root: string, args: string[]) {
   const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 5000 });
@@ -143,6 +144,7 @@ if (import.meta.main) {
           'registry-check --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG',
           'registry-target-check --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG --expected-current-version VERSION',
           'channel-plan --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG --expected-current-version VERSION',
+          'consumer-recovery-check --current-bundle DIR --current-manifest-sha256 HASH --current-source-commit SHA --target-bundle DIR --target-manifest-sha256 HASH --target-source-commit SHA',
         ],
         scope:
           'Local preparation and offline preview by default. Explicit registry-check/registry-target-check/channel-plan read public npm metadata; publish --execute requires the reviewed public GitHub OIDC job context. No host deployment or data migration.',
@@ -176,6 +178,12 @@ if (import.meta.main) {
         schemaVersion: 'banora.release-command/v1',
         ok: true,
         health: await registryTargetHealth(root, channelOptions(args)),
+      };
+    } else if (action === 'consumer-recovery-check') {
+      result = {
+        schemaVersion: 'banora.release-command/v1',
+        ok: true,
+        recovery: await consumerRecovery(root, recoveryOptions(args)),
       };
     } else if (action === 'registry-check') {
       if (args.includes('--execute')) throw new ReleaseError('usage');
@@ -222,9 +230,11 @@ if (import.meta.main) {
             error instanceof ReleaseError ||
             error instanceof PublicationError ||
             error instanceof RegistryHealthError ||
-            error instanceof ChannelPlanError
+            error instanceof ChannelPlanError ||
+            error instanceof ConsumerRecoveryError
               ? error.code
               : 'io',
+          ...(error instanceof ConsumerRecoveryError ? { completed: error.completed } : {}),
           ...(error instanceof RegistryHealthError
             ? {
                 downloaded: error.completed,

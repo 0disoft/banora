@@ -23,6 +23,16 @@ In particular, migration-check is now configured as documented below.
 - docs
 - check
 
+The opt-in `release consumer-recovery-check` binds two reviewed prepared manifests
+and independently installed SDK/CLI tarballs, then executes current → previous →
+current portable-checkpoint/SGF recovery in actual Node processes on authored data.
+Its default tests cover strict argument discovery, source/hash mismatches, changed
+archives and equal/forward targets before installation. Successful cross-version
+behavior requires executing the opt-in drill with actual reviewed packages; authored
+nonexecutable archive fixtures prove only rejection paths. Its private tooling/CI
+route adds no privileged job, browser run, SDK export or package-version change.
+See the [recovery procedure](docs/ops/rollback.md#rehearse-portable-data-across-an-installed-downgrade).
+
 `scripts/channel-plan.test.ts` checks complete-family target/current observations,
 reviewed local/registry integrity, read-only/no-change arguments, mixed or changed
 channels, changed target inventory, tampered bundles, provider failures and early

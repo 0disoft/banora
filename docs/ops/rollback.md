@@ -204,6 +204,52 @@ job never initiates another upload, retag, rebuild or automatic rollback.
 
 ## Registry and Data Boundaries
 
+### Rehearse Portable Data Across an Installed Downgrade
+
+Before choosing a previous SDK, run this authored-data drill with two independently
+reviewed prepared bundles. Each manifest must match its explicit SHA256 and full
+source commit; the target version must be older than the current version.
+
+```sh
+bun run release consumer-recovery-check \
+  --current-bundle CURRENT_BUNDLE --current-manifest-sha256 CURRENT_MANIFEST_SHA256 \
+  --current-source-commit CURRENT_FULL_SHA \
+  --target-bundle PREVIOUS_BUNDLE --target-manifest-sha256 PREVIOUS_MANIFEST_SHA256 \
+  --target-source-commit PREVIOUS_FULL_SHA
+```
+
+This private command verifies both complete inventories, exclusively copies their
+exact SDK/CLI tarballs into separate `.artifacts/restores/consumer-recovery-*`
+consumers, and installs with lifecycle scripts disabled and isolated empty npm
+configuration. It checks both installed identities and the CLI's runtime version.
+Review the bundles' provenance before running: unsigned hashes do not authenticate
+their author, and executing installed packages is not a sandbox for arbitrary code.
+
+An authored two-game collection contains alternate branches, setup stones, move
+number overrides, two passes, multilingual comments, a label, an arrow, a freehand
+stroke and an unknown property. The actual current SDK creates a dirty checkpoint.
+Independent Node SDK/CLI processes pass that produced checkpoint through
+current → previous → current, comparing the exact SGF, checkpoint, selected path,
+position, rule policy, pass prisoners and dirty export baseline. Each reader also
+reopens the exported SGF and restores the clean baseline. Restored Undo/Redo history
+starts fresh. Unsupported future schema versions must be rejected without altering
+the in-memory controller or saved authored checkpoint.
+
+The original reviewed bundles are verified again after the drill. The successful
+JSON receipt contains version/source/archive identities, actual completed stages,
+checkpoint/state/probe hashes and explicit limits; it excludes fixture text,
+process paths and provider logs. Invalid arguments, mismatched bytes or versions,
+install failure and state mismatch stop. Failures preserve originals and exclusive
+working copies; no cleanup or install retry runs automatically.
+
+This rehearses Banora's portable record contract. It does not change npm tags,
+deploy a host, open or downgrade browser IndexedDB, migrate a host database, or
+test disk durability. Fixtures do not certify arbitrary user data, unknown future
+formats, different releases or all host integrations. Combine it with fresh
+registry target health and the host's actual deployment/storage recovery checks.
+
+### Inspect the Channel Before Mutation
+
 Before selecting a channel rollback, inspect the complete family against a reviewed
 prepared bundle and an explicit expected current version:
 
