@@ -129,7 +129,7 @@ test('manual candidate preparation keeps read-only authority and selects code ve
   expect(upload?.with?.['retention-days']).toBe(14);
   expect(upload?.with?.['if-no-files-found']).toBe('error');
 });
-test('manual Pages deployment confines reviewed write authority to the deployment job', async () => {
+test('manual Pages deployment confines reviewed write authority to deployment and original draft capture', async () => {
   const path = '.github/workflows/pages.yml';
   type Job = {
     if: string;
@@ -147,6 +147,7 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
     jobs: {
       build: Job;
       health: Job & { needs: string[]; permissions: Record<string, string> };
+      archive: Job & { needs: string[]; permissions: Record<string, string> };
       deploy: Job & {
         needs: string;
         environment: { name: string };
@@ -161,6 +162,11 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
   expect(workflow.jobs.health.needs).toEqual(['build', 'deploy']);
   expect(workflow.jobs.health.if).toContain("needs.deploy.result == 'success'");
   expect(workflow.jobs.health.permissions).toEqual({ contents: 'read', actions: 'read' });
+  expect(workflow.jobs.archive.permissions).toEqual({ contents: 'write', actions: 'read' });
+  expect(workflow.jobs.archive.needs).toEqual(['build', 'health']);
+  expect(workflow.jobs.archive.if).toContain("needs.health.result == 'success'");
+  expect(workflow.jobs.archive.if).toContain("inputs.recovery_backup_release_id == ''");
+  expect(workflow.jobs.build.permissions).toBeUndefined();
   expect(
     workflow.jobs.health.steps.find((step) => step.uses === 'actions/download-artifact@v8')?.with?.[
       'artifact-ids'
@@ -187,8 +193,30 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
   expect(originalUpload?.with?.['retention-days']).toBe(14);
   expect(originalUpload?.if).toBe("inputs.recovery_run_id != ''");
   expect(workflow.jobs.build.steps.find((step) => step.name === 'Build static examples')?.if).toBe(
-    "inputs.recovery_run_id == ''",
+    "inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''",
   );
+  const durableRestore = workflow.jobs.build.steps.find(
+    (step) => step.name === 'Restore reviewed draft backup without original Actions access',
+  );
+  expect(durableRestore?.if).toBe(
+    "inputs.recovery_backup_release_id != '' && inputs.recovery_run_id == ''",
+  );
+  expect(durableRestore?.run).toContain('bun scripts/demo-backup.ts restore');
+  const guard = workflow.jobs.build.steps.findIndex(
+    (step) => step.name === 'Reject incomplete or conflicting recovery selection',
+  );
+  expect(guard).toBeGreaterThan(0);
+  expect(guard).toBeLessThan(
+    workflow.jobs.build.steps.findIndex((step) => step.name === 'Install reviewed dependencies'),
+  );
+  expect(workflow.jobs.build.steps[guard]?.run).toContain(
+    'test -z "$BANORA_BACKUP_RELEASE$BANORA_BACKUP_MANIFEST"',
+  );
+  expect(
+    workflow.jobs.build.steps.find(
+      (step) => step.name === 'Retain verified draft tar for deployment',
+    )?.with?.path,
+  ).toBe('${{ steps.backup.outputs.directory }}/artifact.tar');
   expect(
     workflow.jobs.build.steps.some(
       (step: { run?: string }) => step.run === 'bun run build:examples',
@@ -229,6 +257,17 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
     },
     (copy: typeof workflow) => {
       copy.jobs.health.needs = ['build'];
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.archive.permissions['id-token'] = 'write';
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.archive.if = 'true';
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.build.steps.find(
+        (step) => step.name === 'Restore reviewed draft backup without original Actions access',
+      )!.run = 'npm publish';
     },
     (copy: typeof workflow) => {
       copy.jobs.health.steps.find((step) => step.uses === 'actions/download-artifact@v8')!.with![

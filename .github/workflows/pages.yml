@@ -24,6 +24,15 @@ on:
         type: string
         default: ''
 
+      recovery_backup_release_id:
+        description: 'Reviewed maintainer-only draft backup release ID; leave legacy recovery fields empty'
+        type: string
+        default: ''
+      recovery_backup_manifest_sha256:
+        description: 'Independently reviewed draft backup manifest SHA256'
+        type: string
+        default: ''
+
 permissions:
   contents: read
   pages: read
@@ -39,8 +48,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      artifact_id: ${{ steps.original.outputs.artifact_id || steps.restored.outputs['artifact-id'] }}
-      tar_sha256: ${{ steps.fingerprint.outputs.tar_sha256 || inputs.recovery_tar_sha256 }}
+      artifact_id: ${{ steps.original.outputs.artifact_id || steps.restored.outputs['artifact-id'] || steps.durable.outputs['artifact-id'] }}
+      tar_sha256: ${{ steps.fingerprint.outputs.tar_sha256 || steps.backup.outputs.tar_sha256 || inputs.recovery_tar_sha256 }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -48,42 +57,52 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.x
-      - uses: actions/setup-node@v7
-        if: inputs.recovery_run_id == ''
-        with:
-          node-version-file: mise.toml
-          package-manager-cache: false
-      - name: Install reviewed dependencies
-        if: inputs.recovery_run_id == ''
-        run: bun run setup
-      - name: Check workflow and file signals
-        run: bun run security:files
-      - uses: actions/configure-pages@v6
-        if: inputs.recovery_run_id == ''
-      - name: Reject incomplete recovery selection
-        if: inputs.recovery_run_id == ''
+      - name: Reject incomplete or conflicting recovery selection
         env:
+          BANORA_RECOVERY_RUN: ${{ inputs.recovery_run_id }}
           BANORA_RECOVERY_ARTIFACT: ${{ inputs.recovery_artifact_id }}
           BANORA_RECOVERY_SOURCE: ${{ inputs.recovery_source_commit }}
           BANORA_RECOVERY_DIGEST: ${{ inputs.recovery_archive_digest }}
           BANORA_RECOVERY_TAR: ${{ inputs.recovery_tar_sha256 }}
+          BANORA_BACKUP_RELEASE: ${{ inputs.recovery_backup_release_id }}
+          BANORA_BACKUP_MANIFEST: ${{ inputs.recovery_backup_manifest_sha256 }}
         run: |
-          test -z "$BANORA_RECOVERY_ARTIFACT$BANORA_RECOVERY_SOURCE$BANORA_RECOVERY_DIGEST$BANORA_RECOVERY_TAR"
+          if test -n "$BANORA_RECOVERY_RUN"; then
+            test -z "$BANORA_BACKUP_RELEASE$BANORA_BACKUP_MANIFEST"
+            test -n "$BANORA_RECOVERY_ARTIFACT" && test -n "$BANORA_RECOVERY_SOURCE" && test -n "$BANORA_RECOVERY_DIGEST" && test -n "$BANORA_RECOVERY_TAR"
+          elif test -n "$BANORA_BACKUP_RELEASE"; then
+            test -n "$BANORA_BACKUP_MANIFEST"
+            test -z "$BANORA_RECOVERY_ARTIFACT$BANORA_RECOVERY_SOURCE$BANORA_RECOVERY_DIGEST$BANORA_RECOVERY_TAR"
+          else
+            test -z "$BANORA_RECOVERY_ARTIFACT$BANORA_RECOVERY_SOURCE$BANORA_RECOVERY_DIGEST$BANORA_RECOVERY_TAR$BANORA_BACKUP_MANIFEST"
+          fi
+      - uses: actions/setup-node@v7
+        if: inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
+        with:
+          node-version-file: mise.toml
+          package-manager-cache: false
+      - name: Install reviewed dependencies
+        if: inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
+        run: bun run setup
+      - name: Check workflow and file signals
+        run: bun run security:files
+      - uses: actions/configure-pages@v6
+        if: inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
       - name: Build static examples
-        if: inputs.recovery_run_id == ''
+        if: inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
         run: bun run build:examples
       - name: Record public build identity
-        if: inputs.recovery_run_id == ''
+        if: inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
         run: |
           bun -e 'await Bun.write("dist/examples/banora-build.json", JSON.stringify({ schemaVersion: "banora.demo-build/v1", sourceCommit: process.env.GITHUB_SHA, sourceRunId: process.env.GITHUB_RUN_ID }) + "\n")'
       - uses: actions/upload-pages-artifact@v5
         id: original
-        if: inputs.recovery_run_id == ''
+        if: inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
         with:
           path: dist/examples
           retention-days: 14
       - name: Fingerprint the original built tar
-        if: inputs.recovery_run_id == ''
+        if: inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
         id: fingerprint
         env:
           BANORA_REPOSITORY_PUBLIC: 'true'
@@ -125,6 +144,28 @@ jobs:
         with:
           name: github-pages
           path: .artifacts/demo-recovery/artifact.tar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Restore reviewed draft backup without original Actions access
+        if: inputs.recovery_backup_release_id != '' && inputs.recovery_run_id == ''
+        id: backup
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BANORA_REPOSITORY_PUBLIC: 'true'
+          BANORA_BACKUP_RELEASE: ${{ inputs.recovery_backup_release_id }}
+          BANORA_BACKUP_MANIFEST: ${{ inputs.recovery_backup_manifest_sha256 }}
+        run: |
+          mkdir -p .artifacts
+          bun scripts/demo-backup.ts restore --release-id "$BANORA_BACKUP_RELEASE" --manifest-sha256 "$BANORA_BACKUP_MANIFEST"
+      - name: Retain verified draft tar for deployment
+        if: inputs.recovery_backup_release_id != '' && inputs.recovery_run_id == ''
+        id: durable
+        uses: actions/upload-artifact@v7
+        with:
+          name: github-pages
+          path: ${{ steps.backup.outputs.directory }}/artifact.tar
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
@@ -180,3 +221,35 @@ jobs:
           path: .artifacts/demo-health-receipt.json
           if-no-files-found: ignore
           retention-days: 14
+
+  archive:
+    needs: [build, health]
+    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false && needs.health.result == 'success' && inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+      - name: Check workflow and file signals
+        run: bun run security:files
+      - name: Download the exact successful original artifact
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact_id }}
+          path: .artifacts/demo-archive
+          merge-multiple: true
+      - name: Preserve original bytes as a maintainer-only draft backup
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BANORA_REPOSITORY_PUBLIC: 'true'
+          BANORA_BACKUP_JOB: archive
+          BANORA_BACKUP_TAR: ${{ needs.build.outputs.tar_sha256 }}
+        run: |
+          bun scripts/demo-backup.ts capture --directory .artifacts/demo-archive --sha256 "$BANORA_BACKUP_TAR" --source-commit "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --execute

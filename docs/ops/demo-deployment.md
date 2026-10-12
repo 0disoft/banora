@@ -55,6 +55,19 @@ path redeploys exact retained original bytes. Actual recovery and live file/Stud
 health passed in the [execution record](../engineering/19-demo-recovery-execution-evidence.md);
 this does not extend SDK host/data recovery guarantees.
 
+Successful normal deployments also run a separate `archive` job. Its narrowly
+reviewed Contents write permission creates a maintainer-only Draft Release with
+the exact original tar and bounded manifest. It has no Pages/OIDC/npm write
+authority and never publishes or promotes the draft. Recovery skips archive;
+the build/health jobs remain read-only. The two draft-recovery inputs select
+verified original bytes without requesting the original Actions run/artifact.
+See [draft recovery](rollback.md#restore-a-draft-demo-backup-without-original-actions-retention)
+and [ADR 0024](../adr/0024-draft-release-demo-backups.md). A failed archive may
+leave an already healthy deployed site and an incomplete draft; preserve its
+receipt and inspect before another deliberate build. Drafts can be edited/deleted
+and do not protect against provider/account loss. Hosted execution of this new
+path is pending its separate evidence record.
+
 The first [deployment run 38204372917](https://github.com/0disoft/banora/actions/runs/38204372917)
 completed successfully. Live Chrome verification imported an authored SGF, edited
 its comment, navigated both moves, downloaded the actual SGF and reopened it with

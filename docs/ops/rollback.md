@@ -119,9 +119,53 @@ and a real Studio import/edit/export/reopen. The live site currently serves the
 selected original bytes. Recovery uploads do not extend the eligibility of an
 expired original candidate; keep original build artifacts and independent copies.
 
-## Registry and Data Boundaries
+## Restore a Draft Demo Backup Without Original Actions Retention
 
-### Read-Only Live Demo Health
+For new healthy normal deployments, the separate `archive` job creates a
+maintainer-only Draft Release with the exact original tar and its manifest. The
+two assets do not depend on the original Actions artifact's retention. This is
+same-provider storage, editable/deletable by maintainers, without a storage SLA.
+Keep the approved manifest hash and an independent local copy separately.
+
+Inspect the archive job's fixed JSON receipt for the release ID, source/run,
+tar SHA256 and manifest SHA256. Check the draft and asset metadata independently.
+Never publish the draft, overwrite its assets or substitute a hash after failure.
+An uncertain capture stops; inspect its recorded created release ID before a
+deliberate fresh build. No upload retry or asset cleanup is automatic.
+
+```sh
+bun scripts/demo-backup.ts plan --directory ORIGINAL_TAR_DIRECTORY \
+  --sha256 REVIEWED_TAR_SHA256 --source-commit ORIGINAL_FULL_SHA --run-id ORIGINAL_RUN_ID
+bun scripts/demo-backup.ts restore --release-id REVIEWED_DRAFT_RELEASE_ID \
+  --manifest-sha256 REVIEWED_MANIFEST_SHA256
+```
+
+Plan is offline. Restore reads only release metadata/assets on the fixed own-repo
+GitHub endpoint and verifies independently reviewed hashes, exact sizes, draft
+ownership/tag/source and the embedded original build receipt. It writes unchanged
+tar bytes exclusively to a new `.artifacts/demo-backups/backup-*` directory after
+verification, without extraction, execution or a deployment. Altered/published/
+missing/extra/foreign assets stop. Older originals without a build receipt are
+not silently converted to this backup format.
+
+To perform an authorized live restore, leave all five legacy Actions recovery
+fields empty and supply only the reviewed draft identity and manifest hash:
+
+```sh
+gh workflow run pages.yml --ref main \
+  -f recovery_backup_release_id=REVIEWED_DRAFT_RELEASE_ID \
+  -f recovery_backup_manifest_sha256=REVIEWED_MANIFEST_SHA256
+```
+
+The read-only build job does not request the original Actions artifact or run,
+install dependencies or rebuild. The existing Pages deployment job deploys the
+exact reuploaded tar; independent health checks its original live bytes. The
+archive job skips recovery, preventing duplicate backup loops. Mixed or partial
+selections stop before deployment. See [ADR 0024](../adr/0024-draft-release-demo-backups.md).
+Hosted capture and restoration must be recorded after real runs; local fixture
+success does not establish provider draft access or observed artifact expiration.
+
+## Read-Only Live Demo Health
 
 After deployment or recovery, check the exact selected tar against the public
 site. The private commands emit one bounded JSON result without rebuilding,
@@ -153,6 +197,8 @@ checks do not execute a browser or certify user-data/device/host recovery.
 The Pages workflow now executes this checker after successful deployment using
 the exact deployed artifact ID and independently bound tar hash. A failed health
 job never initiates another upload, retag, rebuild or automatic rollback.
+
+## Registry and Data Boundaries
 
 For a future authorized npm release, a maintainer may move a channel using
 `npm dist-tag add <package>@<reviewed-previous-version> <channel>`, then inspect

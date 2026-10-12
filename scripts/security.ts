@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 // This is a local drift gate, not a signature, environment protection or npm publishing authority.
 const reviewedPublicationWorkflow =
   '6d935218e0cd61bd240e24db81d2d4eb0cd7c645ee780102cf30f94d0e244844';
-const reviewedPagesWorkflow = 'f08fc4728a0d0cb6fd62e91ac51b286dd1d61829d93b0900a7032b88459a154d';
+const reviewedPagesWorkflow = '8e11465dc18de34aeb655b397b5be786f156f0a5563f27bb2d1fddae19c60b1f';
 
 /** Signal-only gate: never print credential material or surrounding content. */
 export function secretSignals(path: string, text: string): string[] {
@@ -69,7 +69,8 @@ export function workflowSignals(input: unknown, path = ''): string[] {
             jobId === 'deploy' &&
             ['pages', 'id-token'].includes(permission) &&
             access === 'write'
-          )
+          ) &&
+          !(reviewedPages && jobId === 'archive' && permission === 'contents' && access === 'write')
         )
           signals.push('write workflow permission requires a reviewed policy change');
   };
