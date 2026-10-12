@@ -460,6 +460,10 @@ the owner's external handoff below.
 
 ### Owner Decisions
 
+The primary maintainer is `0disoft`. [Maintainer recovery](maintainer-recovery.md)
+owns source backup, offline restore, independent artifact retention and private
+provider account-recovery actions. Actual credential recovery is not implied by a release.
+
 Before any publication, identify the primary maintainer, account/artifact recovery
 procedure and a real private
 security-report channel; establish registry scope access, credentials outside Git,

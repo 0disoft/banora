@@ -23,6 +23,16 @@ In particular, migration-check is now configured as documented below.
 - docs
 - check
 
+Private `release source-backup` and `release source-recovery-check` preserve tracked
+Git history/refs and restore reviewed source in an exclusive local mirror/checkout.
+Positive tests use real authored Git repositories. Source/ref/tree equality,
+independent hash/schema review, original/config preservation and negative dirty/
+tampered/ambiguous-command cases run in existing `test`/`check`. Actual repository
+capture/recovery is opt-in and must execute before claiming source restoration.
+It installs/builds nothing and changes no provider account, package channel or
+active checkout. Its private-tool CI route adds no browser or privileged job.
+See [maintainer recovery](docs/ops/maintainer-recovery.md).
+
 After `bun run build:examples`, `bun scripts/browser-smoke.ts --zoom-only`
 executes native desktop Chrome page zoom at 100%, 200% and 400% in exclusively
 owned temporary profiles. It preserves the outer window and checks the actual

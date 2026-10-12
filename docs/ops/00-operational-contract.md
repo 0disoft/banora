@@ -16,6 +16,9 @@ This repository is maintained by a solo operator. Release handoff must identify
 the primary maintainer and an account/artifact recovery procedure; a second person
 is not a prerequisite. Record a backup maintainer or escalation contact only if
 one actually exists, without inventing availability or a private contact.
+The primary public maintainer and executable source/retention procedure are in
+[maintainer recovery](maintainer-recovery.md). Provider credential recovery remains
+a separate private owner action.
 
 Critical SDK journeys are open/navigate/edit/export/reopen with authored properties
 preserved; isolated terminal requests with protected input files; guarded recovery

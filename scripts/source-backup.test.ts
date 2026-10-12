@@ -1,0 +1,163 @@
+import { expect, test } from 'bun:test';
+import { spawnSync } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { sourceBackup, sourceRecovery, sourceRecoveryOptions } from './source-backup.js';
+
+async function fixture() {
+  await mkdir('.tmp', { recursive: true });
+  const root = await mkdtemp(resolve('.tmp/source-backup-test-'));
+  await mkdir(resolve(root, '.tmp/hooks'), { recursive: true });
+  const config = resolve(root, '.tmp/empty.gitconfig');
+  await writeFile(config, '');
+  const git = (...args: string[]) => {
+    const result = spawnSync(
+      'git',
+      [
+        '-c',
+        'user.name=Authored source fixture',
+        '-c',
+        'user.email=fixture@example.invalid',
+        '-c',
+        'commit.gpgsign=false',
+        '-c',
+        `core.hooksPath=${resolve(root, '.tmp/hooks')}`,
+        ...args,
+      ],
+      {
+        cwd: root,
+        env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: config },
+        encoding: 'utf8',
+        timeout: 10_000,
+        windowsHide: true,
+      },
+    );
+    if (result.status !== 0) throw Error('Authored Git fixture failed.');
+    return result.stdout.trim();
+  };
+  await writeFile(resolve(root, '.gitignore'), '.tmp/\n.artifacts/\n');
+  await writeFile(
+    resolve(root, 'package.json'),
+    JSON.stringify({ name: 'banora-workspace', private: true }),
+  );
+  await writeFile(resolve(root, 'README.md'), 'Authored offline source recovery fixture.\n');
+  git('init', '-b', 'main');
+  git('add', '.');
+  git('commit', '-m', 'Authored initial fixture');
+  git('tag', '-a', 'v0.1.0', '-m', 'Authored tag');
+  await writeFile(resolve(root, 'README.md'), 'Authored next source recovery fixture.\n');
+  git('add', '.');
+  git('commit', '-m', 'Authored next fixture');
+  return { root, git };
+}
+test('real Git backup restores exact history/refs and clean source without inheriting the original remote/config', async () => {
+  const { root, git } = await fixture();
+  git('remote', 'add', 'origin', 'https://example.invalid/unused-source-fixture');
+  git('config', 'credential.helper', 'unused-authored-helper');
+  const originalConfig = await readFile(resolve(root, '.git/config'));
+  const backup = await sourceBackup(root);
+  const request = {
+    backup: resolve(root, backup.backup),
+    manifestSha256: backup.manifestSha256,
+    sourceCommit: backup.source.commit,
+  };
+  const bytes = await readFile(resolve(request.backup, 'source.bundle'));
+  const restored = await sourceRecovery(root, request);
+  expect(restored.ok).toBe(true);
+  expect(restored.refs).toEqual(backup.refs);
+  expect(restored.source).toEqual(backup.source);
+  expect(restored.trackedFiles).toBe(3);
+  expect(restored.completed).toHaveLength(6);
+  expect(await readFile(resolve(root, restored.restored, 'README.md'), 'utf8')).toBe(
+    'Authored next source recovery fixture.\n',
+  );
+  expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(bytes);
+  expect(await readFile(resolve(root, '.git/config'))).toEqual(originalConfig);
+  expect(JSON.stringify(restored)).not.toContain('example.invalid');
+  expect(git('status', '--porcelain')).toBe('');
+  const mirrorConfig = await readFile(
+    resolve(root, restored.restored, '../mirror.git/config'),
+    'utf8',
+  );
+  expect(mirrorConfig).not.toContain('unused-authored-helper');
+  expect(mirrorConfig).not.toContain('https://');
+});
+test('dirty sources and modified, extra-file or wrongly reviewed backups are rejected without replacement', async () => {
+  const { root } = await fixture();
+  const backup = await sourceBackup(root);
+  const request = {
+    backup: resolve(root, backup.backup),
+    manifestSha256: backup.manifestSha256,
+    sourceCommit: backup.source.commit,
+  };
+  await expect(
+    sourceRecovery(root, { ...request, manifestSha256: '0'.repeat(64) }),
+  ).rejects.toMatchObject({ code: 'integrity' });
+  await expect(
+    sourceRecovery(root, { ...request, sourceCommit: '0'.repeat(40) }),
+  ).rejects.toMatchObject({ code: 'manifest' });
+  await writeFile(resolve(request.backup, 'extra.txt'), 'Authored extra file');
+  await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'manifest' });
+  const fresh = await sourceBackup(root);
+  const bundle = resolve(root, fresh.backup, 'source.bundle');
+  const bytes = await readFile(bundle);
+  await writeFile(bundle, Buffer.concat([bytes, Buffer.from('Authored corruption')]));
+  await expect(
+    sourceRecovery(root, {
+      backup: resolve(root, fresh.backup),
+      manifestSha256: fresh.manifestSha256,
+      sourceCommit: fresh.source.commit,
+    }),
+  ).rejects.toMatchObject({ code: 'integrity' });
+  expect(await readFile(bundle)).toEqual(
+    Buffer.concat([bytes, Buffer.from('Authored corruption')]),
+  );
+  await writeFile(resolve(root, 'README.md'), 'Authored uncommitted work.\n');
+  await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
+  expect(await readFile(resolve(root, 'README.md'), 'utf8')).toBe('Authored uncommitted work.\n');
+  await writeFile(
+    resolve(root, 'package.json'),
+    JSON.stringify({ name: 'other-workspace', private: true }),
+  );
+  await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'source' });
+});
+test('source recovery has strict discoverable arguments and fixed errors before Git or provider access', () => {
+  const options = [
+    '--backup',
+    'backup',
+    '--manifest-sha256',
+    'a'.repeat(64),
+    '--source-commit',
+    'b'.repeat(40),
+  ];
+  expect(sourceRecoveryOptions(options).backup).toBe('backup');
+  for (const args of [
+    [],
+    options.slice(0, -1),
+    [...options, '--execute'],
+    [...options, '--backup', 'other'],
+    options.map((arg) => (arg === 'a'.repeat(64) ? 'invalid' : arg)),
+  ])
+    expect(() => sourceRecoveryOptions(args)).toThrow('usage');
+  for (const args of [
+    ['--help'],
+    ['source-recovery-check', '--execute'],
+    ['source-backup', '--publish'],
+  ]) {
+    const result = Bun.spawnSync([process.execPath, 'scripts/release.ts', ...args], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+    const output = JSON.parse(result.stdout.toString());
+    if (args[0] === '--help') {
+      expect(output.commands).toContain('source-backup');
+      expect(output.commands).toContain(
+        'source-recovery-check --backup DIR --manifest-sha256 HASH --source-commit SHA',
+      );
+    } else {
+      expect(result.exitCode).toBe(1);
+      expect(output.error).toEqual({ code: 'usage' });
+      expect(result.stderr.toString()).toBe('');
+    }
+  }
+});

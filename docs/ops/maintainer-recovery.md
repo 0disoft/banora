@@ -1,0 +1,87 @@
+# Maintainer Source and Account Recovery
+
+Status: source backup and offline restore commands implemented; actual repository
+execution is required before recording a successful rehearsal.
+
+## Owner and Retention
+
+The primary maintainer is `0disoft`, owner of
+[0disoft/banora](https://github.com/0disoft/banora) and the five published packages.
+This is a solo-maintainer project. No backup person, private contact or support
+SLA is invented.
+
+Retain every supported release's complete prepared archive and original manifest.
+Public release assets and draft demo backups outlive their Actions artifacts, but
+remain editable/deletable on the same GitHub account. Actions artifacts last 14
+days and must not be the sole recovery copy. Keep independently reviewed source
+and artifact copies outside that provider. Normal `clean` preserves `.artifacts`;
+it is not a retention service. Prune only after reviewing support status and a
+successful newer restore; do not automatically delete the last known-good copy.
+
+Source backups include tracked history and refs/tags. They exclude working edits,
+untracked/ignored files, `.git/config`, hooks, credentials, dependencies, browser
+profiles and IndexedDB drafts. Tracked history is preserved rather than redacted;
+review it before sharing. Same-device storage does not protect against device loss.
+
+## Capture and Rehearse Without Provider Access
+
+From a reviewed clean, complete checkout:
+
+```sh
+bun run release source-backup
+bun run release source-recovery-check --backup BACKUP_DIRECTORY \
+  --manifest-sha256 INDEPENDENTLY_REVIEWED_HASH --source-commit REVIEWED_FULL_SHA
+```
+
+Capture exclusively writes `source.bundle` and a closed manifest under
+`.artifacts/releases/source-*`. JSON identifies the source/tree, bundle hash/size,
+ref count/hash and manifest hash. Dirty/shallow sources stop; source and refs must
+remain unchanged during capture. This uses [Git's offline bundle contract](https://git-scm.com/docs/git-bundle).
+Capture alone is not a successful restore.
+
+Retain the reviewed hash and source separately. Restore accepts exactly those two
+regular files, verifies their bytes/schema/identity and creates an exclusive local
+mirror and detached checkout under `.artifacts/restores/source-*`. Git permits
+only file protocols, uses an empty global configuration, disables system config/
+hooks and remote lazy fetching. The actual mirror must pass full strict object
+checking, bundle verification and exact ref/tree matching. The checkout must be
+clean at the reviewed commit; originals are verified again. Its receipt records
+actual completed stages, without remote URLs, credential settings or raw logs.
+Extra/linked/changed inputs stop without replacing the active checkout or deleting
+evidence.
+
+Separately verify/restage the independently retained prepared release using
+`release verify` and `release restore` from [rollback](rollback.md). Source recovery
+installs no dependencies and executes no recovered code. Frozen setup/build still
+need the declared tools and dependencies; a Git bundle is not an npm dependency
+archive or evidence of a fully offline new-machine build.
+
+Copy both source-backup files and the complete prepared release archive/manifest
+to owner-controlled independent storage. Verify copied bytes and rehearse from
+that directory. The repository does not provision the owner's off-device storage
+or inspect secret stores.
+
+## Lost Authentication or Compromised Access
+
+Source/artifact recovery is separate from reclaiming a provider account. Stop
+promotion, preserve reviewed copies and use provider recovery UIs privately.
+Never submit passwords, recovery codes or security-key responses through Issues,
+diagnostics or an agent chat.
+
+- GitHub: follow its [account recovery procedure](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/recovering-your-account-if-you-lose-your-2fa-credentials).
+  GitHub cannot restore a 2FA account when all recovery methods are lost. Establish
+  redundant methods privately using [official configuration guidance](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/configuring-two-factor-authentication-recovery-methods).
+- npm: follow its [2FA recovery procedure](https://docs.npmjs.com/recovering-your-2fa-enabled-account/).
+  Recovery-code login starts a 72-hour security hold; publication and package
+  setting changes are unavailable while read/install access remains available.
+  Do not bypass the hold with a new token or publisher.
+- Compromise: the actual credential owner revokes affected credentials, audits
+  provider/package/environment access and re-establishes reviewed publishing
+  authority. Follow [secret response](secrets.md#suspected-exposure). Restoring
+  source does not revoke a credential.
+
+Successful security-key authentication/OIDC publication does not prove privately
+retained recovery codes or a redundant factor. Those and actual account recovery
+remain unverified; do not inspect or copy them to close an SDK readiness row.
+Source restoration changes no provider permissions, npm tags, live host or user
+storage schema.

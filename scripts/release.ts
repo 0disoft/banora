@@ -21,6 +21,7 @@ import { parsePublicationRequest, publishRelease, PublicationError } from './pub
 import { registryHealth, registryTargetHealth, RegistryHealthError } from './registry-health.js';
 import { channelOptions, channelPlan, ChannelPlanError } from './channel-plan.js';
 import { consumerRecovery, recoveryOptions, ConsumerRecoveryError } from './consumer-recovery.js';
+import { sourceBackup, sourceRecovery, sourceRecoveryOptions } from './source-backup.js';
 
 function git(root: string, args: string[]) {
   const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 5000 });
@@ -139,6 +140,8 @@ if (import.meta.main) {
           'prepare',
           'verify --bundle DIR',
           'restore --bundle DIR',
+          'source-backup',
+          'source-recovery-check --backup DIR --manifest-sha256 HASH --source-commit SHA',
           'publication-plan --bundle DIR --workflow FILE [--environment NAME] [--tag TAG]',
           'publish --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG [--execute]',
           'registry-check --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG',
@@ -149,7 +152,19 @@ if (import.meta.main) {
         scope:
           'Local preparation and offline preview by default. Explicit registry-check/registry-target-check/channel-plan read public npm metadata; publish --execute requires the reviewed public GitHub OIDC job context. No host deployment or data migration.',
       };
-    else if (action === 'prepare' && !args.length) {
+    else if (action === 'source-backup' && !args.length) {
+      result = {
+        schemaVersion: 'banora.release-command/v1',
+        ok: true,
+        sourceBackup: await sourceBackup(root),
+      };
+    } else if (action === 'source-recovery-check') {
+      result = {
+        schemaVersion: 'banora.release-command/v1',
+        ok: true,
+        recovery: await sourceRecovery(root, sourceRecoveryOptions(args)),
+      };
+    } else if (action === 'prepare' && !args.length) {
       const prepared = await prepareRelease(root);
       result = {
         schemaVersion: 'banora.release-command/v1',
