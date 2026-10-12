@@ -18,7 +18,7 @@ import { runReleaseCheck } from './release-check.js';
 export { runReleaseCheck } from './release-check.js';
 import { publicationOptions, publicationPlan } from './publication-plan.js';
 import { parsePublicationRequest, publishRelease, PublicationError } from './publication.js';
-import { registryHealth, RegistryHealthError } from './registry-health.js';
+import { registryHealth, registryTargetHealth, RegistryHealthError } from './registry-health.js';
 import { channelOptions, channelPlan, ChannelPlanError } from './channel-plan.js';
 
 function git(root: string, args: string[]) {
@@ -141,10 +141,11 @@ if (import.meta.main) {
           'publication-plan --bundle DIR --workflow FILE [--environment NAME] [--tag TAG]',
           'publish --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG [--execute]',
           'registry-check --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG',
+          'registry-target-check --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG --expected-current-version VERSION',
           'channel-plan --bundle DIR --manifest-sha256 HASH --source-commit SHA --tag TAG --expected-current-version VERSION',
         ],
         scope:
-          'Local preparation and offline preview by default. Explicit registry-check/channel-plan read public npm metadata; publish --execute requires the reviewed public GitHub OIDC job context. No host deployment or data migration.',
+          'Local preparation and offline preview by default. Explicit registry-check/registry-target-check/channel-plan read public npm metadata; publish --execute requires the reviewed public GitHub OIDC job context. No host deployment or data migration.',
       };
     else if (action === 'prepare' && !args.length) {
       const prepared = await prepareRelease(root);
@@ -169,6 +170,12 @@ if (import.meta.main) {
         schemaVersion: 'banora.release-command/v1',
         ok: true,
         plan: await channelPlan(root, channelOptions(args)),
+      };
+    } else if (action === 'registry-target-check') {
+      result = {
+        schemaVersion: 'banora.release-command/v1',
+        ok: true,
+        health: await registryTargetHealth(root, channelOptions(args)),
       };
     } else if (action === 'registry-check') {
       if (args.includes('--execute')) throw new ReleaseError('usage');

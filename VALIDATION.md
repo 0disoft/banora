@@ -35,6 +35,15 @@ The [actual channel observation](docs/engineering/23-channel-preflight-execution
 confirmed five unchanged development tags, reviewed integrity and no older common
 version beyond excluded placeholders. It did not mutate a tag or rehearse rollback.
 
+`registry-target-check` combines channel preflight with fresh previous-version
+registry downloads and independent installed SDK/CLI/framework checks while
+keeping the current family selected. Channel tests cover exact reviewed bytes,
+unchanged tags, exclusive copies, pre-download/final drift or deprecation, execute
+rejection and preservation of ordinary post-publication health's tag requirement.
+Authored hash fixtures and mock check callbacks prove control flow, not a live
+consumer result. The [target-health record](docs/engineering/25-registry-target-health-evidence.md)
+keeps actual execution separate. Its private tooling route adds no browser job.
+
 Publication propagation tests cover metadata missing beyond the old five-read
 limit, eventual success without repeated uploads, the eighteen-read cap and the
 three-minute elapsed budget through an injected private clock. Failed uploads,

@@ -284,6 +284,41 @@ registry identity/integrity/tags twice and distinguishes `no-change` from a
 `rollback-plan`. It does not execute a tag command or weaken the publication gate;
 see [registry rollback boundaries](rollback.md#registry-and-data-boundaries).
 
+### Check a Registry Rollback Target Before Moving Tags
+
+Use the separate read-only command when the reviewed target is older than the
+currently selected package family:
+
+```sh
+bun run release registry-target-check --bundle REVIEWED_PREVIOUS_BUNDLE \
+  --manifest-sha256 REVIEWED_PREVIOUS_MANIFEST_SHA256 \
+  --source-commit REVIEWED_PREVIOUS_SOURCE_SHA --tag dev \
+  --expected-current-version CURRENT_VERSION
+```
+
+The existing `registry-check` still requires the selected channel to match the
+tested version. Target checking first performs the whole-family channel preflight,
+including source/hash binding, two consistent observations, version inventories,
+target deprecation, integrity and refusal of forward/stage/execute requests. It
+then reuses bounded fresh registry downloads, both hashes, exclusive restaging and
+independent installed SDK/CLI/framework checks for the reviewed target. All five
+tags must remain at the explicit current version before downloads and after
+installation. Target deprecation is checked again during those observations.
+
+The existing health envelope's `operation` is `registry-target-check`, with explicit
+`expectedCurrentVersion`, `targetVersion` and `preflightObservations: 2`. Its three
+consumer check labels retain their existing meaning. Metadata/deprecation/tag
+drift, changed bytes, download or consumer failures produce no successful receipt.
+`registry-target` identifies a deprecated/malformed target observed after preflight;
+late failures retain downloaded names and the final-confirmation label. Ordinary
+post-publication health behavior and receipts are unchanged.
+
+This command downloads and executes reviewed package test input. Use independently
+reviewed source and hashes, not hashes supplied by an unknown author. It never changes a
+tag, publishes a package, rebuilds an artifact or changes host data. Observations
+are not a registry lock; repeat preflight immediately before a separately authorized
+mutation. No new workflow, publisher permission or long-lived credential is added.
+
 ### Manual Workflow and Approval Boundary
 
 The [publish workflow](../../.github/workflows/publish.yml) accepts a preparation

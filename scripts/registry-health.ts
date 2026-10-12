@@ -11,12 +11,14 @@ import {
 import { publicRegistryIO, publishRelease } from './publication.js';
 import type { PublicationIO, PublicationRequest } from './publication.js';
 import { runReleaseCheck } from './release-check.js';
+import { channelPlan } from './channel-plan.js';
 
 export class RegistryHealthError extends Error {
   constructor(
     readonly code:
       | 'registry-metadata'
       | 'registry-channel'
+      | 'registry-target'
       | 'registry-integrity'
       | 'registry-download'
       | 'registry-consumer',
@@ -91,14 +93,43 @@ export interface RegistryHealthIO {
   download(url: string, destination: string, bytes: number): Promise<void>;
   check(args: string[], label: string): Promise<void>;
 }
-export async function registryHealth(
-  root: string,
-  request: PublicationRequest,
-  io: RegistryHealthIO = {
+function registryIO(root: string): RegistryHealthIO {
+  return {
     run: publicRegistryIO(root).run,
     download: downloadRegistryArchive,
     check: (args, label) => runReleaseCheck(root, args, label),
-  },
+  };
+}
+export async function registryHealth(
+  root: string,
+  request: PublicationRequest,
+  io: RegistryHealthIO = registryIO(root),
+) {
+  return checkRegistry(root, request, io);
+}
+/** Install reviewed rollback-target bytes while preserving the current channel. */
+export async function registryTargetHealth(
+  root: string,
+  request: Parameters<typeof channelPlan>[1],
+  io: RegistryHealthIO = registryIO(root),
+) {
+  const preflight = await channelPlan(root, request, io.run);
+  const health = await checkRegistry(root, request, io, preflight.expectedCurrentVersion);
+  return {
+    ...health,
+    operation: 'registry-target-check',
+    expectedCurrentVersion: preflight.expectedCurrentVersion,
+    targetVersion: preflight.targetVersion,
+    preflightObservations: preflight.observations,
+    scope:
+      'Fresh reviewed target downloads and independent installed consumers, with unchanged expected current tags checked before and after installation. No publish, tag change, deployment switch or live rollback.',
+  };
+}
+async function checkRegistry(
+  root: string,
+  request: PublicationRequest,
+  io: RegistryHealthIO,
+  expectedCurrentVersion?: string,
 ) {
   if (request.execute) throw new ReleaseError('usage');
   const plan = await publishRelease(root, request);
@@ -121,6 +152,7 @@ export async function registryHealth(
           'version',
           'dist',
           'dist-tags',
+          ...(expectedCurrentVersion ? ['deprecated'] : []),
           '--json',
           '--registry',
           'https://registry.npmjs.org/',
@@ -146,8 +178,14 @@ export async function registryHealth(
       throw new RegistryHealthError('registry-metadata');
     if (value.dist.integrity !== item.registryIntegrity)
       throw new RegistryHealthError('registry-integrity');
-    if (value['dist-tags'][plan.tag] !== item.version)
+    if (value['dist-tags'][plan.tag] !== (expectedCurrentVersion ?? item.version))
       throw new RegistryHealthError('registry-channel');
+    if (
+      expectedCurrentVersion &&
+      value.deprecated !== undefined &&
+      (typeof value.deprecated !== 'string' || value.deprecated.length > 0)
+    )
+      throw new RegistryHealthError('registry-target');
     return tarball;
   };
   // Check the entire family before downloading or executing its packages.

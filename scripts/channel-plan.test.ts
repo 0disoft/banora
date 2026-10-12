@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { writeFileSync } from 'node:fs';
 import { channelOptions, channelPlan } from './channel-plan.js';
@@ -11,6 +11,8 @@ import {
   RELEASE_PACKAGE_NAMES,
 } from './release-artifacts.js';
 import { publishRelease } from './publication.js';
+import { registryHealth, registryTargetHealth } from './registry-health.js';
+import type { RegistryHealthIO } from './registry-health.js';
 
 async function fixture() {
   await mkdir('.tmp', { recursive: true });
@@ -211,7 +213,92 @@ test('invalid versions, forward changes, placeholders and execute flags fail bef
     expect(() => channelOptions(args)).toThrow('usage');
 });
 
-test('actual release discovery and rejected channel requests keep the fixed JSON envelope without invoking npm', async () => {
+async function targetFixture() {
+  const f = await fixture();
+  const downloads: string[] = [];
+  const checks: { args: string[]; label: string }[] = [];
+  const io: RegistryHealthIO = {
+    run: f.run,
+    async download(url, destination, bytes) {
+      expect(f.calls).toHaveLength(15);
+      const index = f.entries.findIndex((entry) => entry.dist.tarball === url);
+      expect(index).toBeGreaterThanOrEqual(0);
+      const archive = resolve(f.bundle, `packages/${RELEASE_PACKAGES[index]}.tgz`);
+      expect((await readFile(archive)).length).toBe(bytes);
+      downloads.push(url);
+      await copyFile(archive, destination);
+    },
+    async check(args, label) {
+      checks.push({ args, label });
+    },
+  };
+  return { ...f, io, downloads, checks };
+}
+
+test('target health installs reviewed older bytes without moving the channel or weakening publication health', async () => {
+  const f = await targetFixture();
+  const before = await inventory(f.bundle);
+  const health = await registryTargetHealth(f.root, f.request, f.io);
+  expect(health.operation).toBe('registry-target-check');
+  expect(health.expectedCurrentVersion).toBe('0.1.0-dev.1');
+  expect(health.targetVersion).toBe('0.1.0-dev.0');
+  expect(health.preflightObservations).toBe(2);
+  expect(health.packages.every((item) => item.version === health.targetVersion)).toBe(true);
+  expect(health.checks).toEqual(['registry-sdk', 'registry-cli', 'registry-adapters']);
+  expect(f.downloads).toHaveLength(5);
+  expect(f.calls).toHaveLength(20);
+  expect(f.calls.every((args) => args[1] === 'view')).toBe(true);
+  expect(f.entries.every((entry) => entry['dist-tags'].dev === health.expectedCurrentVersion)).toBe(
+    true,
+  );
+  expect(
+    f.checks.every((check) => check.args[1] === '--release-bundle' && check.args[2] !== f.bundle),
+  ).toBe(true);
+  expect(await inventory(f.bundle)).toEqual(before);
+
+  const ordinary = await targetFixture();
+  await expect(registryHealth(ordinary.root, ordinary.request, ordinary.io)).rejects.toMatchObject({
+    code: 'registry-channel',
+  });
+  expect(ordinary.downloads).toEqual([]);
+  expect(ordinary.checks).toEqual([]);
+});
+
+test('target health rejects drift and deprecation before downloads and after consumer checks', async () => {
+  for (const phase of ['before-download', 'after-consumers'] as const)
+    for (const problem of ['tag', 'deprecated'] as const) {
+      const f = await targetFixture();
+      const run: RegistryHealthIO['run'] = (argv) => {
+        const result = f.run(argv);
+        const boundary = phase === 'before-download' ? 10 : 15;
+        if (f.calls.length <= boundary) return result;
+        const value = JSON.parse(result.stdout);
+        if (problem === 'tag') value['dist-tags'].dev = '0.1.0-dev.0';
+        else value.deprecated = 'Authored deprecated target fixture';
+        return { ...result, stdout: JSON.stringify(value) };
+      };
+      await expect(registryTargetHealth(f.root, f.request, { ...f.io, run })).rejects.toMatchObject(
+        {
+          code: problem === 'tag' ? 'registry-channel' : 'registry-target',
+          ...(phase === 'after-consumers'
+            ? {
+                lastCheck: 'registry-confirmation',
+                completed: Object.values(RELEASE_PACKAGE_NAMES),
+              }
+            : {}),
+        },
+      );
+      expect(f.downloads).toHaveLength(phase === 'after-consumers' ? 5 : 0);
+      expect(f.checks).toHaveLength(phase === 'after-consumers' ? 3 : 0);
+    }
+  const rejected = await targetFixture();
+  await expect(
+    registryTargetHealth(rejected.root, { ...rejected.request, execute: true }, rejected.io),
+  ).rejects.toMatchObject({ code: 'usage' });
+  expect(rejected.calls).toEqual([]);
+});
+
+test('actual release discovery and rejected channel/target requests keep the fixed JSON envelope without invoking npm', async () => {
   const env = { ...process.env, PATH: '' };
   const help = Bun.spawnSync([process.execPath, 'scripts/release.ts', '--help'], {
     env,
@@ -224,24 +311,31 @@ test('actual release discovery and rejected channel requests keep the fixed JSON
       entry.startsWith('channel-plan '),
     ),
   ).toBe(true);
-  for (const args of [
-    ['--execute'],
-    ['--expected-current-version', '0.0.0-stage'],
-    ['--unknown', 'Private input'],
-  ]) {
-    const result = Bun.spawnSync(
-      [process.execPath, 'scripts/release.ts', 'channel-plan', ...args],
-      { env, stdout: 'pipe', stderr: 'pipe' },
-    );
-    expect(result.exitCode).toBe(1);
-    expect(JSON.parse(result.stdout.toString())).toEqual({
-      schemaVersion: 'banora.release-command/v1',
-      ok: false,
-      error: { code: 'usage' },
-    });
-    expect(result.stdout.toString()).not.toContain('Private input');
-    expect(result.stderr.length).toBe(0);
-  }
+  expect(
+    JSON.parse(help.stdout.toString()).commands.some((entry: string) =>
+      entry.startsWith('registry-target-check '),
+    ),
+  ).toBe(true);
+  for (const command of ['channel-plan', 'registry-target-check'])
+    for (const args of [
+      ['--execute'],
+      ['--expected-current-version', '0.0.0-stage'],
+      ['--unknown', 'Private input'],
+    ]) {
+      const result = Bun.spawnSync([process.execPath, 'scripts/release.ts', command, ...args], {
+        env,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      });
+      expect(result.exitCode).toBe(1);
+      expect(JSON.parse(result.stdout.toString())).toEqual({
+        schemaVersion: 'banora.release-command/v1',
+        ok: false,
+        error: { code: 'usage' },
+      });
+      expect(result.stdout.toString()).not.toContain('Private input');
+      expect(result.stderr.length).toBe(0);
+    }
   const f = await fixture();
   const failed = Bun.spawnSync(
     [

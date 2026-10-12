@@ -225,8 +225,22 @@ reviewed or installed-consumer-tested rollback candidate.
 The plan neither authenticates nor invokes `npm dist-tag`, publish, install,
 unpublish or migration. Public reads use the existing isolated empty npm-config
 runner; only its local temporary config and ordinary npm read cache may be written.
-`--execute` is rejected. Run fresh target-byte installed-consumer health separately;
-recheck the entire channel immediately before any authorized mutation. Two reads
+`--execute` is rejected. Run fresh target-byte installed-consumer health separately:
+
+```sh
+bun run release registry-target-check --bundle REVIEWED_BUNDLE \
+  --manifest-sha256 REVIEWED_MANIFEST_SHA256 --source-commit REVIEWED_SOURCE_SHA \
+  --tag dev --expected-current-version CURRENT_VERSION
+```
+
+This uses the reviewed target's actual registry downloads and independent installed
+SDK/CLI/framework checks while tags remain on the explicit current version.
+Source/hash, original/copy inventories and both archive hashes remain bound.
+The current family is checked before and after installation; target deprecation
+and channel drift stop. It adds no publication or mutation permission. See the
+[target-health contract](release.md#check-a-registry-rollback-target-before-moving-tags).
+
+Recheck the entire channel immediately before any authorized mutation. Two reads
 are not a compare-and-swap guarantee, distributed lock or transaction. Each npm
 package's tag write is independent: stop on an uncertain/partial result and inspect
 all five before deciding the next action. Never automatically retry a tag mutation.
