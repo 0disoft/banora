@@ -338,8 +338,9 @@ Read-only checks after preparing that candidate found:
   access; development package names are not a reservation or publication grant.
 - The repository Pages lookup returns HTTP 404. No existing Pages deployment is
   established by that lookup; it does not prove that no other host exists.
-- Root SECURITY.md is absent. The already-prepared 93-line policy candidate/diff
-  still needs explicit owner approval and a verified private reporting channel.
+- Root SECURITY.md was absent at that preflight. The owner subsequently approved
+  the updated policy, now installed as [SECURITY.md](../../SECURITY.md). An actual
+  private reporting channel remains unverified; policy presence does not close it.
 
 Public GitHub source plus a GitHub Pages demo and npm packages is a proposed
 destination, pending the owner's choice. It is not selected or deployed merely
@@ -380,8 +381,8 @@ configuration and verified publishing permission. npm documents that `npm whoami
 is not a trusted-publishing permission check in its
 [trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
 
-The next actionable handoff is the existing policy approval/private-channel
-decision, publication destination/visibility approval,
+The next actionable handoff is the private reporting channel,
+publication destination/visibility approval,
 and package-specific publishing authority. Local npm login is not a prerequisite
 for the proposed Actions OIDC route. Never request credentials in a public
 issue or invent an address/account to close a readiness row. No full local suite

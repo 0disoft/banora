@@ -58,7 +58,7 @@ This is an ownership decision, not evidence that such a service exists.
 | 20  | Feature activation and emergency disable         | Optional modules/providers, explicit configuration/read-only presentation and owned cancellation/disposal enable host-controlled activation. They do not replace server authorization or imply remote cohort/flag infrastructure.                                                                                                                                                              |
 | 21  | Automatic backups and verified restore           | Studio bounded autosave/revisions, user-selected portable backups and guarded recovery execute with reload/conflict/denial coverage. [Recovery limits](../ops/backup-and-restore.md) distinguish local transactions, downloaded files and off-device host backups.                                                                                                                             |
 | 22  | Executable operational procedures                | Doctor/discovery/cleanup, redacted recovery checks/drill, migration check and retained prepare/verify/restage commands execute; [runbooks](../ops/00-operational-contract.md) name ownership and failure actions. No fictional live admin service is introduced.                                                                                                                               |
-| 23  | Secret/dependency/permission security gates      | File/permission signals, fail-closed dependency audit and exact parsed-workflow OIDC policy are active. Ancestor npm configuration inheritance was reproduced and fixed. Root policy approval and a verified private report channel remain pending.                                                                                                                                            |
+| 23  | Secret/dependency/permission security gates      | File/permission signals, fail-closed dependency audit and exact parsed-workflow OIDC policy are active. Ancestor npm configuration inheritance was reproduced and fixed. Root policy is approved and installed; a verified private report channel remains pending.                                                                                                                             |
 | 24  | Code/document synchronization                    | Declarations and frozen schema/help come from source; command discovery reads actual metadata. Docs checks verify English/LF/links/root command references; packed consumers verify public artifacts. Behavioral/default consistency also requires source review, not a link-only green check.                                                                                                 |
 
 ## Product Workflows
@@ -126,7 +126,7 @@ These statements replace stale work plans, not the outstanding distribution gate
 | 69  | Verified failure recovery                       | Corrupt/future/quota/conflict/cancel recovery fixtures pass. The 52f7c3f candidate has actual download/hash verification and byte-identical Windows-consumed packages; originals remain preserved. Disk/remote failure and actual published-version rollback remain unverified.                                                                            |
 | 70  | Fresh install/update/release and rollback       | Installed SDK/CLI/framework/starter and frozen setup pass locally/hosted. Prepared 52f7c3f bytes passed hosted download/preview. Fresh registry health tooling now exists; actual Banora metadata preflight stopped without downloads. Publication and live rollback remain owner/provider gates.                                                          |
 | 71  | Match user-facing promises to reality           | Current README/spec/consumer/ops review keeps SDK implementation distinct from illustrative analysis, manual bridges and unpublished/private services. Updated localized modal/pass/komi behavior is recorded in its owning specification; broader compatibility remains limited to observed execution.                                                    |
-| 72  | Next three priorities and deferred work         | Next priorities: approve policy and establish private/public feedback access; select release/version/publication ownership using the reviewed candidate and green hosted CI; extend browser/device/paint/memory coverage. Defer accounts/cloud collaboration/schedulers to hosts and avoid infrastructure without a consumer.                              |
+| 72  | Next three priorities and deferred work         | Next priorities: establish private/public feedback access; select release/version/publication ownership using the reviewed candidate and green hosted CI; extend browser/device/paint/memory coverage. Defer accounts/cloud collaboration/schedulers to hosts and avoid infrastructure without a consumer.                                                 |
 
 ## Completion Rule
 
@@ -146,13 +146,14 @@ This removes the old-source artifact gap. The requirement-by-requirement rows
 retain their declared execution boundaries rather than treating a prepared
 manifest as proof of every requested service or compatibility claim.
 
-The full objective is still unproven at external/owner gates: root security policy
-target/diff approval and an actual private report channel; external feedback/demo
-and publication access; actual publication/health and deployment recovery. Hosted
+The full objective is still unproven at external/owner gates: an actual private
+report channel; external feedback/demo and publication access; actual publication/health
+and deployment recovery. Hosted
 CI and candidate/preview execution at `52f7c3f` are recorded below with their scope.
 Both dependency-update ecosystems executed successfully with no needed updates;
 a changed-lockfile compatibility result must be recorded when an update is available.
-The candidate policy must not be written without the pending explicit approval.
+The owner-approved [root security policy](../../SECURITY.md) is now installed.
+Its reporting section records the missing private channel without inventing one.
 The owner's existing `0disoft` publishing context is known, but Banora-specific
 authority and destination/visibility decisions are still unconfirmed. No public access or
 physical-device certification is invented to close those rows. Framework SDK/host
@@ -183,9 +184,9 @@ manifest does not replace real distribution and post-publication health.
 The guarded publisher and independent read-only registry-health workflow are
 implemented. Actual Banora registry health stopped at `registry-metadata`, exit 1,
 with zero downloads. Public source/demo destination, protected reviewer environment,
-package-specific publishing authority and owner-approved root policy/private
-reporting remain unestablished. Do not reinterpret that failure as namespace
-availability, permission or a passing release. Physical device/assistive and live
+package-specific publishing authority and private reporting remain unestablished.
+The root security policy is owner-approved and installed. Do not reinterpret that
+failure as namespace availability, permission or a passing release. Physical device/assistive and live
 rollback limits remain the explicit bounds in the requirement rows above.
 
 Detailed implementation and execution evidence:

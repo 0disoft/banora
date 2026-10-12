@@ -33,6 +33,7 @@ and observed behavior, and a minimal SGF or automation request when safe. Remove
 private player names/comments, credentials and unrelated local paths first.
 Do not upload private records by default. Ordinary public issues are not a channel
 for publishing undisclosed vulnerabilities or secrets.
+See the [security policy](SECURITY.md) for security boundaries and reporting limits.
 
 ## Updates and Releases
 
