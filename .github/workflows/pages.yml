@@ -2,10 +2,32 @@ name: Deploy demo
 
 on:
   workflow_dispatch:
+    inputs:
+      recovery_run_id:
+        description: 'Prior successful original Pages run; leave all recovery inputs empty for a new build'
+        type: string
+        default: ''
+      recovery_artifact_id:
+        description: 'Reviewed immutable github-pages artifact ID'
+        type: string
+        default: ''
+      recovery_source_commit:
+        description: 'Reviewed full source SHA of that original build'
+        type: string
+        default: ''
+      recovery_archive_digest:
+        description: 'Reviewed provider ZIP digest (sha256:...)'
+        type: string
+        default: ''
+      recovery_tar_sha256:
+        description: 'Independently reviewed original artifact.tar SHA256'
+        type: string
+        default: ''
 
 permissions:
   contents: read
   pages: read
+  actions: read
 
 concurrency:
   group: banora-pages
@@ -24,20 +46,76 @@ jobs:
         with:
           bun-version: 1.x
       - uses: actions/setup-node@v7
+        if: inputs.recovery_run_id == ''
         with:
           node-version-file: mise.toml
           package-manager-cache: false
       - name: Install reviewed dependencies
+        if: inputs.recovery_run_id == ''
         run: bun run setup
       - name: Check workflow and file signals
         run: bun run security:files
       - uses: actions/configure-pages@v6
+        if: inputs.recovery_run_id == ''
+      - name: Reject incomplete recovery selection
+        if: inputs.recovery_run_id == ''
+        env:
+          BANORA_RECOVERY_ARTIFACT: ${{ inputs.recovery_artifact_id }}
+          BANORA_RECOVERY_SOURCE: ${{ inputs.recovery_source_commit }}
+          BANORA_RECOVERY_DIGEST: ${{ inputs.recovery_archive_digest }}
+          BANORA_RECOVERY_TAR: ${{ inputs.recovery_tar_sha256 }}
+        run: |
+          test -z "$BANORA_RECOVERY_ARTIFACT$BANORA_RECOVERY_SOURCE$BANORA_RECOVERY_DIGEST$BANORA_RECOVERY_TAR"
       - name: Build static examples
+        if: inputs.recovery_run_id == ''
         run: bun run build:examples
+      - name: Record public build identity
+        if: inputs.recovery_run_id == ''
+        run: |
+          bun -e 'await Bun.write("dist/examples/banora-build.json", JSON.stringify({ schemaVersion: "banora.demo-build/v1", sourceCommit: process.env.GITHUB_SHA, sourceRunId: process.env.GITHUB_RUN_ID }) + "\n")'
       - uses: actions/upload-pages-artifact@v5
+        if: inputs.recovery_run_id == ''
         with:
           path: dist/examples
-          retention-days: 1
+          retention-days: 14
+      - name: Validate original recovery candidate
+        if: inputs.recovery_run_id != ''
+        id: recovery
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BANORA_REPOSITORY_PUBLIC: 'true'
+          BANORA_RECOVERY_RUN: ${{ inputs.recovery_run_id }}
+          BANORA_RECOVERY_ARTIFACT: ${{ inputs.recovery_artifact_id }}
+          BANORA_RECOVERY_SOURCE: ${{ inputs.recovery_source_commit }}
+          BANORA_RECOVERY_DIGEST: ${{ inputs.recovery_archive_digest }}
+        run: |
+          bun scripts/demo-recovery.ts candidate --run-id "$BANORA_RECOVERY_RUN" --artifact-id "$BANORA_RECOVERY_ARTIFACT" --source-commit "$BANORA_RECOVERY_SOURCE" --archive-digest "$BANORA_RECOVERY_DIGEST"
+      - name: Download exactly the reviewed original artifact
+        if: inputs.recovery_run_id != ''
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ steps.recovery.outputs.artifact_id }}
+          run-id: ${{ inputs.recovery_run_id }}
+          repository: 0disoft/banora
+          github-token: ${{ github.token }}
+          path: .artifacts/demo-recovery
+          merge-multiple: true
+      - name: Verify original tar bytes without extraction
+        if: inputs.recovery_run_id != ''
+        env:
+          BANORA_REPOSITORY_PUBLIC: 'true'
+          BANORA_RECOVERY_TAR: ${{ inputs.recovery_tar_sha256 }}
+        run: |
+          bun scripts/demo-recovery.ts archive --directory .artifacts/demo-recovery --sha256 "$BANORA_RECOVERY_TAR"
+      - name: Retain original verified tar for deployment
+        if: inputs.recovery_run_id != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: github-pages
+          path: .artifacts/demo-recovery/artifact.tar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
 
   deploy:
     needs: build

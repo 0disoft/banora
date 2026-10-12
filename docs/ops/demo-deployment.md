@@ -31,6 +31,10 @@ The build job installs the frozen graph, checks file/workflow permission signals
 and builds the SDK, native adapters and production examples. Only `dist/examples`
 is uploaded. Relative Vite asset URLs support the `/banora/` project path.
 Source files, dependency directories and local credentials are not site artifacts.
+New builds add `banora-build.json` with public source commit/run identity and
+retain the Pages artifact for 14 days. Optional recovery inputs instead select
+an independently reviewed original tar without installing or rebuilding it;
+see [the exact recovery procedure](rollback.md#recover-the-public-demo-without-rebuilding).
 The separate `github-pages` deployment job receives only the required Pages/OIDC
 write permissions. The whole parsed workflow is bound by the repository's security
 policy; no npm publication authority is available in this workflow.
@@ -38,9 +42,9 @@ policy; no npm publication authority is available in this workflow.
 Wait for the actual run to finish. Verify the live Studio and nested consumers,
 asset response codes, SVG board and import/navigation/export flow before recording
 success. A Pages configuration response alone does not prove a deployed site.
-Investigate a failed deployment before retrying. To restore a prior site, rebuild
-and explicitly deploy reviewed prior source through a separately reviewed recovery
-procedure; this document does not claim an exercised remote rollback.
+Investigate a failed deployment before retrying. The reviewed manual recovery
+path can redeploy exact retained original bytes. Its presence does not yet claim
+an exercised remote rollback or extend SDK host/data recovery guarantees.
 
 The first [deployment run 38204372917](https://github.com/0disoft/banora/actions/runs/38204372917)
 completed successfully. Live Chrome verification imported an authored SGF, edited

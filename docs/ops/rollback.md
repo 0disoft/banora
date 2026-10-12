@@ -1,7 +1,8 @@
 # Rollback
 
-Status: verified artifact restaging implemented; no live deployment or registry
-rollback command is configured.
+Status: verified package restaging and a manual retained-artifact Pages recovery
+path implemented. Live Pages recovery has not yet executed; npm channel rollback
+and consuming-host deployment/data recovery remain separate.
 
 ## Decision and Local Procedure
 
@@ -48,8 +49,8 @@ No active pointer is invented to substitute for a real host rollback.
 The private `scripts/demo-recovery.ts` tool verifies the retained original Pages
 artifact before a separately authorized recovery. It is not an SDK export or
 deployment command. Choose a successful original manual main `pages.yml` run
-with successful `build` and `deploy` jobs; recovered runs with a skipped build
-cannot masquerade as original builds.
+with successful `build` and `deploy` jobs and a successful `Build static examples`
+step. Recovered runs skip that step and cannot masquerade as original builds.
 
 ```sh
 bun scripts/demo-recovery.ts candidate --run-id RUN_ID --artifact-id ARTIFACT_ID \
@@ -70,6 +71,42 @@ This payload check is required even if the downloader merely warns about a ZIP
 digest mismatch. Corruption, extra files and links stop; originals are preserved.
 JSON failures contain fixed codes and no provider logs, authored text or paths.
 Neither successful inspection switches the live site.
+
+## Recover the Public Demo Without Rebuilding
+
+The manual [Pages workflow](../../.github/workflows/pages.yml) accepts five recovery
+inputs: original run ID, immutable artifact ID, original full source commit,
+provider ZIP digest and independently reviewed original tar SHA256. Review all
+five together before explicitly dispatching. Empty recovery inputs select a new
+build; partial inputs stop before deployment. This is a real live-site operation,
+not an offline preview. Do not dispatch to test parameter parsing.
+
+```sh
+gh workflow run pages.yml --ref main \
+  -f recovery_run_id=REVIEWED_RUN_ID \
+  -f recovery_artifact_id=REVIEWED_ARTIFACT_ID \
+  -f recovery_source_commit=REVIEWED_FULL_SHA \
+  -f recovery_archive_digest=sha256:REVIEWED_ZIP_SHA256 \
+  -f recovery_tar_sha256=REVIEWED_TAR_SHA256
+```
+
+Recovery checks the original successful build/deploy metadata, downloads only
+the immutable selected artifact, checks the independently approved tar bytes,
+and uploads that unchanged tar to the recovery run. It does not extract, rebuild,
+install old dependencies, execute artifact contents, retag npm or alter user
+data. Normal and recovery jobs share queued Pages concurrency. Only the existing
+`github-pages` deployment job has Pages/OIDC write authority; preparation remains
+read-only. The checkout/provenance of the recovery workflow is current main;
+the deployed bytes belong to the separately reviewed original source.
+
+New original builds retain their Pages artifacts for 14 days and include public
+`banora-build.json` with the build's commit/run ID. Recovery reuploads the exact
+original tar, including its original receipt if present; it never replaces that
+receipt with the recovery checkout. Older builds may lack the receipt. Verify the
+successful deployment and actual live HTML/assets against the selected artifact,
+then run the open/navigate/export flow. A green job alone is not live health.
+Retention can expire or be deleted; retain an independent reviewed copy. This
+manual path refuses unavailable original artifacts rather than silently rebuilding.
 
 ## Registry and Data Boundaries
 

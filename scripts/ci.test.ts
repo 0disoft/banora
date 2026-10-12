@@ -117,7 +117,17 @@ test('manual candidate preparation keeps read-only authority and selects code ve
 });
 test('manual Pages deployment confines reviewed write authority to the deployment job', async () => {
   const path = '.github/workflows/pages.yml';
-  type Job = { if: string; permissions?: Record<string, string>; steps: { run?: string }[] };
+  type Job = {
+    if: string;
+    permissions?: Record<string, string>;
+    steps: {
+      name?: string;
+      run?: string;
+      if?: string;
+      uses?: string;
+      with?: Record<string, unknown>;
+    }[];
+  };
   const workflow = Bun.YAML.parse(await readFile(path, 'utf8')) as {
     on: Record<string, unknown>;
     jobs: {
@@ -133,6 +143,24 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
   expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch']);
   expect(workflow.jobs.deploy.needs).toBe('build');
   expect(workflow.jobs.deploy.environment.name).toBe('github-pages');
+  const recoveryDownload = workflow.jobs.build.steps.find(
+    (step) => step.uses === 'actions/download-artifact@v8',
+  );
+  expect(recoveryDownload?.if).toBe("inputs.recovery_run_id != ''");
+  expect(recoveryDownload?.with?.['artifact-ids']).toBe(
+    '${{ steps.recovery.outputs.artifact_id }}',
+  );
+  expect(recoveryDownload?.with?.['run-id']).toBe('${{ inputs.recovery_run_id }}');
+  expect(recoveryDownload?.with?.repository).toBe('0disoft/banora');
+  const originalUpload = workflow.jobs.build.steps.find(
+    (step) => step.name === 'Retain original verified tar for deployment',
+  );
+  expect(originalUpload?.with?.path).toBe('.artifacts/demo-recovery/artifact.tar');
+  expect(originalUpload?.with?.['retention-days']).toBe(14);
+  expect(originalUpload?.if).toBe("inputs.recovery_run_id != ''");
+  expect(workflow.jobs.build.steps.find((step) => step.name === 'Build static examples')?.if).toBe(
+    "inputs.recovery_run_id == ''",
+  );
   expect(
     workflow.jobs.build.steps.some(
       (step: { run?: string }) => step.run === 'bun run build:examples',
@@ -167,6 +195,16 @@ test('manual Pages deployment confines reviewed write authority to the deploymen
     },
     (copy: typeof workflow) => {
       copy.jobs.deploy.steps.push({ run: 'npm publish' });
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.build.steps.find((step) => step.uses === 'actions/download-artifact@v8')!.with![
+        'run-id'
+      ] = 'other';
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.build.steps.find(
+        (step) => step.name === 'Verify original tar bytes without extraction',
+      )!.if = 'false';
     },
   ]) {
     const copy = structuredClone(workflow);

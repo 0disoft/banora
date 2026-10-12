@@ -52,7 +52,12 @@ const listing = {
   ],
 };
 const jobs = {
-  jobs: ['build', 'deploy'].map((name) => ({ name, status: 'completed', conclusion: 'success' })),
+  jobs: ['build', 'deploy'].map((name) => ({
+    name,
+    status: 'completed',
+    conclusion: 'success',
+    steps: name === 'build' ? [{ name: 'Build static examples', conclusion: 'success' }] : [],
+  })),
 };
 
 test('recovery requires the reviewed successful original public main deployment and immutable retained artifact', () => {
@@ -97,6 +102,19 @@ test('recovery requires the reviewed successful original public main deployment 
   expect(() =>
     recoveryCandidate(request, run, listing, {
       jobs: jobs.jobs.map((job) => ({ ...job, conclusion: 'skipped' })),
+    }),
+  ).toThrow();
+  expect(() =>
+    recoveryCandidate(request, run, listing, {
+      jobs: jobs.jobs.map((job) => ({ ...job, steps: [] })),
+    }),
+  ).toThrow();
+  expect(() =>
+    recoveryCandidate(request, run, listing, {
+      jobs: jobs.jobs.map((job) => ({
+        ...job,
+        steps: job.steps.map((step) => ({ ...step, conclusion: 'skipped' })),
+      })),
     }),
   ).toThrow();
 });

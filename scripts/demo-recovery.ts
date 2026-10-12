@@ -71,6 +71,16 @@ export function recoveryCandidate(
     throw Error('candidate');
   if (!object(jobs) || !Array.isArray(jobs.jobs)) throw Error('candidate');
   const deployedJobs = jobs.jobs;
+  const originalBuild = deployedJobs.find((job: unknown) => object(job) && job.name === 'build');
+  if (
+    !object(originalBuild) ||
+    !Array.isArray(originalBuild.steps) ||
+    !originalBuild.steps.some(
+      (step: unknown) =>
+        object(step) && step.name === 'Build static examples' && step.conclusion === 'success',
+    )
+  )
+    throw Error('candidate');
   if (
     !['build', 'deploy'].every(
       (name) =>

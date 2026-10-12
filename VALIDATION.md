@@ -176,6 +176,12 @@ Final responses must list executed validations, passed validations, skipped vali
 
 ## Runner Policy
 
+The manually dispatched Pages workflow branches between a fresh static build and
+an exact retained-tar recovery. Workflow regressions bind all inputs/conditions/
+downloads and retain deployment-only write authority. Fresh builds retain public
+source receipts and original artifacts for 14 days. Actual recovered deployment
+and live artifact/consumer health require separately recorded execution.
+
 `scripts/demo-recovery.test.ts` checks original public main Pages run/artifact/
 digest/retention bindings, successful build/deploy jobs, malformed input and Actions
 output authority, and corrupt/extra/linked archive refusal without extraction.
