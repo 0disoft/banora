@@ -24,6 +24,12 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
   expect(planChecks(['scripts/accessibility-scenario.js']).browser).toEqual([
     '--accessibility-only',
   ]);
+  expect(planChecks(['scripts/demo-recovery.ts', 'scripts/demo-recovery.test.ts']).browser).toEqual(
+    [],
+  );
+  expect(
+    planChecks(['scripts/demo-recovery.ts', 'packages/sdk/src/controller.ts']).browser,
+  ).toEqual(['all']);
   expect(
     planChecks(['examples/studio/diagnostics.ts', 'scripts/support-scenario.js']).browser,
   ).toEqual(['--support-only']);

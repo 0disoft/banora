@@ -43,6 +43,34 @@ are rejected. Interrupted copying may leave an incomplete restaging directory;
 it is not a deployment and must not be promoted. Original files remain available.
 No active pointer is invented to substitute for a real host rollback.
 
+## Inspect a Retained Demo Artifact
+
+The private `scripts/demo-recovery.ts` tool verifies the retained original Pages
+artifact before a separately authorized recovery. It is not an SDK export or
+deployment command. Choose a successful original manual main `pages.yml` run
+with successful `build` and `deploy` jobs; recovered runs with a skipped build
+cannot masquerade as original builds.
+
+```sh
+bun scripts/demo-recovery.ts candidate --run-id RUN_ID --artifact-id ARTIFACT_ID \
+  --source-commit ORIGINAL_FULL_SHA --archive-digest sha256:REVIEWED_ZIP_SHA256
+bun scripts/demo-recovery.ts archive --directory DOWNLOADED_DIRECTORY \
+  --sha256 REVIEWED_ARTIFACT_TAR_SHA256
+```
+
+The first command queries read-only GitHub metadata and rejects foreign/failed/
+expired/mismatched runs or artifacts. Both the archive identity and its reviewed
+provider digest must match; no missing artifact implies a usable recovery copy.
+Download exactly that artifact ID through the authorized Actions download tool.
+Inspect the original `artifact.tar` SHA256 independently before approving recovery.
+The second command accepts only a regular, unlinked directory containing exactly
+that one regular tar file, bounded to 64 MiB. It checks the full tar bytes against
+the independently reviewed hash without extraction, execution, rebuild or writes.
+This payload check is required even if the downloader merely warns about a ZIP
+digest mismatch. Corruption, extra files and links stop; originals are preserved.
+JSON failures contain fixed codes and no provider logs, authored text or paths.
+Neither successful inspection switches the live site.
+
 ## Registry and Data Boundaries
 
 For a future authorized npm release, a maintainer may move a channel using

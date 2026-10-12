@@ -176,6 +176,13 @@ Final responses must list executed validations, passed validations, skipped vali
 
 ## Runner Policy
 
+`scripts/demo-recovery.test.ts` checks original public main Pages run/artifact/
+digest/retention bindings, successful build/deploy jobs, malformed input and Actions
+output authority, and corrupt/extra/linked archive refusal without extraction.
+The private read-only candidate/archive commands are documented in
+[rollback](docs/ops/rollback.md). Local fixtures and metadata inspection alone do
+not prove live deployment recovery.
+
 Use the root Bun package scripts. Run state-changing build/check commands serially.
 
 Operations require setup and `bun run build` first because they import public built
