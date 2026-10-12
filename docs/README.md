@@ -54,6 +54,8 @@ The [project readiness review](engineering/12-readiness-review.md) tracks the ac
 It does not supersede the product scope or establish completion by itself.
 Detailed historical records are separate: [development/product increments](engineering/13-readiness-execution-evidence.md)
 and [release/publication tooling](engineering/18-release-tooling-execution-evidence.md).
+[Actual public demo recovery](engineering/19-demo-recovery-execution-evidence.md)
+records the retained tar, real deployment transition and live artifact/Studio checks.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable

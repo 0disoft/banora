@@ -1,7 +1,7 @@
 # Rollback
 
 Status: verified package restaging and a manual retained-artifact Pages recovery
-path implemented. Live Pages recovery has not yet executed; npm channel rollback
+path implemented. Actual live Pages recovery passed; npm channel rollback
 and consuming-host deployment/data recovery remain separate.
 
 ## Decision and Local Procedure
@@ -107,6 +107,12 @@ successful deployment and actual live HTML/assets against the selected artifact,
 then run the open/navigate/export flow. A green job alone is not live health.
 Retention can expire or be deleted; retain an independent reviewed copy. This
 manual path refuses unavailable original artifacts rather than silently rebuilding.
+
+The [actual recovery record](../engineering/19-demo-recovery-execution-evidence.md)
+includes original/candidate/recovery IDs and hashes, 46 exact live file checks
+and a real Studio import/edit/export/reopen. The live site currently serves the
+selected original bytes. Recovery uploads do not extend the eligibility of an
+expired original candidate; keep original build artifacts and independent copies.
 
 ## Registry and Data Boundaries
 

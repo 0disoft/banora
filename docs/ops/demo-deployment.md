@@ -43,8 +43,9 @@ Wait for the actual run to finish. Verify the live Studio and nested consumers,
 asset response codes, SVG board and import/navigation/export flow before recording
 success. A Pages configuration response alone does not prove a deployed site.
 Investigate a failed deployment before retrying. The reviewed manual recovery
-path can redeploy exact retained original bytes. Its presence does not yet claim
-an exercised remote rollback or extend SDK host/data recovery guarantees.
+path redeploys exact retained original bytes. Actual recovery and live file/Studio
+health passed in the [execution record](../engineering/19-demo-recovery-execution-evidence.md);
+this does not extend SDK host/data recovery guarantees.
 
 The first [deployment run 38204372917](https://github.com/0disoft/banora/actions/runs/38204372917)
 completed successfully. Live Chrome verification imported an authored SGF, edited
