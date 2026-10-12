@@ -64,13 +64,12 @@ assert.deepEqual(automation.checkpoint, checkpoint);
 assert(automation.history.dirty && !automation.history.canUndo && !automation.history.canRedo);
 const before = controller.getState(),
   bytesBefore = JSON.stringify(checkpoint);
-assert.deepEqual(
-  controller.loadCheckpoint(
-    { ...checkpoint, schemaVersion: 'banora.checkpoint/v99' },
-    { discardChanges: true },
-  ),
-  { ok: false, reason: 'invalid-checkpoint' },
+const rejected = controller.loadCheckpoint(
+  { ...checkpoint, schemaVersion: 'banora.checkpoint/v99' },
+  { discardChanges: true },
 );
+assert.equal(rejected.ok, false);
+assert.equal(rejected.reason, 'invalid-checkpoint');
 assert.equal(controller.getState(), before);
 assert.equal(JSON.stringify(checkpoint), bytesBefore);
 const reopened = new RecordController({ sgf: checkpoint.sgf, rules: checkpoint.rules });
