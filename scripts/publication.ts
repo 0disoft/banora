@@ -304,6 +304,7 @@ export async function publishRelease(
       'versions',
       'dist-tags',
       '--json',
+      '--prefer-online',
       '--registry',
       plan.registry,
     ]);
@@ -327,6 +328,7 @@ export async function publishRelease(
       `${name}@${version}`,
       'dist.integrity',
       '--json',
+      '--prefer-online',
       '--registry',
       plan.registry,
     ]);

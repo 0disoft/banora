@@ -336,3 +336,14 @@ receipt records the exact last check and a returned process exit status, separat
 pre-command failures from upload and post-check failures without raw logs. Focused
 regressions passed 19 tests / 211 assertions, typecheck and lint. No successful
 publication or registry-installed health is inferred from these attempts.
+
+Preparation `38209742901` passed all nine gates at `a1cbfef`; CI `38209742788`
+passed 218 tests / 3,064 assertions. Publication `38210095557` confirmed the SDK
+as already published, then stopped after a successful CLI process at
+`registry-version` with exit status 0. Fresh public metadata subsequently confirmed
+both SDK and CLI `0.1.0-dev.0`, matching the reviewed SHA512 values and `dev` tags.
+The post-upload check had reused the preflight npm cache. Both publisher metadata
+and integrity reads now use `--prefer-online`; a cache fixture reproduces the
+failure without that flag and passes all five uploads with revalidation. Focused
+regressions passed 20 tests / 214 assertions, types and lint. Remaining adapters
+and independent live installed-consumer health still require execution.

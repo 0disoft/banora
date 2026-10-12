@@ -166,7 +166,9 @@ conflicting bytes or channel selection stop without upload or automatic retaggin
 
 It then uploads SDK before CLI/adapters, without rebuilding, and checks each
 registry version/integrity/channel before continuing. Commands use argument arrays
-and fixed public registry selection, with bounded deadlines/output and no raw
+and force fresh npm metadata revalidation with `--prefer-online`, so a preflight
+cache cannot hide the version just uploaded. Commands have fixed public registry
+selection, with bounded deadlines/output and no raw
 child logs in receipts. Any failed/timed-out upload or inconclusive post-check stops
 later packages as `publication-uncertain`, returning confirmed package progress
 and the attempted name/version. A failed npm process also supplies an allowlisted

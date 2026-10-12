@@ -305,6 +305,30 @@ test('a successful upload process with inconclusive metadata records the exact c
   });
   expect(calls.filter((call) => call.argv[1] === 'publish')).toHaveLength(1);
 });
+
+test('publication revalidates cached registry metadata immediately after successful uploads', async () => {
+  const { root, request, io, calls } = await publisherFixture();
+  const cache = new Map<string, { status: number | null; stdout: string }>();
+  const cached: PublicationIO = {
+    ...io,
+    run(argv, cwd) {
+      const fresh = io.run(argv, cwd);
+      if (argv[1] !== 'view' || argv[3] !== 'name') return fresh;
+      const key = argv[2]!;
+      const result = !argv.includes('--prefer-online') && cache.has(key) ? cache.get(key)! : fresh;
+      cache.set(key, result);
+      return result;
+    },
+  };
+  const result = await publishRelease(root, request, cached);
+  expect(result.packages).toHaveLength(5);
+  expect(calls.filter((call) => call.argv[1] === 'publish')).toHaveLength(5);
+  expect(
+    calls
+      .filter((call) => call.argv[1] === 'view')
+      .every((call) => call.argv.includes('--prefer-online')),
+  ).toBe(true);
+});
 test('release schema rejects future, traversing, duplicate and incomplete evidence; candidate does not imply prepared', async () => {
   const { bundle, manifest } = await fixture();
   expect(isReleaseManifest(manifest)).toBe(true);
