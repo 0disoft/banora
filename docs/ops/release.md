@@ -169,7 +169,9 @@ registry version/integrity/channel before continuing. Commands use argument arra
 and fixed public registry selection, with bounded deadlines/output and no raw
 child logs in receipts. Any failed/timed-out upload or inconclusive post-check stops
 later packages as `publication-uncertain`, returning confirmed package progress
-and the attempted name/version. Do not blindly retry: inspect registry state and
+and the attempted name/version. A failed npm process also supplies an allowlisted
+`npmCode` (or `unknown`), without provider messages, paths or raw logs.
+Do not blindly retry: inspect registry state and
 retain the reviewed bytes. A later approved run may resume confirmed matching
 versions. Fresh registry-installed consumers have the separate command below;
 actual execution and previous-version rollback remain required evidence after publication.

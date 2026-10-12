@@ -219,6 +219,7 @@ if (import.meta.main) {
             ? {
                 completed: error.completed,
                 ...(error.attempted ? { attempted: error.attempted } : {}),
+                ...(error.npmCode ? { npmCode: error.npmCode } : {}),
               }
             : {}),
         },

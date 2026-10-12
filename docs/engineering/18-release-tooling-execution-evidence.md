@@ -312,3 +312,14 @@ package identities. npm created public `0.0.0-stage` placeholders; the staged
 connection requests owner security-key verification. No successful OIDC upload,
 fresh live Banora registry-consumer result, supported stable release, physical
 device certification or remote rollback is inferred from these setup results.
+
+All five package-specific connections subsequently saved with direct publishing
+permission. The owner-authorized [publication run 38207480933](https://github.com/0disoft/banora/actions/runs/38207480933)
+passed preview and environment review, then stopped on the first SDK attempt as
+`publication-uncertain`, with no confirmed packages. Its health job was skipped.
+Fresh public SDK metadata still contained only `0.0.0-stage`; npm's settings marked
+the SDK connection valid. This proves connection validation, not a successful upload.
+The bounded receipt lacked the npm error code. Publication tooling now preserves
+only fixed allowlisted codes, retaining the stop/no-retry and private-log boundaries.
+Focused regressions passed 18 tests / 207 assertions; typecheck, lint, format and
+file signals passed. The diagnosed failure and actual release remain separate work.

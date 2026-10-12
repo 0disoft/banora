@@ -19,6 +19,7 @@ import {
   publishRelease,
   PublicationError,
   publicRegistryIO,
+  npmFailureCode,
 } from './publication.js';
 import type { PublicationIO } from './publication.js';
 import { downloadRegistryArchive, registryHealth, RegistryHealthError } from './registry-health.js';
@@ -248,6 +249,38 @@ test('an uncertain simulated upload stops subsequent packages and reports confir
   ]);
   expect(failure?.attempted).toEqual({ name: packages[1]!.name, version: packages[1]!.version });
   expect(calls.filter((item) => item.argv[1] === 'publish')).toHaveLength(2);
+});
+
+test('publication failure receipts retain only recognized npm codes and stop after one attempted upload', async () => {
+  expect(npmFailureCode('npm error code E422\nnpm error private provider detail')).toBe('E422');
+  expect(npmFailureCode('npm ERR! code E403\nprivate provider detail')).toBe('E403');
+  expect(npmFailureCode('npm error code PRIVATE_DETAIL')).toBe('unknown');
+  expect(npmFailureCode('npm error code E422', 'ETIMEDOUT')).toBe('ETIMEDOUT');
+  expect(npmFailureCode('npm error code E422', 'private path')).toBe('unknown');
+  expect(npmFailureCode('x'.repeat(1024 * 1024) + '\nnpm error code E422')).toBe('unknown');
+  const { root, request, io, calls } = await publisherFixture();
+  const failing: PublicationIO = {
+    ...io,
+    run(argv, cwd) {
+      if (argv[1] !== 'publish') return io.run(argv, cwd);
+      calls.push({ argv, cwd });
+      return { status: 1, stdout: 'Private provider detail', npmCode: 'E422' };
+    },
+  };
+  await expect(publishRelease(root, request, failing)).rejects.toMatchObject({
+    code: 'publication-uncertain',
+    completed: [],
+    npmCode: 'E422',
+  });
+  expect(calls.filter((call) => call.argv[1] === 'publish')).toHaveLength(1);
+  const error = new PublicationError(
+    'publication-uncertain',
+    [],
+    undefined,
+    'Private provider detail',
+  );
+  expect(error.npmCode).toBe('unknown');
+  expect(JSON.stringify(error)).not.toContain('Private provider detail');
 });
 test('release schema rejects future, traversing, duplicate and incomplete evidence; candidate does not imply prepared', async () => {
   const { bundle, manifest } = await fixture();

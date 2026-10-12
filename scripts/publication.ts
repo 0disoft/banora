@@ -25,7 +25,42 @@ interface PackageResult {
   readonly version: string;
   readonly state: 'published' | 'already-published';
 }
+const NPM_FAILURE_CODES = [
+  'E401',
+  'E403',
+  'E404',
+  'E409',
+  'E422',
+  'E500',
+  'E502',
+  'E503',
+  'E504',
+  'ENEEDAUTH',
+  'EOTP',
+  'EPRIVATE',
+  'EUSAGE',
+  'EPROVENANCE',
+  'ENOENT',
+  'ETIMEDOUT',
+  'ECONNRESET',
+  'EAI_AGAIN',
+  'ENETUNREACH',
+  'ERR_INVALID_ARG_TYPE',
+] as const;
+type NpmFailureCode = (typeof NPM_FAILURE_CODES)[number] | 'unknown';
+function checkedNpmCode(value: unknown): NpmFailureCode {
+  return typeof value === 'string' && NPM_FAILURE_CODES.some((code) => code === value)
+    ? (value as NpmFailureCode)
+    : 'unknown';
+}
+/** Only fixed codes cross the receipt boundary; never provider messages or process paths. */
+export function npmFailureCode(stderr: string, processCode?: unknown): NpmFailureCode {
+  if (processCode !== undefined) return checkedNpmCode(processCode);
+  if (Buffer.byteLength(stderr) > 1024 * 1024) return 'unknown';
+  return checkedNpmCode(/^npm (?:error|ERR!) code ([A-Z][A-Z0-9_]*)\s*$/m.exec(stderr)?.[1]);
+}
 export class PublicationError extends Error {
+  readonly npmCode?: NpmFailureCode;
   constructor(
     readonly code:
       | 'authority'
@@ -35,8 +70,10 @@ export class PublicationError extends Error {
       | 'publication-uncertain',
     readonly completed: readonly PackageResult[] = [],
     readonly attempted?: { name: string; version: string },
+    npmCode?: unknown,
   ) {
     super(`Publication: ${code}.`);
+    if (npmCode !== undefined) this.npmCode = checkedNpmCode(npmCode);
   }
 }
 export function parsePublicationRequest(args: readonly string[]): PublicationRequest {
@@ -89,7 +126,10 @@ export function publicationContext(env: NodeJS.ProcessEnv = process.env) {
 }
 export interface PublicationIO {
   readonly context: ReturnType<typeof publicationContext>;
-  run(argv: readonly string[], cwd: string): { status: number | null; stdout: string };
+  run(
+    argv: readonly string[],
+    cwd: string,
+  ): { status: number | null; stdout: string; npmCode?: NpmFailureCode };
 }
 export function publicRegistryIO(root: string): PublicationIO {
   let configDirectory: string | undefined;
@@ -140,7 +180,18 @@ export function publicRegistryIO(root: string): PublicationIO {
           NPM_CONFIG_LOGLEVEL: 'error',
         },
       });
-      return { status: result.status, stdout: result.stdout ?? '' };
+      return {
+        status: result.status,
+        stdout: result.stdout ?? '',
+        ...(result.status !== 0 && argv[1] === 'publish'
+          ? {
+              npmCode: npmFailureCode(
+                result.stderr ?? '',
+                (result.error as NodeJS.ErrnoException | undefined)?.code,
+              ),
+            }
+          : {}),
+      };
     },
   };
 }
@@ -292,7 +343,8 @@ export async function publishRelease(
       if (!existing[index]) {
         attempted = true;
         const uploaded = command(item.publishArgv);
-        if (uploaded.status !== 0) throw new PublicationError('publication-uncertain');
+        if (uploaded.status !== 0)
+          throw new PublicationError('publication-uncertain', [], undefined, uploaded.npmCode);
       }
       const observed = metadata(item.name);
       if (
@@ -315,6 +367,7 @@ export async function publishRelease(
             : 'registry',
         [...completed],
         attempted ? { name: item.name, version: item.version } : undefined,
+        error instanceof PublicationError ? error.npmCode : undefined,
       );
     }
   }
