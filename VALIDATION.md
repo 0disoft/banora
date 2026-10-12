@@ -23,6 +23,15 @@ In particular, migration-check is now configured as documented below.
 - docs
 - check
 
+`scripts/channel-plan.test.ts` checks complete-family target/current observations,
+reviewed local/registry integrity, read-only/no-change arguments, mixed or changed
+channels, changed target inventory, tampered bundles, provider failures and early
+rejection of forward/stage/invalid/execute requests. The private
+`release channel-plan` command performs public metadata reads only; no tag mutation
+or prior-version rollback follows from a successful plan. Release and CI tests
+cover its existing command/error envelope and narrow tooling route. No additional
+browser job or privileged workflow is selected for isolated plan changes.
+
 Terminal diagnostic coverage uses `packages/sdk/test/automation-diagnostics.test.ts`
 for actual completed-step/failure traces, one execution, environment prevalidation,
 private text/error-accessor exclusion, scoring/restore/checkpoint/snapshot and

@@ -245,7 +245,15 @@ confirmed downloaded names and a failed consumer/final-confirmation label where
 available, without raw provider messages, file paths or credentials. Downloading
 and restaging write only isolated local files. A passing check establishes tested
 registry bytes/consumers; it is not host health, live rollback or release approval.
-Missing Banora publication/settings still prevent live end-to-end execution.
+Actual five-package development publication and independent registry health are
+recorded in the [publication history](../engineering/18-release-tooling-execution-evidence.md).
+They do not establish permission to move an existing tag or prior-version rollback.
+
+`bun run release channel-plan` provides a read-only complete-family preflight for
+a reviewed older bundle and explicit current version. It verifies source/hash,
+registry identity/integrity/tags twice and distinguishes `no-change` from a
+`rollback-plan`. It does not execute a tag command or weaken the publication gate;
+see [registry rollback boundaries](rollback.md#registry-and-data-boundaries).
 
 ### Manual Workflow and Approval Boundary
 

@@ -204,6 +204,42 @@ job never initiates another upload, retag, rebuild or automatic rollback.
 
 ## Registry and Data Boundaries
 
+Before selecting a channel rollback, inspect the complete family against a reviewed
+prepared bundle and an explicit expected current version:
+
+```sh
+bun run release channel-plan --bundle REVIEWED_BUNDLE \
+  --manifest-sha256 REVIEWED_MANIFEST_SHA256 --source-commit REVIEWED_SOURCE_SHA \
+  --tag dev --expected-current-version CURRENT_VERSION
+```
+
+This read-only preflight binds the original source/manifest and local archive
+SHA256/SHA512, then reads all five target names, versions, version inventories,
+canonical tarball URLs, integrity and selected tags twice. The observations must
+agree and the local bundle is verified again afterward. Forward moves, deprecated
+targets, stage placeholders, mixed tags, corrupt bytes and provider failures stop
+without returning change commands. Equal current/target versions return
+`no-change` with empty `changeArgv` arrays. Older common version metadata is not a
+reviewed or installed-consumer-tested rollback candidate.
+
+The plan neither authenticates nor invokes `npm dist-tag`, publish, install,
+unpublish or migration. Public reads use the existing isolated empty npm-config
+runner; only its local temporary config and ordinary npm read cache may be written.
+`--execute` is rejected. Run fresh target-byte installed-consumer health separately;
+recheck the entire channel immediately before any authorized mutation. Two reads
+are not a compare-and-swap guarantee, distributed lock or transaction. Each npm
+package's tag write is independent: stop on an uncertain/partial result and inspect
+all five before deciding the next action. Never automatically retry a tag mutation.
+
+For an OIDC tag workflow, npm requires explicit per-package **Allow npm dist-tag**,
+independent of direct-publish permission, with npm 11.21.0+ in major 11 or 12.2.0+
+in major 12. Existing trusted publisher configurations cannot be edited; changes
+require replacing or separately adding a reviewed connection. This tool does not
+change any connection or add a write-capable workflow. See
+[npm's trusted-publisher/tag contract](https://docs.npmjs.com/trusted-publishers/#managing-dist-tags-with-trusted-publishing).
+An operator approval, matching workflow/environment and fresh post-change tags /
+installed-family health remain required before calling a rollback successful.
+
 For a future authorized npm release, a maintainer may move a channel using
 `npm dist-tag add <package>@<reviewed-previous-version> <channel>`, then inspect
 the tag and test a fresh install. Tags affect subsequent installs; existing
@@ -211,7 +247,8 @@ lockfiles/installations do not automatically roll back. Coordinate the SDK and
 adapters' compatible versions. See [npm dist-tag](https://docs.npmjs.com/cli/v11/commands/npm-dist-tag/).
 Do not delete published versions as a routine rollback; name/version combinations
 cannot be republished, as documented by [npm publish](https://docs.npmjs.com/cli/v11/commands/npm-publish/).
-Neither operation is executed by the local tooling.
+Neither mutation is executed by the local tooling. The preflight above only
+produces reviewable arguments for a separately authorized operation.
 
 Banora has no hosted database to roll back. Studio drafts/preferences/checkpoints
 are separate versioned data. Preserve unsupported future records instead of
