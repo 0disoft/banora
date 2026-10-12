@@ -81,6 +81,7 @@ async function publisherFixture() {
   const published = new Set<string>();
   const calls: { argv: readonly string[]; cwd: string }[] = [];
   const io: PublicationIO = {
+    wait: async () => {},
     context: {
       githubActions: true,
       repository: '0disoft/banora',
@@ -329,6 +330,58 @@ test('publication revalidates cached registry metadata immediately after success
       .every((call) => call.argv.includes('--prefer-online')),
   ).toBe(true);
 });
+test('post-upload propagation only repeats bounded reads and never retries an upload', async () => {
+  const { root, request, io, calls, packages, published } = await publisherFixture();
+  const stale = new Map<string, number>();
+  const waits: number[] = [];
+  const delayed: PublicationIO = {
+    ...io,
+    wait: async (ms) => {
+      waits.push(ms);
+    },
+    run(argv, cwd) {
+      const result = io.run(argv, cwd);
+      if (argv[1] === 'view' && argv[3] === 'name' && published.has(argv[2]!)) {
+        const count = stale.get(argv[2]!) ?? 0;
+        stale.set(argv[2]!, count + 1);
+        if (count < 2)
+          return {
+            status: 0,
+            stdout: JSON.stringify({
+              name: argv[2],
+              versions: ['0.0.0-stage'],
+              'dist-tags': { latest: '0.0.0-stage' },
+            }),
+          };
+      }
+      return result;
+    },
+  };
+  expect((await publishRelease(root, request, delayed)).packages).toHaveLength(5);
+  expect(waits).toEqual(Array(10).fill(2000));
+  expect(calls.filter((call) => call.argv[1] === 'publish')).toHaveLength(5);
+  published.clear();
+  waits.length = 0;
+  calls.length = 0;
+  stale.clear();
+  const missing: PublicationIO = {
+    ...delayed,
+    run(argv, cwd) {
+      const result = io.run(argv, cwd);
+      if (argv[1] === 'publish') published.clear();
+      return result;
+    },
+  };
+  await expect(publishRelease(root, request, missing)).rejects.toMatchObject({
+    code: 'publication-uncertain',
+    lastCheck: 'registry-version',
+    completed: [],
+    attempted: { name: packages[0]!.name, version: packages[0]!.version },
+  });
+  expect(waits).toEqual(Array(5).fill(2000));
+  expect(calls.filter((call) => call.argv[1] === 'publish')).toHaveLength(1);
+});
+
 test('release schema rejects future, traversing, duplicate and incomplete evidence; candidate does not imply prepared', async () => {
   const { bundle, manifest } = await fixture();
   expect(isReleaseManifest(manifest)).toBe(true);

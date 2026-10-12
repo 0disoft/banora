@@ -347,3 +347,15 @@ and integrity reads now use `--prefer-online`; a cache fixture reproduces the
 failure without that flag and passes all five uploads with revalidation. Focused
 regressions passed 20 tests / 214 assertions, types and lint. Remaining adapters
 and independent live installed-consumer health still require execution.
+
+Preparation `38210370233` passed all nine gates at `804e142`; CI `38210370059`
+passed 219 tests / 3,067 assertions. Publication `38210760011` confirmed SDK/CLI
+and uploaded React with exit status 0, then stopped at `registry-version` despite
+fresh-query flags. A subsequent fresh React query matched the reviewed bytes and
+`dev` tag. This identifies transient registry visibility beyond client cache.
+Only successful uploads now receive bounded read-only missing-version confirmation;
+failed uploads, metadata errors and integrity/channel conflicts never retry.
+The simulated delayed/missing cases passed 21 tests / 220 assertions with virtual
+waits, preserving one upload per package and a bounded uncertain result. Types,
+lint and the retained-byte invariants passed; Vue/Svelte and independent live
+installed consumers remain pending.

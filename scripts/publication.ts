@@ -134,6 +134,7 @@ export function publicationContext(env: NodeJS.ProcessEnv = process.env) {
 }
 export interface PublicationIO {
   readonly context: ReturnType<typeof publicationContext>;
+  wait?(milliseconds: number): Promise<void>;
   run(
     argv: readonly string[],
     cwd: string,
@@ -360,11 +361,25 @@ export async function publishRelease(
         if (uploaded.status !== 0)
           throw new PublicationError('publication-uncertain', [], undefined, uploaded.npmCode);
       }
-      lastCheck = 'registry-metadata';
-      const observed = metadata(item.name);
-      lastCheck = 'registry-version';
-      if (!observed.versions.includes(item.version))
-        throw new PublicationError('publication-uncertain');
+      let observed: ReturnType<typeof metadata>;
+      const confirmationStarted = performance.now();
+      for (let confirmation = 0; ; confirmation++) {
+        lastCheck = 'registry-metadata';
+        observed = metadata(item.name);
+        lastCheck = 'registry-version';
+        if (observed.versions.includes(item.version)) break;
+        // Only successful uploads receive bounded read-only propagation checks.
+        // Failed uploads, provider errors and integrity/channel conflicts never retry.
+        if (
+          !attempted ||
+          npmExitStatus !== 0 ||
+          confirmation === 5 ||
+          performance.now() - confirmationStarted >= 10_000
+        )
+          throw new PublicationError('publication-uncertain');
+        if (io.wait) await io.wait(2000);
+        else await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+      }
       lastCheck = 'registry-integrity';
       if (integrity(item.name, item.version) !== item.registryIntegrity)
         throw new PublicationError('publication-uncertain');

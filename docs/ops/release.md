@@ -170,7 +170,11 @@ and force fresh npm metadata revalidation with `--prefer-online`, so a preflight
 cache cannot hide the version just uploaded. Commands have fixed public registry
 selection, with bounded deadlines/output and no raw
 child logs in receipts. Any failed/timed-out upload or inconclusive post-check stops
-later packages as `publication-uncertain`, returning confirmed package progress
+later packages. After a successful upload only, a still-missing version allows
+at most five additional metadata reads with two-second waits in a ten-second
+confirmation window; each request retains its existing 30-second timeout.
+Provider errors and byte/channel conflicts stop immediately. No upload is retried.
+Failures return `publication-uncertain`, with confirmed package progress
 and the attempted name/version. A failed npm process also supplies an allowlisted
 `npmCode` (or `unknown`), without provider messages, paths or raw logs.
 `lastCheck` identifies archive verification, the upload command or the specific
