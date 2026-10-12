@@ -93,7 +93,9 @@ async (page) => {
         (await board.evaluate((svg) => document.activeElement === svg)),
       'Focus redraw erased independent overlays or focus',
     );
-    await host.getByRole('button', { name: 'Preview B3 principal variation', exact: true }).click();
+    // Keyboard focus is the invariant; pointer-triggered button focus varies by engine/OS.
+    await host.getByRole('button', { name: 'Preview B3 principal variation', exact: true }).focus();
+    await page.keyboard.press('Enter');
     verify(
       (await host.locator('.banora-analysis').getAttribute('data-analysis-pv-step')) === '1' &&
         (await board.locator('[data-stone="1,1"]').count()) === 0,
