@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; hosted Linux main CI passed at ec13a69
+- Status: Active local validation; hosted Linux main CI passed at 9c35e23
 
 ## Validation Source of Truth
 
@@ -162,7 +162,7 @@ verification for release-only orchestration while retaining all mixed SDK gates.
 Actual hosted artifact retention and downloaded-byte verification require separate
 execution evidence; workflow/static checks alone do not prove those outcomes.
 
-The latest executed preparation is hosted clean source `52f7c3f`: all nine named
+The latest executed preparation is hosted clean source `9c35e23`: all nine named
 gates passed against its retained 149-file bundle. The actual separate hosted
 publication preview downloaded its immutable ID and confirmed all reviewed byte
 bindings; its publishing job was skipped. The independent local download matched
@@ -170,7 +170,7 @@ the manifest hash and passed verification/preview. Its five package tarballs are
 byte-identical to the earlier downloaded ff9edb7 candidate, whose SDK/classic/
 types/license and 297 installed CLI checks passed on Windows. Earlier bundles
 remain preserved; source-specific execution and policy approval are separate.
-See [release evidence](docs/engineering/15-release-preparation-evidence.md) for the
+See [release evidence](docs/engineering/18-release-tooling-execution-evidence.md) for the
 source/tree, manifest hash, tools and exact preservation/publication boundary.
 
 Final responses must list executed validations, passed validations, skipped validations, skip reasons, and remaining risk.

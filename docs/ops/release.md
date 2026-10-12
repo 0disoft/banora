@@ -321,7 +321,7 @@ bundle in the release record. Keep prereleases separate from the stable channel.
 A solo maintainer can own this handoff; do not require a fictional backup person.
 Any actual backup maintainer or escalation contact must be recorded explicitly.
 
-If a future registry task authorizes publication, publish each reviewed retained
+For the approved registry publication, publish each reviewed retained
 tarball rather than rebuilding it. Publish the SDK before dependent packages,
 verify installed names/versions and the expected channel, then exercise independent
 consumers. Partial publication stops promotion; preserve successful version records
@@ -329,12 +329,12 @@ and fix forward with a new version where necessary. npm accepts tarballs and doe
 not allow reusing a published name/version, as documented by
 [npm publish](https://docs.npmjs.com/cli/v11/commands/npm-publish/).
 
-A demo host is not selected. Its operator must stage the retained examples and
-matching browser SDK, check asset paths and open/edit/export/reopen, then switch its
-own deployment pointer only after verification. Preparation, offline preview and
-restore do not publish packages, change registry tags or migrate user data.
-Explicit publication has the separate gates above. Actual remote health,
-rollback and access remain prerequisites for a future deployment task.
+The selected demo host is GitHub Pages. Its production asset paths and actual
+open/edit/export/reopen flow passed live checks at `9c35e23`; see
+[demo deployment](demo-deployment.md) for the executed scope and update procedure.
+Preparation, offline preview and restore do not publish packages, change registry
+tags or migrate user data. Explicit npm publication has the separate gates above;
+live registry health and remote rollback remain separate execution evidence.
 
 ## October 12: Executed Access Preflight
 
