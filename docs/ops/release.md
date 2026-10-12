@@ -244,6 +244,25 @@ and review GitHub's actual protection UI. The tool does not configure it or trea
 a wait timer as approval. See [environment protection](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
 and [environment API](https://docs.github.com/en/rest/deployments/environments#get-an-environment).
 
+Configure a GitHub Actions trusted publisher separately for each of the five
+Banora packages. Match user `0disoft`, repository `banora`, workflow filename
+`publish.yml` (not its directory path) and environment `npm-release`. The current
+workflow calls `npm publish`, so explicitly allow direct publishing in each
+connection. New connections default to allowing only `npm stage publish`; that
+default does not authorize this workflow. No `npm dist-tag` permission is needed
+for the current publisher, which never retags an existing version.
+
+Create these connections when the reviewed candidate and GitHub environment are
+ready: a new connection must complete its first successful publish within two
+days, or it expires. If it expires, recreate it deliberately; rerunning a preview
+does not validate the connection. A renamed repository, changed workflow or wrong
+environment also needs a matching connection, rather than a static-token fallback.
+These are owner/provider configuration steps, not settings applied by this guide.
+See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) for allowed
+actions, expiry and current setup requirements. Choosing staged publication would
+require a separately reviewed staging/approval/health flow; this workflow does not
+silently turn a staged package into a public release.
+
 Only the subsequent environment-gated publishing job requests `id-token: write`.
 It downloads the same candidate ID, runs the file/permission gate and executes
 the guarded publisher with the same source/hash/channel. Checkout credentials
