@@ -77,7 +77,7 @@ the verified commit's release directory with a unique name and 14-day retention.
 It retains exact reviewed tarballs/examples without registry publication or OIDC
 authority. See [release](release.md) for receipts, retrieval and approval limits.
 
-Changes only to this orchestration, manual publication, release helpers or their tests select root
+Changes only to this orchestration, manual publication, manual Pages deployment, release helpers or their tests select root
 check and file/permission signals in ordinary CI, without rebuilding unchanged
 browser consumers. Mixed SDK/manifest changes still select their broader gates;
 other workflow changes still use the complete route. The explicit candidate run
@@ -99,6 +99,12 @@ successful publication and uses read-only permissions. It downloads fresh regist
 bytes, verifies them against the reviewed candidate, and fails without automatic
 retagging/retry if identity, channel, transport or consumer checks do not pass.
 No static npm secrets, broad write token or automatic push publication is configured.
+The separate manual [Pages workflow](../../.github/workflows/pages.yml) builds only
+static examples, with read-only source/Pages metadata permission. Only its
+`github-pages` deployment job receives `pages: write` and `id-token: write`.
+Its complete parsed workflow is independently bound by the security gate;
+changing steps, triggers, conditions or permissions requires a new review.
+It does not publish npm packages or run on every source push.
 `security:files` rejects high-signal
 credential/private-file patterns and dangerous workflow permission/trigger changes;
 new secret injection also requires an intentional policy review.

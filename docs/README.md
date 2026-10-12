@@ -74,8 +74,9 @@ Remaining generic engineering/operations templates are scaffolds, not evidence o
 implemented infrastructure. The [operational contract](ops/00-operational-contract.md)
 now owns executable local recovery, incident, configuration and private-data procedures.
 The [release](ops/release.md) and [rollback](ops/rollback.md) procedures own local
-retained-artifact preparation, integrity checks and isolated restaging. Private
-reporting and remote release access remain explicit readiness work; these procedures
+retained-artifact preparation, integrity checks and isolated restaging.
+[Demo deployment](ops/demo-deployment.md) records the public source, GitHub private
+reporting and manually deployed Pages site. npm authority remains separate; these procedures
 do not establish hosted-service infrastructure or publication.
 
 Diagrams are explanatory views of the documented architecture; see the

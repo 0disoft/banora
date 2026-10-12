@@ -3,11 +3,12 @@ import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 
-// Deliberate, whole-workflow review binding for the sole OIDC permission exception.
+// Deliberate, whole-workflow review bindings for publication and Pages authority.
 // Any parsed change (including extra steps/conditions/inputs) requires this policy to be reviewed again.
 // This is a local drift gate, not a signature, environment protection or npm publishing authority.
 const reviewedPublicationWorkflow =
   '6d935218e0cd61bd240e24db81d2d4eb0cd7c645ee780102cf30f94d0e244844';
+const reviewedPagesWorkflow = '9de41c903c391671c0c5d73662fdba0fdfb1a517d303fd2c3d6b3cd8fb288670';
 
 /** Signal-only gate: never print credential material or surrounding content. */
 export function secretSignals(path: string, text: string): string[] {
@@ -34,11 +35,16 @@ export function workflowSignals(input: unknown, path = ''): string[] {
   if (!workflow || typeof workflow !== 'object') return ['invalid workflow'];
   const signals: string[] = [];
   const publication = path === '.github/workflows/publish.yml';
+  const pages = path === '.github/workflows/pages.yml';
   const reviewed =
     publication &&
     createHash('sha256').update(JSON.stringify(workflow)).digest('hex') ===
       reviewedPublicationWorkflow;
   if (publication && !reviewed) signals.push('publication workflow differs from reviewed policy');
+  const reviewedPages =
+    pages &&
+    createHash('sha256').update(JSON.stringify(workflow)).digest('hex') === reviewedPagesWorkflow;
+  if (pages && !reviewedPages) signals.push('Pages workflow differs from reviewed policy');
   if (/\$\{\{\s*secrets\./.test(JSON.stringify(workflow)))
     signals.push('secret injection requires a reviewed workflow policy change');
   const event = workflow.on;
@@ -56,7 +62,15 @@ export function workflowSignals(input: unknown, path = ''): string[] {
     }
     for (const [permission, access] of Object.entries(value))
       if (access !== 'read' && access !== 'none')
-        if (!(reviewed && jobId === 'publish' && permission === 'id-token' && access === 'write'))
+        if (
+          !(reviewed && jobId === 'publish' && permission === 'id-token' && access === 'write') &&
+          !(
+            reviewedPages &&
+            jobId === 'deploy' &&
+            ['pages', 'id-token'].includes(permission) &&
+            access === 'write'
+          )
+        )
           signals.push('write workflow permission requires a reviewed policy change');
   };
   if (!Object.hasOwn(workflow, 'permissions'))

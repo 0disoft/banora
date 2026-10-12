@@ -1,7 +1,7 @@
 # Secrets and Private Data
 
-Status: local secret boundaries documented; private vulnerability reporting and
-publication credentials are not configured by this checkout.
+Status: local secret boundaries documented; GitHub private vulnerability reporting
+is enabled. Package-specific npm authority remains separately configured.
 
 The SDK/local examples require no service token, password or customer credential.
 The repository CI uses read-only contents authority, disables persisted checkout
@@ -44,8 +44,9 @@ downloaded reports separately. Diagnostics are not backup files.
 5. Record sanitized root cause, affected versions and preventive changes. Verify
    actual credential revocation/artifact access, not merely a green source check.
 
-GitHub Issues is enabled but the repository's last verified state is private.
-No dedicated private vulnerability channel is established here. Use an existing
-maintainer-approved private channel; if none exists, establish one before disclosing
-sensitive details or an external release. Never invent an email address, promise
-private reporting or use a public bug template for exploit details.
+The repository is public with Issues enabled. Report vulnerabilities through
+[GitHub private reporting](https://github.com/0disoft/banora/security/advisories/new),
+enabled and verified through GitHub's repository API on October 12, 2026.
+Ordinary bugs and feature requests use Issues. Do not post exploit details or
+private records in public issues. GitHub access and notification preferences remain
+the maintainer's responsibility; no response SLA or bounty is promised.

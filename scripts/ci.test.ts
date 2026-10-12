@@ -109,6 +109,66 @@ test('manual candidate preparation keeps read-only authority and selects code ve
   expect(upload?.with?.['retention-days']).toBe(14);
   expect(upload?.with?.['if-no-files-found']).toBe('error');
 });
+test('manual Pages deployment confines reviewed write authority to the deployment job', async () => {
+  const path = '.github/workflows/pages.yml';
+  type Job = { if: string; permissions?: Record<string, string>; steps: { run?: string }[] };
+  const workflow = Bun.YAML.parse(await readFile(path, 'utf8')) as {
+    on: Record<string, unknown>;
+    jobs: {
+      build: Job;
+      deploy: Job & {
+        needs: string;
+        environment: { name: string };
+        permissions: Record<string, string>;
+      };
+    };
+  };
+  expect(workflowSignals(workflow, path)).toEqual([]);
+  expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch']);
+  expect(workflow.jobs.deploy.needs).toBe('build');
+  expect(workflow.jobs.deploy.environment.name).toBe('github-pages');
+  expect(
+    workflow.jobs.build.steps.some(
+      (step: { run?: string }) => step.run === 'bun run build:examples',
+    ),
+  ).toBe(true);
+  expect(planChecks([path])).toEqual({
+    mode: 'code',
+    browser: [],
+    adapters: false,
+    starter: false,
+    audit: false,
+  });
+  expect(planChecks([path, 'packages/sdk/src/controller.ts']).browser).toEqual(['all']);
+  expect(workflowSignals(workflow, '.github/workflows/other.yml')).toContain(
+    'write workflow permission requires a reviewed policy change',
+  );
+  for (const mutate of [
+    (copy: typeof workflow) => {
+      copy.jobs.deploy.permissions.contents = 'write';
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.build.permissions = { 'id-token': 'write' };
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.deploy.if = 'true';
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.deploy.environment.name = 'npm-release';
+    },
+    (copy: typeof workflow) => {
+      copy.on.push = {};
+    },
+    (copy: typeof workflow) => {
+      copy.jobs.deploy.steps.push({ run: 'npm publish' });
+    },
+  ]) {
+    const copy = structuredClone(workflow);
+    mutate(copy);
+    expect(workflowSignals(copy, path)).toContain('Pages workflow differs from reviewed policy');
+  }
+});
+
 test('security signals identify credential headers/files and dangerous workflow permissions without returning content', async () => {
   expect(secretSignals('.env', 'plain setting')).toEqual(['private configuration file']);
   expect(secretSignals('.env.example', 'PUBLIC_URL=http://127.0.0.1')).toBeEmpty();

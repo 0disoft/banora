@@ -290,6 +290,10 @@ dependency audit. See [CI policy](docs/ops/ci.md) for routing, cache and permiss
 Planner tests verify fallback, multi-feature routing, root command existence and
 permission/credential signals. These do not establish an actual GitHub run.
 
+The manual Pages workflow has a separate reviewed Pages/OIDC permission binding;
+planner regressions reject authority drift and preserve broad checks for mixed SDK changes.
+Its successful deployment and live nested consumer verification are separate evidence.
+
 Browser and packed-adapter smoke are explicit oneshot checks separate from `check`.
 Framework lifecycle and transform checks count SVG board applications, excluding
 comment indicator icons from renderer counts.
