@@ -75,11 +75,70 @@ record was overwritten. The live site remains on the restored original bytes.
 
 This is one real demo deployment transition, not a different SDK runtime version
 or an exercised npm-channel rollback. No npm package, version or tag was changed.
-The workflow's deploy action waits for provider completion; live hash checks and
-the consumer flow were executed separately and are not an automatic health job.
+At the first rehearsal's source, the deploy action waited for provider completion;
+live hash checks and the consumer flow ran separately. The later automatic file-
+health execution below supersedes that automation gap, not the browser/data limits.
 Retention can expire or be deleted. The tool deliberately selects original builds,
 not recursively recovered runs; retaining a recovery upload does not extend the
 original candidate's eligibility. Keep original candidates and an independent
 reviewed copy, and do not rebuild or substitute a different archive silently.
 Off-device retention, consuming-host state and notification/device certification
 remain separate. See the [recovery procedure](../ops/rollback.md).
+
+## Automatic Post-Deployment File Health
+
+Commits `20c3d3f` and `eb731d0` added a bounded tar inventory/read-only live
+checker and the independent Pages `health` job. It downloads the exact deployed
+artifact ID, binds the builder/recovery tar SHA256, checks every live file and
+retains success/failure JSON. It has only contents/actions read permissions, no
+OIDC/deployment authority, dependency install, rebuild, npm mutation or automatic
+rollback. Both normal deployment and recovery use the same job and queued Pages
+concurrency. Original candidates with an additional health artifact require the
+successful health job; unknown/duplicate/partial artifact listings still fail.
+
+Focused Windows checks passed 14 tests / 199 assertions, types, lint, format,
+docs and file signals. [Main CI 38247061471](https://github.com/0disoft/banora/actions/runs/38247061471)
+passed 230 tests / 3,193 assertions and installed SDK/classic plus 297 CLI checks.
+The tar fixture is produced by the system tar, not a schema-only expected result.
+Fixtures cover paths/links/checksum/truncation, actual request deadlines, bounded
+retries, prior progress, credentials/redirects/oversize refusal, stale identity and
+exclusive reports. No unrelated SDK/browser suite was repeated for private tools.
+
+### Normal Deployment
+
+[Run 38247173213](https://github.com/0disoft/banora/actions/runs/38247173213)
+at `eb731d0dee664c91b5ccebbab3984afaf95fcfe1` passed build, deployment and
+independent live health. Deployed artifact `11745713479` has provider ZIP digest
+`sha256:6060100499d09ae1d391abf20fa15528b3f622588437fdfc6b99ade7ceb0d7ee`.
+Its downloaded original tar SHA256 is
+`a33ca512f5432f994ea8d3a1131e9de500db266780007c2833988b9946e9ae59`.
+The actual success receipt reports 47 checked files, 14 HTML files and 47 HTTP
+attempts, with `buildIdentityAbsent: false`. Receipt artifact `11746212953` was
+downloaded independently. The live build JSON returned that exact source/run ID.
+The candidate inspector also accepted this actual original run's two-artifact
+listing and successful health job without substituting the receipt for the tar.
+
+### Recovery and Deliberate Read-Only Mismatch
+
+[Recovery 38247447474](https://github.com/0disoft/banora/actions/runs/38247447474)
+at the same workflow source restored the original `38204372917` reviewed tar,
+without installing/rebuilding it. Build, deployment and independent health all
+passed. Recovery artifact `11746013348` has provider ZIP digest
+`sha256:60bff164ea2d6f88f58f94576b5be09fd83dd6426bbc760143e7a86793e6127e`.
+Downloaded health artifact `11745648943` reports original tar SHA256
+`afb710eb48030294ed66c146385e1fbfb14282463e15383406e97261a7a6b6f2`,
+46 checked files, 14 HTML pages and 47 attempts, including required absence of
+the newer build receipt. The live site remains on those original bytes.
+
+An intentionally mismatched read-only local check then selected the new build's
+verified tar against the restored site. It returned `ok: false`, fixed `content`
+code, 46 completed files and 49 attempts; the existing/new build receipt could
+not be treated as matching the restored deployment. The failure report retained
+that actual progress without provider text or paths. It did not deploy, rebuild,
+retag or overwrite either tar. No fictitious failed hosted job is claimed.
+
+These new checks establish automatic public file-byte health for the two actual
+deployment paths. The earlier Chrome consumer flow remains separately scoped;
+no new browser/device certification follows. Original artifact expiry/deletion,
+restoration beyond its retention, npm-channel and host/data rollback are still
+separate work. Source SDK APIs, DB, dependencies and repository hygiene are unchanged.

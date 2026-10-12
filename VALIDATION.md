@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; hosted Linux main CI passed at 41e0e89
+- Status: Active local validation; hosted Linux main CI passed at eb731d0
 
 ## Validation Source of Truth
 
@@ -180,8 +180,10 @@ Final responses must list executed validations, passed validations, skipped vali
 hashes, unsupported/link/path/checksum/truncation refusal, credential-free fixed-
 origin HTTP, bounded propagation retries, progress, real request deadlines and
 exclusive receipts. Current live artifact bytes passed the read-only tool.
-The separate read-only Pages health job is now configured for normal deployment
-and recovery; actual hosted execution must be recorded before claiming success.
+The separate read-only Pages health job passed actual normal deployment (47 files)
+and recovery (46 files plus absent build receipt), with downloaded success records.
+An intentionally mismatched read-only live check retained a fixed failure code
+and completed-file progress; see [demo evidence](docs/engineering/19-demo-recovery-execution-evidence.md).
 File-byte checks do not certify browser/device workflows.
 
 The manually dispatched Pages workflow branches between a fresh static build and
