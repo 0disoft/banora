@@ -124,9 +124,9 @@ These statements replace stale work plans, not the outstanding distribution gate
 | 67  | Trace a reported failure                        | Local diagnostic operation IDs/codes and safe summaries connect an observed failure to corrective guidance; installed diagnose executes once with protected output. Private minimized repro input is reviewed separately; IDs are not global traces or upload authority.                                                                                   |
 | 68  | Routine operator tasks without code edits       | Doctor/discovery/safe cleanup, migration checks, recovery checks/drill and retained-release commands execute without code edits. Runbooks name failure actions and owners; public Issues and private security reporting are enabled; hosted administration remains owner-controlled.                                                                       |
 | 69  | Verified failure recovery                       | Corrupt/future/quota/conflict/cancel recovery fixtures pass. Actual Pages recovery restored preserved original tar bytes and verified 46 live files plus Studio export/reopen. Disk/data and npm-channel recovery remain unverified.                                                                                                                       |
-| 70  | Fresh install/update/release and rollback       | Installed SDK/CLI/framework/starter and fresh-registry development packages pass. Pages recovery passed. [Channel preflight](23-channel-preflight-execution-evidence.md) verified five unchanged dev tags and matching target bytes; no older common SDK version was observed. Actual channel/host/data rollback remains unverified.                       |
-| 71  | Match user-facing promises to reality           | Current README/spec/consumer/ops review keeps SDK implementation distinct from illustrative analysis, manual bridges and host-owned services. Updated localized modal/pass/komi behavior is recorded in its owning specification; broader compatibility remains limited to observed execution.                                                             |
-| 72  | Next three priorities and deferred work         | Next priorities: attribute heap growth/measure peaks; rehearse prior-version npm-channel/host recovery; review backup retention/account recovery. Draft capture/recovery is executed; expiry/account recovery remains separate. Defer accounts/cloud collaboration/schedulers to hosts; avoid infrastructure without a consumer.                           |
+| 70  | Fresh install/update/release and rollback       | Fresh SDK/CLI/framework health confirms five dev.1 packages. [Previous-version preflight](24-package-readme-correction.md#actual-previous-version-preflight) binds dev.0 target against dev.1 twice. No tag mutation or host/data rollback was performed; fresh rollback-target installed health remains required.                                         |
+| 71  | Match user-facing promises to reality           | Published [dev.1 READMEs](24-package-readme-correction.md) contain usable installation and links. Default npm pages/latest remain dev.0 with the old immutable README, so explicit @dev selection is required. No stable-support promotion or broader compatibility is claimed.                                                                            |
+| 72  | Next three priorities and deferred work         | Next priorities: decide default npm-channel promotion; rehearse prior-version/host recovery; review backup retention/account recovery. Heap attribution/peaks remain measurement follow-up. Defer accounts/cloud collaboration/schedulers to hosts; avoid infrastructure without a consumer.                                                               |
 
 ## Completion Rule
 
@@ -174,16 +174,16 @@ CLI checks passed on Linux, along with the full default Chrome production suite
 and native framework lifecycle flows. Windows root
 checks and actual SDK/CLI/native framework installation are scoped in the history.
 
-The latest fully prepared candidate is `41e0e89`: nine successful gates, 149 retained
-files, actual hosted download and verified read-only publication preview.
-All five tarballs match earlier reviewed bytes. Publication was bound to this
-reviewed remote source; later changes require their own candidate review.
+The latest fully prepared candidate is `932b583`: nine successful gates, 149 retained
+files, hosted download and independently verified publication/installed health.
+The original `41e0e89` candidate remains the real previous-version target; a
+read-only rollback plan does not establish actual mutation or host/data recovery.
 
-Actual [publication/health run 38212158941](https://github.com/0disoft/banora/actions/runs/38212158941)
-verified all five public `0.1.0-dev.0` packages, downloaded fresh matching SHA256/
+Actual [publication/health run 38264045296](https://github.com/0disoft/banora/actions/runs/38264045296/attempts/6)
+verified all five public `0.1.0-dev.1` packages, downloaded fresh matching SHA256/
 SHA512 tarballs and passed independent installed SDK/CLI/React/Vue/Svelte checks.
-The final verification reused confirmed versions without reupload. Both observed
-`latest` and `dev` tags point to this development prerelease; no stable support is
+The final verification reused confirmed versions without reupload. All observed
+`dev` tags point to this prerelease; `latest` remains `0.1.0-dev.0`. No stable support is
 promised. Public source, live Pages, private reporting and the main-only required-
 reviewer environment are established. The root security policy is owner-approved
 and installed, including its approved public-repository/private-reporting wording.
@@ -194,6 +194,7 @@ Detailed implementation and execution evidence:
 
 - [Earlier readiness increments](13-readiness-execution-evidence.md).
 - [Release tooling history](18-release-tooling-execution-evidence.md).
+- [Package README correction and publication](24-package-readme-correction.md).
 - [Actual public demo recovery](19-demo-recovery-execution-evidence.md) and [draft backups](20-draft-demo-backup-execution-evidence.md).
 - [Current 22-scope Firefox/WebKit execution](21-expanded-browser-execution-evidence.md).
 - [Prepared artifacts and actual hosted transfer](15-release-preparation-evidence.md).

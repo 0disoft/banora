@@ -1,11 +1,26 @@
 # Release
 
-Status: five `0.1.0-dev.0` packages published through protected GitHub OIDC, with
+Status: five `0.1.0-dev.1` packages published through protected GitHub OIDC, with
 fresh registry-download and installed-consumer health passed. Public source,
 GitHub Pages and private vulnerability reporting are configured. This development
 prerelease does not establish stable support or previous-version rollback.
 
-## Published Development Prerelease
+## Documentation Development Prerelease
+
+[Publication and health run 38264045296, attempt 6](https://github.com/0disoft/banora/actions/runs/38264045296/attempts/6)
+confirmed all five `0.1.0-dev.1` packages at source
+`932b5830b5fa0b281702f6025fd58810b945b426`, with fresh registry-download and
+installed SDK/CLI/React/Vue/Svelte health. Preparation `38263371426` passed nine
+gates; its 149-file manifest SHA256 is
+`70060a2b9814ed75ef46abaa0575681c39ee640ae7ba2489742d3d4ac4b4126d`.
+The correction ships usable npm READMEs without SDK implementation changes.
+Current `dev` is `0.1.0-dev.1`; `latest` remains the original `0.1.0-dev.0`.
+Use explicit `@dev` installation or the new version's npm page. Default npm pages
+and existing installations may still show the immutable previous README; the new
+prerelease neither promotes `latest` nor establishes stable support. See the
+[execution record](../engineering/24-package-readme-correction.md).
+
+## Original Development Prerelease
 
 [Publication and health run 38212158941](https://github.com/0disoft/banora/actions/runs/38212158941)
 confirmed the SDK, CLI and React/Vue/Svelte packages against prepared source
@@ -18,7 +33,7 @@ rechecked the `dev` channel. Final verification reused confirmed versions withou
 reuploading them. The five temporary staged identities were rejected through 2FA.
 
 Use `npm install @0disoft/banora@dev` on Node 24.x; optional CLI/adapters also use
-`@dev`. As observed on October 12, npm's `latest` and `dev` tags both resolve to
+`@dev`. Before the documentation prerelease on October 12, npm's `latest` and `dev` tags both resolved to
 `0.1.0-dev.0`. This is a development prerelease even when installed through
 `latest`; the publisher did not execute a retag command. No stable version or
 support SLA is promised. Current documentation describes availability; published
@@ -27,15 +42,15 @@ name/version. Future artifact changes require a new version.
 
 ## Hosted Candidate Preparation
 
-The intentional `0.1.0-dev.1` source candidate corrects the five published READMEs'
+The intentional `0.1.0-dev.1` release corrects the five published READMEs'
 obsolete unpublished/local-build instructions, adds an SDK browser quick start and
 replaces SDK/CLI links that escape the npm package. npm updates its package-page
 README only on a new publication; see [npm's README guidance](https://docs.npmjs.com/about-package-readme-files/).
 All five source package versions and lockfile workspace entries advance together,
 with existing compatible SDK peer floors and dependency versions unchanged.
 This is a documentation correction, not a new SDK feature or stable promotion.
-Source readiness does not imply that the candidate has passed hosted preparation
-or been published. Keep `dev` as the reviewed destination and preserve the original
+Source readiness alone does not prove preparation or publication; the actual
+verified results are recorded above. Keep `dev` as the reviewed destination and preserve the original
 `0.1.0-dev.0` artifacts. See the [correction record](../engineering/24-package-readme-correction.md).
 
 The manual-only [prepare-release workflow](../../.github/workflows/prepare-release.yml)
@@ -203,8 +218,11 @@ cache cannot hide the version just uploaded. Commands have fixed public registry
 selection, with bounded deadlines/output and no raw
 child logs in receipts. Any failed/timed-out upload or inconclusive post-check stops
 later packages. After a successful upload only, a still-missing version allows
-at most five additional metadata reads with two-second waits in a ten-second
-confirmation window; each request retains its existing 30-second timeout.
+at most eighteen additional metadata reads with ten-second waits and a three-minute
+confirmation budget; each request retains its existing 30-second timeout. The
+elapsed budget is checked between reads, so a single in-flight read can finish
+after it; the publishing job retains its 20-minute deadline. This replaces the
+ten-second window that stopped normal uploads during the documentation prerelease.
 Provider errors and byte/channel conflicts stop immediately. No upload is retried.
 Failures return `publication-uncertain`, with confirmed package progress
 and the attempted name/version. A failed npm process also supplies an allowlisted

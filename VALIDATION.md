@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; hosted Linux main CI passed at 6778a08
+- Status: Active local validation; hosted Linux main CI passed at 932b583
 
 ## Validation Source of Truth
 
@@ -34,6 +34,14 @@ browser job or privileged workflow is selected for isolated plan changes.
 The [actual channel observation](docs/engineering/23-channel-preflight-execution-evidence.md)
 confirmed five unchanged development tags, reviewed integrity and no older common
 version beyond excluded placeholders. It did not mutate a tag or rehearse rollback.
+
+Publication propagation tests cover metadata missing beyond the old five-read
+limit, eventual success without repeated uploads, the eighteen-read cap and the
+three-minute elapsed budget through an injected private clock. Failed uploads,
+provider errors, integrity/channel conflicts and unconfirmed resumes still stop.
+The [actual documentation prerelease](docs/engineering/24-package-readme-correction.md)
+passed nine preparation gates and independent fresh-registry installed-consumer
+health. Physical-device and screen-reader execution remains waived/unperformed.
 
 Terminal diagnostic coverage uses `packages/sdk/test/automation-diagnostics.test.ts`
 for actual completed-step/failure traces, one execution, environment prevalidation,

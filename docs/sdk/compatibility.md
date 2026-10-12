@@ -34,7 +34,7 @@ packages: React, Vue and Svelte. Logical core/record/renderer modules may use se
 entrypoints within the common SDK; they are not separate release units. Package
 names are `@0disoft/banora`, `@0disoft/banora-react`, `@0disoft/banora-vue` and
 `@0disoft/banora-svelte`, with optional `@0disoft/banora-cli`. All five were published
-as the development prerelease `0.1.0-dev.0`; publication and installed-consumer
+as the development prerelease `0.1.0-dev.1`; publication and installed-consumer
 evidence belong to the [readiness review](../engineering/12-readiness-review.md#execution-evidence).
 This prerelease does not establish stable support.
 See [ADR 0023](../adr/0023-existing-publisher-package-identity.md). Actual symbols are

@@ -6,7 +6,7 @@ editors, puzzles, and analysis interfaces.
 **Status: early development snapshot.** Headless rules/SGF/controller, SVG rendering,
 viewer/Studio, optional React/Vue/Svelte adapters, manual scoring, authored puzzles
 and external analysis integration/display are implemented within documented
-coverage. Development prerelease `0.1.0-dev.0` is available on npm through the
+coverage. Development prerelease `0.1.0-dev.1` is available on npm through the
 `dev` channel. Broader compatibility and stable support remain separate.
 See [implementation status](docs/engineering/08-implementation-status.md).
 Try [Banora Studio](https://0disoft.github.io/banora/studio/) without installation.

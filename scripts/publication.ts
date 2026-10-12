@@ -135,6 +135,7 @@ export function publicationContext(env: NodeJS.ProcessEnv = process.env) {
 export interface PublicationIO {
   readonly context: ReturnType<typeof publicationContext>;
   wait?(milliseconds: number): Promise<void>;
+  now?(): number;
   run(
     argv: readonly string[],
     cwd: string,
@@ -362,7 +363,8 @@ export async function publishRelease(
           throw new PublicationError('publication-uncertain', [], undefined, uploaded.npmCode);
       }
       let observed: ReturnType<typeof metadata>;
-      const confirmationStarted = performance.now();
+      const now = () => io.now?.() ?? performance.now();
+      const confirmationStarted = now();
       for (let confirmation = 0; ; confirmation++) {
         lastCheck = 'registry-metadata';
         observed = metadata(item.name);
@@ -373,12 +375,12 @@ export async function publishRelease(
         if (
           !attempted ||
           npmExitStatus !== 0 ||
-          confirmation === 5 ||
-          performance.now() - confirmationStarted >= 10_000
+          confirmation === 18 ||
+          now() - confirmationStarted >= 180_000
         )
           throw new PublicationError('publication-uncertain');
-        if (io.wait) await io.wait(2000);
-        else await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+        if (io.wait) await io.wait(10_000);
+        else await new Promise<void>((resolve) => setTimeout(resolve, 10_000));
       }
       lastCheck = 'registry-integrity';
       if (integrity(item.name, item.version) !== item.registryIntegrity)

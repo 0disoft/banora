@@ -528,6 +528,16 @@ check(
 const installedCliMetadata = JSON.parse(
   await readFile(resolve(directory, 'node_modules/@0disoft/banora-cli/package.json'), 'utf8'),
 );
+const expectedCliVersion = release
+  ? JSON.parse(await readFile(resolve(release, 'manifest.json'), 'utf8')).packages.find(
+      (item: { name: string; version: string }) => item.name === '@0disoft/banora-cli',
+    )?.version
+  : JSON.parse(await readFile(resolve(root, 'packages/cli/package.json'), 'utf8')).version;
+check(
+  installedCliMetadata.name === '@0disoft/banora-cli' &&
+    installedCliMetadata.version === expectedCliVersion,
+  'Installed CLI metadata disagrees with the source or reviewed release version',
+);
 check(
   cli(['--version']).version === installedCliMetadata.version,
   'CLI version disagrees with its installed package metadata',
