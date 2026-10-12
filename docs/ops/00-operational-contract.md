@@ -1,7 +1,7 @@
 # Operational Contract
 
-Status: local SDK/reference-consumer procedures implemented; no hosted service or
-published release is established by this contract.
+Status: SDK/reference-consumer procedures implemented; initial `0.1.0` publication
+and static-demo operation have separate executed evidence below.
 
 ## Ownership and Critical Work
 
@@ -44,9 +44,12 @@ Use [incident response](incident-response.md), [configuration](config-and-env.md
 [data migration](data-migrations.md) and
 [diagnostics](observability.md) for action-specific procedures. Release and rollback
 preparation use [release](release.md) and [rollback](rollback.md): clean-source,
-retained-artifact checks and isolated restaging. They do not establish a working
-publication channel or a host's deployment pointer. Remaining remote/access gates
-are tracked by the [active readiness review](../engineering/12-readiness-review.md).
+retained-artifact checks and isolated restaging. Actual
+[initial publication](../engineering/27-initial-default-channel-release-evidence.md)
+and [Pages recovery](../engineering/20-draft-demo-backup-execution-evidence.md)
+establish their recorded package/site results. A consuming host owns its deployment
+pointer and durable data. The [readiness review](../engineering/12-readiness-review.md)
+records the SDK answers and remaining coverage limits.
 
 ## Recovery and Release Gates
 

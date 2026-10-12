@@ -5,9 +5,11 @@ is enabled. Package-specific npm authority remains separately configured.
 
 The SDK/local examples require no service token, password or customer credential.
 The repository CI uses read-only contents authority, disables persisted checkout
-credentials and injects no service secret. A future publishing workflow must scope
-its own registry/deployment authority to a reviewed protected release environment;
-no token belongs in source, a demo or ordinary pull-request validation.
+credentials and injects no service secret. The separate manual publishing workflow
+confines OIDC authority to the reviewed protected `npm-release` job; static-demo
+deployment uses its separate `github-pages` job. See [release](release.md) and
+[demo deployment](demo-deployment.md). No token belongs in source, a demo or
+ordinary pull-request validation.
 Integrating operators own external authentication and credential rotation.
 
 `.gitignore` excludes local `.env` files, caches and diagnostic/test output. Ignoring

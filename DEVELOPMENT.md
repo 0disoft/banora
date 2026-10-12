@@ -2,7 +2,7 @@
 
 - Status: M1-M4 implementation complete in scoped local evidence; see the
   [delivery audit](docs/engineering/10-delivery-audit.md) and [VALIDATION.md](VALIDATION.md)
-- Technical owner: UNASSIGNED
+- Technical owner: `0disoft` (solo maintainer)
 
 ## Sources of Truth
 
@@ -67,7 +67,9 @@ Use one common SDK package in M1 and three separate optional React, Vue and Svel
 adapter packages in M2, all in this repository. Initial compatibility targets are
 Node 24 LTS, React 19, Vue 3 and Svelte 5; current consumer evidence is documented
 in [compatibility](docs/sdk/compatibility.md).
-The common SDK uses the local development name `@0disoft/banora`; it is unpublished.
+The common SDK is published as `@0disoft/banora`, together with its optional CLI
+and native adapters at `0.1.0`. See the
+[initial release evidence](docs/engineering/27-initial-default-channel-release-evidence.md).
 Bun's test runner and root scripts are configured. The optional `@0disoft/banora-react`,
 `@0disoft/banora-vue` and `@0disoft/banora-svelte` packages export Board/Viewer and state bindings.
 Svelte ships native component artifacts with isolated TypeScript 6.x packaging;
@@ -87,7 +89,7 @@ validates production Studio/viewer and framework flows, including touch emulatio
 `bun run smoke:adapters` verifies independently installed tarballs and each
 framework's server rendering of host containers/state text. See
 [implementation evidence](docs/engineering/08-implementation-status.md) for scope
-and the remaining release work. SDK changes require rebuilding its artifacts before
+and recorded release/compatibility limits. SDK changes require rebuilding its artifacts before
 the examples consume them; the examples do not alias SDK exports to source files.
 
 The [M1 exit evidence](docs/product/01-roadmap.md) is established through Banora Studio

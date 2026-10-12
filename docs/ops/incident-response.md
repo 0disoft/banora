@@ -54,10 +54,13 @@ Repeated failure disables the optional integration until the operator fixes it.
 Keep a private timeline of trigger, artifact/versions, containment, backup checks,
 remediation and restoration evidence. Public tickets contain reviewed operation
 IDs/codes and minimized authored reproduction, never customer files, paths, raw
-logs or credentials. The Issues link requires repository access in its last verified
-private state; private vulnerability reporting remains a release gate in [secrets](secrets.md).
+logs or credentials. Public Issues and
+[private vulnerability reporting](https://github.com/0disoft/banora/security/advisories/new)
+are enabled; see [secrets](secrets.md). Reporting availability does not establish
+notification delivery or an on-call response SLA.
 
 Add a meaningful regression, correct owning API/configuration/operational contracts
 and verify the real user journey. Confirm host restoration and credential revocation
-separately. Release/remote rollback rehearsal remains active work; this runbook
-does not establish a deployment.
+separately. Actual [Pages recovery](../engineering/20-draft-demo-backup-execution-evidence.md)
+and [portable SDK/CLI recovery](../engineering/26-installed-consumer-recovery-evidence.md)
+have executed evidence. They do not certify another application's storage or deployment.

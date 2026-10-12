@@ -69,8 +69,11 @@ receipt and inspect before another deliberate build. Drafts can be edited/delete
 and do not protect against provider/account loss. Actual normal capture and
 older-draft recovery passed with independent 47-file health and exact original
 tar hashes in the [draft execution record](../engineering/20-draft-demo-backup-execution-evidence.md).
-The live build receipt selects source `8d9c213` / original run `38250495418`;
-the recovery workflow checkout is separately recorded as `aa98362`.
+That recovery selected original source `8d9c213` / run `38250495418`, with recovery
+workflow checkout `aa98362`. The current normal deployment now selects `b52bf65` /
+run `38287112395`: build/deploy/health/archive passed, all 47 live files match the
+original tar, and an actual public Chrome menu/edit/SGF download/reopen workflow
+passed. See the [current execution record](../engineering/30-current-readiness-audit.md#current-public-demo-execution).
 
 The first [deployment run 38204372917](https://github.com/0disoft/banora/actions/runs/38204372917)
 completed successfully. Live Chrome verification imported an authored SGF, edited

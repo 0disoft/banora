@@ -46,18 +46,17 @@ See the [terminal contract](../sdk/diagnostics.md#terminal-and-automation-consum
    [validation](../../VALIDATION.md). `bun run check` verifies the package baseline;
    `bun run build:examples` followed by a documented focused browser route checks
    UI behavior. Review raw command output for private paths/content before sharing.
-4. Use GitHub issue templates for SDK defects. Private security reporting is not
-   configured in this checkout; obtain a maintainer-approved private channel before
-   disclosing sensitive details, never place them in public tickets. Track this gap
-   in the [security baseline](../engineering/04-security-baseline.md).
+4. Use GitHub issue templates for SDK defects and
+   [GitHub private vulnerability reporting](https://github.com/0disoft/banora/security/advisories/new)
+   for vulnerabilities. Do not put sensitive details in public tickets. The
+   [security baseline](../engineering/04-security-baseline.md) names the owning policy.
    The repository maintainer triages SDK defects. The host
    operator owns tenant/auth boundaries, endpoint/secrets, storage retention and
    service incidents; no SDK hosted operations team is implied.
 
-The repository's Issues API was checked on 2026-10-11: Issues is enabled, but the
-repository is private. Its feedback/status page currently requires repository
-access. Verify a public or otherwise accessible support channel before distributing
-an external demo/package; local template updates are not hosted publication evidence.
+The repository and reporting APIs were checked again on 2026-10-13 (Korea time):
+source and Issues are public, and private vulnerability reporting is enabled.
+These settings establish reporting routes, not notification delivery or a response SLA.
 
 ## Host Monitoring Boundary
 
@@ -74,5 +73,5 @@ ownership before deployment. The journal makes no remote call or retry decision.
 Unit fixtures cover bounds, privacy, malformed-input atomicity and immutable
 clear/snapshots. Hosted dashboards/alert delivery, long-term retention and physical
 device behavior remain unverified. No backend/database/collector is required for
-local diagnostics. Broader release/ops readiness remains tracked in the
-[active review](../engineering/12-readiness-review.md).
+local diagnostics. SDK release/ops answers and coverage limits are recorded in the
+[readiness review](../engineering/12-readiness-review.md).

@@ -78,7 +78,9 @@ and downloaded public prepared-bundle recovery.
 [Offline maintainer recovery](engineering/29-offline-maintainer-recovery-evidence.md)
 records actual source/history/release-tag restoration and execution of the
 independently retained prepared SDK from a recovered checkout.
-The active review retains all 72 requirements, current limits and completion gates.
+[Current readiness audit](engineering/30-current-readiness-audit.md) closes the
+72-question review for the agreed SDK/reference-consumer scope, with current
+public-demo execution, source-to-evidence mapping and explicit remaining limits.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable
 commands, input limits and the external state authority boundary.
