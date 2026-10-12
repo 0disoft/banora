@@ -244,6 +244,8 @@ test('an uncertain simulated upload stops subsequent packages and reports confir
     else throw error;
   }
   expect(failure?.code).toBe('publication-uncertain');
+  expect(failure?.lastCheck).toBe('npm-upload');
+  expect(failure?.npmExitStatus).toBeNull();
   expect(failure?.completed).toEqual([
     { name: packages[0]!.name, version: packages[0]!.version, state: 'published' },
   ]);
@@ -271,6 +273,8 @@ test('publication failure receipts retain only recognized npm codes and stop aft
     code: 'publication-uncertain',
     completed: [],
     npmCode: 'E422',
+    lastCheck: 'npm-upload',
+    npmExitStatus: 1,
   });
   expect(calls.filter((call) => call.argv[1] === 'publish')).toHaveLength(1);
   const error = new PublicationError(
@@ -281,6 +285,25 @@ test('publication failure receipts retain only recognized npm codes and stop aft
   );
   expect(error.npmCode).toBe('unknown');
   expect(JSON.stringify(error)).not.toContain('Private provider detail');
+});
+
+test('a successful upload process with inconclusive metadata records the exact check without retry', async () => {
+  const { root, request, io, calls, published } = await publisherFixture();
+  const failing: PublicationIO = {
+    ...io,
+    run(argv, cwd) {
+      const result = io.run(argv, cwd);
+      if (argv[1] === 'publish') published.clear();
+      return result;
+    },
+  };
+  await expect(publishRelease(root, request, failing)).rejects.toMatchObject({
+    code: 'publication-uncertain',
+    completed: [],
+    lastCheck: 'registry-version',
+    npmExitStatus: 0,
+  });
+  expect(calls.filter((call) => call.argv[1] === 'publish')).toHaveLength(1);
 });
 test('release schema rejects future, traversing, duplicate and incomplete evidence; candidate does not imply prepared', async () => {
   const { bundle, manifest } = await fixture();

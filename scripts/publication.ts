@@ -71,6 +71,14 @@ export class PublicationError extends Error {
     readonly completed: readonly PackageResult[] = [],
     readonly attempted?: { name: string; version: string },
     npmCode?: unknown,
+    readonly lastCheck?:
+      | 'archive-check'
+      | 'npm-upload'
+      | 'registry-metadata'
+      | 'registry-version'
+      | 'registry-integrity'
+      | 'registry-channel',
+    readonly npmExitStatus?: number | null,
   ) {
     super(`Publication: ${code}.`);
     if (npmCode !== undefined) this.npmCode = checkedNpmCode(npmCode);
@@ -338,20 +346,28 @@ export async function publishRelease(
   const completed: PackageResult[] = [];
   for (const [index, item] of archives.entries()) {
     let attempted = false;
+    let lastCheck: PublicationError['lastCheck'] = 'archive-check';
+    let npmExitStatus: number | null | undefined;
     try {
       await verifyRelease(snapshot);
       if (!existing[index]) {
         attempted = true;
+        lastCheck = 'npm-upload';
         const uploaded = command(item.publishArgv);
+        npmExitStatus = uploaded.status;
         if (uploaded.status !== 0)
           throw new PublicationError('publication-uncertain', [], undefined, uploaded.npmCode);
       }
+      lastCheck = 'registry-metadata';
       const observed = metadata(item.name);
-      if (
-        !observed.versions.includes(item.version) ||
-        integrity(item.name, item.version) !== item.registryIntegrity ||
-        observed.tags[plan.tag] !== item.version
-      )
+      lastCheck = 'registry-version';
+      if (!observed.versions.includes(item.version))
+        throw new PublicationError('publication-uncertain');
+      lastCheck = 'registry-integrity';
+      if (integrity(item.name, item.version) !== item.registryIntegrity)
+        throw new PublicationError('publication-uncertain');
+      lastCheck = 'registry-channel';
+      if (observed.tags[plan.tag] !== item.version)
         throw new PublicationError('publication-uncertain');
       completed.push({
         name: item.name,
@@ -368,6 +384,8 @@ export async function publishRelease(
         [...completed],
         attempted ? { name: item.name, version: item.version } : undefined,
         error instanceof PublicationError ? error.npmCode : undefined,
+        lastCheck,
+        npmExitStatus,
       );
     }
   }

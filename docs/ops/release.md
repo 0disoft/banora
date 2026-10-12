@@ -171,6 +171,8 @@ child logs in receipts. Any failed/timed-out upload or inconclusive post-check s
 later packages as `publication-uncertain`, returning confirmed package progress
 and the attempted name/version. A failed npm process also supplies an allowlisted
 `npmCode` (or `unknown`), without provider messages, paths or raw logs.
+`lastCheck` identifies archive verification, the upload command or the specific
+registry post-check; `npmExitStatus` is present only if the process returned.
 Do not blindly retry: inspect registry state and
 retain the reviewed bytes. A later approved run may resume confirmed matching
 versions. Fresh registry-installed consumers have the separate command below;

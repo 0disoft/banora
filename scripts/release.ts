@@ -220,6 +220,10 @@ if (import.meta.main) {
                 completed: error.completed,
                 ...(error.attempted ? { attempted: error.attempted } : {}),
                 ...(error.npmCode ? { npmCode: error.npmCode } : {}),
+                ...(error.lastCheck ? { lastCheck: error.lastCheck } : {}),
+                ...(error.npmExitStatus !== undefined
+                  ? { npmExitStatus: error.npmExitStatus }
+                  : {}),
               }
             : {}),
         },

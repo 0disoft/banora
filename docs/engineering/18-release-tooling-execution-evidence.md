@@ -323,3 +323,16 @@ The bounded receipt lacked the npm error code. Publication tooling now preserves
 only fixed allowlisted codes, retaining the stop/no-retry and private-log boundaries.
 Focused regressions passed 18 tests / 207 assertions; typecheck, lint, format and
 file signals passed. The diagnosed failure and actual release remain separate work.
+
+All five temporary stage IDs were then individually verified and rejected through
+owner 2FA. npm's stage command documentation confirms that staged and published
+versions share their unique index. Preparation `38207852815` passed all nine gates
+at `a496163`, and its independently downloaded 149 files passed verification with
+manifest SHA256 `660b4461681a7bd3cb217af74e6df9e671ed9cd2164422af5c6c29816c3ee1af`.
+CI `38207852769` passed 217 tests / 3,060 assertions. The subsequent publication
+`38209308217` nevertheless stopped at the SDK, with no confirmed packages or npm
+process code; fresh SDK metadata still listed only the placeholder. The updated
+receipt records the exact last check and a returned process exit status, separating
+pre-command failures from upload and post-check failures without raw logs. Focused
+regressions passed 19 tests / 211 assertions, typecheck and lint. No successful
+publication or registry-installed health is inferred from these attempts.
