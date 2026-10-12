@@ -1,8 +1,10 @@
 # Risk Register
 
-- Status: M1-M4 local implementation evidence in the
-  [delivery audit](../engineering/10-delivery-audit.md); broader/release risks remain
-- Technical owners: UNASSIGNED
+- Status: M1-M4 implementation and initial `0.1.0` publication verified in the
+  [delivery audit](../engineering/10-delivery-audit.md) and
+  [release evidence](../engineering/27-initial-default-channel-release-evidence.md);
+  broader environment, provider and host-service risks remain
+- Technical owner: `0disoft` (solo maintainer)
 - Related scope: [Product specification](02-spec.md)
 
 | Risk                                      | Consequence                                                   | Planned response / closure evidence                                                                                                                       |
@@ -12,7 +14,7 @@
 | Studio grows into a separate product      | Demo work delays the SDK release                              | Keep its first scope to local SGF review/basic editing; defer accounts, cloud storage and analysis                                                        |
 | Rule names hide incomplete semantics      | Incorrect moves or results                                    | Specify each profile's policies; cover ko, repetition, suicide and scoring with focused fixtures                                                          |
 | SGF interpretation or encoding loses data | Edited records cannot be trusted                              | Define supported properties/encodings; round-trip real fixtures including unknown properties and branches                                                 |
-| Large or malformed records                | Frozen UI or excessive memory                                 | Implemented input/tree/value limits and diagnostics are owned by SDK compatibility; measured large-record UI cost remains open                            |
+| Large or malformed records                | Frozen UI or excessive memory                                 | Input/tree/value limits and actual Node/Studio timing plus lifecycle measurements exist; peak/RSS, other workloads and device budgets remain unverified   |
 | Duplicate state in UI and core            | Renderer-specific game behavior                               | One state authority; adapters issue actions and subscribe to snapshots                                                                                    |
 | Navigation mixed with edit Undo           | Review actions obscure changes or restore the wrong branch    | Separate cursor navigation, repetition history and record edit history; group comment edit sessions                                                       |
 | Incorrect dirty/export baseline           | Lost edits or misleading save status                          | Semantic comparison, Undo-to-baseline behavior and Export/Discard/Cancel; failed export/import preserves state; download is not proof of disk persistence |
@@ -28,8 +30,10 @@
 
 ## Decisions Still Open
 
-- Registry name ownership and release versions. Implemented API identifiers,
-  entrypoints and artifacts are owned by the SDK contracts; future extensions remain open.
+- Future releases and extensions beyond the published `@0disoft` initial `0.1.0`
+  family. Package names, peers, exports and executed publication are resolved in
+  [ADR 0023](../adr/0023-existing-publisher-package-identity.md) and
+  [ADR 0025](../adr/0025-initial-default-channel-release.md).
 - Broader browser support floors and additional runtime versions. The actual Node,
   browser, framework, peer/compiler and artifact evidence is recorded in compatibility.
 - Remaining FF4 property coverage and additional encoding fixture evidence. The
@@ -43,6 +47,12 @@
   backend versions beyond the [selected local CPU evidence](../engineering/11-live-katago-evidence.md).
   Host-owned stdio is demonstrated; broader service transports remain host choices.
 - Hosted collaboration/storage design and any commercial service commitment.
+
+Measured [Node](../engineering/14-sdk-performance-evidence.md),
+[Studio](../engineering/17-browser-performance-evidence.md) and
+[retained lifecycle resources](../engineering/22-browser-memory-lifecycle-evidence.md)
+establish scoped baselines and observed improvements. They do not supply universal
+latency/byte thresholds, peak memory or real-device guarantees.
 
 Resolve each item in the owning document before its milestone claims support.
 Package layout, initial major targets, client-only board rendering, SGF FF4/UTF-8

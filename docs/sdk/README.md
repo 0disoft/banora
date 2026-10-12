@@ -65,9 +65,9 @@ versions, component packaging and SSR behavior require framework-specific eviden
 
 Use one common SDK package and three separate optional adapter packages in this
 repository. Initial targets are Node 24 LTS, React 19, Vue 3 and Svelte 5; tested
-support outside the recorded evidence is pending. The common SDK's development
-name/exports and three adapter APIs are implemented; actual peers/artifacts and
+support outside the recorded evidence is pending. The initial `0.1.0` SDK, optional
+CLI and three adapters are published; actual peers/artifacts and
 tested versions are listed in compatibility. Broader browser floors remain pending.
-No installation snippet should imply an available package until a
-release exists. Published packages must include type declarations, license files,
+The [release record](../engineering/27-initial-default-channel-release-evidence.md)
+documents fresh registry installation and default npm onboarding. Published packages include type declarations, license files,
 asset notices, documented exports and actual consumer validation.

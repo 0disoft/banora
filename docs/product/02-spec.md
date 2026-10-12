@@ -2,7 +2,7 @@
 
 - Status: M1-M4 implementation/local exit evidence complete in the declared coverage;
   see the [delivery audit](../engineering/10-delivery-audit.md)
-- Technical owner: UNASSIGNED
+- Technical owner: `0disoft` (solo maintainer)
 - Delivery sequence: [Roadmap](01-roadmap.md)
 - Architecture decisions: [ADR index](../adr/README.md)
 

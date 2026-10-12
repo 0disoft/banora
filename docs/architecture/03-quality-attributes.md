@@ -15,8 +15,13 @@
 | Privacy          | Local workflows need no account or data upload                                | Verify no implicit network calls or default telemetry                    |
 | Portability      | Explicitly tested browser/server versions                                     | Consumer smoke checks in the declared runtime matrix                     |
 
-Numerical latency, memory and bundle targets remain UNDECIDED until the initial
-implementation establishes a baseline. See the
+Actual [Node timing](../engineering/14-sdk-performance-evidence.md),
+[Studio timing](../engineering/17-browser-performance-evidence.md) and
+[retained-resource measurements](../engineering/22-browser-memory-lifecycle-evidence.md)
+establish scoped baselines. Universal latency, peak-memory and bundle budgets
+remain UNDECIDED; observed timings are not service guarantees. The owner's
+physical-device/screen-reader waiver and executed keyboard/native zoom scope are
+recorded in [compatibility](../sdk/compatibility.md#executed-browser-scope). See the
 [performance budget](../engineering/03-performance-budget.md) and
 [testing standard](../engineering/05-testing-standard.md).
 

@@ -43,7 +43,7 @@ This is an ownership decision, not evidence that such a service exists.
 | 5   | Interface types, documents and compatibility     | Source-generated declarations, frozen automation/checkpoint schemas and actual installed SDK/CLI/framework consumers exist. Root validation and installed types/SSR consumers now pass on Windows and hosted Ubuntu. Broader runtime/browser floors remain unclaimed.                                                                                                                          |
 | 6   | Validated configuration and safe secrets         | [Configuration](../ops/config-and-env.md) records actual defaults/validation/reload ownership; [secrets](../ops/secrets.md) separates CI/host credentials and authored-data privacy. No SDK environment loader or embedded secret is introduced.                                                                                                                                               |
 | 7   | Normal/error/boundary development fixtures       | [Fixture index](../../examples/fixtures/README.md) connects authored normal/error/boundary cases to actual regressions and safe resets; installed recipes execute and preserve isolated state.                                                                                                                                                                                                 |
-| 8   | Fast regression checks with repro cases          | Current local root check passed 245 tests/3,528 assertions and 298 installed CLI checks; VALIDATION exposes focused files, named migration checks and browser scopes. Real installed packages/default npm onboarding passed; fixtures reproduce failures without substituting for positive release execution.                                                                                  |
+| 8   | Fast regression checks with repro cases          | Hosted root check at 380c7a7 passed 248 tests/3,576 assertions and 298 installed CLI checks; VALIDATION exposes focused files, named migration checks and browser scopes. Real installed packages/default npm onboarding passed; fixtures reproduce failures without substituting for positive release execution.                                                                              |
 | 9   | Change-aware CI and caching                      | [CI source](../../.github/workflows/ci.yml) configures one cached, cancellable, change-aware job. [Main run 38164778251](https://github.com/0disoft/banora/actions/runs/38164778251) passed root/installed consumers, full production browser, dependency audit and standalone editor at fed716a in 3m46s; monthly-only step correctly skipped. See [flow evidence](16-product-flow-audit.md). |
 | 10  | Stable updates within supported majors           | Bun major ranges, frozen lockfile and grouped monthly update configuration exist. The remote default-main Dependabot blob matches reviewed source after the validated push; [update policy](../ops/ci.md) keeps promotions reviewed. Actual Bun/Actions bot jobs succeeded at fed716a with no needed updates; no changed-lockfile PR or auto-merge is claimed.                                 |
 | 11  | Format/static/forbidden-pattern/size rules       | Oxlint/Oxfmt, import boundaries, forbidden authority/secret signals and 40 KB source review candidates run in check; current lint/format/boundaries pass. Size is a review signal, not an arbitrary functional failure.                                                                                                                                                                        |
@@ -63,14 +63,16 @@ This is an ownership decision, not evidence that such a service exists.
 
 ## Product Workflows
 
-The following workflow/audit rows now reflect current source review. Production
-browser evidence includes the completed run at 5648c12 plus Studio row reuse,
-including the latest pass/komi presentation and tree-navigation scenarios. Current
-root check passed 198 tests/2,770 assertions and 297 installed CLI checks; the
-browser measurement separately completed native/4x CPU workloads. Earlier independent installation,
-engine, benchmark and retained-release evidence remain tied to their own sources.
-See the [current product audit](16-product-flow-audit.md) for actual repro/fix limits.
-These statements replace stale work plans, not the outstanding distribution gates.
+The rows below combine current source review with separately scoped execution.
+[Main CI 38282906525](https://github.com/0disoft/banora/actions/runs/38282906525)
+passed the full affected production-browser scope at `7ecddf1`, including the
+final-Undo menu focus correction. Private source-recovery changes at `380c7a7`
+passed root/installed consumers in
+[CI 38285481945](https://github.com/0disoft/banora/actions/runs/38285481945):
+248 tests/3,576 assertions and 298 installed CLI checks, without another browser
+run. Native zoom and offline source recovery have their own execution records.
+Package source has no diff from published `8ce3526`; earlier engine, framework,
+benchmark and release evidence stays bound to its recorded source and scope.
 
 | ID  | Requested outcome                        | Current source / execution evidence                                                                                                                                                                                                                                                           |
 | --- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

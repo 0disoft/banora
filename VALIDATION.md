@@ -1,6 +1,7 @@
 # Validation
 
-- Status: Active local validation; hosted Linux main CI passed at 932b583
+- Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
+  full affected production browser CI passed at `7ecddf1`; executed scope below
 
 ## Validation Source of Truth
 

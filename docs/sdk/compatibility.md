@@ -132,7 +132,7 @@ physical devices and browser floors are not verified by these declared execution
 | Vue adapter               | Vue 3, client mount and server host rendering           | Vue 3.5.43; production refs/lifecycle and packed types/SSR checked                                                |
 | Svelte adapter            | Svelte 5, native components and server host rendering   | Svelte 5.57.2; production lifecycle and native tarball types/SSR checked                                          |
 | Bun                       | Development/package scripts                             | Bun 1.x; checked with 1.4.2; consumer runtime support unclaimed                                                   |
-| AI adapter                | Host-selected engine/service transport                  | Protocol/version matrix UNDECIDED                                                                                 |
+| AI adapter                | Host-selected engine/service transport                  | KataGo 1.18.1 Eigen CPU/Windows specified model/context checks passed; broader backends unclaimed                 |
 
 Headless imports must not reference browser globals at module initialization.
 Headless core/records are intended for server-side use; board views mount after a
@@ -239,8 +239,10 @@ plain Node cannot directly execute `.svelte` files.
 Production examples verify shared and owned state, configuration changes, latest
 callbacks, controller replacement, unsubscribe/remount and edit Undo. React's
 consumer enables Strict Mode; Vue's consumer intentionally uses an ordinary ref.
-No board HTML/hydration, full SSR framework deployment, real-device, Firefox,
-Safari or additional framework-major support is claimed by these checks.
+These original adapter checks alone do not prove board HTML/hydration, a full SSR
+framework deployment, real devices or additional framework majors. Later scoped
+Firefox/WebKit execution is recorded in Executed Browser Scope above; WebKit on
+Windows is not actual Safari/iOS evidence.
 
 The SDK tarball also contains the self-contained IIFE `dist/banora.global.js` and
 its ambient namespace declaration. A separate VM consumer executes that exact
@@ -390,8 +392,9 @@ the optional locator selects a validated target in the same atomic import.
 Headless tests and the installed Node consumer verify Unicode, collections,
 branch targets, position redaction, malformed inputs, bounds and dirty guards.
 Browser opening/copying evidence is tracked separately in implementation status.
-No public hosting, storage, encrypted links or cross-browser URL-length guarantee
-is claimed. Position links deliberately omit capture/repetition/rule history.
+Link encoding supplies no hosted storage, encryption or cross-browser URL-length
+guarantee. The public static demo does not store shared records. Position links
+deliberately omit capture/repetition/rule history.
 
 ## Local Engine Compatibility
 

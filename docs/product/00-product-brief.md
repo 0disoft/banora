@@ -1,7 +1,9 @@
 # Product Brief
 
-- Status: Design baseline; implementation not started
-- Technical owner: UNASSIGNED
+- Status: Initial `0.1.0` SDK family published; implemented scope and tested environments
+  are recorded in the [release evidence](../engineering/27-initial-default-channel-release-evidence.md)
+  and [compatibility contract](../sdk/compatibility.md)
+- Technical owner: `0disoft` (solo maintainer)
 - Product scope: [Product specification](02-spec.md)
 
 ## Purpose
@@ -21,7 +23,7 @@ board, rules, and record model rather than separate implementations.
 ## First Consumer: Banora Studio
 
 The first integration target is Banora Studio, a browser-based SGF review and
-editing application planned for `examples/studio` in the same repository. It is
+editing application implemented in `examples/studio` in the same repository. It is
 both a usable public demo for Go players and a reference consumer for developers.
 
 The initial interface contains a board, move navigation controls, a variation
@@ -59,8 +61,8 @@ runnable examples for common integrations.
 
 ## Open Source and Sustainability
 
-MIT is the intended license for original code and bundled assets, subject to a
-license file and verified provenance before distribution. Maintain separate
+Original code is distributed under the repository's [MIT license](../../LICENSE),
+also included in the published packages and classic-script notice. Maintain separate
 license notices for any third-party code, fonts, images, and analysis components.
 
 Possible paid services include hosted AI analysis, collaborative reviews, and

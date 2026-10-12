@@ -4,6 +4,10 @@ This file tracks evidence against the complete [roadmap](../product/01-roadmap.m
 An implemented slice does not complete its milestone or establish untested compatibility.
 The [final delivery audit](10-delivery-audit.md) now maps all M1-M4 requirements and
 local exit evidence; the implementation scope is complete within that coverage.
+All five `0.1.0` packages are now published on npm's default channel; see the
+[actual release](27-initial-default-channel-release-evidence.md). Earlier per-slice
+test counts below remain historical. Current root/publication/browser/recovery
+evidence and its limits belong to the [readiness review](12-readiness-review.md).
 
 ## Current Evidence
 
@@ -22,7 +26,7 @@ local exit evidence; the implementation scope is complete within that coverage.
 - Agent/terminal automation: DOM-free `@0disoft/banora/automation` checked JSON requests,
   immutable discovery schema, isolated record batches and external snapshot
   normalization. Existing controller/rules/scoring APIs own all transitions.
-  The optional unpublished `@0disoft/banora-cli` package exposes an installed `banora` bin
+  The published optional `@0disoft/banora-cli` package exposes an installed `banora` bin
   with structured stdout, bounded stdin/files, exit codes and explicit protected
   file output. Isolated npm artifacts and actual Node 24 Windows processes verify
   schema discovery, edit/reopen/portable selection, snapshot normalization,
@@ -46,8 +50,8 @@ local exit evidence; the implementation scope is complete within that coverage.
   [contract](../sdk/controlled-board.md) and [examples](../../examples/controlled/README.md).
   No external application is adopted; native bridges, physical devices, hydration
   and broader browser/transport support remain separate evidence requirements.
-- Common SDK: `packages/sdk`, local package name `@0disoft/banora`, version `0.1.0-dev.0`.
-  Names are development identifiers, not a claim of npm ownership/publication.
+- Common SDK: `packages/sdk`, published package `@0disoft/banora`, version `0.1.0`.
+  Independent registry consumers and unqualified default installation passed.
 - Immutable headless board transitions: dimensions 2 through 52, rectangular boards,
   play, captures, pass, explicit suicide policy, simple ko and atomic setup.
 - M3 repetition core: explicit positional/situational superko with immutable exact

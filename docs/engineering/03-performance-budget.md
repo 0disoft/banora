@@ -1,7 +1,8 @@
 # Performance Budget
 
-- Status: Reproducible desktop Node SDK baseline measured; browser/device budgets pending
-- Technical owner: UNASSIGNED
+- Status: Node/Studio timing and retained lifecycle resources measured in their
+  declared profiles; universal byte/time and physical-device budgets unclaimed
+- Technical owner: `0disoft` (solo maintainer)
 - Decision: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 
 ## Workloads and Measurements
@@ -42,10 +43,12 @@ version/platform/architecture, commit/dirty flag, controller source digest and a
 process memory snapshot without authored record content or paths. Root invocation
 builds current source; a directly run stale artifact cannot establish a current baseline.
 
-See the [measured baseline](14-sdk-performance-evidence.md). Browser rendering,
-input-to-paint, thumbnails/overlays and representative low-spec/physical-device
-budgets remain UNDECIDED/unmeasured. Desktop SDK timings and one process memory
-snapshot do not prove frame rate, peak allocation, an SLO or a device guarantee.
+See the [Node baseline](14-sdk-performance-evidence.md) and
+[Studio measurements](17-browser-performance-evidence.md). Native and 4x emulated
+CPU profiles measured import/navigation through two animation frames and guided
+row-reuse optimization. Physical input-to-paint, thumbnails/overlays and actual
+low-spec-device budgets remain unmeasured. Timings, memory snapshots and lifecycle
+collection checks do not prove frame rate, peak allocation, an SLO or a device guarantee.
 
 Measured desktop long-record navigation led to one-path state construction and lazy
 initial-position creation after checking the bounded replay cache. Cached ancestors
