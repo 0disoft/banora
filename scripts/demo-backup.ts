@@ -270,10 +270,10 @@ if (import.meta.main) {
     }
     console.log(
       JSON.stringify({
-        schemaVersion: 'banora.demo-backup-command/v1',
         ok: true,
         operation: request.action,
         ...result,
+        schemaVersion: 'banora.demo-backup-command/v1',
       }),
     );
   } catch {

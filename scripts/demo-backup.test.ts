@@ -229,6 +229,7 @@ test('offline plan never needs provider access and execution refuses forged or u
     });
     expect(child.status).toBe(0);
     expect(JSON.parse(child.stdout)).toMatchObject({
+      schemaVersion: 'banora.demo-backup-command/v1',
       ok: true,
       operation: 'plan',
       manifestSha256: f.hash,
