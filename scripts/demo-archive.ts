@@ -24,7 +24,10 @@ export const demoPath = (name: string) =>
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 
 /** Bounded USTAR/GNU regular-file inventory; never extract or execute entries. */
-export function demoInventory(input: Uint8Array): DemoInventory {
+export function demoInventory(
+  input: Uint8Array,
+  inspect?: (name: string, data: Uint8Array) => void,
+): DemoInventory {
   const tar = Buffer.from(input.buffer, input.byteOffset, input.byteLength);
   if (tar.length < 1024 || tar.length > demoArchiveLimit || tar.length % 512)
     throw Error('archive');
@@ -76,6 +79,7 @@ export function demoInventory(input: Uint8Array): DemoInventory {
       if (type !== 53) {
         if (files.length >= 512) throw Error('archive');
         files.push({ name, bytes, sha256: hash(tar.subarray(start, start + bytes)) });
+        inspect?.(name, tar.subarray(start, start + bytes));
       }
     }
     offset = start + Math.ceil(bytes / 512) * 512;
@@ -93,7 +97,7 @@ export async function regularDemoDirectory(directory: string) {
   }
 }
 
-export async function readDemoInventory(path: string) {
+export async function readDemoTar(path: string) {
   const full = resolve(path);
   await regularDemoDirectory(dirname(full));
   const before = await lstat(full);
@@ -125,8 +129,12 @@ export async function readDemoInventory(path: string) {
       after.size !== before.size
     )
       throw Error('archive');
-    return demoInventory(buffer);
+    return buffer;
   } finally {
     await file.close();
   }
+}
+
+export async function readDemoInventory(path: string) {
+  return demoInventory(await readDemoTar(path));
 }
