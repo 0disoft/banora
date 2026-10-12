@@ -33,8 +33,10 @@ Use one repository with one common SDK package and three separate optional adapt
 packages: React, Vue and Svelte. Logical core/record/renderer modules may use selective
 entrypoints within the common SDK; they are not separate release units. Package
 names are `@0disoft/banora`, `@0disoft/banora-react`, `@0disoft/banora-vue` and
-`@0disoft/banora-svelte`, with optional `@0disoft/banora-cli`. None is published;
-local naming does not reserve registry names or establish publication authority.
+`@0disoft/banora-svelte`, with optional `@0disoft/banora-cli`. All five were published
+as the development prerelease `0.1.0-dev.0`; publication and installed-consumer
+evidence belong to the [readiness review](../engineering/12-readiness-review.md#execution-evidence).
+This prerelease does not establish stable support.
 See [ADR 0023](../adr/0023-existing-publisher-package-identity.md). Actual symbols are
 listed in the [public API](public-api.md). CommonJS support is
 UNDECIDED and must not be claimed without consumer evidence.
@@ -42,6 +44,10 @@ UNDECIDED and must not be claimed without consumer evidence.
 ## Runtime Boundaries
 
 ### Executed Browser Scope
+
+The owner declined physical-device and screen-reader checks on October 12, 2026.
+They are outside the required completion scope; the evidence below continues to
+limit support claims to the environments and workflows actually executed.
 
 The complete production suite passed on Windows x64 Headless Chrome 154 and on
 hosted Ubuntu x64 Headless Chrome 155 (Bun 1.4.3/Node 24.21.0); the hosted run also

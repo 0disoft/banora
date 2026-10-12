@@ -117,7 +117,7 @@ These statements replace stale work plans, not the outstanding distribution gate
 | 60  | Real permission boundaries                      | No local users/tenants exist. Controlled intention keys are freshness labels, not auth; host authorization is explicit. CI permissions and input/URL/texture boundaries have source/static/headless coverage; no deployed tenant-access test is claimed.                                                                                                   |
 | 61  | Avoid sensitive data in logs/storage/output     | Current diagnostic privacy/callback tests and actual browser report validation exclude authored text, raw exceptions and paths. Drafts/embedded links intentionally contain private authored data; consent, deletion and host-sharing obligations are documented.                                                                                          |
 | 62  | Complete data lifecycle                         | Import/export, local drafts, portable backups, explicit revision-checked deletion and preference-only reset execute without global storage clear. Future data can be backed up without coercion. There is no SDK account; hosts own account/tenant deletion.                                                                                               |
-| 63  | Keyboard/zoom/assistive workflows               | Chrome keyboard/editing and localized modal focus/Escape pass. Focused Windows Firefox 156 and WebKit 26.6 search/tree/dialog and framework-sharing flows pass; guard activation now uses Enter. Tree focus survives navigation/tail replacement. Arbitrary zoom, physical screen readers/devices remain unverified.                                       |
+| 63  | Keyboard/zoom/assistive workflows               | Chrome keyboard/editing and localized modal focus/Escape pass. Current Windows Firefox 156/WebKit 26.6 profiles pass 22 scopes, including keyboard focus retention. Arbitrary zoom remains unverified. The owner waived physical-device/screen-reader checks on October 12; no certification is claimed.                                                   |
 | 64  | Small screens/long text/languages               | Chrome four-language/narrow/menu/search/recovery fixtures pass. Focused Windows Firefox 156 and WebKit 26.6 search/tree/localized/narrow native-dialog flows also pass; see [compatibility scope](../sdk/compatibility.md#executed-browser-scope). CPU throttling is emulation; physical low-spec and other engine/feature combinations remain unverified. |
 | 65  | Measure and improve real bottlenecks            | [Node evidence](14-sdk-performance-evidence.md) measures public SDK path-cache work; [browser evidence](17-browser-performance-evidence.md) measures actual Studio imports/navigation/heap snapshots and row-reuse gains at native/4x CPU. Physical paint, memory peak/leaks and actual low-spec devices remain unmeasured.                                |
 | 66  | Control operating cost growth                   | Bounded local drafts/preferences/search/diagnostics and one cached cancellable change-aware CI job constrain owned growth. No default SDK network or worker is started. Hosted cost/scale remains a host obligation; no measured service-cost model is claimed.                                                                                            |
@@ -126,7 +126,7 @@ These statements replace stale work plans, not the outstanding distribution gate
 | 69  | Verified failure recovery                       | Corrupt/future/quota/conflict/cancel recovery fixtures pass. Actual Pages recovery restored preserved original tar bytes and verified 46 live files plus Studio export/reopen. Disk/data and npm-channel recovery remain unverified.                                                                                                                       |
 | 70  | Fresh install/update/release and rollback       | Installed SDK/CLI/framework/starter and frozen setup pass locally/hosted. Five npm development packages passed fresh-registry installation. Actual retained-tar Pages recovery passed; npm-channel and consuming-host/data rollback remain unverified.                                                                                                     |
 | 71  | Match user-facing promises to reality           | Current README/spec/consumer/ops review keeps SDK implementation distinct from illustrative analysis, manual bridges and host-owned services. Updated localized modal/pass/komi behavior is recorded in its owning specification; broader compatibility remains limited to observed execution.                                                             |
-| 72  | Next three priorities and deferred work         | Next priorities: verify physical device/assistive workflows; extend paint/memory coverage; rehearse prior-version npm-channel/consuming-host recovery. Demo draft capture/recovery is executed; actual expiry/account recovery remains separate. Defer accounts/cloud collaboration/schedulers to hosts and avoid infrastructure without a consumer.       |
+| 72  | Next three priorities and deferred work         | Next priorities: measure paint/memory; rehearse prior-version npm-channel/host recovery; review backup retention/account recovery. Demo draft capture/recovery is executed; actual expiry/account recovery remains separate. Defer accounts/cloud collaboration/schedulers to hosts; avoid infrastructure without a consumer.                              |
 
 ## Completion Rule
 
@@ -144,8 +144,11 @@ public development versions and passed fresh-registry installed consumers.
 Earlier candidates remain preserved; later artifact changes require a new version
 and reviewed candidate. These results do not close unrelated service or device rows.
 
-The full objective still has unproven boundaries: npm-channel and host/data rollback,
-physical devices and assistive technology, and host-owned service operations.
+On October 12, 2026, the owner declined physical-device and screen-reader checks.
+They are outside the required completion scope and are not release gates; no
+real-device or assistive-technology certification is claimed.
+The full objective still has unproven boundaries: npm-channel and host/data rollback
+and host-owned service operations.
 Actual CI, preparation and npm publication/health are recorded below with their scope.
 Both dependency-update ecosystems executed successfully with no needed updates;
 a changed-lockfile compatibility result must be recorded when an update is available.
@@ -165,9 +168,10 @@ required in-scope implementation is complete.
 
 ## Execution Evidence
 
-Latest observed code CI is [run 38251380507](https://github.com/0disoft/banora/actions/runs/38251380507)
-at `aa98362`: 234 tests / 3,277 assertions, installed SDK/classic and 297 installed
-CLI checks passed on Linux with the narrow release-tool route. Windows root
+Latest observed code CI is [run 38254254486](https://github.com/0disoft/banora/actions/runs/38254254486)
+at `9f083df`: 234 tests / 3,277 assertions, installed SDK/classic and 297 installed
+CLI checks passed on Linux, along with the full default Chrome production suite
+and native framework lifecycle flows. Windows root
 checks and actual SDK/CLI/native framework installation are scoped in the history.
 
 The latest fully prepared candidate is `41e0e89`: nine successful gates, 149 retained
@@ -184,7 +188,7 @@ promised. Public source, live Pages, private reporting and the main-only require
 reviewer environment are established. The root security policy is owner-approved
 and installed, including its approved public-repository/private-reporting wording.
 Actual retained-artifact Pages recovery and 46 live-file/Studio checks passed;
-physical device/assistive and npm-channel/host rollback limits remain above.
+npm-channel/host rollback limits and the owner-waived device/assistive checks remain above.
 
 Detailed implementation and execution evidence:
 

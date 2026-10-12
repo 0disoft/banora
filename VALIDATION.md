@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; hosted Linux main CI passed at aa98362
+- Status: Active local validation; hosted Linux main CI passed at 9f083df
 
 ## Validation Source of Truth
 
@@ -111,6 +111,10 @@ source, SGF and touch assertions remain intact. See the
 [current execution record](docs/engineering/21-expanded-browser-execution-evidence.md)
 and [earlier Chrome/history](docs/engineering/16-product-flow-audit.md). This profile
 is not the complete Chrome suite or a physical-device/assistive certification.
+
+On October 12, 2026, the owner declined physical-device and screen-reader
+validation. These checks are outside the required completion scope; their omission
+does not establish device or assistive-technology support.
 
 `scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
 modified/extra files, directory links, source-preserving isolated restaging, actual

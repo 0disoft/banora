@@ -59,8 +59,12 @@ native React/Vue/Svelte consumers rather than relying on the older source's matr
 Local checks passed lint, format, root typecheck and 5 browser-option/scenario-result
 tests / 39 assertions. Rebuilt examples and the focused Chrome analysis route
 passed. Documentation/boundaries/file signals and whitespace checks also passed.
-Hosted CI is pending the final combined push. There is no new Actions job, browser matrix or scheduled download;
-the existing default Chrome CI still covers shared harness changes.
+Hosted Linux [CI run 38254254486](https://github.com/0disoft/banora/actions/runs/38254254486)
+passed at `9f083df`: 234 tests / 3,277 assertions, installed SDK/classic consumers,
+297 installed CLI checks and the full default Chrome production browser suite,
+including native framework lifecycle flows. The existing change-aware job completed
+in 3 minutes 16 seconds. There is no new Actions job, browser matrix or scheduled
+download; the existing default Chrome CI covers shared harness changes.
 
 ## Limits and Owning Contracts
 
@@ -69,8 +73,10 @@ Chromium CDP touch/zoom/performance and native controlled-consumer input remain
 excluded. Emulated touchscreen taps verify browser-dispatched events/layout;
 they do not simulate physical pen accuracy, mobile OS behavior or assistive speech.
 WebKit's Safari/macOS-style user agent is not an actual Apple-device result.
-Browser floors, other operating systems/devices and an installed NVDA/VoiceOver
-workflow require separate evidence.
+Browser floors and other operating systems remain unverified. On October 12,
+2026, the owner explicitly declined physical-device and screen-reader validation.
+Those checks are outside the required completion scope and are not release gates;
+no real-device or NVDA/VoiceOver support claim follows.
 
 No SDK public API, package version, DB/storage schema, dependencies or repository
 hygiene changes. The opt-in runner/profile and analysis fixture are the only code
