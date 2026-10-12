@@ -75,6 +75,9 @@ records actual five-package publication, unqualified installation/README checks
 and downloaded public prepared-bundle recovery.
 [Native desktop zoom](engineering/28-native-browser-zoom-evidence.md) records actual
 100%/200%/400% Chrome workflows and the corrected final-Undo menu focus defect.
+[Offline maintainer recovery](engineering/29-offline-maintainer-recovery-evidence.md)
+records actual source/history/release-tag restoration and execution of the
+independently retained prepared SDK from a recovered checkout.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable

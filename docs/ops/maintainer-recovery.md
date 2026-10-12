@@ -1,7 +1,7 @@
 # Maintainer Source and Account Recovery
 
-Status: source backup and offline restore commands implemented; actual repository
-execution is required before recording a successful rehearsal.
+Status: commands implemented; [actual source/tag and artifact restoration](../engineering/29-offline-maintainer-recovery-evidence.md)
+passed. Provider account recovery and off-device durability remain unverified.
 
 ## Owner and Retention
 
@@ -38,6 +38,11 @@ Capture exclusively writes `source.bundle` and a closed manifest under
 ref count/hash and manifest hash. Dirty/shallow sources stop; source and refs must
 remain unchanged during capture. This uses [Git's offline bundle contract](https://git-scm.com/docs/git-bundle).
 Capture alone is not a successful restore.
+It captures locally available refs, not unseen provider refs. While provider access
+is healthy, inspect the intended release tag and deliberately fetch it with
+`git fetch origin refs/tags/REVIEWED_TAG:refs/tags/REVIEWED_TAG`; verify its commit
+without forcing/replacing a conflicting local tag before capturing. This network
+step is separate from offline capture/recovery.
 
 Retain the reviewed hash and source separately. Restore accepts exactly those two
 regular files, verifies their bytes/schema/identity and creates an exclusive local
