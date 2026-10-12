@@ -265,6 +265,15 @@ actions, expiry and current setup requirements. Choosing staged publication woul
 require a separately reviewed staging/approval/health flow; this workflow does not
 silently turn a staged package into a public release.
 
+When staging initializes a missing package identity, npm creates a public
+`0.0.0-stage` placeholder while retaining the real candidate privately. That staged
+candidate reserves its version: direct publication of the same version is blocked.
+For this direct-publishing workflow, reject only the matching temporary stage IDs
+before execution, preserving the reviewed candidate bundle. Rejection requires
+owner 2FA and must not unpublish the public placeholder or another release.
+See [npm stage](https://docs.npmjs.com/cli/v11/commands/npm-stage/) for the shared
+version index and rejection authentication requirement.
+
 Only the subsequent environment-gated publishing job requests `id-token: write`.
 It downloads the same candidate ID, runs the file/permission gate and executes
 the guarded publisher with the same source/hash/channel. Checkout credentials
