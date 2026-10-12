@@ -57,6 +57,24 @@ No physical paint/device, memory peak/leak or timing threshold claim follows.
 Full functional smoke does not automatically run this measurement; changing its
 scenario selects the focused measurement route in the existing single CI job.
 
+After `bun run build:examples`, opt-in
+`bun scripts/browser-smoke.ts --memory-only` measures nine production lifecycle
+cases: native React/Vue/Svelte mount/unmount, owned/borrowed classic Viewer disposal
+and Studio import/reset at 300 and 5,000 moves. Each fresh case context has three
+warmups and fifteen measured cycles. Active/released checkpoints collect garbage
+explicitly and record JS heap bytes plus DOM document/node/listener counters.
+Actual state, bounded rows, fresh owned records, callback cleanup and borrowed
+controller survival must pass. Source and built-artifact fingerprints must remain
+unchanged. Classic Viewer measurements query public controller instance counts
+and release debugger references; disposed owned controllers must be collected,
+while the host's borrowed controller remains. Complete ordered metrics are required
+before replacing
+`output/playwright/browser-memory.json`. Chromium is required; no threshold runs
+in default functional smoke. This is retained-heap evidence under forced GC, not
+peak allocation, RSS/GPU usage, physical-device or universal leak-free support.
+Memory-tool changes select this focused route in the existing CI job; mixed SDK
+changes continue to select the full functional browser route.
+
 `scripts/accessibility-scenario.js` runs against actual built production pages.
 It checks Studio replacement/removal dialog names in four languages, keyboard
 activation plus native modal focus/Escape, preserved authored state and selection, and three framework

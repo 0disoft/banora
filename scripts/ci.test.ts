@@ -24,6 +24,20 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
   expect(planChecks(['scripts/accessibility-scenario.js']).browser).toEqual([
     '--accessibility-only',
   ]);
+  expect(
+    planChecks([
+      'scripts/browser-memory-scenario.js',
+      'scripts/browser-memory.ts',
+      'scripts/browser-memory.test.ts',
+    ]).browser,
+  ).toEqual(['--memory-only']);
+  expect(commandsFor(planChecks(['scripts/browser-memory.ts']))).toContainEqual([
+    'scripts/browser-smoke.ts',
+    '--memory-only',
+  ]);
+  expect(
+    planChecks(['scripts/browser-memory.ts', 'packages/sdk/src/controller.ts']).browser,
+  ).toEqual(['all']);
   expect(planChecks(['scripts/demo-recovery.ts', 'scripts/demo-recovery.test.ts']).browser).toEqual(
     [],
   );

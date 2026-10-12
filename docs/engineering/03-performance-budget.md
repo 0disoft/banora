@@ -24,6 +24,13 @@ timing; navigation success checks run inside timing. Existing output/input alias
 are never overwritten. No benchmark or flaky timing threshold runs in default CI.
 Tests verify workloads, measurement lifecycle and correctness, not time limits.
 
+The opt-in [memory lifecycle route](../../VALIDATION.md) uses public production
+pages and classic SDK exports to measure repeated import/reset and mount/dispose
+after forced garbage collection. It records baseline and active/released JS heap,
+DOM and listener counters for fifteen cycles after three warmups. These are retained
+snapshots, not peaks or browser-process memory. Byte/leak budgets remain UNDECIDED;
+functional cleanup assertions are enforced without unstable byte/time thresholds.
+
 The committed original study and authored 300/5,000-move 19x19 workloads provide
 small/reference, review-sized and pass-heavy stress coverage. Synthetic workloads
 have a legal opening followed by passes and periodic comments; they are not engine/

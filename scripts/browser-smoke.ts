@@ -5,6 +5,7 @@ import { resolve, sep } from 'node:path';
 import { requireScenarioResult, scenarioExpression } from './scenario-result.js';
 import { releaseInput } from './release-artifacts.js';
 import { syntheticReview } from './performance.js';
+import { browserMemory } from './browser-memory.js';
 
 const root = process.cwd();
 const browserOptions = process.argv.slice(2).filter((arg) => arg.startsWith('--browser'));
@@ -16,8 +17,11 @@ if (
 )
   throw Error('Use one --browser=chrome|msedge|firefox|webkit option.');
 const engine = browser === 'firefox' || browser === 'webkit' ? browser : 'chromium';
-if (process.argv.includes('--performance-only') && engine !== 'chromium')
-  throw Error('Browser performance requires a Chromium engine for CDP measurements.');
+if (
+  process.argv.some((arg) => ['--performance-only', '--memory-only'].includes(arg)) &&
+  engine !== 'chromium'
+)
+  throw Error('Browser measurement requires a Chromium engine for CDP measurements.');
 const release = await releaseInput();
 const output = resolve(root, 'output/playwright');
 await mkdir(output, { recursive: true });
@@ -30,7 +34,10 @@ const server = Bun.serve({
       return new Response('Method not allowed', { status: 405 });
     const pathname = decodeURIComponent(new URL(request.url).pathname);
     const stress = /^\/performance\/(300|5000)\.sgf$/.exec(pathname);
-    if (stress && process.argv.includes('--performance-only')) {
+    if (
+      stress &&
+      process.argv.some((arg) => ['--performance-only', '--memory-only'].includes(arg))
+    ) {
       const moves = Number(stress[1]);
       return new Response(
         syntheticReview(moves).replace(
@@ -415,7 +422,10 @@ try {
     'run-code',
     'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
   );
-  if (process.argv.includes('--performance-only')) {
+  if (process.argv.includes('--memory-only')) {
+    if (release) throw Error('Browser memory measures the current built checkout only.');
+    await browserMemory(root, () => scenario('browser-memory', 'banora-browser-memory-complete'));
+  } else if (process.argv.includes('--performance-only')) {
     await browserPerformance();
   } else if (process.argv.includes('--desktop-only')) {
     await desktopSmoke(address);
