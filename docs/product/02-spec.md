@@ -79,6 +79,9 @@ to their lower-page sections. Controls are moved temporarily and restored on
 Back, outside click, Escape or close; values, handlers and record history are shared.
 Comparison/scoring open on selection without resetting an already-open session.
 The menu follows all four Studio languages and restores keyboard focus on close.
+Escape also returns to the menu trigger when the final Undo disables its focused
+button and the browser moves focus to the document body. An independently focused
+dialog or outside control retains ownership of its keyboard interaction.
 
 Studio restores language, display size/theme, move-number visibility, rotation/
 reflection, touch mode/magnifier, animation enablement/duration, playback interval

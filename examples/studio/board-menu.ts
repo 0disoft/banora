@@ -169,6 +169,21 @@ export function mountBoardMenu(): () => void {
   );
   panel.addEventListener('toggle', position, { signal });
   panel.addEventListener('change', position, { signal });
+  // A completed Undo can disable its focused button and leave focus on body.
+  // Escape still belongs to this open menu; unrelated dialogs retain their focus.
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key !== 'Escape' || event.defaultPrevented || !panel.matches(':popover-open'))
+        return;
+      if (!panel.contains(document.activeElement) && document.activeElement !== document.body)
+        return;
+      event.preventDefault();
+      panel.hidePopover();
+      trigger.focus({ preventScroll: true });
+    },
+    { signal },
+  );
   window.addEventListener('resize', position, { signal });
   window.visualViewport?.addEventListener('resize', position, { signal });
   window.visualViewport?.addEventListener('scroll', position, { signal });

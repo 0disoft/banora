@@ -83,6 +83,13 @@ async (page) => {
       (await page.locator('#move').textContent()) === move,
     'Menu Undo failed to restore shared history',
   );
+  await page.keyboard.press('Escape');
+  verify(
+    (await trigger.getAttribute('aria-expanded')) === 'false' &&
+      (await trigger.evaluate((element) => element === document.activeElement)),
+    'Escape after the final Undo lost menu focus',
+  );
+  await open('tools');
   await panel.locator('[data-back]').click();
   await panel.locator('[data-board-menu-section="scoring"]').click();
   await panel.locator('#score-komi').fill('7.5');
