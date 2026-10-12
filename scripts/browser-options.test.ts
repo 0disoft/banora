@@ -11,6 +11,9 @@ test('invalid browser selections and unsupported measurements fail before launch
     ['--browser=webkit', '--performance-only'],
     ['--browser=firefox', '--memory-only'],
     ['--browser=webkit', '--memory-only'],
+    ['--browser=firefox', '--zoom-only'],
+    ['--browser=webkit', '--zoom-only'],
+    ['--browser=msedge', '--zoom-only'],
   ]) {
     const result = spawnSync(process.execPath, ['scripts/browser-smoke.ts', ...args], {
       encoding: 'utf8',
@@ -19,9 +22,11 @@ test('invalid browser selections and unsupported measurements fail before launch
     expect(result.error).toBeUndefined();
     expect(result.status).toBe(1);
     expect(result.stderr).toContain(
-      args.some((arg) => ['--performance-only', '--memory-only'].includes(arg))
-        ? 'requires a Chromium engine'
-        : 'Use one --browser=',
+      args.includes('--zoom-only')
+        ? 'requires --browser=chrome'
+        : args.some((arg) => ['--performance-only', '--memory-only'].includes(arg))
+          ? 'requires a Chromium engine'
+          : 'Use one --browser=',
     );
     expect(result.stdout).not.toContain('Browser engine:');
   }

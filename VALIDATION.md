@@ -23,6 +23,23 @@ In particular, migration-check is now configured as documented below.
 - docs
 - check
 
+After `bun run build:examples`, `bun scripts/browser-smoke.ts --zoom-only`
+executes native desktop Chrome page zoom at 100%, 200% and 400% in exclusively
+owned temporary profiles. It preserves the outer window and checks the actual
+CSS viewport/pixel ratio with `viewport:null`; it does not emulate a smaller
+viewport or use CSS/pinch zoom. Studio covers four-language menus and replacement
+guards, keyboard editing/Undo/focus, and actual SGF download/reopen preservation;
+React/Vue/Svelte cover their English viewer comment editing and page reflow.
+Source and served-build fingerprints must stay unchanged. Complete execution
+writes `output/playwright/browser-zoom.json`; screenshots capture the native
+compositor viewport without Playwright's CSS-sized clipping. Invalid non-Chrome
+selections fail before starting a server/browser. Isolated zoom-tool changes select
+this focused scope within the existing CI job; mixed runtime changes retain the
+existing functional browser route. Native zoom is opt-in, not an additional
+default browser matrix. Physical devices and screen readers remain owner-waived;
+other zoom levels, engines, real assistive speech and exhaustive feature coverage
+are unclaimed.
+
 Initial `0.1.0` candidate preparation changes the five package versions, installed
 onboarding instructions and SDK peer ceiling intentionally; runtime/data schemas
 stay unchanged. `scripts/package-compatibility.test.ts` checks family version and

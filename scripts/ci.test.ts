@@ -14,6 +14,12 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
   ).toEqual(['--analysis-only', '--playback-only']);
   expect(planChecks(['packages/sdk/src/controller.ts']).browser).toEqual(['all']);
   expect(planChecks(['scripts/tree-navigation-scenario.js']).browser).toEqual(['--tree-only']);
+  expect(planChecks(['scripts/browser-zoom.ts', 'scripts/zoom-scenario.js']).browser).toEqual([
+    '--zoom-only',
+  ]);
+  expect(planChecks(['scripts/browser-zoom.ts', 'packages/sdk/src/controller.ts']).browser).toEqual(
+    ['all'],
+  );
   expect(
     commandsFor(
       planChecks([

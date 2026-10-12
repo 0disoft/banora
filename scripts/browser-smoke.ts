@@ -6,6 +6,7 @@ import { requireScenarioResult, scenarioExpression } from './scenario-result.js'
 import { releaseInput } from './release-artifacts.js';
 import { syntheticReview } from './performance.js';
 import { browserMemory } from './browser-memory.js';
+import { browserZoom } from './browser-zoom.js';
 
 const root = process.cwd();
 const browserOptions = process.argv.slice(2).filter((arg) => arg.startsWith('--browser'));
@@ -17,6 +18,8 @@ if (
 )
   throw Error('Use one --browser=chrome|msedge|firefox|webkit option.');
 const engine = browser === 'firefox' || browser === 'webkit' ? browser : 'chromium';
+if (process.argv.includes('--zoom-only') && browser !== 'chrome')
+  throw Error('Native zoom verification requires --browser=chrome.');
 if (
   process.argv.some((arg) => ['--performance-only', '--memory-only'].includes(arg)) &&
   engine !== 'chromium'
@@ -404,25 +407,30 @@ async function supportSmoke() {
 }
 try {
   const address = `http://127.0.0.1:${server.port}`;
-  await cli('open', `${address}/studio/`, '--browser', browser);
-  requireScenarioResult(
+  if (!process.argv.includes('--zoom-only')) {
+    await cli('open', `${address}/studio/`, '--browser', browser);
+    requireScenarioResult(
+      await cli(
+        'run-code',
+        `async (page) => { if (page.context().browser().browserType().name() !== '${engine}') throw Error('Unexpected browser engine'); return 'banora-engine-${engine}'; }`,
+      ),
+      `banora-engine-${engine}`,
+    );
+    console.log(`Browser engine: ${engine} (${browser})`);
+    console.log((await cli('eval', '() => navigator.userAgent')).trim());
+    // Capture actual UI references before interacting; scenario uses public roles
+    // and selectors, never private SDK/controller hooks.
+    await cli('snapshot');
+    // Pin English for existing role-based fixtures; Studio itself follows host preferences.
     await cli(
       'run-code',
-      `async (page) => { if (page.context().browser().browserType().name() !== '${engine}') throw Error('Unexpected browser engine'); return 'banora-engine-${engine}'; }`,
-    ),
-    `banora-engine-${engine}`,
-  );
-  console.log(`Browser engine: ${engine} (${browser})`);
-  console.log((await cli('eval', '() => navigator.userAgent')).trim());
-  // Capture actual UI references before interacting; scenario uses public roles
-  // and selectors, never private SDK/controller hooks.
-  await cli('snapshot');
-  // Pin English for existing role-based fixtures; Studio itself follows host preferences.
-  await cli(
-    'run-code',
-    'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
-  );
-  if (process.argv.includes('--memory-only')) {
+      'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
+    );
+  }
+  if (process.argv.includes('--zoom-only')) {
+    if (release) throw Error('Native zoom verification uses the current built checkout only.');
+    await browserZoom(root, address);
+  } else if (process.argv.includes('--memory-only')) {
     if (release) throw Error('Browser memory measures the current built checkout only.');
     await browserMemory(root, () => scenario('browser-memory', 'banora-browser-memory-complete'));
   } else if (process.argv.includes('--performance-only')) {
@@ -623,7 +631,7 @@ try {
   }
 } finally {
   try {
-    await cli('close');
+    if (!process.argv.includes('--zoom-only')) await cli('close');
   } finally {
     await server.stop(true);
   }
