@@ -129,7 +129,7 @@ test('manual candidate preparation keeps read-only authority and selects code ve
   expect(upload?.with?.['retention-days']).toBe(14);
   expect(upload?.with?.['if-no-files-found']).toBe('error');
 });
-test('manual Pages deployment confines reviewed write authority to deployment and original draft capture', async () => {
+test('manual Pages deployment confines reviewed write authority to deployment and original draft capture/restore', async () => {
   const path = '.github/workflows/pages.yml';
   type Job = {
     if: string;
@@ -145,7 +145,8 @@ test('manual Pages deployment confines reviewed write authority to deployment an
   const workflow = Bun.YAML.parse(await readFile(path, 'utf8')) as {
     on: Record<string, unknown>;
     jobs: {
-      build: Job;
+      build: Job & { needs: string };
+      restore: Job & { permissions: Record<string, string> };
       health: Job & { needs: string[]; permissions: Record<string, string> };
       archive: Job & { needs: string[]; permissions: Record<string, string> };
       deploy: Job & {
@@ -167,6 +168,11 @@ test('manual Pages deployment confines reviewed write authority to deployment an
   expect(workflow.jobs.archive.if).toContain("needs.health.result == 'success'");
   expect(workflow.jobs.archive.if).toContain("inputs.recovery_backup_release_id == ''");
   expect(workflow.jobs.build.permissions).toBeUndefined();
+  expect(workflow.jobs.build.needs).toBe('restore');
+  expect(workflow.jobs.build.if).toContain("needs.restore.result == 'skipped'");
+  expect(workflow.jobs.restore.permissions).toEqual({ contents: 'write' });
+  expect(workflow.jobs.restore.if).toContain("inputs.recovery_run_id == ''");
+  expect(workflow.jobs.restore.if).toContain("inputs.recovery_tar_sha256 == ''");
   expect(
     workflow.jobs.health.steps.find((step) => step.uses === 'actions/download-artifact@v8')?.with?.[
       'artifact-ids'
@@ -195,11 +201,8 @@ test('manual Pages deployment confines reviewed write authority to deployment an
   expect(workflow.jobs.build.steps.find((step) => step.name === 'Build static examples')?.if).toBe(
     "inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''",
   );
-  const durableRestore = workflow.jobs.build.steps.find(
+  const durableRestore = workflow.jobs.restore.steps.find(
     (step) => step.name === 'Restore reviewed draft backup without original Actions access',
-  );
-  expect(durableRestore?.if).toBe(
-    "inputs.recovery_backup_release_id != '' && inputs.recovery_run_id == ''",
   );
   expect(durableRestore?.run).toContain('bun scripts/demo-backup.ts restore');
   const guard = workflow.jobs.build.steps.findIndex(
@@ -213,7 +216,7 @@ test('manual Pages deployment confines reviewed write authority to deployment an
     'test -z "$BANORA_BACKUP_RELEASE$BANORA_BACKUP_MANIFEST"',
   );
   expect(
-    workflow.jobs.build.steps.find(
+    workflow.jobs.restore.steps.find(
       (step) => step.name === 'Retain verified draft tar for deployment',
     )?.with?.path,
   ).toBe('${{ steps.backup.outputs.directory }}/artifact.tar');
@@ -265,7 +268,7 @@ test('manual Pages deployment confines reviewed write authority to deployment an
       copy.jobs.archive.if = 'true';
     },
     (copy: typeof workflow) => {
-      copy.jobs.build.steps.find(
+      copy.jobs.restore.steps.find(
         (step) => step.name === 'Restore reviewed draft backup without original Actions access',
       )!.run = 'npm publish';
     },

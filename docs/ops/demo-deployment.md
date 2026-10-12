@@ -58,8 +58,9 @@ this does not extend SDK host/data recovery guarantees.
 Successful normal deployments also run a separate `archive` job. Its narrowly
 reviewed Contents write permission creates a maintainer-only Draft Release with
 the exact original tar and bounded manifest. It has no Pages/OIDC/npm write
-authority and never publishes or promotes the draft. Recovery skips archive;
-the build/health jobs remain read-only. The two draft-recovery inputs select
+authority and never publishes or promotes the draft. Recovery skips archive. Its isolated draft-fetch job needs Contents write for
+private draft access and performs only release GET requests. Build/health remain
+read-only, and draft-fetch has no Pages/OIDC permission. The two draft-recovery inputs select
 verified original bytes without requesting the original Actions run/artifact.
 See [draft recovery](rollback.md#restore-a-draft-demo-backup-without-original-actions-retention)
 and [ADR 0024](../adr/0024-draft-release-demo-backups.md). A failed archive may

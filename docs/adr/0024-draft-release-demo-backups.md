@@ -21,8 +21,9 @@ do not modify their bytes or invent an embedded identity to archive them.
 `scripts/demo-backup.ts plan` verifies the tar and produces the independently
 reviewable manifest hash offline. `capture` remains a preview unless `--execute`
 is supplied in the archive job of the matching public-main manual workflow.
-Only the separate archive job receives repository Contents write permission.
-It runs after a successful normal deployment and live file-health check, downloads
+Archive and draft-fetch jobs receive repository Contents write permission;
+GitHub requires push access for maintainer-only drafts even when fetching them.
+The archive job runs after a successful normal deployment and live file-health check, downloads
 the exact built artifact ID and refuses existing draft tags or an incomplete
 release listing. Capture never deletes, replaces, publishes or retries assets.
 An uncertain upload stops and retains the created release ID for inspection.

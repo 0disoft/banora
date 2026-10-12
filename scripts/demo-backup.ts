@@ -88,7 +88,12 @@ function gh(args: string[], limit = 1024 * 1024, timeout = 30000): Buffer {
     windowsHide: true,
     shell: false,
   });
-  if (child.status !== 0) throw Error('provider');
+  if (child.status !== 0) {
+    const status = /\(HTTP (401|403|404|429|500|502|503)\)/.exec(
+      child.stderr?.toString('utf8') ?? '',
+    )?.[1];
+    throw Error(status ? `provider-${status}` : 'provider');
+  }
   return child.stdout;
 }
 const api = (endpoint: string) =>
@@ -276,12 +281,19 @@ if (import.meta.main) {
         schemaVersion: 'banora.demo-backup-command/v1',
       }),
     );
-  } catch {
+  } catch (error) {
     console.log(
       JSON.stringify({
         schemaVersion: 'banora.demo-backup-command/v1',
         ok: false,
         code: phase,
+        ...(phase === 'restore' &&
+        error instanceof Error &&
+        /^(provider(?:-(?:401|403|404|429|500|502|503))?|usage|metadata|manifest|archive|download)$/.test(
+          error.message,
+        )
+          ? { detail: error.message }
+          : {}),
         ...(createdReleaseId ? { releaseId: createdReleaseId } : {}),
       }),
     );

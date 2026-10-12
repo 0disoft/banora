@@ -157,8 +157,10 @@ gh workflow run pages.yml --ref main \
   -f recovery_backup_manifest_sha256=REVIEWED_MANIFEST_SHA256
 ```
 
-The read-only build job does not request the original Actions artifact or run,
-install dependencies or rebuild. The existing Pages deployment job deploys the
+The isolated draft-fetch job needs Contents write to access maintainer-only
+drafts, but its tool performs only release GET requests. Build/health remain
+read-only; recovery does not request the original Actions artifact/run, install
+dependencies or rebuild. The existing Pages deployment job deploys the
 exact reuploaded tar; independent health checks its original live bytes. The
 archive job skips recovery, preventing duplicate backup loops. Mixed or partial
 selections stop before deployment. See [ADR 0024](../adr/0024-draft-release-demo-backups.md).

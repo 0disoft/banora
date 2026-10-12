@@ -43,13 +43,52 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  restore:
+    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false && inputs.recovery_backup_release_id != '' && inputs.recovery_backup_manifest_sha256 != '' && inputs.recovery_run_id == '' && inputs.recovery_artifact_id == '' && inputs.recovery_source_commit == '' && inputs.recovery_archive_digest == '' && inputs.recovery_tar_sha256 == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      artifact_id: ${{ steps.durable.outputs['artifact-id'] }}
+      tar_sha256: ${{ steps.backup.outputs.tar_sha256 }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+      - name: Check workflow and file signals
+        run: bun run security:files
+      - name: Restore reviewed draft backup without original Actions access
+        id: backup
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BANORA_REPOSITORY_PUBLIC: 'true'
+          BANORA_BACKUP_RELEASE: ${{ inputs.recovery_backup_release_id }}
+          BANORA_BACKUP_MANIFEST: ${{ inputs.recovery_backup_manifest_sha256 }}
+        run: |
+          mkdir -p .artifacts
+          bun scripts/demo-backup.ts restore --release-id "$BANORA_BACKUP_RELEASE" --manifest-sha256 "$BANORA_BACKUP_MANIFEST"
+      - name: Retain verified draft tar for deployment
+        id: durable
+        uses: actions/upload-artifact@v7
+        with:
+          name: github-pages
+          path: ${{ steps.backup.outputs.directory }}/artifact.tar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
   build:
-    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false
+    needs: restore
+    if: always() && !cancelled() && (needs.restore.result == 'success' || needs.restore.result == 'skipped') && github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      artifact_id: ${{ steps.original.outputs.artifact_id || steps.restored.outputs['artifact-id'] || steps.durable.outputs['artifact-id'] }}
-      tar_sha256: ${{ steps.fingerprint.outputs.tar_sha256 || steps.backup.outputs.tar_sha256 || inputs.recovery_tar_sha256 }}
+      artifact_id: ${{ steps.original.outputs.artifact_id || steps.restored.outputs['artifact-id'] || needs.restore.outputs.artifact_id }}
+      tar_sha256: ${{ steps.fingerprint.outputs.tar_sha256 || needs.restore.outputs.tar_sha256 || inputs.recovery_tar_sha256 }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -148,31 +187,9 @@ jobs:
           compression-level: 0
           retention-days: 14
 
-      - name: Restore reviewed draft backup without original Actions access
-        if: inputs.recovery_backup_release_id != '' && inputs.recovery_run_id == ''
-        id: backup
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BANORA_REPOSITORY_PUBLIC: 'true'
-          BANORA_BACKUP_RELEASE: ${{ inputs.recovery_backup_release_id }}
-          BANORA_BACKUP_MANIFEST: ${{ inputs.recovery_backup_manifest_sha256 }}
-        run: |
-          mkdir -p .artifacts
-          bun scripts/demo-backup.ts restore --release-id "$BANORA_BACKUP_RELEASE" --manifest-sha256 "$BANORA_BACKUP_MANIFEST"
-      - name: Retain verified draft tar for deployment
-        if: inputs.recovery_backup_release_id != '' && inputs.recovery_run_id == ''
-        id: durable
-        uses: actions/upload-artifact@v7
-        with:
-          name: github-pages
-          path: ${{ steps.backup.outputs.directory }}/artifact.tar
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 14
-
   deploy:
     needs: build
-    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false
+    if: always() && !cancelled() && needs.build.result == 'success' && github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -189,7 +206,7 @@ jobs:
 
   health:
     needs: [build, deploy]
-    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false && needs.deploy.result == 'success'
+    if: always() && !cancelled() && needs.build.result == 'success' && github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false && needs.deploy.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
@@ -224,7 +241,7 @@ jobs:
 
   archive:
     needs: [build, health]
-    if: github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false && needs.health.result == 'success' && inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
+    if: always() && !cancelled() && needs.build.result == 'success' && github.repository == '0disoft/banora' && github.ref == 'refs/heads/main' && github.event.repository.private == false && needs.health.result == 'success' && inputs.recovery_run_id == '' && inputs.recovery_backup_release_id == ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
