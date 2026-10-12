@@ -395,3 +395,18 @@ root reporting-policy diff approval remain separate. SDK APIs, DB, dependencies
 and hygiene are unchanged; only release-tool diagnostics/confirmation and their
 regressions/runbooks changed. Document-only follow-up needs format/docs/signals,
 not another SDK build or production-browser repetition.
+
+### October 12: Approved Public Reporting Policy
+
+The owner approved the exact two-hunk root `SECURITY.md` diff. Its original SHA256
+`35e3a9141354f37ec6fd6ce03f1069ab8ff797b1a4d6216f65087a94774ceb9f`
+was unchanged before applying it. GitHub's live repository API confirmed public
+visibility, enabled Issues and enabled private vulnerability reporting. The root
+policy now links the private reporting route and distinguishes development
+publication from stable support. Invariants, reportability, severity and exclusions
+are unchanged; no response SLA, bounty or backup contact was added.
+
+Policy resolution for release tooling and SDK source selects only root
+`SECURITY.md`. Approval is no longer pending. This documentation-only change uses
+format/docs/file-signal checks; it does not repeat release preparation, publication
+or browser suites, or establish notification delivery and actual response times.

@@ -1,8 +1,8 @@
 # Security Policy
 
 Status: development source policy. Banora is a development SDK/reference consumer,
-not a hosted account service. No verified supported registry release, external private
-reporting channel, response SLA or bounty is established by this document.
+not a hosted account service. No verified supported stable registry release, response SLA
+or bounty is established by this document.
 
 ## System and Scope
 
@@ -97,19 +97,17 @@ be stated, not converted into suppression authority.
 
 ## Reporting and Current Access
 
-As checked on October 12, 2026, the GitHub repository is private with Issues enabled.
-An accessible external private security-report address/channel has not been
-established. Do not send exploit details, authored records or credentials to normal
-issues. Existing contributors should use an owner-approved private channel; this
-document does not invent one or claim that outsiders can reach it.
+As checked on October 12, 2026, the GitHub repository is public with Issues enabled.
+Private vulnerability reporting is enabled through GitHub's repository settings.
+Use [GitHub private reporting](https://github.com/0disoft/banora/security/advisories/new)
+for vulnerabilities and ordinary Issues for bugs or feature requests. Do not send
+exploit details, authored records or credentials to public issues.
 
-Before publication, the owner must designate and verify a real private reporting
-channel, the primary maintainer, account/artifact recovery and disclosure procedure.
-A solo maintainer is valid; record a backup maintainer or escalation contact only
-when one actually exists. Do not invent availability, contacts or reporting access. GitHub repository
-advisories/private reporting are available for public repositories, as described in
-[GitHub's documentation](https://docs.github.com/en/code-security/concepts/vulnerability-reporting-and-management/repository-security-advisories).
-Do not change repository visibility merely to enable that feature.
+The primary maintainer owns reporting access, account/artifact recovery and
+disclosure. A solo maintainer is valid; record a backup maintainer or escalation
+contact only when one actually exists. Verify reporting access and notification
+preferences before claiming an operational response service. No response SLA or
+bounty is promised. See [GitHub's reporting documentation](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository).
 
 Collect only the minimum reproduction and actual affected source/version. Keep
 private reports restricted, coordinate remediation and release notes, and do not

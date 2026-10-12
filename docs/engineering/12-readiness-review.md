@@ -182,7 +182,7 @@ The final verification reused confirmed versions without reupload. Both observed
 `latest` and `dev` tags point to this development prerelease; no stable support is
 promised. Public source, live Pages, private reporting and the main-only required-
 reviewer environment are established. The root security policy is owner-approved
-and installed; its public-reporting wording update awaits exact-diff approval.
+and installed, including its approved public-repository/private-reporting wording.
 Physical device/assistive and live rollback limits remain explicit above.
 
 Detailed implementation and execution evidence:
