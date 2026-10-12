@@ -27,6 +27,17 @@ name/version. Future artifact changes require a new version.
 
 ## Hosted Candidate Preparation
 
+The intentional `0.1.0-dev.1` source candidate corrects the five published READMEs'
+obsolete unpublished/local-build instructions, adds an SDK browser quick start and
+replaces SDK/CLI links that escape the npm package. npm updates its package-page
+README only on a new publication; see [npm's README guidance](https://docs.npmjs.com/about-package-readme-files/).
+All five source package versions and lockfile workspace entries advance together,
+with existing compatible SDK peer floors and dependency versions unchanged.
+This is a documentation correction, not a new SDK feature or stable promotion.
+Source readiness does not imply that the candidate has passed hosted preparation
+or been published. Keep `dev` as the reviewed destination and preserve the original
+`0.1.0-dev.0` artifacts. See the [correction record](../engineering/24-package-readme-correction.md).
+
 The manual-only [prepare-release workflow](../../.github/workflows/prepare-release.yml)
 prepares the dispatched main commit on a GitHub-hosted Ubuntu runner. It accepts
 no arbitrary source, path, registry or shell inputs. Only `0disoft/banora` main
@@ -62,7 +73,7 @@ Maintainers own source review, compatibility and artifact retention. Start in a
 reviewed Banora checkout with `bun run setup` completed. Commit intended changes;
 `bun run release prepare` requires an actual clean Git checkout and private
 `banora-workspace` root. The five packages must use the same intentional version.
-The current development version is `0.1.0-dev.0`; there is no automatic bump.
+The current source development version is `0.1.0-dev.1`; there is no automatic bump.
 
 Preparation runs the root checks and private-file/dependency gates serially, builds
 production examples and packages SDK, CLI, React, Vue and Svelte with lifecycle

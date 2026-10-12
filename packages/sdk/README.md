@@ -6,6 +6,27 @@ and their respective subpaths. See the repository documentation
 for implementation status and the remaining milestones. No third-party runtime
 dependencies or external assets are included.
 
+## Quick Start
+
+Create a container such as `<div id="board"></div>`, then mount in browser code:
+
+```ts
+import { mountViewer } from '@0disoft/banora';
+
+const container = document.getElementById('board');
+if (!container) throw new Error('Missing board container');
+const viewer = mountViewer(container, { sgf: '(;FF[4]GM[1]SZ[9];B[cc];W[gg])' });
+// When removing the view, call viewer.dispose() to release its owned controller.
+```
+
+The viewer is read-only by default. Use `editable: true` to edit, or pass a
+host-owned `RecordController` and dispose that controller separately. See the
+[SDK guide](https://github.com/0disoft/banora/blob/main/docs/sdk/README.md),
+[standalone editor](https://github.com/0disoft/banora/blob/main/examples/standalone/README.md)
+and [live Studio](https://0disoft.github.io/banora/studio/).
+
+## Capabilities
+
 `RecordController.createCheckpoint()` / `loadCheckpoint()` preserve a working
 record, export baseline, selected location and rules without selecting a storage
 service. `@0disoft/banora/checkpoint` supplies checked parsing and schema discovery;
@@ -33,7 +54,7 @@ clear/reload and diagnostic freshness without changing authored/export state.
 `diagnoseAutomation` from root/`@0disoft/banora/automation` runs a canonical request
 once and returns bounded diagnostic evidence with no authored output. Optional
 `banora diagnose` adds reviewed JSON file publication and safe Node environment/
-execution timing. See the [terminal diagnostic contract](../../docs/sdk/diagnostics.md#terminal-and-automation-consumer).
+execution timing. See the [terminal diagnostic contract](https://github.com/0disoft/banora/blob/main/docs/sdk/diagnostics.md#terminal-and-automation-consumer).
 
 `@0disoft/banora/playback` supplies recorded-node Play/Pause with 500–5,000 ms
 intervals, end/manual-edit/import cancellation and borrowed-controller cleanup.

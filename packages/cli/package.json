@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/banora-cli",
-  "version": "0.1.0-dev.0",
+  "version": "0.1.0-dev.1",
   "description": "Machine-readable terminal commands for the Banora Go SDK",
   "type": "module",
   "license": "MIT",

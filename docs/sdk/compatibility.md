@@ -412,7 +412,7 @@ types/artifacts rather than inferring compatibility from the plain-browser examp
 Scope checks and releases to changed packages and affected consumers; common SDK
 changes may require adapter checks, but unrelated edits do not require a full matrix.
 Record actual tested runtime versions in the [implementation status](../engineering/08-implementation-status.md).
-The common package is `0.1.0-dev.0`; no automatic version bump or publication is
+The common package source is `0.1.0-dev.1`; no automatic version bump or publication is
 configured. Version changes belong to an intentional release task.
 
 Local [release preparation](../ops/release.md) checks retained exact tarballs and

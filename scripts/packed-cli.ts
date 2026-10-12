@@ -525,7 +525,13 @@ check(
   ).error.code === 'invalid-request',
   'Future checkpoints must not be silently migrated',
 );
-check(cli(['--version']).version === '0.1.0-dev.0', 'Wrong packaged version');
+const installedCliMetadata = JSON.parse(
+  await readFile(resolve(directory, 'node_modules/@0disoft/banora-cli/package.json'), 'utf8'),
+);
+check(
+  cli(['--version']).version === installedCliMetadata.version,
+  'CLI version disagrees with its installed package metadata',
+);
 check(cli(['create', '--size', '5', '--output', 'new.sgf']).snapshot.width === 5, 'Create failed');
 await writeFile(resolve(directory, 'source.sgf'), '(;SZ[5]XX[retain])');
 await writeFile(

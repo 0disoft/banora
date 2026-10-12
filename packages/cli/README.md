@@ -81,7 +81,7 @@ Run `banora search --input game.sgf --query text --properties C,N,LB --limit 20`
 cover every game/variation, including moves beyond the visible Studio tree limit.
 They change no selection/history or files. Follow `results[0].value.hits[].target`
 through JSON `goto` or use it as a batch target. Exact bounds are in the schema
-and [automation contract](../../docs/sdk/automation.md).
+and [automation contract](https://github.com/0disoft/banora/blob/main/docs/sdk/automation.md).
 
 An operations file can preview changes:
 
@@ -141,7 +141,7 @@ transport errors include no message/path. Existing outputs require `--force`;
 inputs/aliases remain protected. File/stdout report contents match. No authored
 file is changed or data uploaded. Invocation opts in for that run; inspect before
 sharing and delete downloaded reports separately. Full stage/recovery definitions
-are in the [diagnostic contract](../../docs/sdk/diagnostics.md#terminal-and-automation-consumer).
+are in the [diagnostic contract](https://github.com/0disoft/banora/blob/main/docs/sdk/diagnostics.md#terminal-and-automation-consumer).
 
 Operation names: `play`, `previous`, `next`, `goto`, `comment`, `marker`, `setup`,
 `connection`, `stroke`, `remove-stroke`, `clear-strokes`, `remove-branch`,

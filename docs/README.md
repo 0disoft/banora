@@ -64,6 +64,8 @@ records the current 22-scope Firefox/WebKit profile and its device exclusions.
 record actual repeated import/mount/dispose results and controller collection.
 [Package channel preflight](engineering/23-channel-preflight-execution-evidence.md)
 records the complete-family public registry inspection and prior-version limits.
+[Package README correction](engineering/24-package-readme-correction.md) records
+the observed npm onboarding defect and intentional documentation prerelease.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable
