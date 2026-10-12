@@ -176,6 +176,12 @@ Final responses must list executed validations, passed validations, skipped vali
 
 ## Runner Policy
 
+`scripts/demo-health.test.ts` uses an actual system tar and checks exact file
+hashes, unsupported/link/path/checksum/truncation refusal, credential-free fixed-
+origin HTTP, bounded propagation retries, progress, real request deadlines and
+exclusive receipts. Current live artifact bytes passed the read-only tool; this
+does not infer an automatic workflow health job or browser/device certification.
+
 The manually dispatched Pages workflow branches between a fresh static build and
 an exact retained-tar recovery. Workflow regressions bind all inputs/conditions/
 downloads and retain deployment-only write authority. Fresh builds retain public

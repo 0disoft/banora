@@ -116,6 +116,36 @@ expired original candidate; keep original build artifacts and independent copies
 
 ## Registry and Data Boundaries
 
+### Read-Only Live Demo Health
+
+After deployment or recovery, check the exact selected tar against the public
+site. The private commands emit one bounded JSON result without rebuilding,
+publishing, extracting tar entries or changing any deployment:
+
+```sh
+bun scripts/demo-health.ts fingerprint --archive ORIGINAL_ARTIFACT_TAR
+bun scripts/demo-health.ts check --directory DOWNLOADED_DIRECTORY \
+  --sha256 REVIEWED_TAR_SHA256 --receipt .artifacts/demo-health-UNIQUE.json
+```
+
+Fingerprinting inventories the current Pages USTAR/GNU regular-file format: at
+most 64 MiB, 512 files, portable relative paths and a Studio entrypoint. Links,
+duplicates, malformed checksums/truncation and unsupported extended tar formats
+stop. It never extracts files. The health command first verifies the original
+tar hash and regular-file/directory bounds, then checks every public file's size
+and SHA256. When the tar predates `banora-build.json`, that endpoint must return
+404; a newer receipt must not remain after recovery.
+
+HTTP requests go only to `https://0disoft.github.io/banora/`, without credentials
+or redirects, with four concurrent file checks. Each read has a ten-second
+deadline within a 120-second overall window. Content/transport failures allow
+at most three reads per file with two-second waits; definitive auth/redirect/
+size violations stop. No upload/deployment is retried. Receipts retain actual
+completed-file and attempt counts with fixed failure codes, not provider messages
+or file paths. Receipt creation is exclusive; existing reports remain unchanged.
+An interrupted or unwritable report is not successful health evidence. Byte
+checks do not execute a browser or certify user-data/device/host recovery.
+
 For a future authorized npm release, a maintainer may move a channel using
 `npm dist-tag add <package>@<reviewed-previous-version> <channel>`, then inspect
 the tag and test a fresh install. Tags affect subsequent installs; existing

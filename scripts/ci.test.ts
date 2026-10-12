@@ -28,6 +28,10 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
     [],
   );
   expect(
+    planChecks(['scripts/demo-health.ts', 'scripts/demo-archive.ts', 'scripts/demo-health.test.ts'])
+      .browser,
+  ).toEqual([]);
+  expect(
     planChecks(['scripts/demo-recovery.ts', 'packages/sdk/src/controller.ts']).browser,
   ).toEqual(['all']);
   expect(
