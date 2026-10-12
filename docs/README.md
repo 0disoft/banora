@@ -68,6 +68,8 @@ records the complete-family public registry inspection and prior-version limits.
 the observed npm onboarding defect and intentional documentation prerelease.
 [Registry target health](engineering/25-registry-target-health-evidence.md) separates
 old-version installed-consumer checks from current-channel publication health.
+[Installed consumer recovery](engineering/26-installed-consumer-recovery-evidence.md)
+records actual SDK/CLI current-to-previous-to-current portable-data preservation.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable

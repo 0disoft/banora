@@ -32,6 +32,10 @@ behavior requires executing the opt-in drill with actual reviewed packages; auth
 nonexecutable archive fixtures prove only rejection paths. Its private tooling/CI
 route adds no privileged job, browser run, SDK export or package-version change.
 See the [recovery procedure](docs/ops/rollback.md#rehearse-portable-data-across-an-installed-downgrade).
+The [actual installed recovery](docs/engineering/26-installed-consumer-recovery-evidence.md)
+passed dev.1 → dev.0 → dev.1 with exact authored checkpoint/SGF preservation,
+unchanged originals and future-schema rejection. It did not replace host storage
+or mutate an npm tag.
 
 `scripts/channel-plan.test.ts` checks complete-family target/current observations,
 reviewed local/registry integrity, read-only/no-change arguments, mixed or changed

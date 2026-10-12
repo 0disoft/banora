@@ -247,6 +247,9 @@ deploy a host, open or downgrade browser IndexedDB, migrate a host database, or
 test disk durability. Fixtures do not certify arbitrary user data, unknown future
 formats, different releases or all host integrations. Combine it with fresh
 registry target health and the host's actual deployment/storage recovery checks.
+The [executed dev.1/dev.0 drill](../engineering/26-installed-consumer-recovery-evidence.md)
+records actual installed transitions, preserved identities and the failed probe
+expectation separately.
 
 ### Inspect the Channel Before Mutation
 
