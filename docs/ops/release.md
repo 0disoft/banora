@@ -1,8 +1,29 @@
 # Release
 
-Status: artifact preparation, guarded publication tooling and a manual publishing
-workflow implemented; protected environment, registry authority and hosted application
-deployment remain unconfigured. Preparation and preview do not establish a published release.
+Status: five `0.1.0-dev.0` packages published through protected GitHub OIDC, with
+fresh registry-download and installed-consumer health passed. Public source,
+GitHub Pages and private vulnerability reporting are configured. This development
+prerelease does not establish stable support or previous-version rollback.
+
+## Published Development Prerelease
+
+[Publication and health run 38212158941](https://github.com/0disoft/banora/actions/runs/38212158941)
+confirmed the SDK, CLI and React/Vue/Svelte packages against prepared source
+`41e0e897a250674d71ed89e5a41c4fb8429072bc`. Preparation `38211207226` passed all
+nine gates; its 149-file manifest SHA256 is
+`d40ad9ba0cee77a917b06ad8c18d4a22205f2a0944c6994de4491814f7fb6332`.
+The independent health job downloaded fresh registry tarballs, checked SHA256 and
+SHA512 against reviewed bytes, installed SDK/CLI/native framework consumers and
+rechecked the `dev` channel. Final verification reused confirmed versions without
+reuploading them. The five temporary staged identities were rejected through 2FA.
+
+Use `npm install @0disoft/banora@dev` on Node 24.x; optional CLI/adapters also use
+`@dev`. As observed on October 12, npm's `latest` and `dev` tags both resolve to
+`0.1.0-dev.0`. This is a development prerelease even when installed through
+`latest`; the publisher did not execute a retag command. No stable version or
+support SLA is promised. Current documentation describes availability; published
+tarballs retain their original README bytes and are never replaced under the same
+name/version. Future artifact changes require a new version.
 
 ## Hosted Candidate Preparation
 
@@ -425,7 +446,8 @@ reporting; their actual configuration and live demo checks are recorded in
 only `main`, requires `0disoft` approval and permits self-review. Five package
 identities were initialized using the reviewed candidate's staged tarballs;
 their public `0.0.0-stage` placeholders are not SDK releases. Package-specific
-trusted publishers and actual OIDC publication/health remain separate checks.
+trusted publishers and actual OIDC publication/health were subsequently verified
+in the development release recorded above.
 Temporary local CLI login is used only for initial registration; the subsequent
 Actions publisher does not use it. Never request credentials in a public
 issue or invent an address/account to close a readiness row. No full local suite

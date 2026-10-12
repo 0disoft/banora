@@ -1,8 +1,8 @@
 # Banora SDK
 
-Early development package; not published. Core, SGF, controller, SVG board and viewer are
-available through the root export and their respective subpaths after building this
-workspace. See the repository documentation
+Development prerelease. Install with `npm install @0disoft/banora@dev` on Node 24.x.
+Core, SGF, controller, SVG board and viewer are available through the root export
+and their respective subpaths. See the repository documentation
 for implementation status and the remaining milestones. No third-party runtime
 dependencies or external assets are included.
 

@@ -53,7 +53,9 @@ errors. These checks cover the deployed project path, not every browser/device.
 
 The separately configured `npm-release` environment requires approval by `0disoft`,
 permits self-review for this solo-maintainer repository and selects only `main`.
-It is independent of `github-pages`. Each of the five npm packages still needs its
-own trusted publisher matching `0disoft/banora`, `publish.yml`, `npm-release` and
-direct publication permission. See [release](release.md) for immutable candidates,
+It is independent of `github-pages`. All five npm packages have trusted publishers
+matching `0disoft/banora`, `publish.yml`, `npm-release` and direct publication
+permission. Actual development publication and fresh-registry installed-consumer
+checks passed in [run 38212158941](https://github.com/0disoft/banora/actions/runs/38212158941).
+See [release](release.md) for immutable candidates,
 the `dev` channel, fresh registry-consumer checks and partial-upload handling.

@@ -79,9 +79,9 @@ actions and dialogs, focus theme/display-size settings or open the matching boar
 menu section. Brief instructions and the repository Issues link are opt-in help,
 not permanent explanatory content on the board. The Issues link opens externally
 only on user activation, with no record/diagnostic prefill and no referrer.
-The repository was verified private with Issues enabled on 2026-10-11; this channel
-currently requires repository access. Public feedback access is a release-readiness
-item, not established by a working local link or unpublished issue templates.
+The repository is public with Issues enabled as verified on 2026-10-12. Sensitive
+vulnerability reports use the separate GitHub private-reporting channel recorded
+in [demo deployment](../ops/demo-deployment.md).
 
 Expand Diagnostics and explicitly enable local collection. It defaults off and is
 not saved in preferences/storage. Only the current page's explicitly instrumented

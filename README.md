@@ -6,12 +6,25 @@ editors, puzzles, and analysis interfaces.
 **Status: early development snapshot.** Headless rules/SGF/controller, SVG rendering,
 viewer/Studio, optional React/Vue/Svelte adapters, manual scoring, authored puzzles
 and external analysis integration/display are implemented within documented
-coverage. Broader compatibility and release evidence remain separate. Nothing is
-published yet; the capability direction is not an unrestricted support claim.
+coverage. Development prerelease `0.1.0-dev.0` is available on npm through the
+`dev` channel. Broader compatibility and stable support remain separate.
 See [implementation status](docs/engineering/08-implementation-status.md).
 Try [Banora Studio](https://0disoft.github.io/banora/studio/) without installation.
 The [delivery audit](docs/engineering/10-delivery-audit.md) maps the complete M1-M4
 implementation, consumer evidence and remaining release/compatibility boundaries.
+
+## Install
+
+Use Node 24.x. Install the SDK with:
+
+```sh
+npm install @0disoft/banora@dev
+```
+
+Optional packages are `@0disoft/banora-cli@dev`, `@0disoft/banora-react@dev`,
+`@0disoft/banora-vue@dev` and `@0disoft/banora-svelte@dev`. Install only the adapters
+your application uses. These are development prereleases; see the
+[release guide](docs/ops/release.md) for recorded publication and support limits.
 
 ## Local Development
 
@@ -22,8 +35,8 @@ SGF, navigate branches, query legal points/score and inspect external snapshots
 without a browser or vision. `bun run smoke:cli` checks the installed executable.
 
 To start your own app, use the [standalone record editor](examples/standalone/README.md).
-It provides an independent TypeScript/Vite project and explicit local-tarball install
-instructions while the SDK is unpublished. `bun run smoke:starter` installs a copy
+It provides an independent TypeScript/Vite project with npm and local-tarball install
+instructions. `bun run smoke:starter` installs a copy
 with npm and checks its own types, production build and browser editing/reopen flow
 without workspace aliases. Browser checks require a compatible Playwright CLI browser.
 

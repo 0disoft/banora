@@ -359,3 +359,39 @@ The simulated delayed/missing cases passed 21 tests / 220 assertions with virtua
 waits, preserving one upload per package and a bounded uncertain result. Types,
 lint and the retained-byte invariants passed; Vue/Svelte and independent live
 installed consumers remain pending.
+
+### October 12: Five Public Packages and Independent Registry Health
+
+[Preparation 38211207226](https://github.com/0disoft/banora/actions/runs/38211207226)
+passed nine gates at `41e0e897a250674d71ed89e5a41c4fb8429072bc`, tree
+`60e50bd3984b8346caf7cbca6664a5e2d5a6d3bc`, with 149 files and manifest SHA256
+`d40ad9ba0cee77a917b06ad8c18d4a22205f2a0944c6994de4491814f7fb6332`.
+Artifact ID `11729635590` has archive digest
+`f90fd86a5479c4a7436b64450c7cbfe4b820ba2de6f3dfd83f401c74114a59e9`.
+[CI 38211207618](https://github.com/0disoft/banora/actions/runs/38211207618)
+passed 220 tests / 3,073 assertions and installed SDK/CLI checks.
+
+The first Vue and Svelte post-checks exceeded the bounded propagation window.
+Each subsequent fresh query matched its reviewed integrity and `dev` tag before
+another explicit resume; uploads were never repeated. This retains actual
+uncertain receipts rather than relabeling those failed jobs as successes.
+[Final run 38212158941](https://github.com/0disoft/banora/actions/runs/38212158941)
+completed preview, protected publication verification and independent read-only
+health successfully. All five versions were `already-published` with matching
+bytes; health downloaded fresh canonical registry tarballs, checked SHA256/SHA512,
+installed SDK/CLI/native React/Vue/Svelte consumers and rechecked the channel.
+Publication artifact `11730190600` and health artifact `11729911687` were both
+downloaded locally and their bounded JSON receipts report success. Package names
+are `@0disoft/banora`, `@0disoft/banora-cli`, `@0disoft/banora-react`,
+`@0disoft/banora-vue` and `@0disoft/banora-svelte`, all `0.1.0-dev.0`.
+
+All temporary stage IDs were inspected and removed through owner 2FA. No public
+package/version was deleted, and temporary bootstrap CLI authentication had
+already been revoked. npm currently exposes both `latest` and `dev` at this
+development version; no retag command was executed and no stable support is claimed.
+Updated source READMEs do not overwrite the retained or published tarball bytes.
+Physical-device certification, prior-version distribution recovery and the pending
+root reporting-policy diff approval remain separate. SDK APIs, DB, dependencies
+and hygiene are unchanged; only release-tool diagnostics/confirmation and their
+regressions/runbooks changed. Document-only follow-up needs format/docs/signals,
+not another SDK build or production-browser repetition.

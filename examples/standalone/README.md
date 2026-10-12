@@ -6,10 +6,18 @@ TypeScript configuration, styles and original SGF sample; no workspace aliases,
 parent configuration, framework or server service is required.
 Keep the included [MIT notice](LICENSE) when copying or redistributing this starter.
 
-## Install the unpublished SDK
+## Install the development SDK
 
-Banora is **not published**. Do not install an unrelated registry package with a
-similar name. First build and pack the SDK from the Banora repository:
+Copy this directory outside the repository, then install the development prerelease
+and start its independent application on Node 24.x:
+
+```sh
+npm install @0disoft/banora@dev
+npm run build
+npm run dev
+```
+
+For a locally built SDK instead, build and pack it from the Banora repository:
 
 ```sh
 bun install

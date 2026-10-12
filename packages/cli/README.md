@@ -2,9 +2,16 @@
 
 An optional Node 24.x terminal consumer of the Banora SDK. Agents operate on
 logical board state and SGF with JSON requests/responses, without vision, a
-browser, an LLM service or a framework. This development package is unpublished.
+browser, an LLM service or a framework. This is a development prerelease.
 
 ## Local Use and Installation
+
+Install the published development SDK and CLI, then discover their contract:
+
+```sh
+npm install @0disoft/banora@dev @0disoft/banora-cli@dev
+npx --no-install banora schema
+```
 
 In the repository, run `bun install`, then `bun run build:cli`. Run commands as
 `bun run cli --help`, `bun run cli schema` or directly as
@@ -15,8 +22,8 @@ To install built artifacts in another project, create SDK/CLI tarballs with
 `bun pm pack --ignore-scripts` from their respective package directories, then
 install both with `npm install /absolute/path/sdk.tgz /absolute/path/cli.tgz`
 (use their actual filenames). Invoke the installed executable with
-`npx --no-install banora --help`. SDK peer resolution is verified with npm;
-registry installation cannot be assumed before publication.
+`npx --no-install banora --help`. SDK peer resolution is verified with npm.
+The tarball route uses exactly the artifacts you provide.
 
 ## Discover First
 

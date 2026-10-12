@@ -1,7 +1,7 @@
 # Banora SDK
 
-- Status: Common SDK and optional React/Vue/Svelte adapters implemented; unpublished
-- Technical owner: UNASSIGNED
+- Status: Common SDK and optional React/Vue/Svelte development prereleases published
+- Technical owner: 0disoft (primary maintainer)
 
 ## Sources of Truth
 

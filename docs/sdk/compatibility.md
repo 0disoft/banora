@@ -201,7 +201,7 @@ isolation preserves the root/core toolchain. The examples use the Svelte Vite pl
 
 `bun run smoke:adapters` uses npm from Node 24 to install isolated tarballs and
 checks each framework's actual server rendering without DOM globals. Bun 1.4.2
-attempts a registry lookup when resolving the unpublished SDK peer from simultaneous
+attempted a registry lookup when resolving the then-unpublished SDK peer from simultaneous
 local tarballs; npm correctly binds the supplied artifact. Workspace installation
 and build remain Bun-based. Svelte SSR is compiled with its native Vite plugin;
 plain Node cannot directly execute `.svelte` files.

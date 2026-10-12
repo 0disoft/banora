@@ -1,6 +1,6 @@
 # Validation
 
-- Status: Active local validation; hosted Linux main CI passed at 9c35e23
+- Status: Active local validation; hosted Linux main CI passed at 41e0e89
 
 ## Validation Source of Truth
 
@@ -162,14 +162,13 @@ verification for release-only orchestration while retaining all mixed SDK gates.
 Actual hosted artifact retention and downloaded-byte verification require separate
 execution evidence; workflow/static checks alone do not prove those outcomes.
 
-The latest executed preparation is hosted clean source `9c35e23`: all nine named
-gates passed against its retained 149-file bundle. The actual separate hosted
-publication preview downloaded its immutable ID and confirmed all reviewed byte
-bindings; its publishing job was skipped. The independent local download matched
-the manifest hash and passed verification/preview. Its five package tarballs are
-byte-identical to the earlier downloaded ff9edb7 candidate, whose SDK/classic/
-types/license and 297 installed CLI checks passed on Windows. Earlier bundles
-remain preserved; source-specific execution and policy approval are separate.
+The latest executed preparation is hosted clean source `41e0e89`: all nine named
+gates passed against its retained 149-file bundle. Actual publication/health run
+`38212158941` verified all five public `0.1.0-dev.0` versions and their `dev` tags,
+downloaded fresh tarballs matching reviewed SHA256/SHA512, and passed independent
+installed SDK/CLI/React/Vue/Svelte consumers. Its final verification reused already
+confirmed versions without reupload. Earlier bundles remain preserved; stable
+support, physical devices and previous-version live rollback remain separate.
 See [release evidence](docs/engineering/18-release-tooling-execution-evidence.md) for the
 source/tree, manifest hash, tools and exact preservation/publication boundary.
 

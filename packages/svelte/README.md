@@ -1,7 +1,8 @@
 # Banora Svelte
 
-Optional native Svelte 5 adapter for the common Banora SDK. This development package
-is not published. Build it with `bun run build:adapters` from the repository root.
+Optional native Svelte 5 adapter for the common Banora SDK. Install the development
+prerelease with `npm install @0disoft/banora@dev @0disoft/banora-svelte@dev`.
+Build locally with `bun run build:adapters` from the repository root.
 A Svelte-aware compiler/bundler consumes the packaged `.svelte` components.
 
 `ControlledBoard` accepts a required plain `state` and optional `onIntent`, with
