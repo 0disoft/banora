@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (rootPage) => {
+async (rootPage, studioControl) => {
   const address = new URL(rootPage.url()).origin;
   let page = await rootPage.context().newPage();
   await page.goto(`${address}/studio/`);
@@ -56,7 +56,9 @@ async (rootPage) => {
         }),
     );
   const openDrafts = async (target) => {
-    await target.locator('#drafts-open').click();
+    await studioControl(target, '#drafts-open', 'drafts', () =>
+      target.locator('#drafts-open').click(),
+    );
     await expect(target.locator('#drafts-dialog')).toBeVisible();
   };
   const choose = async (target, id) => {
@@ -201,7 +203,7 @@ async (rootPage) => {
     });
     db.close();
   });
-  await page.locator('#new').click();
+  await studioControl(page, '#new', 'record', () => page.locator('#new').click());
   await page.locator('#unsaved button[value="discard"]').click();
   await expect(page.locator('#draft-status')).toHaveText(
     '20 drafts saved. Delete one to continue.',
@@ -332,13 +334,17 @@ async (rootPage) => {
   await page.locator('#export').click();
   await (await exportEvent).saveAs('output/playwright/recovery-reopened.sgf');
   await openDrafts(page);
-  await page.locator('#draft-autosave').uncheck();
+  await studioControl(page, '#draft-autosave', 'drafts', () =>
+    page.locator('#draft-autosave').uncheck(),
+  );
   await page.locator('#draft-close').click();
   await page.reload();
   await expect(page.locator('#draft-status')).toHaveText('Autosave off');
   await openDrafts(page);
   await expect(page.locator('#draft-autosave')).not.toBeChecked();
-  await page.locator('#draft-autosave').check();
+  await studioControl(page, '#draft-autosave', 'drafts', () =>
+    page.locator('#draft-autosave').check(),
+  );
   await page.locator('#draft-close').click();
 
   const denied = await page.context().newPage();

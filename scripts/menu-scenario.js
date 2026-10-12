@@ -105,6 +105,7 @@ async (page) => {
   await open('tools');
   await panel.locator('[data-back]').click();
   await panel.locator('[data-board-menu-section="scoring"]').click();
+  await panel.locator('#score-open').click();
   await panel.locator('#score-komi').fill('7.5');
   await panel.locator('#score-komi').dispatchEvent('change');
   await close();

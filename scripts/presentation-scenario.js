@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin;
   await page.goto(`${origin}/studio/`);
   await page.locator('#file').setInputFiles({
@@ -10,7 +10,9 @@ async (page) => {
   await page.waitForFunction(
     () => document.querySelector('#game-name').textContent === 'Rectangular view',
   );
-  await page.locator('#rotation').selectOption('90');
+  await studioControl(page, '#rotation', 'view', () =>
+    page.locator('#rotation').selectOption('90'),
+  );
   await page.locator('#flip-x').check();
   if ((await page.locator('#dirty').innerText()) !== 'No changes')
     throw Error('Studio presentation changed dirty state');

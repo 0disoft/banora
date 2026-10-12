@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (rootPage) => {
+async (rootPage, studioControl) => {
   const origin = new URL(rootPage.url()).origin;
   const context = await rootPage.context().browser().newContext({ locale: 'en-US' });
   const page = await context.newPage();
@@ -14,7 +14,9 @@ async (rootPage) => {
     if (!condition) throw Error(message);
   };
   const open = async () => {
-    await page.locator('#support-open').click();
+    await studioControl(page, '#support-open', 'support', () =>
+      page.locator('#support-open').click(),
+    );
     await page.locator('#support-dialog').waitFor({ state: 'visible' });
   };
   const close = async () => page.locator('#support-close').click();
@@ -51,7 +53,7 @@ async (rootPage) => {
     await upload('(;SZ[5];B[PrivateInvalidPoint])');
     await page.locator('#comment').fill('PrivateEditedComment');
     await page.locator('#comment').blur();
-    await page.locator('#search-open').click();
+    await studioControl(page, '#search-open', 'search', () => page.locator('#search-open').click());
     await page.locator('#search-query').fill('Private');
     await page.locator('#search-form button').click();
     await page.locator('#search-select-page').click();
@@ -229,8 +231,10 @@ async (rootPage) => {
     );
     await close();
     await page.locator('#language').selectOption('en');
-    await page.locator('#drafts-open').click();
-    await page.locator('#draft-autosave').uncheck();
+    await studioControl(page, '#drafts-open', 'drafts', () => page.locator('#drafts-open').click());
+    await studioControl(page, '#draft-autosave', 'drafts', () =>
+      page.locator('#draft-autosave').uncheck(),
+    );
     await page.locator('#draft-close').click();
     // Delay the public File API, not SDK/controller internals, to reproduce consent changes during real file reading.
     await page.evaluate(() => {

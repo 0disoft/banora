@@ -73,8 +73,9 @@ export function mountSupportControls(
     <details><summary>JSON</summary><pre id="diagnostic-json"></pre></details>
     <p id="diagnostic-status" role="status"></p></details>
     <div class="dialog-actions"><button id="support-close" class="button" type="button">Close</button></div></dialog>`;
-  const find = <T extends HTMLElement>(id: string) => host.querySelector<T>(`#${id}`)!;
-  const dialog = find<HTMLDialogElement>('support-dialog');
+  const find = <T extends HTMLElement>(id: string): T =>
+    (host.querySelector<T>(`#${id}`) ?? dialog.querySelector<T>(`#${id}`))!;
+  const dialog: HTMLDialogElement = find<HTMLDialogElement>('support-dialog');
   const query = find<HTMLInputElement>('support-query');
   const toggle = find<HTMLInputElement>('diagnostic-enabled');
   const abort = new AbortController();
@@ -83,6 +84,9 @@ export function mountSupportControls(
   let disposed = false;
   let launched = false;
   const disposeStatic = localizeUi(host);
+  // Modal ownership is independent of the temporarily borrowed menu controls.
+  document.body.append(dialog);
+  const disposeModalLanguage = localizeUi(dialog);
   function renderActions() {
     const term = query.value.trim().toLocaleLowerCase(getUiLocale());
     const fragment = document.createDocumentFragment();
@@ -115,8 +119,12 @@ export function mountSupportControls(
             .querySelector<HTMLButtonElement>(`[data-board-menu-section="${id.slice(1)}"]`)
             ?.click();
         } else if (target instanceof HTMLSelectElement) {
-          target.scrollIntoView({ block: 'center' });
-          target.focus();
+          if (!target.checkVisibility()) {
+            const panel = document.getElementById('board-menu-panel')!;
+            if (!panel.matches(':popover-open')) document.getElementById('board-menu')!.click();
+            panel.querySelector<HTMLButtonElement>('[data-board-menu-section="view"]')!.click();
+          }
+          target.focus({ preventScroll: true });
         } else target.click();
       });
       const detail = document.createElement('span');
@@ -266,6 +274,8 @@ export function mountSupportControls(
       URL.revokeObjectURL(url);
     }
     timers.clear();
+    disposeModalLanguage();
+    dialog.remove();
     host.replaceChildren();
   };
 }

@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin,
     errors = [];
   page.on('pageerror', (error) => errors.push(String(error)));
@@ -32,8 +32,10 @@ async (page) => {
       (await effects()).every((view) => view.effects.length === 0),
       `${name}: disabled motion animated`,
     );
-    await page.locator('#animation').check();
-    await page.locator('#animation-duration').selectOption('1000');
+    await studioControl(page, '#animation', 'animation', () => page.locator('#animation').check());
+    await studioControl(page, '#animation-duration', 'animation', () =>
+      page.locator('#animation-duration').selectOption('1000'),
+    );
     const state = page.locator(studio ? '#move' : '#state'),
       before = await state.innerText();
     await page.locator(studio ? '#next' : '#advance').click();
@@ -74,7 +76,8 @@ async (page) => {
     });
     for (const format of ['svg', 'png']) {
       const saved = page.waitForEvent('download');
-      await page.locator(studio ? `#${format}-export` : `#${format}`).click();
+      const exportSelector = studio ? `#${format}-export` : `#${format}`;
+      await studioControl(page, exportSelector, 'view', () => page.locator(exportSelector).click());
       const download = await saved;
       await download.saveAs(`output/playwright/${name}-animation.${format}`);
     }
@@ -82,13 +85,17 @@ async (page) => {
       (await state.innerText()).includes(studio ? 'Move 2' : 'changed'),
       `${name}: diagram changed record state`,
     );
-    await page.locator('#animation').uncheck();
+    await studioControl(page, '#animation', 'animation', () =>
+      page.locator('#animation').uncheck(),
+    );
     verify(
       (await effects()).every((view) => !view.effects.length),
       `${name}: disabling did not cancel effects`,
     );
-    await page.locator('#animation').check();
-    await page.locator('#animation-duration').selectOption('320');
+    await studioControl(page, '#animation', 'animation', () => page.locator('#animation').check());
+    await studioControl(page, '#animation-duration', 'animation', () =>
+      page.locator('#animation-duration').selectOption('320'),
+    );
     await page.locator(studio ? '#next' : '#advance').click();
     running = await effects();
     verify(
@@ -108,8 +115,10 @@ async (page) => {
       `${name}: native reduced-motion ignored`,
     );
     await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await page.locator('#animation-duration').selectOption('1000');
-    await page.locator('#compare').click();
+    await studioControl(page, '#animation-duration', 'animation', () =>
+      page.locator('#animation-duration').selectOption('1000'),
+    );
+    await studioControl(page, '#compare', 'comparison', () => page.locator('#compare').click());
     await page.locator(studio ? '#next' : '#advance').click();
     running = await effects();
     verify(
@@ -120,7 +129,8 @@ async (page) => {
     if (studio) {
       // Studio now restores the prior session's rotation; exercise an actual change.
       const rotation = page.locator('#rotation');
-      await rotation.selectOption((await rotation.inputValue()) === '90' ? '180' : '90');
+      const nextRotation = (await rotation.inputValue()) === '90' ? '180' : '90';
+      await studioControl(page, '#rotation', 'view', () => rotation.selectOption(nextRotation));
       verify(
         (await effects()).every((view) => !view.effects.length),
         'Studio transform retained old effects',
@@ -169,7 +179,9 @@ async (page) => {
           `${name}: rapid playback accumulated effects`,
         );
       }
-      await page.locator('#animation').uncheck();
+      await studioControl(page, '#animation', 'animation', () =>
+        page.locator('#animation').uncheck(),
+      );
     }
     await page.screenshot({
       path: `output/playwright/${name}-animation-controls.png`,

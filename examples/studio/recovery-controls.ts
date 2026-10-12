@@ -53,8 +53,9 @@ export function mountRecoveryControls(
     <button id="backup-open" class="button" type="button">Open backup</button><input id="backup-file" type="file" accept=".json,application/json" hidden/></div>
     <p class="muted small" id="draft-message" role="status"></p>
     <div class="dialog-actions"><button id="draft-close" class="button" type="button">Close</button></div></dialog>`;
-  const find = <T extends HTMLElement>(id: string) => host.querySelector<T>(`#${id}`)!;
-  const dialog = find<HTMLDialogElement>('drafts-dialog');
+  const find = <T extends HTMLElement>(id: string): T =>
+    (host.querySelector<T>(`#${id}`) ?? dialog.querySelector<T>(`#${id}`))!;
+  const dialog: HTMLDialogElement = find<HTMLDialogElement>('drafts-dialog');
   const toggle = find<HTMLInputElement>('draft-autosave');
   const list = find<HTMLSelectElement>('draft-list');
   const message = find('draft-message');
@@ -99,6 +100,9 @@ export function mountRecoveryControls(
   setUiText(find('draft-status'), toggle.checked ? '' : statusText.off);
   find<HTMLButtonElement>('draft-retry').disabled = true;
   const disposeLanguage = localizeUi(host);
+  // Modal ownership is independent of the temporarily borrowed menu controls.
+  document.body.append(dialog);
+  const disposeModalLanguage = localizeUi(dialog);
   function failure(error: unknown): void {
     setUiText(message, statusText[error instanceof DraftError ? error.code : 'failed']);
   }
@@ -382,6 +386,8 @@ export function mountRecoveryControls(
     operationAbort?.abort();
     if (dialog.open) dialog.close();
     void autosave.close().finally(() => store.close());
+    disposeModalLanguage();
+    dialog.remove();
     host.replaceChildren();
   };
 }

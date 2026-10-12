@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const errors = [];
   const requests = [];
   page.on('pageerror', (error) => errors.push(String(error)));
@@ -56,11 +56,15 @@ async (page) => {
   await page.getByRole('checkbox', { name: 'Move numbers' }).uncheck();
   await page.screenshot({ path: 'output/playwright/studio-desktop.png', fullPage: true });
   await page.locator('#comment').fill('Dirty guard');
-  await page.getByRole('button', { name: 'New record', exact: true }).click();
+  await studioControl(page, '#new', 'record', () =>
+    page.getByRole('button', { name: 'New record', exact: true }).click(),
+  );
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.waitForFunction(() => !document.querySelector('dialog').open);
   verify((await page.locator('#comment').inputValue()) === 'Dirty guard', 'Cancel lost changes');
-  await page.getByRole('button', { name: 'New record', exact: true }).click();
+  await studioControl(page, '#new', 'record', () =>
+    page.getByRole('button', { name: 'New record', exact: true }).click(),
+  );
   await page.getByRole('button', { name: 'Discard', exact: true }).click();
   await page.waitForFunction(
     () =>
@@ -68,7 +72,9 @@ async (page) => {
       '19',
   );
   await page.locator('#comment').fill('Export before replace');
-  await page.getByRole('button', { name: 'Example game', exact: true }).click();
+  await studioControl(page, '#sample', 'record', () =>
+    page.getByRole('button', { name: 'Example game', exact: true }).click(),
+  );
   const guardedDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export & continue', exact: true }).click();
   await (await guardedDownload).saveAs('output/playwright/browser-guard.sgf');

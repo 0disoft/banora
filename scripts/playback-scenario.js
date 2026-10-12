@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin,
     errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -127,8 +127,10 @@ async (page) => {
   await page.locator('#comment').fill('Dialog keyboard guard');
   await page.locator('#comment').blur();
   await page.getByRole('button', { name: 'Play record', exact: true }).click();
-  await page.getByRole('button', { name: 'New record', exact: true }).focus();
-  await page.keyboard.press('Enter');
+  await studioControl(page, '#new', 'record', async () => {
+    await page.getByRole('button', { name: 'New record', exact: true }).focus();
+    await page.keyboard.press('Enter');
+  });
   await page.locator('#unsaved[open]').waitFor();
   check(
     await page.getByRole('button', { name: 'Play record', exact: true }).isVisible(),

@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin;
   const failures = [];
   page.on('pageerror', (error) => failures.push(String(error)));
@@ -42,7 +42,9 @@ async (page) => {
     (await page.locator('#move').innerText()) === 'Move 0',
     'Setup incorrectly counted as a move',
   );
-  await page.locator('#next-player').selectOption('white');
+  await studioControl(page, '#next-player', 'tools', () =>
+    page.locator('#next-player').selectOption('white'),
+  );
   verify((await page.locator('#turn').innerText()).includes('White'), 'Setup turn failed');
   await page.locator('#tool').selectOption('arrow');
   await board.focus();
@@ -68,6 +70,10 @@ async (page) => {
   );
   await page.locator('#undo').click();
   verify((await page.locator('[data-connection="line"]').count()) === 1, 'Line Undo failed');
+  // Explicit textures take precedence over paint tokens; test the plain SDK skin.
+  await studioControl(page, '[data-texture-reset="black"]', 'textures', () =>
+    page.locator('[data-texture-reset="black"]').click(),
+  );
   const colors = await page.evaluate(() => {
     const host = document.querySelector('#board');
     host.style.setProperty('--banora-black', '#123456');
@@ -93,18 +99,24 @@ async (page) => {
   );
   verify((await page.locator('[data-stone="4,5"]').count()) === 1, 'Setup export/reopen failed');
   await page.getByRole('button', { name: '1 · Black C7', exact: true }).click();
-  await page.locator('#promote-branch').click();
+  await studioControl(page, '#promote-branch', 'tools', () =>
+    page.locator('#promote-branch').click(),
+  );
   verify(
     (await page.locator('#tree button').nth(1).innerText()) === '1 · Black C7',
     'Branch promotion failed',
   );
-  await page.locator('#remove-branch').click();
+  await studioControl(page, '#remove-branch', 'tools', () =>
+    page.locator('#remove-branch').click(),
+  );
   await page.locator('#remove-dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   verify(
     (await page.getByRole('button', { name: '1 · Black C7', exact: true }).count()) === 1,
     'Cancelled removal changed record',
   );
-  await page.locator('#remove-branch').click();
+  await studioControl(page, '#remove-branch', 'tools', () =>
+    page.locator('#remove-branch').click(),
+  );
   await page.locator('#remove-dialog').getByRole('button', { name: 'Remove', exact: true }).click();
   await page.waitForFunction(() => document.querySelectorAll('#tree button').length === 3);
   verify(

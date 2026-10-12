@@ -56,7 +56,14 @@ export function arrangeStudio(): void {
   boardPanel.prepend(toolbar);
 
   for (const element of [...main.children]) {
-    if (element === workspace || element === reservoir || element.tagName === 'FOOTER') continue;
+    if (
+      element === workspace ||
+      element === reservoir ||
+      element.tagName === 'FOOTER' ||
+      element.id === 'comparison-panel' ||
+      element.id === 'scoring-host'
+    )
+      continue;
     reservoir.append(element);
   }
   const links = document.createElement('nav');

@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin,
     errors = [],
     external = [];
@@ -48,7 +48,7 @@ async (page) => {
     await open(page);
     await page.locator('#last').click();
     await download('scoring-before');
-    await page.locator('#score-open').click();
+    await studioControl(page, '#score-open', 'scoring', () => page.locator('#score-open').click());
     verify(
       (await page.locator('#score-board [data-stone]').count()) === 6,
       'Scoring diagram lost original stones',
@@ -93,20 +93,26 @@ async (page) => {
     );
     await page.keyboard.press('Enter');
     verify((await component('deadPrisoners')) === 2, 'Keyboard group selection failed');
-    await page.locator('#score-komi').fill('');
+    await studioControl(page, '#score-komi', 'scoring', () => page.locator('#score-komi').fill(''));
     verify(
       (await page.locator('#score-result').innerText()).startsWith('Cannot calculate') &&
         (await page.locator('#score-breakdown tbody tr').count()) === 0,
       'Invalid input retained a stale report',
     );
-    await page.locator('#score-komi').fill('-0.5');
+    await studioControl(page, '#score-komi', 'scoring', () =>
+      page.locator('#score-komi').fill('-0.5'),
+    );
     verify(
       (await component('deadPrisoners')) === 2 && (await component('komi', 'white')) === -0.5,
       'Invalid-input recovery lost marks or negative komi',
     );
-    await page.locator('#score-white-adjust').fill('1.5');
+    await studioControl(page, '#score-white-adjust', 'scoring', () =>
+      page.locator('#score-white-adjust').fill('1.5'),
+    );
     verify((await component('adjustment', 'white')) === 1.5, 'Explicit adjustment was hidden');
-    await page.locator('#score-profile').selectOption('aga-area');
+    await studioControl(page, '#score-profile', 'scoring', () =>
+      page.locator('#score-profile').selectOption('aga-area'),
+    );
     verify(
       (await component('total')) === 9 &&
         (await component('passPrisoners')) === 1 &&
@@ -120,28 +126,40 @@ async (page) => {
       ),
       'Area table implied prisoners were added to the total',
     );
-    await page.locator('#score-profile').selectOption('aga-territory');
+    await studioControl(page, '#score-profile', 'scoring', () =>
+      page.locator('#score-profile').selectOption('aga-territory'),
+    );
     verify(
       (await component('total')) === 8 && (await component('handicapCompensation', 'white')) === 0,
       'AGA territory included area handicap adjustment',
     );
-    await page.locator('#score-profile').selectOption('japanese-territory');
-    await page.locator('#score-reset').click();
-    await page.locator('#score-mark').selectOption('seki');
+    await studioControl(page, '#score-profile', 'scoring', () =>
+      page.locator('#score-profile').selectOption('japanese-territory'),
+    );
+    await studioControl(page, '#score-reset', 'scoring', () =>
+      page.locator('#score-reset').click(),
+    );
+    await studioControl(page, '#score-mark', 'scoring', () =>
+      page.locator('#score-mark').selectOption('seki'),
+    );
     await mark(page, '1,1');
     verify(
       (await page.locator('#score-result').innerText()).includes('4 seki stones') &&
         (await component('territory')) === 0,
       'Japanese seki did not exclude adjacent surrounded empties',
     );
-    await page.locator('#score-mark').selectOption('dead');
+    await studioControl(page, '#score-mark', 'scoring', () =>
+      page.locator('#score-mark').selectOption('dead'),
+    );
     await mark(page, '1,1');
     verify(
       (await page.locator('#score-result').innerText()).includes('0 seki stones') &&
         (await page.locator('#score-result').innerText()).includes('4 dead stones'),
       'Changing group status retained conflicting selections',
     );
-    await page.locator('#score-reset').click();
+    await studioControl(page, '#score-reset', 'scoring', () =>
+      page.locator('#score-reset').click(),
+    );
     await mark(page, '0,1');
     verify(
       (await page.locator('#dirty').innerText()) === 'No changes' &&
@@ -160,22 +178,30 @@ async (page) => {
         (await page.locator('#score-warning').innerText()).includes('not ended'),
       'Navigation retained marks or old pass status',
     );
-    await page.locator('#score-profile').selectOption('aga-territory');
-    await page.locator('#score-close').click();
+    await studioControl(page, '#score-profile', 'scoring', () =>
+      page.locator('#score-profile').selectOption('aga-territory'),
+    );
+    await studioControl(page, '#score-close', 'scoring', () =>
+      page.locator('#score-close').click(),
+    );
     verify(
       (await page.locator('#score-board svg').count()) === 0 &&
         (await page.locator('#board svg').count()) === 1,
       'Closing scoring leaked its view or disposed the source',
     );
-    await page.locator('#score-open').click();
+    await studioControl(page, '#score-open', 'scoring', () => page.locator('#score-open').click());
     verify(
       (await component('passPrisoners', 'white')) === 1 && (await component('passPrisoners')) === 0,
       'Reopening selected node lost recorded-color pass accounting',
     );
     await page.locator('#last').click();
-    await page.locator('#score-profile').selectOption('japanese-territory');
+    await studioControl(page, '#score-profile', 'scoring', () =>
+      page.locator('#score-profile').selectOption('japanese-territory'),
+    );
     await mark(page, '0,1');
-    await page.locator('#score-komi').fill('7.5');
+    await studioControl(page, '#score-komi', 'scoring', () =>
+      page.locator('#score-komi').fill('7.5'),
+    );
     await page.locator('#comment').fill('Context changed');
     await page.locator('#comment').blur();
     verify(
@@ -209,14 +235,18 @@ async (page) => {
     );
     await open(page, archive.replace(';B[];W[]', ';W[];B[]'), 'white-last-pass.sgf');
     await page.locator('#last').click();
-    await page.locator('#score-profile').selectOption('aga-territory');
+    await studioControl(page, '#score-profile', 'scoring', () =>
+      page.locator('#score-profile').selectOption('aga-territory'),
+    );
     verify(
       (await page.locator('#score-warning').innerText()).includes('White to make the last pass') &&
         (await page.locator('#move').innerText()) === 'Move 2' &&
         (await page.locator('#dirty').innerText()) === 'No changes',
       'AGA warning synthesized a move or failed to check the recorded last color',
     );
-    await page.locator('#score-profile').selectOption('japanese-territory');
+    await studioControl(page, '#score-profile', 'scoring', () =>
+      page.locator('#score-profile').selectOption('japanese-territory'),
+    );
     await open(page);
     await page.locator('#last').click();
     await mark(page, '0,1');
@@ -236,7 +266,9 @@ async (page) => {
     mobile.on('request', onRequest);
     await mobile.goto(`${origin}/studio/`);
     await open(mobile);
-    await mobile.locator('#score-open').click();
+    await studioControl(mobile, '#score-open', 'scoring', () =>
+      mobile.locator('#score-open').click(),
+    );
     await mark(mobile, '0,1', true);
     verify(
       (await mobile.locator('#score-result').innerText()).includes('2 dead stones') &&
@@ -250,12 +282,16 @@ async (page) => {
     await mobile
       .locator('#score-panel')
       .screenshot({ path: 'output/playwright/studio-scoring-mobile.png' });
-    await mobile.locator('#score-close').click();
+    await studioControl(mobile, '#score-close', 'scoring', () =>
+      mobile.locator('#score-close').click(),
+    );
     verify(
       (await mobile.locator('#score-board svg').count()) === 0,
       'Mobile closing retained the view',
     );
-    await page.locator('#score-close').click();
+    await studioControl(page, '#score-close', 'scoring', () =>
+      page.locator('#score-close').click(),
+    );
     verify(
       errors.length === 0 && external.length === 0,
       `Scoring errors/remote requests: ${[...errors, ...external].join('; ')}`,

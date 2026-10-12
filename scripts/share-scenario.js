@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin,
     errors = [],
     requests = [];
@@ -76,7 +76,7 @@ async (page) => {
     verify((await page.locator('img').count()) === 0, `${name}: SGF comment interpreted as HTML`);
     const count = await svg.locator('[data-stroke]').count();
     verify(count > 0, `${name}: shared ink missing`);
-    await selector('create').click();
+    await studioControl(page, '[data-share="create"]', 'share', () => selector('create').click());
     const created = await selector('output').inputValue();
     const decoded = await page.evaluate(
       async (link) => (await import('/sdk/share.js')).decodeShareLink(link),
@@ -94,7 +94,7 @@ async (page) => {
     );
     await notes.fill('unsaved sharing note');
     await notes.blur();
-    await selector('create').click();
+    await studioControl(page, '[data-share="create"]', 'share', () => selector('create').click());
     const dirtyLink = await selector('output').inputValue();
     await page.evaluate(() => {
       window.__copied = '';
@@ -107,7 +107,7 @@ async (page) => {
         },
       });
     });
-    await selector('copy').click();
+    await studioControl(page, '[data-share="copy"]', 'share', () => selector('copy').click());
     await wait(() =>
       document.querySelector('[data-share="status"]').textContent.includes('Link copied'),
     );
@@ -127,9 +127,11 @@ async (page) => {
       navigator.clipboard.writeText = () =>
         new Promise((resolve, reject) => window.__pendingCopies.push({ resolve, reject }));
     });
-    await selector('copy').click();
-    await selector('kind').selectOption('position');
-    await selector('create').click();
+    await studioControl(page, '[data-share="copy"]', 'share', () => selector('copy').click());
+    await studioControl(page, '[data-share="kind"]', 'share', () =>
+      selector('kind').selectOption('position'),
+    );
+    await studioControl(page, '[data-share="create"]', 'share', () => selector('create').click());
     verify(
       (await selector('output').inputValue()) !== dirtyLink,
       `${name}: stale clipboard fixture did not change the displayed link`,
@@ -142,11 +144,13 @@ async (page) => {
       (await selector('status').innerText()) === 'Link created.',
       `${name}: old clipboard completion claimed the new link was copied`,
     );
-    await selector('kind').selectOption('node');
-    await selector('create').click();
+    await studioControl(page, '[data-share="kind"]', 'share', () =>
+      selector('kind').selectOption('node'),
+    );
+    await studioControl(page, '[data-share="create"]', 'share', () => selector('create').click());
     verify((await selector('output').inputValue()) === dirtyLink, `${name}: copy fixture changed`);
-    await selector('copy').click();
-    await selector('copy').click();
+    await studioControl(page, '[data-share="copy"]', 'share', () => selector('copy').click());
+    await studioControl(page, '[data-share="copy"]', 'share', () => selector('copy').click());
     await page.evaluate(async () => {
       window.__pendingCopies[2].resolve();
       await new Promise(requestAnimationFrame);
@@ -168,7 +172,7 @@ async (page) => {
         throw Error('Clipboard blocked');
       };
     });
-    await selector('copy').click();
+    await studioControl(page, '[data-share="copy"]', 'share', () => selector('copy').click());
     await wait(() =>
       document.querySelector('[data-share="status"]').textContent.includes('copy it manually'),
     );
@@ -180,9 +184,11 @@ async (page) => {
       navigator.clipboard.writeText = () =>
         new Promise((resolve, reject) => window.__pendingCopies.push({ resolve, reject }));
     });
-    await selector('copy').click();
-    await selector('input').fill(path + '#banora=v2.AA');
-    await selector('open').click();
+    await studioControl(page, '[data-share="copy"]', 'share', () => selector('copy').click());
+    await studioControl(page, '[data-share="input"]', 'share', () =>
+      selector('input').fill(path + '#banora=v2.AA'),
+    );
+    await studioControl(page, '[data-share="open"]', 'share', () => selector('open').click());
     verify(
       (await selector('status').innerText()) === 'Unsupported Banora share version',
       `${name}: malformed link not reported`,
@@ -200,8 +206,10 @@ async (page) => {
         (await page.locator('dialog[open]').count()) === 0,
       `${name}: invalid link changed record or prompted`,
     );
-    await selector('input').fill(path + fixtures.position);
-    await selector('open').click();
+    await studioControl(page, '[data-share="input"]', 'share', () =>
+      selector('input').fill(path + fixtures.position),
+    );
+    await studioControl(page, '[data-share="open"]', 'share', () => selector('open').click());
     const guard = page.locator('dialog[open]');
     await guard.waitFor();
     await guard.getByRole('button', { name: 'Cancel', exact: true }).click();
@@ -210,7 +218,7 @@ async (page) => {
       (await notes.inputValue()) === 'unsaved sharing note',
       `${name}: cancelled share lost edits`,
     );
-    await selector('open').click();
+    await studioControl(page, '[data-share="open"]', 'share', () => selector('open').click());
     await guard.waitFor();
     const downloadPromise = page.waitForEvent('download');
     await guard.getByRole('button', { name: 'Export & continue', exact: true }).click();
@@ -225,8 +233,10 @@ async (page) => {
       (await notes.inputValue()) === '' && (await svg.locator('[data-stone]').count()) === 4,
       `${name}: static position failed`,
     );
-    await selector('kind').selectOption('position');
-    await selector('create').click();
+    await studioControl(page, '[data-share="kind"]', 'share', () =>
+      selector('kind').selectOption('position'),
+    );
+    await studioControl(page, '[data-share="create"]', 'share', () => selector('create').click());
     const position = await page.evaluate(
       async (link) => (await import('/sdk/share.js')).decodeShareLink(link),
       await selector('output').inputValue(),
@@ -245,8 +255,8 @@ async (page) => {
     );
     await notes.fill('optional current comment');
     await notes.blur();
-    await selector('comment').check();
-    await selector('create').click();
+    await studioControl(page, '[data-share="comment"]', 'share', () => selector('comment').check());
+    await studioControl(page, '[data-share="create"]', 'share', () => selector('create').click());
     const commentShare = await page.evaluate(
       async (link) => (await import('/sdk/share.js')).decodeShareLink(link),
       await selector('output').inputValue(),
@@ -256,8 +266,10 @@ async (page) => {
         commentShare.value.record.games[0].properties.C[0] === 'optional current comment',
       `${name}: comment opt-in failed`,
     );
-    await selector('input').fill(path + fixtures.record);
-    await selector('open').click();
+    await studioControl(page, '[data-share="input"]', 'share', () =>
+      selector('input').fill(path + fixtures.record),
+    );
+    await studioControl(page, '[data-share="open"]', 'share', () => selector('open').click());
     await guard.waitFor();
     await guard.getByRole('button', { name: 'Discard', exact: true }).click();
     await wait(() =>
@@ -272,8 +284,10 @@ async (page) => {
     );
     await notes.fill('x'.repeat(20_000));
     await notes.blur();
-    await selector('kind').selectOption('node');
-    await selector('create').click();
+    await studioControl(page, '[data-share="kind"]', 'share', () =>
+      selector('kind').selectOption('node'),
+    );
+    await studioControl(page, '[data-share="create"]', 'share', () => selector('create').click());
     verify(
       (await selector('status').innerText()).includes('too large') &&
         (await selector('output').inputValue()) === '' &&
@@ -283,8 +297,10 @@ async (page) => {
     await notes.fill('pending edit retained');
     await notes.blur();
     if (!studio) {
-      await selector('input').fill(path + fixtures.node);
-      await selector('open').click();
+      await studioControl(page, '[data-share="input"]', 'share', () =>
+        selector('input').fill(path + fixtures.node),
+      );
+      await studioControl(page, '[data-share="open"]', 'share', () => selector('open').click());
       await guard.waitFor();
       // The host may replace an adapter/controller while a modal is pending.
       await page.locator('#swap').evaluate((button) => button.click());

@@ -26,8 +26,9 @@ export function mountSearchControls(
     <div class="search-actions"><button id="search-preview" class="button" type="button">Preview changes</button><button id="search-apply" class="button primary" type="button" disabled>Apply changes</button><button id="search-cancel" class="button" type="button" hidden>Cancel preview</button></div>
     <div id="search-diff" role="list" tabindex="0" aria-label="Comment changes"></div><p id="search-status" role="status"></p>
     <div class="dialog-actions"><button id="search-close" class="button" type="button">Close</button></div></dialog>`;
-  const find = <T extends HTMLElement>(id: string) => host.querySelector<T>(`#${id}`)!;
-  const dialog = find<HTMLDialogElement>('search-dialog');
+  const find = <T extends HTMLElement>(id: string): T =>
+    (host.querySelector<T>(`#${id}`) ?? dialog.querySelector<T>(`#${id}`))!;
+  const dialog: HTMLDialogElement = find<HTMLDialogElement>('search-dialog');
   const query = find<HTMLInputElement>('search-query');
   const field = find<HTMLSelectElement>('search-field');
   const limit = find<HTMLSelectElement>('search-limit');
@@ -49,6 +50,9 @@ export function mountSearchControls(
   const abort = new AbortController(),
     { signal } = abort;
   const disposeStatic = localizeUi(host);
+  // Modal ownership is independent of the temporarily borrowed menu controls.
+  document.body.append(dialog);
+  const disposeModalLanguage = localizeUi(dialog);
   const title = (game: number, move: number) => {
     const ui = createUiMessages({ locale: getUiLocale() });
     return `${formatUiMessage(ui.game, { number: game + 1 })} · ${formatUiMessage(ui.move, { number: move })}`;
@@ -390,6 +394,8 @@ export function mountSearchControls(
     disposeLanguage();
     disposeStatic();
     dialog.close();
+    disposeModalLanguage();
+    dialog.remove();
     host.replaceChildren();
   };
 }

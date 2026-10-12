@@ -1,6 +1,9 @@
+import { studioControl } from './studio-control.js';
+
 /** The CLI parenthesizes its callback; a formatter's final semicolon is a statement terminator. */
 export function scenarioExpression(source: string): string {
-  return source.trimEnd().replace(/;$/, '') + '\n';
+  const callback = source.trimEnd().replace(/;$/, '');
+  return `async (page) => { const studioControl = ${studioControl.toString()}; return (\n${callback}\n)(page, studioControl); }\n`;
 }
 
 /** Only an actual CLI Result can prove the complete scenario returned. */

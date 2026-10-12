@@ -194,6 +194,11 @@ the header and board menus; each control has one DOM owner and is temporarily
 borrowed into the active menu. Menus return controls and focus to their original
 locations. Narrow screens place the board first and the record panels below it.
 This is consumer presentation, not a required SDK skin or framework dependency.
+Studio embeds validated raster stone tiles through the public texture API and
+uses wood grain as display decoration. Standalone image exports retain an opaque
+SDK board and embedded stones. Materials are excluded from record/share data.
+Modal dialogs own their body-level surface independently of borrowed controls;
+moving or hiding a menu cannot hide an active recovery, search, or help dialog.
 
 Keep previous/next/branch navigation separate from edit Undo/Redo. Variation creation,
 comment changes and marker changes are undoable; a comment editing session is one

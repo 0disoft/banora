@@ -136,7 +136,7 @@ main {
   margin-bottom: 22px;
 }
 .tree {
-  max-height: min(37dvh, 370px);
+  max-height: min(30dvh, 300px);
   gap: 2px;
   overflow-y: auto;
   padding-right: 4px;
@@ -187,11 +187,11 @@ main {
   padding: 10px 0 0;
   font-size: 13px;
 }
-#dirty.dirty {
+#dirty.changed {
   color: var(--accent);
 }
 .board-panel {
-  padding: 14px 28px 34px;
+  padding: 10px 100px 34px 28px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -204,7 +204,7 @@ main {
   justify-content: center;
   gap: 20px;
   min-height: 43px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 .board-toolbar .editing-tools {
   border: 0;
@@ -246,7 +246,7 @@ main {
   background-color: transparent;
 }
 .board {
-  --board-width: 805px;
+  --board-width: min(789px, calc(100dvh - 263px));
   width: 100%;
   max-width: var(--board-width);
   margin: 0 auto;
@@ -484,5 +484,180 @@ footer #status:not(:empty) {
   footer {
     left: 14px;
     max-width: calc(100vw - 28px);
+  }
+}
+
+/* Raster material belongs to the Studio consumer, never to core rules or SGF. */
+.board[data-theme='wood']:not([data-exporting]) > svg {
+  background: #d9b677 url('./assets/hinoki.webp') center / cover;
+}
+.board[data-theme='wood']:not([data-exporting]) [data-board-surface] {
+  fill: transparent;
+}
+.board [data-stone] {
+  filter: drop-shadow(0.025px 0.04px 0.025px #30271955);
+}
+.metadata dt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 61px;
+}
+.metadata dt::before {
+  content: '';
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid #878175;
+  background: url('./assets/black-stone.webp') center / cover;
+}
+.metadata dl > div:nth-child(2) dt::before {
+  background-image: url('./assets/white-stone.webp');
+}
+.metadata dl > div {
+  margin-bottom: 14px;
+}
+.sidebar .metadata {
+  padding-bottom: 24px !important;
+}
+.comments {
+  margin-bottom: 125px;
+}
+.comments h2 {
+  color: #34302a;
+}
+#open.button {
+  background: #fffdfa;
+  border-color: var(--border);
+  color: inherit;
+}
+.button:hover:not(:disabled) {
+  background-color: #eee8df;
+}
+.button.primary:hover:not(:disabled) {
+  background-color: #814e39;
+}
+.navigation #playback button:hover:not(:disabled) {
+  background-color: #814e39;
+}
+#record-details > label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#record-details dl > div {
+  display: flex;
+  gap: 12px;
+  margin-block: 14px;
+}
+.banora-comment-indicator {
+  color: #875640;
+}
+@media (max-width: 1000px) {
+  .board-panel {
+    padding-inline: 18px;
+  }
+  .comments {
+    margin-bottom: 20px;
+  }
+}
+@media (max-width: 700px) {
+  .comments {
+    margin-bottom: 0;
+  }
+}
+
+.board > svg > circle[r='0.12'] {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.075px;
+  r: 0.18px;
+}
+.tree > [role='listitem'] {
+  border-inline-start: 1px solid #d2cec6;
+  margin-inline-start: 6px;
+}
+
+.board [data-coordinate] {
+  font-size: 0.37px;
+}
+.comments label {
+  margin-bottom: 0;
+}
+main > #scoring-host:has(#score-panel[hidden]) {
+  display: none;
+}
+#board-menu-panel #scoring-host {
+  display: block;
+}
+main > #scoring-host,
+main > #comparison-panel {
+  margin: 24px;
+}
+
+@media (max-width: 700px) {
+  .header {
+    gap: 12px 8px;
+  }
+  .header-actions {
+    display: contents;
+  }
+  .brand {
+    order: 0;
+    flex: 1 0 calc(100% - 110px);
+  }
+  .header-actions #language {
+    order: 1;
+    margin: 0;
+    max-width: 100px;
+  }
+  .header-actions #open {
+    order: 2;
+  }
+  .header-actions #export {
+    order: 3;
+  }
+  .header-actions #app-menu {
+    order: 4;
+    margin-inline-start: auto;
+  }
+  .board-toolbar {
+    flex-wrap: nowrap;
+    align-items: start;
+  }
+  .board-toolbar .primary-tools {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .primary-tools #tool {
+    min-width: 0;
+    width: 110px;
+  }
+  .primary-tools label {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .sidebar > .card {
+    order: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .board {
+    --board-width: 789px;
+  }
+}
+
+@media (max-width: 700px) {
+  .brand strong {
+    display: block;
+  }
+  .brand strong span {
+    display: none;
   }
 }

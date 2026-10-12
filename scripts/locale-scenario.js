@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const result = await page.evaluate(async () => {
     const { RecordController, mountViewer } = await import('/sdk/index.js');
     const controller = new RecordController({
@@ -201,7 +201,7 @@ async (page) => {
   const passDownload = page.waitForEvent('download');
   await page.locator('#export').click();
   await (await passDownload).saveAs('output/playwright/localized-pass-preserved.sgf');
-  await page.locator('#sample').click();
+  await studioControl(page, '#sample', 'record', () => page.locator('#sample').click());
   await page.locator('#language').selectOption('ko');
   if ((await page.locator('html').getAttribute('lang')) !== 'ko')
     throw Error('Studio language missing');
@@ -231,8 +231,12 @@ async (page) => {
   )
     throw Error('Studio language switch lost state');
   await page.locator('#language').selectOption('ko');
-  await page.getByRole('button', { name: '링크 만들기', exact: true }).click();
-  await page.getByRole('button', { name: '현재 위치 계가', exact: true }).click();
+  await studioControl(page, '[data-share="create"]', 'share', () =>
+    page.getByRole('button', { name: '링크 만들기', exact: true }).click(),
+  );
+  await studioControl(page, '#score-open', 'scoring', () =>
+    page.getByRole('button', { name: '현재 위치 계가', exact: true }).click(),
+  );
   if (!(await page.locator('#score-result').textContent()).startsWith('임시 결과:'))
     throw Error('Korean scoring result untranslated');
   await page.getByRole('button', { name: '계가 닫기', exact: true }).click();
@@ -252,10 +256,14 @@ async (page) => {
       .getAttribute('title')) !== '有评注'
   )
     throw Error('Chinese Studio switch lost data or labels');
-  await page.getByRole('button', { name: '生成链接', exact: true }).click();
+  await studioControl(page, '[data-share="create"]', 'share', () =>
+    page.getByRole('button', { name: '生成链接', exact: true }).click(),
+  );
   if (!(await page.locator('[data-share="output"]').inputValue()).includes('#banora='))
     throw Error('Localized sharing failed');
-  await page.getByRole('button', { name: '计算当前局面得分', exact: true }).click();
+  await studioControl(page, '#score-open', 'scoring', () =>
+    page.getByRole('button', { name: '计算当前局面得分', exact: true }).click(),
+  );
   if (!(await page.locator('#score-result').textContent()).startsWith('暂定结果：'))
     throw Error('Scoring result untranslated');
   await page.getByRole('button', { name: '关闭计分', exact: true }).click();
@@ -279,10 +287,14 @@ async (page) => {
   if ((await page.locator('#move').textContent()) !== '2手目')
     throw Error('Japanese next move failed');
   await page.getByRole('button', { name: '前の手', exact: true }).click();
-  await page.getByRole('button', { name: 'リンクを作成', exact: true }).click();
+  await studioControl(page, '[data-share="create"]', 'share', () =>
+    page.getByRole('button', { name: 'リンクを作成', exact: true }).click(),
+  );
   if (!(await page.locator('[data-share="output"]').inputValue()).includes('#banora='))
     throw Error('Japanese sharing failed');
-  await page.getByRole('button', { name: '現在の局面を計算', exact: true }).click();
+  await studioControl(page, '#score-open', 'scoring', () =>
+    page.getByRole('button', { name: '現在の局面を計算', exact: true }).click(),
+  );
   if (!(await page.locator('#score-result').textContent()).startsWith('暫定結果：'))
     throw Error('Japanese scoring result untranslated');
   await page.getByRole('button', { name: '計算を閉じる', exact: true }).click();
@@ -332,7 +344,9 @@ async (page) => {
   await page.locator('#next').click();
   if ((await page.locator('#board [data-texture="black"]').count()) !== 1)
     throw Error('Texture input lost its upload handler across language switches');
-  await page.locator('[data-texture-reset="black"]').click();
+  await studioControl(page, '[data-texture-reset="black"]', 'textures', () =>
+    page.locator('[data-texture-reset="black"]').click(),
+  );
   if ((await page.locator('#dirty').textContent()) !== 'No changes')
     throw Error('Localized texture upload changed record history');
   const context = await page

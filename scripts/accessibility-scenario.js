@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (rootPage) => {
+async (rootPage, studioControl) => {
   const origin = new URL(rootPage.url()).origin;
   const context = await rootPage.context().browser().newContext({ locale: 'en-US' });
   const page = await context.newPage();
@@ -58,9 +58,12 @@ async (rootPage) => {
         await page.locator('#comment').blur();
         const dirty = await page.locator('#dirty').textContent();
         const count = await page.locator('#tree button').count();
-        await page.locator('#new').focus();
-        await page.keyboard.press('Enter');
+        await studioControl(page, '#new', 'record', async () => {
+          await page.locator('#new').focus();
+          await page.keyboard.press('Enter');
+        });
         await guard(unsaved, `unsaved-${locale}-${width}`);
+        await page.waitForFunction(() => ['app-menu', 'new'].includes(document.activeElement.id));
         check(
           (await page.locator('#comment').inputValue()) === note &&
             (await page.locator('#dirty').textContent()) === dirty &&
@@ -68,7 +71,9 @@ async (rootPage) => {
           'Keyboard cancellation discarded the dirty record',
         );
         check(
-          await page.locator('#new').evaluate((element) => element === document.activeElement),
+          await page
+            .locator('#app-menu,#new')
+            .evaluateAll((elements) => elements.includes(document.activeElement)),
           'Replacement cancellation did not restore the invoking control focus',
         );
         await page.locator('#next').click();

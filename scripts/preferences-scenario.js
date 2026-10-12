@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (rootPage) => {
+async (rootPage, studioControl) => {
   const origin = new URL(rootPage.url()).origin;
   const context = await rootPage.context().browser().newContext({ locale: 'en-US' });
   const page = await context.newPage();
@@ -30,7 +30,7 @@ async (rootPage) => {
       };
     });
   const backup = async (name) => {
-    await page.locator('#drafts-open').click();
+    await studioControl(page, '#drafts-open', 'drafts', () => page.locator('#drafts-open').click());
     const download = page.waitForEvent('download');
     await page.locator('#backup-save').click();
     await (await download).saveAs(`output/playwright/${name}.banora.json`);
@@ -121,7 +121,9 @@ async (rootPage) => {
     const second = await context.newPage();
     await second.goto(`${origin}/studio/`);
     await page.locator('#language').selectOption('ko');
-    await second.locator('#theme').selectOption('wood');
+    await studioControl(second, '#theme', 'view', () =>
+      second.locator('#theme').selectOption('wood'),
+    );
     check(
       JSON.parse((await saved(page))['banora.studio.preferences.locale']).value === 'ko',
       'Another tab overwrote an unrelated locale',
@@ -132,8 +134,10 @@ async (rootPage) => {
     );
     await second.close();
     await page.locator('#language').selectOption('en');
-    await page.locator('#drafts-open').click();
-    await page.locator('#draft-autosave').check();
+    await studioControl(page, '#drafts-open', 'drafts', () => page.locator('#drafts-open').click());
+    await studioControl(page, '#draft-autosave', 'drafts', () =>
+      page.locator('#draft-autosave').check(),
+    );
     await page.locator('#draft-close').click();
     await page.locator('#comment').fill('Preference reset keeps this 한국어 note');
     await page.locator('#comment').blur();
@@ -147,7 +151,9 @@ async (rootPage) => {
     await backup('preferences-before');
     await page.setViewportSize({ width: 320, height: 900 });
     await openSettings();
-    await page.locator('#settings-reset').click();
+    await studioControl(page, '#settings-reset', 'preferences', () =>
+      page.locator('#settings-reset').click(),
+    );
     check(
       JSON.stringify(await inputState()) ===
         JSON.stringify({
@@ -218,7 +224,7 @@ async (rootPage) => {
     await page.screenshot({ path: 'output/playwright/preferences-mobile.png' });
     await closeMenu();
     await backup('preferences-after');
-    await page.locator('#drafts-open').click();
+    await studioControl(page, '#drafts-open', 'drafts', () => page.locator('#drafts-open').click());
     await page.waitForFunction(
       () =>
         document.querySelector('#draft-list').options.length > 0 &&
@@ -248,7 +254,9 @@ async (rootPage) => {
     });
     await future.reload();
     check(!(await future.locator('#draft-autosave').isChecked()), 'Invalid autosave failed open');
-    await future.locator('#theme').selectOption('flat');
+    await studioControl(future, '#theme', 'view', () =>
+      future.locator('#theme').selectOption('flat'),
+    );
     check(
       JSON.parse((await saved(future))['banora.studio.preferences.theme']).schemaVersion.endsWith(
         '/v2',
@@ -259,7 +267,9 @@ async (rootPage) => {
       (await future.locator('#settings-status').textContent()).includes('newer Studio'),
       'Unsupported settings not explained',
     );
-    await future.locator('#settings-reset').click();
+    await studioControl(future, '#settings-reset', 'preferences', () =>
+      future.locator('#settings-reset').click(),
+    );
     check(
       (await future.locator('#settings-status').textContent()) === '',
       'Reset did not recover invalid settings',
@@ -280,7 +290,9 @@ async (rootPage) => {
       'Denied preference read enabled retention',
     );
     await denied.locator('#language').selectOption('en');
-    await denied.locator('#theme').selectOption('flat');
+    await studioControl(denied, '#theme', 'view', () =>
+      denied.locator('#theme').selectOption('flat'),
+    );
     check(
       (await denied.locator('#theme').inputValue()) === 'flat' &&
         (await denied.locator('#settings-status').textContent()) ===

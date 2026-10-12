@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin,
     errors = [],
     requests = [];
@@ -15,7 +15,9 @@ async (page) => {
   for (const name of ['studio', 'react', 'vue', 'svelte']) {
     const studio = name === 'studio';
     await page.goto(`${origin}/${name}/`);
-    await page.locator('[data-texture-file="black"]').waitFor();
+    await studioControl(page, '[data-texture-file="black"]', 'textures', () =>
+      page.locator('[data-texture-file="black"]').waitFor(),
+    );
     for (let i = 0; i < 3; i++) await page.locator(studio ? '#next' : '#advance').click();
     const notes = studio
       ? page.locator('#comment')
@@ -45,7 +47,9 @@ async (page) => {
         .querySelector('[data-texture-status="black"]')
         .textContent.startsWith('Custom texture active'),
     );
-    await page.locator('[data-texture-demo="white"]').click();
+    await studioControl(page, '[data-texture-demo="white"]', 'textures', () =>
+      page.locator('[data-texture-demo="white"]').click(),
+    );
     await wait(() =>
       document
         .querySelector('[data-texture-status="white"]')
@@ -89,7 +93,7 @@ async (page) => {
         (await notes.inputValue()) === 'Texture changes must retain these SGF edits.',
       `${name}: texture changed record state`,
     );
-    await page.locator('#compare').click();
+    await studioControl(page, '#compare', 'comparison', () => page.locator('#compare').click());
     const comparison = page.locator(studio ? '#comparison-board' : '#comparison-host');
     await wait(
       () =>
@@ -102,13 +106,17 @@ async (page) => {
       `${name}: comparison dropped shared textures`,
     );
     if (studio) {
-      await page.locator('#rotation').selectOption('90');
+      await studioControl(page, '#rotation', 'view', () =>
+        page.locator('#rotation').selectOption('90'),
+      );
       await page.locator('#flip-x').check();
-      await page.locator('#theme').selectOption('flat');
+      await studioControl(page, '#theme', 'view', () =>
+        page.locator('#theme').selectOption('flat'),
+      );
     } else {
       await page.locator('#rotate').click();
       await page.locator('#reflect').click();
-      await page.locator('#theme').click();
+      await studioControl(page, '#theme', 'view', () => page.locator('#theme').click());
     }
     await wait(
       () => document.querySelector('#board svg,#board-host svg').dataset.rotation === '90',
@@ -119,7 +127,8 @@ async (page) => {
     );
     for (const format of ['png', 'svg']) {
       const saved = page.waitForEvent('download');
-      await page.locator(studio ? `#${format}-export` : `#${format}`).click();
+      const exportSelector = studio ? `#${format}-export` : `#${format}`;
+      await studioControl(page, exportSelector, 'view', () => page.locator(exportSelector).click());
       const download = await saved;
       await download.saveAs(`output/playwright/${name}-texture.${format}`);
     }
@@ -143,7 +152,9 @@ async (page) => {
       (await main.evaluate((svg) => svg.outerHTML)) === beforeBad,
       `${name}: bad file reset the current texture`,
     );
-    await page.locator('[data-texture-reset="white"]').click();
+    await studioControl(page, '[data-texture-reset="white"]', 'textures', () =>
+      page.locator('[data-texture-reset="white"]').click(),
+    );
     await wait(() => document.querySelectorAll('[data-texture="white"]').length === 0);
     verify(
       (await main.locator('[data-texture="black"]').count()) === 2 &&
@@ -175,7 +186,9 @@ async (page) => {
     try {
       await page.locator('[data-texture-file="black"]').setInputFiles(file);
       await wait(() => window.__textureRead.held.length === 1);
-      await page.locator('[data-texture-reset="black"]').click();
+      await studioControl(page, '[data-texture-reset="black"]', 'textures', () =>
+        page.locator('[data-texture-reset="black"]').click(),
+      );
       await release();
       await wait(
         () => !document.querySelector('#board svg,#board-host svg').querySelector('pattern'),

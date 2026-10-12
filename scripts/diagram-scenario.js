@@ -1,9 +1,11 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   await page.locator('#comment').fill('Record edits remain unsaved after image export');
   for (const format of ['svg', 'png']) {
     const promise = page.waitForEvent('download');
-    await page.locator(`#${format}-export`).click();
+    await studioControl(page, `#${format}-export`, 'view', () =>
+      page.locator(`#${format}-export`).click(),
+    );
     const download = await promise;
     await download.saveAs(`output/playwright/studio-diagram.${format}`);
     if ((await page.locator('#dirty').innerText()) !== 'Unsaved changes')

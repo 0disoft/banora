@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin;
   const context = await page
     .context()
@@ -358,8 +358,12 @@ async (page) => {
       'Studio release aiming did not place',
     );
     await mobile.locator('#undo').click();
-    await mobile.locator('#touch-mode').selectOption('confirm');
-    await mobile.locator('#rotation').selectOption('90');
+    await studioControl(mobile, '#touch-mode', 'touch', () =>
+      mobile.locator('#touch-mode').selectOption('confirm'),
+    );
+    await studioControl(mobile, '#rotation', 'view', () =>
+      mobile.locator('#rotation').selectOption('90'),
+    );
     await mobile.locator('#flip-x').check();
     await start([
       { x: 3, y: 4 },
@@ -388,7 +392,9 @@ async (page) => {
     );
     await mobile.locator('#undo').click();
     await start([{ x: 3, y: 4 }]);
-    await mobile.locator('#touch-mode').selectOption('direct');
+    await studioControl(mobile, '#touch-mode', 'touch', () =>
+      mobile.locator('#touch-mode').selectOption('direct'),
+    );
     await touch('touchEnd');
     verify(
       (await mobile.locator('#dirty').innerText()) === 'No changes',

@@ -84,10 +84,10 @@
   align-items: center;
   gap: 9px;
 }
-.tree-comment svg {
+.banora-comment-indicator svg {
   display: none;
 }
-.tree-comment::before {
+.banora-comment-indicator::before {
   content: '';
   display: block;
   width: 16px;

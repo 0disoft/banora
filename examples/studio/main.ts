@@ -46,6 +46,7 @@ import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
 import type { DiagnosticOperation } from '@0disoft/banora/diagnostics';
 import { arrangeStudio } from './layout.js';
 import { applyStudioIcons } from './icons.js';
+import { createStudioTextures } from './skin.js';
 import './atelier.css';
 import './icons.css';
 
@@ -94,7 +95,8 @@ const treeButtons = new Map<string, HTMLButtonElement>();
 let selectedTreeRow: HTMLDivElement | undefined;
 let connectionStart: { point: Point; node: string } | undefined;
 let comparison: ComparisonView | undefined;
-let stoneTextures: StoneTextures | null = null;
+let stoneTextures: StoneTextures | null = createStudioTextures();
+find('board').dataset.theme = preferences.get('theme');
 
 function report(
   result: CommandResult,
@@ -123,6 +125,7 @@ const view = mountBoard(find('board'), {
   controller,
   labels: createBoardLabels({ locale: getUiLocale() }),
   theme: preferences.get('theme'),
+  stoneTextures,
   moveNumbers: preferences.get('moveNumbers'),
   transform: { rotation: preferences.get('rotation'), flipX: preferences.get('flipX') },
   touch: { mode: preferences.get('touchMode'), magnifier: preferences.get('touchMagnifier') },
@@ -199,6 +202,15 @@ function nodeTitle(node: SgfNode, depth: number, width: number, height: number):
   const y = alphabet.indexOf(value[1]!);
   return `${color} ${letters[x] ?? x + 1}${height - y}`;
 }
+function revealTreeSelection(id: string): void {
+  const tree = find('tree'),
+    button = treeButtons.get(id);
+  if (!button) return;
+  const bounds = tree.getBoundingClientRect(),
+    selected = button.getBoundingClientRect();
+  if (selected.top < bounds.top) tree.scrollTop += selected.top - bounds.top;
+  else if (selected.bottom > bounds.bottom) tree.scrollTop += selected.bottom - bounds.bottom;
+}
 function renderTree(state: ControllerState): void {
   const previous = lastTreeState;
   const reuse = previous?.record === state.record && previous.gameIndex === state.gameIndex;
@@ -225,8 +237,6 @@ function renderTree(state: ControllerState): void {
       indicator.className = 'banora-comment-indicator';
       indicator.title = ui.hasComment;
       indicator.setAttribute('aria-hidden', 'true');
-      indicator.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h14v10H8l-4 3v-3H3Z"/></svg>';
       button.setAttribute('aria-description', ui.hasComment);
       button.append(indicator);
     }
@@ -251,6 +261,7 @@ function renderTree(state: ControllerState): void {
       find('tree').append(fragment);
     }
     if (restoreFocus) treeButtons.get(state.node.id)?.focus({ preventScroll: true });
+    revealTreeSelection(state.node.id);
     return;
   }
   treeButtons.clear();
@@ -273,6 +284,7 @@ function renderTree(state: ControllerState): void {
   if (!treeButtons.has(state.node.id))
     selectedTreeRow = row(state.node, state.path.length - 1, 0, state.position.moveNumber);
   find('tree').replaceChildren(fragment);
+  revealTreeSelection(state.node.id);
   setUiText(
     find('tree-note'),
     pending.length ? 'First 500 nodes shown. Move controls can navigate the whole record.' : '',
@@ -382,6 +394,7 @@ function exportRecord(): boolean {
 async function mayReplace(signal?: AbortSignal): Promise<SgfRecord | null> {
   if (signal?.aborted || dialog.open) return null;
   if (!controller.getState().dirty) return controller.getState().record;
+  const invokingControl = document.activeElement as HTMLElement | null;
   return new Promise((resolve) => {
     dialog.returnValue = 'cancel';
     const cancel = () => {
@@ -391,6 +404,22 @@ async function mayReplace(signal?: AbortSignal): Promise<SgfRecord | null> {
     };
     const closed = () => {
       signal?.removeEventListener('abort', cancel);
+      if (!disposed && invokingControl)
+        (invokingControl.checkVisibility() ? invokingControl : find('app-menu')).focus({
+          preventScroll: true,
+        });
+      // Escape can finish dismissing the parent popover after the modal closes.
+      // Recover only an abandoned body focus, without overriding a new user target.
+      requestAnimationFrame(() => {
+        if (
+          !disposed &&
+          document.activeElement === document.body &&
+          !document.querySelector('dialog:modal')
+        )
+          (invokingControl?.checkVisibility() ? invokingControl : find('app-menu')).focus({
+            preventScroll: true,
+          });
+      });
       const allowed =
         dialog.returnValue === 'discard' ||
         (dialog.returnValue === 'export' && exportRecord() && !controller.getState().dirty);
@@ -637,6 +666,7 @@ find('animation-duration').addEventListener('change', updateAnimation);
 find<HTMLSelectElement>('animation-duration').disabled = !preferences.get('animation');
 find<HTMLSelectElement>('theme').addEventListener('change', (event) => {
   const theme = (event.target as HTMLSelectElement).value as 'wood' | 'flat';
+  find('board').dataset.theme = theme;
   view.update({ theme });
   comparison?.update({ board: { theme } });
 });
@@ -658,10 +688,20 @@ find('flip-x').addEventListener('change', transformView);
 async function exportDiagram(format: 'svg' | 'png') {
   const name = `${filename.replace(/\.sgf$/i, '')}-move-${controller.getState().position.moveNumber}.${format}`;
   try {
-    const blob =
-      format === 'svg'
-        ? new Blob([view.exportSvg()], { type: 'image/svg+xml;charset=utf-8' })
-        : await view.exportPng();
+    // CSS wood grain decorates the consumer only. Capture an opaque SDK surface
+    // synchronously so standalone diagrams remain independent of Studio CSS.
+    const board = find('board');
+    board.dataset.exporting = '';
+    let diagram: Blob | Promise<Blob>;
+    try {
+      diagram =
+        format === 'svg'
+          ? new Blob([view.exportSvg()], { type: 'image/svg+xml;charset=utf-8' })
+          : view.exportPng();
+    } finally {
+      delete board.dataset.exporting;
+    }
+    const blob = await diagram;
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -784,6 +824,7 @@ document.addEventListener('drop', (event) => {
   void openFile(event.dataTransfer?.files[0]);
 });
 const disposeTextures = mountTextureControls(find('texture-host'), {
+  initial: stoneTextures,
   onChange: (color, texture) => {
     const next = { ...stoneTextures, [color]: texture };
     view.update({ stoneTextures: next });

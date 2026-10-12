@@ -13,9 +13,9 @@ export function mountBoardMenu(): () => void {
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-labelledby', 'board-menu-title');
   panel.innerHTML = `<div class="board-menu-heading">
-    <button type="button" class="button icon" data-back aria-label="Back" title="Back" hidden><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 10H4m5-5-5 5 5 5"/></svg></button>
+    <button type="button" class="button icon" data-back aria-label="Back" title="Back" hidden></button>
     <h2 id="board-menu-title"></h2>
-    <button type="button" class="button icon" data-close aria-label="Close menu" title="Close menu"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
+    <button type="button" class="button icon" data-close aria-label="Close menu" title="Close menu"></button>
     </div><div class="board-menu-choices"></div><div class="board-menu-content"></div>`;
   document.body.append(panel);
   for (const entry of triggers) {
@@ -43,9 +43,6 @@ export function mountBoardMenu(): () => void {
       id: 'comparison',
       label: 'Compare positions',
       controls: [row('compare'), find('comparison-panel')],
-      open: () => {
-        if (find('comparison-panel').hidden) find('compare').click();
-      },
     },
     { id: 'share', label: 'Share', controls: [find('sharing-host')] },
     { id: 'drafts', label: 'Local drafts', controls: [find('drafts-host')] },
@@ -56,9 +53,6 @@ export function mountBoardMenu(): () => void {
       id: 'scoring',
       label: 'Score position',
       controls: [find('scoring-host')],
-      open: () => {
-        if (find('score-panel').hidden) find('score-open').click();
-      },
     },
   ];
   let active: (typeof groups)[number] | undefined;
@@ -114,7 +108,6 @@ export function mountBoardMenu(): () => void {
         borrowed.push({ control, placeholder });
         content.append(control);
       }
-      group.open?.();
     }
     panel.scrollTop = 0;
     position();

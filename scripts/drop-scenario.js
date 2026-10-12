@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin,
     errors = [],
     external = [];
@@ -223,7 +223,7 @@ async (page) => {
         'Earlier file replaced record after latest input failed',
       );
       await drop(older, 'delayed-new.sgf');
-      await page.locator('#new').click();
+      await studioControl(page, '#new', 'record', () => page.locator('#new').click());
       await page.waitForFunction(
         () => document.querySelector('#board svg').getAttribute('data-board-width') === '19',
       );
@@ -233,7 +233,7 @@ async (page) => {
         'Late file replaced a new record',
       );
       await drop(older, 'delayed-sample.sgf');
-      await page.locator('#sample').click();
+      await studioControl(page, '#sample', 'record', () => page.locator('#sample').click());
       await page.waitForFunction(
         () => document.querySelector('#game-name').textContent === 'Opening study',
       );

@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (rootPage) => {
+async (rootPage, studioControl) => {
   const origin = new URL(rootPage.url()).origin;
   const context = await rootPage.context().browser().newContext({ locale: 'en-US' });
   const page = await context.newPage();
@@ -80,7 +80,7 @@ async (rootPage) => {
       'Language change failed to rebuild localized descriptions or changed authored labels',
     );
     await page.locator('#language').selectOption('en');
-    await page.locator('#games').selectOption('1');
+    await studioControl(page, '#games', 'record', () => page.locator('#games').selectOption('1'));
     await selected('0 · Start position', 0, 3);
     await page.locator('#next').click();
     await selected('1 · Black A5', 1, 3);
@@ -88,7 +88,7 @@ async (rootPage) => {
       (await page.locator('#comment').inputValue()) === 'second comment',
       'Switching games kept old tree metadata',
     );
-    await page.locator('#games').selectOption('0');
+    await studioControl(page, '#games', 'record', () => page.locator('#games').selectOption('0'));
     await selected('0 · Start position', 0, 500);
     await page.locator('#last').click();
     await selected('700 · Authored annotation', 700, 501);

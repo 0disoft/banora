@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (rootPage) => {
+async (rootPage, studioControl) => {
   const origin = new URL(rootPage.url()).origin;
   const context = await rootPage.context().browser().newContext({ locale: 'en-US' });
   const page = await context.newPage();
@@ -9,7 +9,7 @@ async (rootPage) => {
     if (!condition) throw Error(message);
   };
   const open = async () => {
-    await page.locator('#search-open').click();
+    await studioControl(page, '#search-open', 'search', () => page.locator('#search-open').click());
     await page.locator('#search-dialog').waitFor({ state: 'visible' });
   };
   const close = async () => page.locator('#search-close').click();

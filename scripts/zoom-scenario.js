@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin;
   const factor = Number(new URL(page.url()).searchParams.get('zoom'));
   const errors = [];
@@ -83,8 +83,10 @@ async (page) => {
     }
     await page.locator('#comment').fill(`Authored localized zoom ${locale}`);
     await page.locator('#comment').blur();
-    await page.locator('#new').focus();
-    await page.keyboard.press('Enter');
+    await studioControl(page, '#new', 'record', async () => {
+      await page.locator('#new').focus();
+      await page.keyboard.press('Enter');
+    });
     const guard = page.getByRole('dialog', { name: titles[locale], exact: true });
     await guard.waitFor({ state: 'visible' });
     await fits(guard, `${locale}/replacement`);
@@ -131,6 +133,7 @@ async (page) => {
   await panel.locator('[data-board-menu-section="tools"]').click();
   await panel.locator('#undo').click();
   await page.keyboard.press('Escape');
+  await page.waitForFunction(() => ['app-menu', 'new'].includes(document.activeElement.id));
   verify(
     await trigger.evaluate((element) => element === document.activeElement),
     `Menu focus not restored: ${await page.evaluate(() => ({ active: document.activeElement?.id, expanded: document.querySelector('#board-menu').getAttribute('aria-expanded') })).then(JSON.stringify)}`,
@@ -141,8 +144,10 @@ async (page) => {
   );
   await page.locator('#comment').fill(`Authored ${factor * 100}% zoom`);
   await page.locator('#comment').blur();
-  await page.locator('#new').focus();
-  await page.keyboard.press('Enter');
+  await studioControl(page, '#new', 'record', async () => {
+    await page.locator('#new').focus();
+    await page.keyboard.press('Enter');
+  });
   const dialog = page.getByRole('dialog', { name: 'This record has changes.', exact: true });
   await fits(dialog, 'Replacement dialog');
   await page.keyboard.press('Tab');
@@ -151,8 +156,11 @@ async (page) => {
     'Dialog lost keyboard focus',
   );
   await page.keyboard.press('Escape');
+  await page.waitForFunction(() => ['app-menu', 'new'].includes(document.activeElement.id));
   verify(
-    await page.locator('#new').evaluate((element) => element === document.activeElement),
+    await page
+      .locator('#app-menu,#new')
+      .evaluateAll((elements) => elements.includes(document.activeElement)),
     'Guard focus not restored',
   );
   const downloadPromise = page.waitForEvent('download');

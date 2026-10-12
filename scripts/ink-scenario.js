@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin;
   const errors = [];
   const onError = (error) => errors.push(String(error));
@@ -51,11 +51,17 @@ async (page) => {
     await page.waitForFunction(
       () => document.querySelector('#game-name').textContent === 'Ink study',
     );
-    await page.locator('#rotation').selectOption('90');
+    await studioControl(page, '#rotation', 'view', () =>
+      page.locator('#rotation').selectOption('90'),
+    );
     await page.locator('#flip-x').check();
     await page.locator('#tool').selectOption('pen');
-    await page.locator('#ink-color').fill('#cc5522');
-    await page.locator('#ink-width').selectOption('0.16');
+    await studioControl(page, '#ink-color', 'tools', () =>
+      page.locator('#ink-color').fill('#cc5522'),
+    );
+    await studioControl(page, '#ink-width', 'tools', () =>
+      page.locator('#ink-width').selectOption('0.16'),
+    );
     const board = page.locator('#board svg');
     await drag(board, points, false);
     verify((await board.locator('[data-preview="ink"]').count()) === 1, 'Ink preview missing');
@@ -90,7 +96,7 @@ async (page) => {
     await page.locator('#export').click();
     const download = await downloadPromise;
     await download.saveAs('output/playwright/ink-roundtrip.sgf');
-    await page.locator('#clear-ink').click();
+    await studioControl(page, '#clear-ink', 'tools', () => page.locator('#clear-ink').click());
     verify((await board.locator('[data-stroke]').count()) === 0, 'Studio clear ink failed');
     await page.locator('#undo').click();
     verify(
@@ -355,7 +361,7 @@ async (page) => {
         () => document.querySelector('#ink-count').textContent === 'Ink strokes 2',
       );
       await page.locator('#undo-edit').click();
-      await page.locator('#clear-ink').click();
+      await studioControl(page, '#clear-ink', 'tools', () => page.locator('#clear-ink').click());
       await page.locator('#undo-edit').click();
       await page.waitForFunction(
         () => document.querySelector('#ink-count').textContent === 'Ink strokes 1',

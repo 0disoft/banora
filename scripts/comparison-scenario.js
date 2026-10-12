@@ -1,5 +1,5 @@
 // oxlint-disable-next-line eslint/no-unused-expressions -- Playwright CLI evaluates this callback expression.
-async (page) => {
+async (page, studioControl) => {
   const origin = new URL(page.url()).origin;
   await page.goto(`${origin}/studio/`);
   await page.evaluate(async () => {
@@ -228,7 +228,7 @@ async (page) => {
   await page.waitForFunction(
     () => document.querySelector('#game-name').textContent === 'Comparison study',
   );
-  await page.locator('#compare').click();
+  await studioControl(page, '#compare', 'comparison', () => page.locator('#compare').click());
   const studio = page.locator('#comparison-panel');
   if (!(await studio.locator('[data-result]').innerText()).startsWith('3 changed'))
     throw Error('Studio comparison initial pair failed');
@@ -241,14 +241,16 @@ async (page) => {
   )
     throw Error('Studio comparison selection navigated/edited the main controller');
   await page.locator('#next').click();
-  await page.locator('#pin-right').click();
+  await studioControl(page, '#pin-right', 'comparison', () => page.locator('#pin-right').click());
   if (
     (await studio.getByRole('combobox', { name: 'Right position', exact: true }).inputValue()) !==
     'n2'
   )
     throw Error('Studio pin-current failed');
   await studio.getByRole('combobox', { name: 'Left position', exact: true }).selectOption('n1');
-  await page.locator('#rotation').selectOption('90');
+  await studioControl(page, '#rotation', 'view', () =>
+    page.locator('#rotation').selectOption('90'),
+  );
   await page.locator('#flip-x').check();
   if (
     (await studio.locator('[data-position="left"] svg').getAttribute('data-rotation')) !== '90' ||
@@ -256,7 +258,7 @@ async (page) => {
   )
     throw Error('Studio comparison transform update missing');
   await page.screenshot({ path: 'output/playwright/studio-comparison.png', fullPage: true });
-  await page.locator('#compare').click();
+  await studioControl(page, '#compare', 'comparison', () => page.locator('#compare').click());
   if (
     (await studio.locator('svg').count()) ||
     (await page.locator('#board svg').getAttribute('data-node-id')) !== 'n2'
@@ -264,7 +266,7 @@ async (page) => {
     throw Error('Studio comparison disposal left DOM or changed cursor');
   for (const framework of ['react', 'vue', 'svelte']) {
     await page.goto(`${origin}/${framework}/`);
-    await page.locator('#compare').click();
+    await studioControl(page, '#compare', 'comparison', () => page.locator('#compare').click());
     const left = page.locator('#compare-left svg'),
       right = page.locator('#compare-right svg');
     await left.waitFor();
@@ -286,12 +288,12 @@ async (page) => {
       (await right.getAttribute('data-node-id')) !== 'n2'
     )
       throw Error(`${framework}: normal navigation moved comparison pins`);
-    await page.locator('#pin-left').click();
+    await studioControl(page, '#pin-left', 'comparison', () => page.locator('#pin-left').click());
     await page.waitForFunction(() =>
       document.querySelector('#comparison-summary').textContent.startsWith('0 changed'),
     );
     await page.locator('#advance').click();
-    await page.locator('#pin-right').click();
+    await studioControl(page, '#pin-right', 'comparison', () => page.locator('#pin-right').click());
     await page.waitForFunction(() =>
       document.querySelector('#comparison-summary').textContent.startsWith('1 changed'),
     );
@@ -333,7 +335,7 @@ async (page) => {
       path: `output/playwright/${framework}-comparison.png`,
       fullPage: true,
     });
-    await page.locator('#compare').click();
+    await studioControl(page, '#compare', 'comparison', () => page.locator('#compare').click());
     if (
       (await page.locator('#comparison-host').count()) ||
       (await page.locator('#state').innerText()) !== before
