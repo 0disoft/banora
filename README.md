@@ -9,6 +9,7 @@ and external analysis integration/display are implemented within documented
 coverage. Broader compatibility and release evidence remain separate. Nothing is
 published yet; the capability direction is not an unrestricted support claim.
 See [implementation status](docs/engineering/08-implementation-status.md).
+Try [Banora Studio](https://0disoft.github.io/banora/studio/) without installation.
 The [delivery audit](docs/engineering/10-delivery-audit.md) maps the complete M1-M4
 implementation, consumer evidence and remaining release/compatibility boundaries.
 
@@ -122,7 +123,7 @@ editing example at `examples/studio` in this repository. Its core flow
 is to open a record, navigate variations, create a continuation, add comments or
 markers, and download an SGF that can be reopened with those edits preserved.
 
-Studio is available locally and as a static build; public hosting is pending. A
+Studio is available locally and on [GitHub Pages](https://0disoft.github.io/banora/studio/). A
 read-only example at `examples/readonly` exercises a second workflow. Both import
 built public SDK exports without internal source access. See the
 [roadmap](docs/product/01-roadmap.md) for sequencing and unimplemented capabilities.

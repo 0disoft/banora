@@ -1,8 +1,8 @@
 # Demo Deployment
 
 Status: public GitHub source and private vulnerability reporting enabled on
-October 12, 2026. GitHub Pages uses Actions; the first deployment still needs
-an observed successful run and live verification.
+October 12, 2026. GitHub Pages deployment and live browser verification passed
+at source `9c35e23`; npm publication remains a separate operation.
 
 ## Ownership and Destination
 
@@ -41,6 +41,13 @@ success. A Pages configuration response alone does not prove a deployed site.
 Investigate a failed deployment before retrying. To restore a prior site, rebuild
 and explicitly deploy reviewed prior source through a separately reviewed recovery
 procedure; this document does not claim an exercised remote rollback.
+
+The first [deployment run 38204372917](https://github.com/0disoft/banora/actions/runs/38204372917)
+completed successfully. Live Chrome verification imported an authored SGF, edited
+its comment, navigated both moves, downloaded the actual SGF and reopened it with
+the unknown property retained. Twelve additional consumer routes returned HTTP
+200 and rendered their SVG boards, without failed site-asset responses or page
+errors. These checks cover the deployed project path, not every browser/device.
 
 ## npm Environment
 

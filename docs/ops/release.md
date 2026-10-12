@@ -400,10 +400,15 @@ configuration and verified publishing permission. npm documents that `npm whoami
 is not a trusted-publishing permission check in its
 [trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
 
-The next actionable handoff is the private reporting channel,
-publication destination/visibility approval,
-and package-specific publishing authority. Local npm login is not a prerequisite
-for the proposed Actions OIDC route. Never request credentials in a public
+The owner subsequently approved public GitHub source, Pages and private GitHub
+reporting; their actual configuration and live demo checks are recorded in
+[demo deployment](demo-deployment.md). The `npm-release` environment now selects
+only `main`, requires `0disoft` approval and permits self-review. Five package
+identities were initialized using the reviewed candidate's staged tarballs;
+their public `0.0.0-stage` placeholders are not SDK releases. Package-specific
+trusted publishers and actual OIDC publication/health remain separate checks.
+Temporary local CLI login is used only for initial registration; the subsequent
+Actions publisher does not use it. Never request credentials in a public
 issue or invent an address/account to close a readiness row. No full local suite
 needs repeating while these external prerequisites remain unchanged.
 

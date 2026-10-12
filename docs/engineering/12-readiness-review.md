@@ -54,11 +54,11 @@ This is an ownership decision, not evidence that such a service exists.
 | 16  | Versioned data, migration and recovery           | [migration-check](../ops/data-migrations.md) passed 18 tests/402 assertions for legacy-field interrupted resume/idempotence, future-data preservation and actual checkpoint/backup restoration. No silent unknown-version conversion or downgrade.                                                                                                                                             |
 | 17  | Rebuildable infrastructure and permissions       | SDK owns no server/network/account infrastructure. CI authority and static package/example builds are declarative; reviewed release artifacts are retained locally. Host deployment/IaC is neither selected nor claimed implemented.                                                                                                                                                           |
 | 18  | Pre-release verification environment             | Independent installed SDK/CLI/native framework and retained browser/starter checks executed at 52f7c3f. Its 149-file hosted candidate was downloaded and consumed by the read-only publication preview; no public staging service is implied.                                                                                                                                                  |
-| 19  | Release verification and rollback automation     | Nine preparation gates and actual hosted preview passed at 52f7c3f. Guarded publication and separate read-only fresh-registry consumer health are implemented. Live npm publication, post-publication health and deployed previous-version rollback remain unverified.                                                                                                                         |
+| 19  | Release verification and rollback automation     | Nine preparation gates and actual hosted preview passed at 9c35e23. Guarded publication and separate read-only fresh-registry consumer health are implemented. Live npm publication, post-publication health and deployed previous-version rollback remain unverified.                                                                                                                         |
 | 20  | Feature activation and emergency disable         | Optional modules/providers, explicit configuration/read-only presentation and owned cancellation/disposal enable host-controlled activation. They do not replace server authorization or imply remote cohort/flag infrastructure.                                                                                                                                                              |
 | 21  | Automatic backups and verified restore           | Studio bounded autosave/revisions, user-selected portable backups and guarded recovery execute with reload/conflict/denial coverage. [Recovery limits](../ops/backup-and-restore.md) distinguish local transactions, downloaded files and off-device host backups.                                                                                                                             |
 | 22  | Executable operational procedures                | Doctor/discovery/cleanup, redacted recovery checks/drill, migration check and retained prepare/verify/restage commands execute; [runbooks](../ops/00-operational-contract.md) name ownership and failure actions. No fictional live admin service is introduced.                                                                                                                               |
-| 23  | Secret/dependency/permission security gates      | File/permission signals, fail-closed dependency audit and exact parsed-workflow OIDC policy are active. Ancestor npm configuration inheritance was reproduced and fixed. Root policy is approved and installed; a verified private report channel remains pending.                                                                                                                             |
+| 23  | Secret/dependency/permission security gates      | File/permission signals, fail-closed dependency audit and exact parsed-workflow OIDC policy are active. Ancestor npm configuration inheritance was reproduced and fixed. Root policy is approved and installed; GitHub private reporting is enabled.                                                                                                                                           |
 | 24  | Code/document synchronization                    | Declarations and frozen schema/help come from source; command discovery reads actual metadata. Docs checks verify English/LF/links/root command references; packed consumers verify public artifacts. Behavioral/default consistency also requires source review, not a link-only green check.                                                                                                 |
 
 ## Product Workflows
@@ -75,7 +75,7 @@ These statements replace stale work plans, not the outstanding distribution gate
 | ID  | Requested outcome                        | Current source / execution evidence                                                                                                                                                                                                                                                           |
 | --- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 25  | First-run guidance to a first result     | [Standalone guide](../../examples/standalone/README.md) gives local-tarball setup and save/reopen steps; Studio starts with an authored sample and opt-in Help. Independent starter installation/browser evidence is retained in the release audit; no new-machine execution is claimed here. |
-| 26  | Trial space and samples                  | Built Studio/read-only/viewer/puzzle/analysis and framework pages executed in the production suite at 3355418. Sample reset and actual local file workflows pass; analysis offline values are explicitly illustrative. Public hosting remains pending.                                        |
+| 26  | Trial space and samples                  | Built Studio/read-only/viewer/puzzle/analysis and framework pages executed in the production suite at 3355418. Sample reset and actual local file workflows pass; analysis offline values are explicitly illustrative. Public Pages deployment and live SGF round-trip passed at 9c35e23.     |
 | 27  | Templates for recurring work             | Five embedded CLI JSON recipes and the copyable standalone app provide recurring-work starting points. Current installed CLI executes every recipe; no checkout-only template loader or interpreter is required.                                                                              |
 | 28  | One-place search and navigation          | [Search consumer](../../examples/studio/search-controls.ts) searches games/branches with paging and real position navigation; Help discovers actual actions/settings. Production search/support routes verify stale-result rejection, no-results states and menu/focus restoration.           |
 | 29  | Bounded batch edit/export                | Guarded comment batches select at most 256 nodes, preview/apply atomically and produce one Undo entry. Production search exports all edited comments/unknown properties; other mass move/delete/export operations are not claimed.                                                            |
@@ -92,7 +92,7 @@ These statements replace stale work plans, not the outstanding distribution gate
 | 40  | Operator management                      | There is no Banora account/job service to administer. Doctor, recovery verification, migration and retained-release commands cover owned local maintenance; host account/tenant/data administration is an explicit integration obligation.                                                    |
 | 41  | Redacted support bundle                  | Opt-in Studio and terminal diagnostics emit bounded fixed operation/status/code/environment fields without authored content or raw errors. Actual downloaded reports, consent changes and publication protection pass; sending a report remains explicit.                                     |
 | 42  | In-product examples/help                 | Help offers localized action/settings discovery, concise instructions and real controls near the board. Production support verifies four languages, search misses, menu reopening and narrow-layout keyboard behavior.                                                                        |
-| 43  | Bug/feature feedback and status          | Help links to GitHub Issues and repository templates exist. The October 12 repository check found private visibility and no public reporting channel. External access/security reporting is an unresolved distribution gate, not a shipped support service.                                   |
+| 43  | Bug/feature feedback and status          | Help links to GitHub Issues and repository templates exist. Public Issues and GitHub private vulnerability reporting are now enabled; no support SLA is promised.                                                                                                                             |
 | 44  | Usage/failure dashboard                  | Local opt-in retained-window counts/failures/timing are inspectable and downloadable. Production support verifies actual evidence, clear/reload and no remote requests. Lifetime analytics, abandonment tracking and hosted alerts remain host-owned.                                         |
 | 45  | Progress/cancel/retry for long work      | Analysis has explicit pending/cancel/error states and provider freshness/deadline contracts; file reads reject superseded/disposed results. Imports/search/batches are bounded synchronous work, without fabricated progress or a general job queue.                                          |
 | 46  | User-selectable backup/restore           | Actual portable backup download/open and chosen-draft restore preserve baseline/selection/rules; production recovery checks corrupt/future data, cancellation and storage denial. Off-device retention/provenance and process-kill durability remain host-owned/unverified.                   |
@@ -123,10 +123,10 @@ These statements replace stale work plans, not the outstanding distribution gate
 | 66  | Control operating cost growth                   | Bounded local drafts/preferences/search/diagnostics and one cached cancellable change-aware CI job constrain owned growth. No default SDK network or worker is started. Hosted cost/scale remains a host obligation; no measured service-cost model is claimed.                                                                                            |
 | 67  | Trace a reported failure                        | Local diagnostic operation IDs/codes and safe summaries connect an observed failure to corrective guidance; installed diagnose executes once with protected output. Private minimized repro input is reviewed separately; IDs are not global traces or upload authority.                                                                                   |
 | 68  | Routine operator tasks without code edits       | Doctor/discovery/safe cleanup, migration checks, recovery checks/drill and retained-release commands execute without code edits. Runbooks name failure actions and owners; private-repository feedback and hosted administration remain separate access boundaries.                                                                                        |
-| 69  | Verified failure recovery                       | Corrupt/future/quota/conflict/cancel recovery fixtures pass. The 52f7c3f candidate has actual download/hash verification and byte-identical Windows-consumed packages; originals remain preserved. Disk/remote failure and actual published-version rollback remain unverified.                                                                            |
-| 70  | Fresh install/update/release and rollback       | Installed SDK/CLI/framework/starter and frozen setup pass locally/hosted. Prepared 52f7c3f bytes passed hosted download/preview. Fresh registry health tooling now exists; actual Banora metadata preflight stopped without downloads. Publication and live rollback remain owner/provider gates.                                                          |
+| 69  | Verified failure recovery                       | Corrupt/future/quota/conflict/cancel recovery fixtures pass. The 9c35e23 candidate has actual download/hash verification and byte-identical Windows-consumed packages; originals remain preserved. Disk/remote failure and actual published-version rollback remain unverified.                                                                            |
+| 70  | Fresh install/update/release and rollback       | Installed SDK/CLI/framework/starter and frozen setup pass locally/hosted. Prepared 9c35e23 bytes passed hosted download/preview. Fresh registry health tooling now exists; actual Banora metadata preflight stopped without downloads. Publication and live rollback remain owner/provider gates.                                                          |
 | 71  | Match user-facing promises to reality           | Current README/spec/consumer/ops review keeps SDK implementation distinct from illustrative analysis, manual bridges and unpublished/private services. Updated localized modal/pass/komi behavior is recorded in its owning specification; broader compatibility remains limited to observed execution.                                                    |
-| 72  | Next three priorities and deferred work         | Next priorities: establish private/public feedback access; select release/version/publication ownership using the reviewed candidate and green hosted CI; extend browser/device/paint/memory coverage. Defer accounts/cloud collaboration/schedulers to hosts and avoid infrastructure without a consumer.                                                 |
+| 72  | Next three priorities and deferred work         | Next priorities: finish npm publisher setup and verify live release health; rehearse distribution recovery; extend browser/device/paint/memory coverage. Defer accounts/cloud collaboration/schedulers to hosts and avoid infrastructure without a consumer.                                                                                               |
 
 ## Completion Rule
 
@@ -138,7 +138,7 @@ preservation checks. [Compatibility](../sdk/compatibility.md#executed-browser-sc
 records the exact exclusions; these results do not establish full Firefox,
 actual Safari/iOS, physical touch or assistive-device coverage.
 
-The latest executed 52f7c3f hosted candidate passed all nine preparation gates,
+The latest executed 9c35e23 hosted candidate passed all nine preparation gates,
 retained 149 files and was consumed by the actual hosted read-only publication
 preview. Its five tarballs match the earlier Windows-consumed ff9edb7 bytes.
 Earlier candidates remain preserved; later source changes require a newly reviewed candidate.
@@ -146,17 +146,15 @@ This removes the old-source artifact gap. The requirement-by-requirement rows
 retain their declared execution boundaries rather than treating a prepared
 manifest as proof of every requested service or compatibility claim.
 
-The full objective is still unproven at external/owner gates: an actual private
-report channel; external feedback/demo and publication access; actual publication/health
-and deployment recovery. Hosted
-CI and candidate/preview execution at `52f7c3f` are recorded below with their scope.
+The full objective is still unproven at external gates: package-specific npm
+authority, actual publication/health and distribution recovery. Hosted
+CI and candidate/preview execution at `9c35e23` are recorded below with their scope.
 Both dependency-update ecosystems executed successfully with no needed updates;
 a changed-lockfile compatibility result must be recorded when an update is available.
 The owner-approved [root security policy](../../SECURITY.md) is now installed.
-Its reporting section records the missing private channel without inventing one.
-The owner's existing `0disoft` publishing context is known, but Banora-specific
-authority and destination/visibility decisions are still unconfirmed. No public access or
-physical-device certification is invented to close those rows. Framework SDK/host
+GitHub private reporting is enabled and exposes its public report link.
+Public GitHub source and Pages are approved and live. npm package-specific
+authority remains separate; no physical-device certification is invented. Framework SDK/host
 authority boundaries remain the recorded product scope; they are not implemented
 account, tenant, cloud collaboration, scheduler or monitoring services.
 
@@ -169,22 +167,22 @@ required in-scope implementation is complete.
 
 ## Execution Evidence
 
-Latest observed code CI is [run 38177821097](https://github.com/0disoft/banora/actions/runs/38177821097)
-at `7701d37`: 215 tests / 3,036 assertions, installed SDK/classic and 297 installed
+Latest observed code CI is [run 38204371361](https://github.com/0disoft/banora/actions/runs/38204371361)
+at `9c35e23`: 216 tests / 3,050 assertions, installed SDK/classic and 297 installed
 CLI checks passed on Linux with the narrow release-tool route. Windows root
 checks and actual SDK/CLI/native framework installation are scoped in the history.
 
-The latest fully prepared candidate is `52f7c3f`: nine successful gates, 149 retained
+The latest fully prepared candidate is `9c35e23`: nine successful gates, 149 retained
 files, actual hosted/local download and verified read-only publication preview.
-All five tarballs match the earlier Windows-consumed candidate bytes. Its source
-predates the new registry-health tool; prepare/review a fresh matching candidate
-before any authorized execution after main changes. A green code CI or candidate
+All five tarballs match earlier reviewed bytes. Keep publication bound to this
+reviewed remote source; later changes require their own candidate review. A green code CI or candidate
 manifest does not replace real distribution and post-publication health.
 
 The guarded publisher and independent read-only registry-health workflow are
 implemented. Actual Banora registry health stopped at `registry-metadata`, exit 1,
-with zero downloads. Public source/demo destination, protected reviewer environment,
-package-specific publishing authority and private reporting remain unestablished.
+with zero downloads before package initialization. Public source, live Pages,
+private reporting and the main-only required-reviewer environment are established.
+Package-specific npm authority and live release health remain unverified.
 The root security policy is owner-approved and installed. Do not reinterpret that
 failure as namespace availability, permission or a passing release. Physical device/assistive and live
 rollback limits remain the explicit bounds in the requirement rows above.

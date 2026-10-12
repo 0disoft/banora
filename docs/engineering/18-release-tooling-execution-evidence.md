@@ -271,3 +271,44 @@ Linux job. It selected code-only private release verification and passed 215 tes
 were correctly omitted for this diff; actual retained adapter installation was
 checked separately in the preceding integration. This validates the implemented
 tooling and narrow CI path, not an executed publication or registry-health job.
+
+### October 12: Public Source, Live Pages and Initial npm Registration
+
+The owner approved public GitHub source, GitHub Pages, private vulnerability
+reporting and direct npm OIDC publication. GitHub now reports public visibility;
+private reporting is enabled and the public Advisories page exposes the report
+link. The `npm-release` environment has the actual `0disoft` required reviewer,
+self-review permitted and a branch policy selecting only `main`.
+
+The manual Pages workflow has independently reviewed whole-workflow authority:
+only its `github-pages` deploy job receives Pages/OIDC writes. Its permission
+mutations and mixed-change CI routing passed seven focused tests / 159 assertions;
+format, lint, types, docs and file signals passed. This adds a deployment runner,
+without changing SDK APIs, database, dependency versions or hygiene rules.
+
+[CI run 38204371361](https://github.com/0disoft/banora/actions/runs/38204371361)
+passed at `9c35e23`: 216 tests / 3,050 assertions, installed SDK/classic,
+297 installed CLI checks, 125 documents / 522 links and 367-file signals.
+[Pages run 38204372917](https://github.com/0disoft/banora/actions/runs/38204372917)
+successfully deployed the production examples. A fresh live Chrome session imported
+an authored SGF, edited its comment, navigated both moves, downloaded and reopened
+the actual SGF with its unknown property retained. Twelve other nested consumer
+routes returned HTTP 200 and rendered SVG boards, with no failing site-asset
+responses or page errors. The terminal session was closed after verification.
+
+[Preparation run 38204415452](https://github.com/0disoft/banora/actions/runs/38204415452)
+passed all nine gates at source `9c35e23cd153701932cf2df934f1baffbf878a15`,
+tree `a82dd0e3723a364db8423b0835ab9c07d93336f7`. Its 149-file candidate has manifest
+SHA256 `902323cb461e12ef6dbfa04d911edb64746ac9b3730434a409729b8928b774c3`,
+artifact ID `11727310341` and Actions archive digest
+`296fb454bb151929ee0be8563c82afb0ca67423eed0b831d575c3d985bfcb066`.
+The actual local download passed integrity verification and offline publication
+preview. [Hosted preview 38205017071](https://github.com/0disoft/banora/actions/runs/38205017071)
+also passed; both its publishing and health jobs were skipped.
+
+The reviewed five tarballs were staged only to initialize the previously missing
+package identities. npm created public `0.0.0-stage` placeholders; the staged
+`0.1.0-dev.0` payloads are not public SDK releases. The first trusted-publisher
+connection requests owner security-key verification. No successful OIDC upload,
+fresh live Banora registry-consumer result, supported stable release, physical
+device certification or remote rollback is inferred from these setup results.
