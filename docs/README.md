@@ -73,6 +73,8 @@ records actual SDK/CLI current-to-previous-to-current portable-data preservation
 [Initial default-channel release](engineering/27-initial-default-channel-release-evidence.md)
 records actual five-package publication, unqualified installation/README checks
 and downloaded public prepared-bundle recovery.
+[Native desktop zoom](engineering/28-native-browser-zoom-evidence.md) records actual
+100%/200%/400% Chrome workflows and the corrected final-Undo menu focus defect.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable

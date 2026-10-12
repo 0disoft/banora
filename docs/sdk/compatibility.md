@@ -103,6 +103,14 @@ passed on Chrome 154. Narrow scoring/analysis screenshots were inspected; see th
 CDP touch/zoom/performance and native controlled-consumer input remain outside this
 profile, and its touch emulation is not a real mobile device/OS result.
 
+`--zoom-only` is a separate opt-in Chrome-only native desktop page-zoom check.
+Windows Chrome 154 passed 100%, 200% and 400% at clean source `544bed5`, including
+four-language Studio menus/guards, keyboard/editing/Undo, actual SGF save/reopen
+and English React/Vue/Svelte viewer editing. The outer window stays fixed while
+the real CSS viewport/pixel ratio scale; sources/builds retain matching hashes.
+See the [native zoom execution](../engineering/28-native-browser-zoom-evidence.md)
+for screenshots, the corrected focus defect and explicit coverage limits.
+
 `scripts/browser-smoke.ts` accepts a single
 `--browser=chrome|msedge|firefox|webkit` alongside its existing focused flags.
 It explicitly launches and verifies that engine, and emits its actual user agent.
