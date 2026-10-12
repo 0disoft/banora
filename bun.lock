@@ -26,34 +26,34 @@
     },
     "packages/cli": {
       "name": "@0disoft/banora-cli",
-      "version": "0.1.0-dev.1",
+      "version": "0.1.0",
       "bin": {
         "banora": "./dist/main.js",
       },
       "peerDependencies": {
-        "@0disoft/banora": ">=0.1.0-dev.0 <1",
+        "@0disoft/banora": ">=0.1.0-dev.0 <0.2.0",
       },
     },
     "packages/react": {
       "name": "@0disoft/banora-react",
-      "version": "0.1.0-dev.1",
+      "version": "0.1.0",
       "devDependencies": {
         "@0disoft/banora": "workspace:*",
         "@types/react": "19.x",
         "react": "19.x",
       },
       "peerDependencies": {
-        "@0disoft/banora": ">=0.1.0-dev.0 <1",
+        "@0disoft/banora": ">=0.1.0-dev.0 <0.2.0",
         "react": "19.x",
       },
     },
     "packages/sdk": {
       "name": "@0disoft/banora",
-      "version": "0.1.0-dev.1",
+      "version": "0.1.0",
     },
     "packages/svelte": {
       "name": "@0disoft/banora-svelte",
-      "version": "0.1.0-dev.1",
+      "version": "0.1.0",
       "devDependencies": {
         "@0disoft/banora": "workspace:*",
         "@sveltejs/package": "3.x",
@@ -62,19 +62,19 @@
         "typescript": "6.x",
       },
       "peerDependencies": {
-        "@0disoft/banora": ">=0.1.0-dev.0 <1",
+        "@0disoft/banora": ">=0.1.0-dev.0 <0.2.0",
         "svelte": "5.x",
       },
     },
     "packages/vue": {
       "name": "@0disoft/banora-vue",
-      "version": "0.1.0-dev.1",
+      "version": "0.1.0",
       "devDependencies": {
         "@0disoft/banora": "workspace:*",
         "vue": "3.x",
       },
       "peerDependencies": {
-        "@0disoft/banora": ">=0.1.0-dev.0 <1",
+        "@0disoft/banora": ">=0.1.0-dev.0 <0.2.0",
         "vue": "3.x",
       },
     },

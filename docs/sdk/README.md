@@ -1,6 +1,6 @@
 # Banora SDK
 
-- Status: Common SDK and optional React/Vue/Svelte development prereleases published
+- Status: Development prereleases published; initial 0.1 default-channel candidate selected
 - Technical owner: 0disoft (primary maintainer)
 
 ## Sources of Truth
@@ -32,11 +32,11 @@ and original sample. It imports selective public SDK exports and owns file
 selection, replacement approval and SGF download. `bun run smoke:starter` installs
 the SDK tarball and tools into a separate npm consumer and checks its own strict
 types, production build and actual browser editing/download/reopen flow, including
-replacement guards and keyboard/emulated touch. It does not imply an available
-registry package or physical-device coverage.
+replacement guards and keyboard/emulated touch. Actual registry availability is
+recorded in the [release guide](../ops/release.md); physical-device coverage remains separate.
 
 Start with Banora Studio at `examples/studio`: an SGF review/basic editing
-application and future hosted demo, consuming only built public SDK exports. Verify the
+application and [public demo](https://0disoft.github.io/banora/studio/), consuming only built public SDK exports. Verify the
 load/navigate/create-variation/comment/mark/download/reopen workflow against the
 built package. Studio-specific private hooks and internal SDK source imports are
 not acceptable consumer validation.

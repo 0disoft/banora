@@ -5,6 +5,22 @@ fresh registry-download and installed-consumer health passed. Public source,
 GitHub Pages and private vulnerability reporting are configured. This development
 prerelease does not establish stable support or previous-version rollback.
 
+## Initial Default-Channel Candidate
+
+Source versions intentionally advance together to `0.1.0`, with `latest` selected
+for the reviewed five-package publication. This is the initial public 0.1 line
+within the executed compatibility matrix, under [ADR 0025](../adr/0025-initial-default-channel-release.md).
+Adapters/CLI accept compatible SDK patches through `>=0.1.0-dev.0 <0.2.0`;
+framework/tool major ranges are unchanged. No SDK runtime or saved-data format
+changes accompany this release. Future incompatible 0.x minors require migration
+notes, updated peers and installed-consumer evidence.
+
+Preparation/publication are pending actual execution. Until a successful result
+is recorded, corrected development packages still require `@dev`; `latest` remains
+the original `dev.0` family. Use the existing manual preparation and protected
+publication workflows below. No tag-only mutation, new publisher connection,
+unpublish, stable-support SLA or automatic host update is implied.
+
 ## Documentation Development Prerelease
 
 [Publication and health run 38264045296, attempt 6](https://github.com/0disoft/banora/actions/runs/38264045296/attempts/6)
@@ -42,7 +58,7 @@ name/version. Future artifact changes require a new version.
 
 ## Hosted Candidate Preparation
 
-The intentional `0.1.0-dev.1` release corrects the five published READMEs'
+The earlier intentional `0.1.0-dev.1` release corrected the five published READMEs'
 obsolete unpublished/local-build instructions, adds an SDK browser quick start and
 replaces SDK/CLI links that escape the npm package. npm updates its package-page
 README only on a new publication; see [npm's README guidance](https://docs.npmjs.com/about-package-readme-files/).
@@ -88,7 +104,7 @@ Maintainers own source review, compatibility and artifact retention. Start in a
 reviewed Banora checkout with `bun run setup` completed. Commit intended changes;
 `bun run release prepare` requires an actual clean Git checkout and private
 `banora-workspace` root. The five packages must use the same intentional version.
-The current source development version is `0.1.0-dev.1`; there is no automatic bump.
+The current source candidate version is `0.1.0`; there is no automatic bump.
 
 Preparation runs the root checks and private-file/dependency gates serially, builds
 production examples and packages SDK, CLI, React, Vue and Svelte with lifecycle

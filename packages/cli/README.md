@@ -2,14 +2,14 @@
 
 An optional Node 24.x terminal consumer of the Banora SDK. Agents operate on
 logical board state and SGF with JSON requests/responses, without vision, a
-browser, an LLM service or a framework. This is a development prerelease.
+browser, an LLM service or a framework. Initial 0.1 release.
 
 ## Local Use and Installation
 
-Install the published development SDK and CLI, then discover their contract:
+Install the SDK and CLI, then discover their contract:
 
 ```sh
-npm install @0disoft/banora@dev @0disoft/banora-cli@dev
+npm install @0disoft/banora @0disoft/banora-cli
 npx --no-install banora schema
 ```
 

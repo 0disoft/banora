@@ -1,7 +1,7 @@
 # Banora React
 
-Optional React 19 adapter for the common Banora SDK. Install the development
-prerelease with `npm install @0disoft/banora@dev @0disoft/banora-react@dev`.
+Optional React 19 adapter for the Banora 0.1 SDK.
+Install with `npm install @0disoft/banora @0disoft/banora-react`.
 Build locally with `bun run build:adapters` from the repository root.
 
 `ControlledBoard` accepts a required plain `state` snapshot and optional `onIntent`

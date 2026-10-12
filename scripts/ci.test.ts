@@ -22,6 +22,7 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
         'scripts/consumer-recovery.ts',
         'scripts/consumer-recovery.test.ts',
         'scripts/consumer-recovery-probe.js',
+        'scripts/package-compatibility.test.ts',
       ]),
     ),
   ).toEqual([

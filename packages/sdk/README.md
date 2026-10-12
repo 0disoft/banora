@@ -1,9 +1,10 @@
 # Banora SDK
 
-Development prerelease. Install with `npm install @0disoft/banora@dev` on Node 24.x.
+Initial 0.1 Go SDK. Install with `npm install @0disoft/banora` on Node 24.x.
 Core, SGF, controller, SVG board and viewer are available through the root export
 and their respective subpaths. See the repository documentation
-for implementation status and the remaining milestones. No third-party runtime
+for the executed compatibility matrix. Compatible 0.1 updates preserve the public
+contract; breaking pre-1.0 changes require a new minor and migration notes. No third-party runtime
 dependencies or external assets are included.
 
 ## Quick Start

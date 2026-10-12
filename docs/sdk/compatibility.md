@@ -37,6 +37,10 @@ names are `@0disoft/banora`, `@0disoft/banora-react`, `@0disoft/banora-vue` and
 as the development prerelease `0.1.0-dev.1`; publication and installed-consumer
 evidence belong to the [readiness review](../engineering/12-readiness-review.md#execution-evidence).
 This prerelease does not establish stable support.
+The source candidate is now `0.1.0`, selected for default-channel publication under
+[ADR 0025](../adr/0025-initial-default-channel-release.md). Availability remains
+pending recorded preparation/publication; this selection does not extend the
+executed environment matrix.
 See [ADR 0023](../adr/0023-existing-publisher-package-identity.md). Actual symbols are
 listed in the [public API](public-api.md). CommonJS support is
 UNDECIDED and must not be claimed without consumer evidence.
@@ -206,7 +210,7 @@ checks masks, overlays, keyboard/ink/menu intentions and eight transforms.
 See the [host-controlled contract](controlled-board.md). External/native transports,
 physical devices, other browser engines and hydration remain outside this evidence.
 
-Adapters peer-depend on `@0disoft/banora` (`>=0.1.0-dev.0 <1`) and only their own
+Adapters peer-depend on `@0disoft/banora` (`>=0.1.0-dev.0 <0.2.0`) and only their own
 framework major (`19.x`, `3.x`, `5.x` respectively). Framework runtimes are not
 bundled into adapter artifacts. Independent tarball installations verify that the
 other two frameworks are absent, declarations resolve and license/README files ship.
@@ -396,6 +400,14 @@ pre-1.0 development. Add migration examples when changing actions, events,
 coordinates, ownership, record semantics or package exports. Maintain a documented
 deprecation path when feasible; never silently reinterpret saved records.
 
+The initial 0.1 release line preserves its published consumer contract through
+compatible patch updates. Intentionally incompatible API/consumer changes require
+a new 0.x minor with migration notes and new consumer evidence. CLI and adapter
+SDK peers retain the tested `0.1.0-dev.0` floor and stop before `0.2.0`; a broad
+`<1` range would accept a future incompatible 0.x minor. All five release units
+advance together for the initial family. Checkpoint/storage schema versions are
+independent of package versions and unsupported future records remain preserved.
+
 Keep dependencies on explicit compatible major lines, allow stable updates within
 those lines, and promote a new major after focused consumer compatibility checks.
 Lockfiles capture the exact dependency graph used for a build; they are not a
@@ -412,7 +424,7 @@ types/artifacts rather than inferring compatibility from the plain-browser examp
 Scope checks and releases to changed packages and affected consumers; common SDK
 changes may require adapter checks, but unrelated edits do not require a full matrix.
 Record actual tested runtime versions in the [implementation status](../engineering/08-implementation-status.md).
-The common package source is `0.1.0-dev.1`; no automatic version bump or publication is
+The common package source is the intentional `0.1.0` candidate; no automatic version bump or publication is
 configured. Version changes belong to an intentional release task.
 
 Local [release preparation](../ops/release.md) checks retained exact tarballs and

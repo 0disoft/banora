@@ -868,9 +868,11 @@ view.update({ board: { theme: 'flat' }, comments: true });
 
 ## Optional Framework Adapters
 
-Build the separate `@0disoft/banora-react`, `@0disoft/banora-vue` and `@0disoft/banora-svelte` development
-packages with `bun run build:adapters`, or install their published development
-prereleases with `@dev` alongside `@0disoft/banora@dev`. Each exports `Board`
+Build the separate `@0disoft/banora-react`, `@0disoft/banora-vue` and `@0disoft/banora-svelte`
+packages with `bun run build:adapters`, or install them alongside `@0disoft/banora`.
+The initial 0.1 candidate targets default npm installation; until its actual
+publication is recorded in the [release guide](../ops/release.md), select all
+development packages with `@dev`. Each exports `Board`
 and `Viewer` components, binding the same SDK controller and renderer. Create a
 `RecordController({ sgf })` to initialize a shared record; adapter viewers omit the
 plain mount's initial `sgf` option. All other rendering/editability options are shared.

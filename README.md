@@ -3,11 +3,12 @@
 A modular TypeScript SDK for building Go (Baduk/Weiqi) boards, game viewers,
 editors, puzzles, and analysis interfaces.
 
-**Status: early development snapshot.** Headless rules/SGF/controller, SVG rendering,
+**Status: initial 0.1 release candidate.** Headless rules/SGF/controller, SVG rendering,
 viewer/Studio, optional React/Vue/Svelte adapters, manual scoring, authored puzzles
 and external analysis integration/display are implemented within documented
-coverage. Development prerelease `0.1.0-dev.1` is available on npm through the
-`dev` channel. Broader compatibility and stable support remain separate.
+coverage. Source version `0.1.0` targets npm's default channel; publication is
+pending verified preparation. The published `0.1.0-dev.1` remains available through
+`dev`. See the [release guide](docs/ops/release.md) for actual publication evidence.
 See [implementation status](docs/engineering/08-implementation-status.md).
 Try [Banora Studio](https://0disoft.github.io/banora/studio/) without installation.
 The [delivery audit](docs/engineering/10-delivery-audit.md) maps the complete M1-M4
@@ -18,13 +19,17 @@ implementation, consumer evidence and remaining release/compatibility boundaries
 Use Node 24.x. Install the SDK with:
 
 ```sh
-npm install @0disoft/banora@dev
+npm install @0disoft/banora
 ```
 
-Optional packages are `@0disoft/banora-cli@dev`, `@0disoft/banora-react@dev`,
-`@0disoft/banora-vue@dev` and `@0disoft/banora-svelte@dev`. Install only the adapters
-your application uses. These are development prereleases; see the
+Optional packages are `@0disoft/banora-cli`, `@0disoft/banora-react`,
+`@0disoft/banora-vue` and `@0disoft/banora-svelte`. Install only the adapters
+your application uses. Initial 0.x releases follow the documented compatibility
+matrix and do not promise a 1.0 API commitment; see the
 [release guide](docs/ops/release.md) for recorded publication and support limits.
+
+Until `0.1.0` publication is recorded, select `@dev` explicitly for the corrected
+development packages; default npm still resolves the original `dev.0` version.
 
 ## Local Development
 

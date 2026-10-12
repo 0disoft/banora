@@ -23,6 +23,16 @@ In particular, migration-check is now configured as documented below.
 - docs
 - check
 
+Initial `0.1.0` candidate preparation changes the five package versions, installed
+onboarding instructions and SDK peer ceiling intentionally; runtime/data schemas
+stay unchanged. `scripts/package-compatibility.test.ts` checks family version and
+lockfile workspace metadata agreement, acceptance of the tested 0.1 prerelease/
+patch line and rejection of stage/future incompatible minors. A package/lockfile
+change selects existing full affected CI; isolated policy tests select root check
+and file signals. The actual nine-gate candidate and fresh registry consumers,
+not source selection alone, establish release evidence. See
+[ADR 0025](docs/adr/0025-initial-default-channel-release.md).
+
 The opt-in `release consumer-recovery-check` binds two reviewed prepared manifests
 and independently installed SDK/CLI tarballs, then executes current → previous →
 current portable-checkpoint/SGF recovery in actual Node processes on authored data.

@@ -61,3 +61,7 @@ preserving verification/restaging of retained pre-rename release bundles.
 The [demo backup decision](0024-draft-release-demo-backups.md) preserves original
 static artifacts in maintainer-only draft assets and verifies independent hashes
 when restoring without original Actions retention.
+
+The [initial default-channel release](0025-initial-default-channel-release.md)
+selects the 0.1 family, compatible SDK peer bounds and exact-byte publication gates
+without extending the executed support matrix.

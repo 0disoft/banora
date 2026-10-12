@@ -8,9 +8,11 @@
 
 Milestones establish delivery order, not release dates or completed functionality.
 Each implementation task should produce a small usable increment and a focused
-commit. The development packages are `0.1.0-dev.1`; future non-prerelease versions
-and default-channel promotion remain UNDECIDED. Local implementation evidence
-alone does not establish publication or broader runtime support.
+commit. Published development packages remain `0.1.0-dev.1`. The source candidate
+is intentionally `0.1.0`, selected for default-channel publication under
+[ADR 0025](../adr/0025-initial-default-channel-release.md); preparation and publication
+need actual execution evidence. Future release versions remain UNDECIDED. Local
+implementation evidence alone does not establish publication or broader runtime support.
 
 ## M1: Banora Studio and Read-Only Embedding
 

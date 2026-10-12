@@ -1,7 +1,7 @@
 # Banora Svelte
 
-Optional native Svelte 5 adapter for the common Banora SDK. Install the development
-prerelease with `npm install @0disoft/banora@dev @0disoft/banora-svelte@dev`.
+Optional native Svelte 5 adapter for the Banora 0.1 SDK.
+Install with `npm install @0disoft/banora @0disoft/banora-svelte`.
 Build locally with `bun run build:adapters` from the repository root.
 A Svelte-aware compiler/bundler consumes the packaged `.svelte` components.
 

@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/banora-react",
-  "version": "0.1.0-dev.1",
+  "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "files": [
@@ -16,7 +16,7 @@
     }
   },
   "peerDependencies": {
-    "@0disoft/banora": ">=0.1.0-dev.0 <1",
+    "@0disoft/banora": ">=0.1.0-dev.0 <0.2.0",
     "react": "19.x"
   },
   "devDependencies": {
