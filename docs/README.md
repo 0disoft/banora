@@ -60,6 +60,8 @@ records the retained tar, real deployment transition and live artifact/Studio ch
 maintainer-only asset capture and independently reviewed restoration.
 [Expanded browser execution](engineering/21-expanded-browser-execution-evidence.md)
 records the current 22-scope Firefox/WebKit profile and its device exclusions.
+[Browser memory lifecycles](engineering/22-browser-memory-lifecycle-evidence.md)
+record actual repeated import/mount/dispose results and controller collection.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable

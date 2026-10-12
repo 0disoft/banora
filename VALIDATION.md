@@ -68,12 +68,13 @@ controller survival must pass. Source and built-artifact fingerprints must remai
 unchanged. Classic Viewer measurements query public controller instance counts
 and release debugger references; disposed owned controllers must be collected,
 while the host's borrowed controller remains. Complete ordered metrics are required
-before replacing
-`output/playwright/browser-memory.json`. Chromium is required; no threshold runs
+before replacing `output/playwright/browser-memory.json`. Chromium is required; no threshold runs
 in default functional smoke. This is retained-heap evidence under forced GC, not
 peak allocation, RSS/GPU usage, physical-device or universal leak-free support.
 Memory-tool changes select this focused route in the existing CI job; mixed SDK
 changes continue to select the full functional browser route.
+The [executed lifecycle record](docs/engineering/22-browser-memory-lifecycle-evidence.md)
+reports actual retained-resource and controller-count results with their limits.
 
 `scripts/accessibility-scenario.js` runs against actual built production pages.
 It checks Studio replacement/removal dialog names in four languages, keyboard

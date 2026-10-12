@@ -30,6 +30,9 @@ after forced garbage collection. It records baseline and active/released JS heap
 DOM and listener counters for fifteen cycles after three warmups. These are retained
 snapshots, not peaks or browser-process memory. Byte/leak budgets remain UNDECIDED;
 functional cleanup assertions are enforced without unstable byte/time thresholds.
+The [executed nine-case record](22-browser-memory-lifecycle-evidence.md) includes
+135 measured cycles and public controller collection counts, while preserving
+unattributed heap growth as a remaining limit.
 
 The committed original study and authored 300/5,000-move 19x19 workloads provide
 small/reference, review-sized and pass-heavy stress coverage. Synthetic workloads
