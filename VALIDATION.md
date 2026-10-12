@@ -91,22 +91,26 @@ Current executed engine/scenario coverage belongs to
 [compatibility](docs/sdk/compatibility.md#executed-browser-scope).
 
 After building examples, `bun scripts/browser-smoke.ts --desktop-only --browser=webkit`
-runs 19 existing public-page scopes serially: accessibility, variation tree, support,
+runs 22 public-page scopes serially: accessibility, variation tree, support,
 search, preferences, recovery, locale, playback, common controlled board, file drop,
-rules, frameworks, editing, classic script, presentation, diagrams, sharing, texture
-consumers and animation consumers. Each scope retains its completion and downloaded
+rules, frameworks, editing, classic script, presentation, diagrams, scoring, puzzle,
+analysis, sharing, texture consumers and animation consumers. Each scope retains its completion and downloaded
 artifact assertions and begins on the English Studio page. Texture preparation
 status can precede a framework's committed board update; its fixture waits for the
 actual main/viewer/owned surfaces before checking forwarding and record preservation.
-This profile excludes CDP touch/zoom and performance, native controlled-consumer
-input, scoring, puzzle and analysis scopes. It does not replace full Chrome smoke
+The scoring/puzzle/analysis scopes retain their real browser touchscreen taps in
+390 by 844 emulated contexts. The profile excludes Chromium CDP touch/zoom and
+performance and native controlled-consumer input. It does not replace full Chrome smoke
 or certify physical devices; browser selection remains explicit and CI is unchanged.
 
-All 19 desktop scopes have executed successfully on Windows Firefox 156 and
-Playwright WebKit 26.6. The default complete Chrome 154 suite also passed after
-the shared-helper/fixture changes. Exact engine and source boundaries are recorded
-in [execution evidence](docs/engineering/16-product-flow-audit.md); another browser
-flag or a passing subset must not be reported as complete-suite coverage.
+All 22 desktop scopes passed at clean source `ee57052` on Windows Firefox 156
+and Playwright WebKit 26.6. Analysis now activates its focused candidate button
+with Enter before asserting focus retention; pointer-triggered focus varies by
+engine/OS. The corrected focused route passed on Chrome 154 as well. Original
+source, SGF and touch assertions remain intact. See the
+[current execution record](docs/engineering/21-expanded-browser-execution-evidence.md)
+and [earlier Chrome/history](docs/engineering/16-product-flow-audit.md). This profile
+is not the complete Chrome suite or a physical-device/assistive certification.
 
 `scripts/release.test.ts` covers manifest bounds/state, traversal/duplicates,
 modified/extra files, directory links, source-preserving isolated restaging, actual

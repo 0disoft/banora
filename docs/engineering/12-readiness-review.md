@@ -126,17 +126,17 @@ These statements replace stale work plans, not the outstanding distribution gate
 | 69  | Verified failure recovery                       | Corrupt/future/quota/conflict/cancel recovery fixtures pass. Actual Pages recovery restored preserved original tar bytes and verified 46 live files plus Studio export/reopen. Disk/data and npm-channel recovery remain unverified.                                                                                                                       |
 | 70  | Fresh install/update/release and rollback       | Installed SDK/CLI/framework/starter and frozen setup pass locally/hosted. Five npm development packages passed fresh-registry installation. Actual retained-tar Pages recovery passed; npm-channel and consuming-host/data rollback remain unverified.                                                                                                     |
 | 71  | Match user-facing promises to reality           | Current README/spec/consumer/ops review keeps SDK implementation distinct from illustrative analysis, manual bridges and host-owned services. Updated localized modal/pass/komi behavior is recorded in its owning specification; broader compatibility remains limited to observed execution.                                                             |
-| 72  | Next three priorities and deferred work         | Next priorities: preserve and restore original candidates beyond hosted expiry; verify physical device/assistive workflows; extend paint/memory coverage. Defer accounts/cloud collaboration/schedulers to hosts and avoid infrastructure without a consumer.                                                                                              |
+| 72  | Next three priorities and deferred work         | Next priorities: verify physical device/assistive workflows; extend paint/memory coverage; rehearse prior-version npm-channel/consuming-host recovery. Demo draft capture/recovery is executed; actual expiry/account recovery remains separate. Defer accounts/cloud collaboration/schedulers to hosts and avoid infrastructure without a consumer.       |
 
 ## Completion Rule
 
-Browser coverage now includes all 19 opt-in desktop scopes on Windows Firefox 156
-and Playwright WebKit 26.6, including recovery, editing/export and React/Vue/Svelte texture/
-animation consumers. The original texture fixture race was reproduced and fixed
-by awaiting actual rendered surfaces, without changing SDK runtime or loosening
-preservation checks. [Compatibility](../sdk/compatibility.md#executed-browser-scope)
-records the exact exclusions; these results do not establish full Firefox,
-actual Safari/iOS, physical touch or assistive-device coverage.
+Browser coverage includes all 22 opt-in desktop scopes at `ee57052` on Windows
+Firefox 156 and Playwright WebKit 26.6, including current native adapters,
+scoring, puzzles and analysis with preserved SGF, keyboard and emulated touch.
+[Current evidence](21-expanded-browser-execution-evidence.md) records the fixed
+pointer-focus fixture assumption and full profile results. Compatibility keeps
+CDP/native controlled-input exclusions explicit; actual Safari/iOS, physical touch,
+assistive speech and browser floors remain unverified.
 
 The latest hosted candidate at `41e0e89` passed all nine preparation gates and
 retained 149 files. Actual publication/health run `38212158941` verified all five
@@ -191,6 +191,7 @@ Detailed implementation and execution evidence:
 - [Earlier readiness increments](13-readiness-execution-evidence.md).
 - [Release tooling history](18-release-tooling-execution-evidence.md).
 - [Actual public demo recovery](19-demo-recovery-execution-evidence.md) and [draft backups](20-draft-demo-backup-execution-evidence.md).
+- [Current 22-scope Firefox/WebKit execution](21-expanded-browser-execution-evidence.md).
 - [Prepared artifacts and actual hosted transfer](15-release-preparation-evidence.md).
 - [Production product-flow audit](16-product-flow-audit.md).
 - [Measured SDK performance](14-sdk-performance-evidence.md) and [browser measurements](17-browser-performance-evidence.md).

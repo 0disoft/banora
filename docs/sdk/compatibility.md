@@ -68,7 +68,7 @@ state/focus assertions retained. The narrow Korean dialog screenshot was inspect
 This Windows WebKit build reports a Safari/macOS-style user agent; neither that
 string nor these results prove a real macOS Safari or iOS device was tested.
 
-The opt-in `--desktop-only` profile additionally passed all 19 scopes on Windows
+The original opt-in `--desktop-only` profile passed 19 scopes on Windows
 Firefox 156 and Playwright WebKit 26.6: editing/SGF preservation, file drop, rules, recovery/
 preferences, four-language UI, playback, common controlled board, classic script,
 presentation, real SVG/PNG diagrams, sharing and React/Vue/Svelte framework,
@@ -78,8 +78,19 @@ initially observed its preparation status before React committed the board updat
 waiting for the actual main/viewer/owned surfaces retained every forwarding,
 record-preservation, cancellation and diagram assertion. This is not full Firefox/WebKit
 feature coverage: CDP/touch/zoom/performance, native controlled-consumer input,
-scoring, puzzle and analysis scopes remain excluded. The Firefox profile executed
+scoring, puzzle and analysis were excluded at that time. The Firefox profile executed
 against clean source `f726c4d` with no further runtime or fixture correction.
+
+The expanded 22-scope profile passed on Windows Firefox 156 and Playwright WebKit
+26.6 at clean source `ee57052`, including current renamed imports/native adapters
+and complete scoring, puzzle and analysis scenarios. Their 390 by 844 touchscreen
+contexts retain tap, record preservation, keyboard focus, diagram and lifecycle
+checks. Analysis focus is verified after explicit keyboard activation rather than
+an engine-specific pointer-focus assumption. The corrected analysis route also
+passed on Chrome 154. Narrow scoring/analysis screenshots were inspected; see the
+[current execution record](../engineering/21-expanded-browser-execution-evidence.md).
+CDP touch/zoom/performance and native controlled-consumer input remain outside this
+profile, and its touch emulation is not a real mobile device/OS result.
 
 `scripts/browser-smoke.ts` accepts a single
 `--browser=chrome|msedge|firefox|webkit` alongside its existing focused flags.
@@ -88,12 +99,12 @@ The default and existing CI remain Chrome: no extra matrix/job or browser downlo
 is added to CI. Other selections require an explicitly installed browser. Invalid/
 duplicate selections fail before launch, and Firefox/WebKit reject Chromium-only
 CDP performance measurement. Full WebKit/Firefox, actual Safari, Edge, other operating systems,
-physical devices and browser floors are not verified by these focused executions.
+physical devices and browser floors are not verified by these declared executions.
 
 | Surface                   | Intended environment                                    | Support status                                                                                                    |
 | ------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Core and SGF              | Browser and Node.js, no DOM required                    | Node 24.14.0 packed consumer and Chrome 154 browser flows; broader floors pending                                 |
-| SVG renderer and Studio   | Browsers with the required SVG/input APIs               | Production flows checked on Windows Headless Chrome 154; broader matrix pending                                   |
+| SVG renderer and Studio   | Browsers with the required SVG/input APIs               | Chrome 154 full suite; Windows Firefox 156/WebKit 26.6 declared 22-scope profile; device/floor limits pending     |
 | Classic browser script    | Modern browser, global `Banora` namespace               | Chrome 154 standalone viewer/edit/remount flows and packed global declarations checked                            |
 | SVG/PNG diagrams          | Mounted browser board/viewer                            | Chrome 154 standalone XML, real PNG dimensions/pixels, embedded textures, errors and cancellation checked         |
 | Magnified touch placement | Browser Pointer Events/SVG; optional confirmation       | Chrome 154 mobile touch emulation in Studio and React/Vue/Svelte; physical devices untested                       |

@@ -58,6 +58,8 @@ and [release/publication tooling](engineering/18-release-tooling-execution-evide
 records the retained tar, real deployment transition and live artifact/Studio checks.
 [Draft demo backups](engineering/20-draft-demo-backup-execution-evidence.md) record
 maintainer-only asset capture and independently reviewed restoration.
+[Expanded browser execution](engineering/21-expanded-browser-execution-evidence.md)
+records the current 22-scope Firefox/WebKit profile and its device exclusions.
 The active review retains all 72 requirements, current limits and completion gates.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable
