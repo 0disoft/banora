@@ -32,6 +32,12 @@ change selects existing full affected CI; isolated policy tests select root chec
 and file signals. The actual nine-gate candidate and fresh registry consumers,
 not source selection alone, establish release evidence. See
 [ADR 0025](docs/adr/0025-initial-default-channel-release.md).
+The [actual 0.1 release](docs/engineering/27-initial-default-channel-release-evidence.md)
+passed all nine hosted preparation gates, protected five-package publication and
+fresh registry SDK/CLI/framework health. Separate unqualified npm installation and
+default README checks passed; the actual public release assets were downloaded,
+hash checked and their complete extracted inventory verified. These checks do not
+upgrade the live demo or certify a host/channel rollback or broader environment.
 
 The opt-in `release consumer-recovery-check` binds two reviewed prepared manifests
 and independently installed SDK/CLI tarballs, then executes current → previous →

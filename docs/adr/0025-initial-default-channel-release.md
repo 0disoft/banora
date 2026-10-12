@@ -1,6 +1,6 @@
 # ADR 0025: Initial Default-Channel Release
 
-- Status: Accepted; source preparation selected, publication requires executed evidence
+- Status: Accepted; actual preparation/publication/default-install evidence recorded in [the release record](../engineering/27-initial-default-channel-release-evidence.md)
 - Date: 2026-10-13
 - Technical owner: 0disoft (primary maintainer)
 - Contract owners: [Compatibility](../sdk/compatibility.md), [release](../ops/release.md), [roadmap](../product/01-roadmap.md)

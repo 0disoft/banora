@@ -1,17 +1,16 @@
 # Roadmap
 
 - Status: M1-M4 implementation/local exit evidence complete in the declared matrix;
-  see the [delivery audit](../engineering/10-delivery-audit.md). Development prerelease
-  `0.1.0-dev.1` is published with independent installed-consumer health;
-  see the [publication record](../engineering/24-package-readme-correction.md).
+  see the [delivery audit](../engineering/10-delivery-audit.md). Initial `0.1.0`
+  is published on the default npm channel with independent installed-consumer
+  health; see the [release record](../engineering/27-initial-default-channel-release-evidence.md).
 - Source of truth for capabilities: [Product specification](02-spec.md)
 
 Milestones establish delivery order, not release dates or completed functionality.
 Each implementation task should produce a small usable increment and a focused
-commit. Published development packages remain `0.1.0-dev.1`. The source candidate
-is intentionally `0.1.0`, selected for default-channel publication under
-[ADR 0025](../adr/0025-initial-default-channel-release.md); preparation and publication
-need actual execution evidence. Future release versions remain UNDECIDED. Local
+commit. Source/released packages are intentionally `0.1.0`, published on the default
+channel under [ADR 0025](../adr/0025-initial-default-channel-release.md).
+Development packages remain `0.1.0-dev.1` on `dev`. Future release versions remain UNDECIDED. Local
 implementation evidence alone does not establish publication or broader runtime support.
 
 ## M1: Banora Studio and Read-Only Embedding

@@ -3,12 +3,12 @@
 A modular TypeScript SDK for building Go (Baduk/Weiqi) boards, game viewers,
 editors, puzzles, and analysis interfaces.
 
-**Status: initial 0.1 release candidate.** Headless rules/SGF/controller, SVG rendering,
+**Status: initial 0.1 release.** Headless rules/SGF/controller, SVG rendering,
 viewer/Studio, optional React/Vue/Svelte adapters, manual scoring, authored puzzles
 and external analysis integration/display are implemented within documented
-coverage. Source version `0.1.0` targets npm's default channel; publication is
-pending verified preparation. The published `0.1.0-dev.1` remains available through
-`dev`. See the [release guide](docs/ops/release.md) for actual publication evidence.
+coverage. All five `0.1.0` packages are available through npm's default channel,
+with independent fresh-registry installation checks. The published `0.1.0-dev.1`
+remains available through `dev`. See the [release guide](docs/ops/release.md).
 See [implementation status](docs/engineering/08-implementation-status.md).
 Try [Banora Studio](https://0disoft.github.io/banora/studio/) without installation.
 The [delivery audit](docs/engineering/10-delivery-audit.md) maps the complete M1-M4
@@ -28,8 +28,8 @@ your application uses. Initial 0.x releases follow the documented compatibility
 matrix and do not promise a 1.0 API commitment; see the
 [release guide](docs/ops/release.md) for recorded publication and support limits.
 
-Until `0.1.0` publication is recorded, select `@dev` explicitly for the corrected
-development packages; default npm still resolves the original `dev.0` version.
+The [0.1.0 release](https://github.com/0disoft/banora/releases/tag/v0.1.0) retains
+the exact reviewed prepared bundle and manifest.
 
 ## Local Development
 

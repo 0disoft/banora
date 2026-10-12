@@ -1,6 +1,6 @@
 # Banora SDK
 
-- Status: Development prereleases published; initial 0.1 default-channel candidate selected
+- Status: Initial 0.1 SDK/CLI/framework family published on the default npm channel
 - Technical owner: 0disoft (primary maintainer)
 
 ## Sources of Truth

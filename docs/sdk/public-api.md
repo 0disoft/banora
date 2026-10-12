@@ -870,9 +870,9 @@ view.update({ board: { theme: 'flat' }, comments: true });
 
 Build the separate `@0disoft/banora-react`, `@0disoft/banora-vue` and `@0disoft/banora-svelte`
 packages with `bun run build:adapters`, or install them alongside `@0disoft/banora`.
-The initial 0.1 candidate targets default npm installation; until its actual
-publication is recorded in the [release guide](../ops/release.md), select all
-development packages with `@dev`. Each exports `Board`
+The initial `0.1.0` family is published on the default channel; publication and
+fresh installed-consumer evidence belong to the [release guide](../ops/release.md).
+Development prereleases remain available explicitly through `@dev`. Each exports `Board`
 and `Viewer` components, binding the same SDK controller and renderer. Create a
 `RecordController({ sgf })` to initialize a shared record; adapter viewers omit the
 plain mount's initial `sgf` option. All other rendering/editability options are shared.

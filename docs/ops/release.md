@@ -1,25 +1,42 @@
 # Release
 
-Status: five `0.1.0-dev.1` packages published through protected GitHub OIDC, with
-fresh registry-download and installed-consumer health passed. Public source,
-GitHub Pages and private vulnerability reporting are configured. This development
-prerelease does not establish stable support or previous-version rollback.
+Status: five `0.1.0` packages published on `latest` through protected GitHub OIDC,
+with fresh registry-download/installed-consumer health and actual default npm
+installation/README checks passed. Public source, GitHub Pages and private
+vulnerability reporting are configured. Support remains scoped to executed evidence.
 
-## Initial Default-Channel Candidate
+## Initial Default-Channel Release
 
-Source versions intentionally advance together to `0.1.0`, with `latest` selected
-for the reviewed five-package publication. This is the initial public 0.1 line
+Source versions intentionally advanced together to `0.1.0`, published on `latest`
+through [run 38278289086](https://github.com/0disoft/banora/actions/runs/38278289086).
+All five fresh registry archives passed independent installed-consumer checks.
+This is the initial public 0.1 line
 within the executed compatibility matrix, under [ADR 0025](../adr/0025-initial-default-channel-release.md).
 Adapters/CLI accept compatible SDK patches through `>=0.1.0-dev.0 <0.2.0`;
 framework/tool major ranges are unchanged. No SDK runtime or saved-data format
 changes accompany this release. Future incompatible 0.x minors require migration
 notes, updated peers and installed-consumer evidence.
 
-Preparation/publication are pending actual execution. Until a successful result
-is recorded, corrected development packages still require `@dev`; `latest` remains
-the original `dev.0` family. Use the existing manual preparation and protected
-publication workflows below. No tag-only mutation, new publisher connection,
-unpublish, stable-support SLA or automatic host update is implied.
+Preparation `38277714049` passed nine gates and retained 149 files. The reviewed
+source is `8ce352615329c2b773e36ec281d4e2c732a2d408`; manifest SHA256 is
+`afe2c00d0b4d15394ac0b14d7ff762252d521aa77acd111bd3b38cd3a74f66ad`.
+Actual unqualified npm installation selected all five `0.1.0` versions and executed
+the SDK/CLI; default npm README data matched the reviewed instructions.
+`dev` remains `0.1.0-dev.1`. See the [execution record](../engineering/27-initial-default-channel-release-evidence.md).
+No tag-only mutation, new publisher connection, unpublish, support SLA or
+automatic host update is implied.
+
+The public [v0.1.0 release](https://github.com/0disoft/banora/releases/tag/v0.1.0)
+retains the complete prepared archive and original manifest beyond Actions retention.
+The actual tag resolves to the reviewed source. Both uploaded assets were downloaded
+again, checked against independently retained hashes, and the extracted bundle's
+149 payload files verified. Archive SHA256 is
+`9135627c742fbceddd9839974d551b72c445a8a9e90f9e0390b30898336e2de9`.
+For recovery, download the exact named archive/manifest to a fresh directory,
+check both independently reviewed hashes before extraction, extract only into a
+new empty directory, then run `bun run release verify --bundle DIR`. Retain the
+originals if any check fails. Assets are mutable/deletable, same-provider storage;
+keep an independent reviewed copy. No observed expiry or account-recovery claim follows.
 
 ## Documentation Development Prerelease
 
@@ -30,10 +47,11 @@ installed SDK/CLI/React/Vue/Svelte health. Preparation `38263371426` passed nine
 gates; its 149-file manifest SHA256 is
 `70060a2b9814ed75ef46abaa0575681c39ee640ae7ba2489742d3d4ac4b4126d`.
 The correction ships usable npm READMEs without SDK implementation changes.
-Current `dev` is `0.1.0-dev.1`; `latest` remains the original `0.1.0-dev.0`.
-Use explicit `@dev` installation or the new version's npm page. Default npm pages
-and existing installations may still show the immutable previous README; the new
-prerelease neither promotes `latest` nor establishes stable support. See the
+At that prerelease's completion, `dev` was `0.1.0-dev.1` and `latest` remained the
+original `0.1.0-dev.0`, requiring explicit `@dev` selection for corrected instructions.
+The later initial release above updates the default channel. Published prerelease
+tarballs retain their immutable original README; this historical prerelease did
+not itself promote `latest` or establish stable support. See the
 [execution record](../engineering/24-package-readme-correction.md).
 
 ## Original Development Prerelease
@@ -104,7 +122,7 @@ Maintainers own source review, compatibility and artifact retention. Start in a
 reviewed Banora checkout with `bun run setup` completed. Commit intended changes;
 `bun run release prepare` requires an actual clean Git checkout and private
 `banora-workspace` root. The five packages must use the same intentional version.
-The current source candidate version is `0.1.0`; there is no automatic bump.
+The current source release version is `0.1.0`; there is no automatic bump.
 
 Preparation runs the root checks and private-file/dependency gates serially, builds
 production examples and packages SDK, CLI, React, Vue and Svelte with lifecycle
