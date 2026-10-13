@@ -38,7 +38,11 @@ export function arrangeStudio(): void {
   const tools = find('tool').closest('.editing-tools')!;
   tools.classList.add('primary-tools');
   tools.append(find('flip-x').closest('label')!);
-  toolbar.append(tools, find('board-menu'));
+  const fullscreen = document.createElement('button');
+  fullscreen.id = 'fullscreen';
+  fullscreen.type = 'button';
+  fullscreen.className = 'button icon';
+  toolbar.append(tools, fullscreen, find('board-menu'));
   const appMenu = document.createElement('button');
   appMenu.id = 'app-menu';
   appMenu.type = 'button';

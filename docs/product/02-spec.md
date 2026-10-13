@@ -40,6 +40,13 @@ This scales the rendered board without changing SGF dimensions, selection, rules
 or editing history. The versioned local size preference falls back to Default
 when invalid or unavailable; valid legacy values migrate safely.
 
+A localized fullscreen icon beside the board menu requests native, whole-page
+fullscreen from a user gesture, retaining the sidebar, tabs and all board controls.
+It switches to an exit icon while active; clicking again or the browser's Escape
+action exits. Native fullscreen-change events synchronize the icon and accessible
+pressed state, including external exit. Unsupported/permission-denied environments
+retain normal editing. Fullscreen is not persisted and changes no record state.
+
 1. Open a local SGF by drag-and-drop/file selection, or choose a bundled example.
 2. Move through the record and inspect comments and existing variations.
 3. Return to an earlier position and play a different move to create a continuation.

@@ -50,6 +50,7 @@ import { StudioWorkspace } from './workspace.js';
 import { mountWorkspaceTabs } from './workspace-tabs.js';
 import { mountPlacementSound } from './placement-sound.js';
 import { mountBoardSizing } from './board-sizing.js';
+import { mountFullscreen } from './fullscreen.js';
 import './atelier.css';
 import './icons.css';
 
@@ -87,6 +88,9 @@ penOption.value = 'pen';
 setUiText(penOption, 'Freehand ink');
 tool.append(penOption);
 const status = find('status');
+const disposeFullscreen = mountFullscreen(find<HTMLButtonElement>('fullscreen'), () => {
+  status.textContent = translateUi('Fullscreen unavailable');
+});
 const dialog = find<HTMLDialogElement>('unsaved');
 const file = find<HTMLInputElement>('file');
 const games = find<HTMLSelectElement>('games');
@@ -818,6 +822,7 @@ window.addEventListener('pagehide', (event) => {
   if (!event.persisted) {
     disposed = true;
     placementSound.dispose();
+    disposeFullscreen();
     disposeBoardSizing();
     disposeWorkspaceTabs();
     disposeWorkspaceSwitch();

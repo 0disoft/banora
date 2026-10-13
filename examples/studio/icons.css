@@ -1,4 +1,10 @@
 /* Phosphor Regular, MIT. Only the referenced SVG assets enter the example bundle. */
+#fullscreen {
+  --icon: var(--icon-fullscreen);
+}
+#fullscreen[aria-pressed='true'] {
+  --icon: var(--icon-restore);
+}
 #board-menu,
 #app-menu {
   --icon: var(--icon-menu);
@@ -41,6 +47,7 @@
 }
 #board-menu,
 #app-menu,
+#fullscreen,
 #undo,
 #redo,
 .navigation .button,
@@ -63,6 +70,7 @@
 }
 #board-menu::before,
 #app-menu::before,
+#fullscreen::before,
 #undo::before,
 #redo::before,
 .navigation .button::before,

@@ -14,6 +14,13 @@ In particular, migration-check is now configured as documented below.
 
 ## Standard Validation Names
 
+After `bun run build:examples`, `bun scripts/browser-smoke.ts --fullscreen-only`
+checks native whole-page fullscreen entry/button exit/external exit, keyboard button activation,
+four-language labels, retained custom size/record selection, exact exported SGF
+and narrow-layout discovery in Chrome. Other engines, physical devices and browser
+F11/Escape UI keys themselves are outside this focused consumer check. Synthetic
+renderer key injection does not reproduce the browser's native Escape action.
+
 `bun scripts/browser-smoke.ts --sizing-only` checks the middle vertical rail,
 visible size dropdown/custom selection, invisible edge/corner resize targets,
 keyboard/cancellation, menu heading

@@ -355,12 +355,21 @@ async function diagramSmoke(): Promise<void> {
       throw new Error(`${name} exported invalid/interactive SVG`);
   }
 }
+async function fullscreenSmoke(): Promise<void> {
+  await scenario('fullscreen', 'banora-fullscreen-complete');
+  if (
+    (await readFile(resolve(output, 'fullscreen-before.sgf'), 'utf8')) !==
+    (await readFile(resolve(output, 'fullscreen-after.sgf'), 'utf8'))
+  )
+    throw Error('Fullscreen changed the exported SGF');
+}
 async function desktopSmoke(address: string): Promise<void> {
   // Preserve each scenario and its artifact assertions; CDP input scopes stay in full smoke.
   const checks: readonly [string, () => Promise<void>][] = [
     ['workspace', () => scenario('workspace', 'banora-workspace-complete')],
     ['sound', () => scenario('sound', 'banora-sound-complete')],
     ['sizing', () => scenario('sizing', 'banora-sizing-complete')],
+    ['fullscreen', fullscreenSmoke],
     ['accessibility', () => scenario('accessibility', 'banora-accessibility-complete')],
     ['tree', treeNavigation],
     ['support', supportSmoke],
@@ -440,6 +449,11 @@ try {
     await browserPerformance();
   } else if (process.argv.includes('--desktop-only')) {
     await desktopSmoke(address);
+  } else if (process.argv.includes('--fullscreen-only')) {
+    await fullscreenSmoke();
+    console.log(
+      'Focused fullscreen smoke passed: native entry/exit, keyboard, locale, responsive controls and unchanged SGF.',
+    );
   } else if (process.argv.includes('--sizing-only')) {
     await scenario('sizing', 'banora-sizing-complete');
     if (
@@ -562,6 +576,7 @@ try {
     await scenario('sound', 'banora-sound-complete');
     await scenario('sizing', 'banora-sizing-complete');
     await scenario('accessibility', 'banora-accessibility-complete');
+    await fullscreenSmoke();
     await treeNavigation();
     await supportSmoke();
     await searchSmoke();

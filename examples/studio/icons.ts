@@ -14,6 +14,8 @@ import close from '@phosphor-icons/core/assets/regular/x.svg?url';
 import comment from '@phosphor-icons/core/assets/regular/chat-text.svg?url';
 import sound from '@phosphor-icons/core/assets/regular/speaker-high.svg?url';
 import muted from '@phosphor-icons/core/assets/regular/speaker-slash.svg?url';
+import fullscreen from '@phosphor-icons/core/assets/regular/arrows-out.svg?url';
+import restore from '@phosphor-icons/core/assets/regular/arrows-in.svg?url';
 
 export function applyStudioIcons(): void {
   for (const [name, url] of Object.entries({
@@ -33,6 +35,8 @@ export function applyStudioIcons(): void {
     comment,
     sound,
     muted,
+    fullscreen,
+    restore,
   }))
     document.documentElement.style.setProperty(`--icon-${name}`, `url("${url}")`);
 }
