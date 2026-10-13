@@ -49,9 +49,9 @@ export function mountSearchControls(
     applying = false;
   const abort = new AbortController(),
     { signal } = abort;
-  const disposeStatic = localizeUi(host);
   // Modal ownership is independent of the temporarily borrowed menu controls.
   document.body.append(dialog);
+  const disposeStatic = localizeUi(host);
   const disposeModalLanguage = localizeUi(dialog);
   const title = (game: number, move: number) => {
     const ui = createUiMessages({ locale: getUiLocale() });

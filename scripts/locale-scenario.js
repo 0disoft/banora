@@ -397,7 +397,8 @@ async (page, studioControl) => {
     await japaneseContext.close();
   }
   await page.setViewportSize({ width: 1280, height: 1000 });
-  const expandedContext = await page.context().browser().newContext({ locale: 'en-US' });
+  // A translated first mount must retain the original English bindings after modals move.
+  const expandedContext = await page.context().browser().newContext({ locale: 'ko-KR' });
   try {
     const expanded = await expandedContext.newPage();
     await expanded.goto(`${origin}/studio/`);
@@ -423,6 +424,20 @@ async (page, studioControl) => {
       ['th', 'เปิด SGF'],
       ['ms', 'Buka SGF'],
     ];
+    const modalLabels = {
+      en: ['Search record', 'Local drafts', 'Help', 'Close'],
+      ko: ['기보 검색', '로컬 초안', '도움말', '닫기'],
+      zh: ['搜索棋谱', '本地草稿', '帮助', '关闭'],
+      ja: ['棋譜を検索', 'ローカル下書き', 'ヘルプ', '閉じる'],
+      hi: ['रिकॉर्ड खोजें', 'स्थानीय मसौदे', 'सहायता', 'बंद करें'],
+      es: ['Buscar en la partida', 'Borradores locales', 'Ayuda', 'Cerrar'],
+      fr: ['Rechercher dans la partie', 'Brouillons locaux', 'Aide', 'Fermer'],
+      ru: ['Поиск по партии', 'Локальные черновики', 'Справка', 'Закрыть'],
+      id: ['Cari catatan', 'Draf lokal', 'Bantuan', 'Tutup'],
+      vi: ['Tìm trong kỳ phổ', 'Bản nháp cục bộ', 'Trợ giúp', 'Đóng'],
+      th: ['ค้นหาบันทึกเกม', 'แบบร่างในเครื่อง', 'ช่วยเหลือ', 'ปิด'],
+      ms: ['Cari rekod', 'Draf setempat', 'Bantuan', 'Tutup'],
+    };
     if ((await expanded.locator('#language option').count()) !== 12)
       throw Error('Studio language selector is incomplete');
     for (const [locale, open] of cases) {
@@ -456,16 +471,23 @@ async (page, studioControl) => {
         });
         if (!fits) throw Error(`Localized header clipped: ${locale}/${width}`);
       }
-      await studioControl(expanded, '#search-open', 'search', () =>
-        expanded.locator('#search-open').click(),
-      );
-      if (
-        locale !== 'en' &&
-        (await expanded.locator('#search-title').textContent()) === 'Search record'
-      )
-        throw Error(`Search dialog stayed English: ${locale}`);
-      await expanded.locator('#search-close').click();
-      await expanded.waitForFunction(() => !document.querySelector('#search-dialog').open);
+      for (const [index, section] of ['search', 'drafts', 'support'].entries()) {
+        const prefix = section === 'drafts' ? 'draft' : section;
+        await studioControl(expanded, `#${section}-open`, section, () =>
+          expanded.locator(`#${section}-open`).click(),
+        );
+        if (
+          (await expanded.locator(`#${prefix}-title`).textContent()) !==
+            modalLabels[locale][index] ||
+          (await expanded.locator(`#${prefix}-close`).textContent()) !== modalLabels[locale][3]
+        )
+          throw Error(`Modal kept its first-mount language: ${locale}/${section}`);
+        await expanded.locator(`#${prefix}-close`).click();
+        await expanded.waitForFunction(
+          (id) => !document.getElementById(id).open,
+          `${section}-dialog`,
+        );
+      }
     }
     await expanded.reload();
     if ((await expanded.locator('#language').inputValue()) !== 'ms')

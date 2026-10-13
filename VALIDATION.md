@@ -18,6 +18,9 @@ After `bun run build:examples`, `bun scripts/browser-smoke.ts --locale-only`
 checks all twelve Studio language selections, header controls at desktop/mobile
 widths, localized search dialogs, saved selection on reload, Hindi/Thai browser
 detection and Viewer/comparison locale updates without changing authored state.
+The twelve-language modal checks begin with a Korean browser locale and assert
+exact search/help/draft headings and close labels after each switch, covering
+the moved-modal binding regression rather than only rejecting English text.
 The locale, Studio catalog and preference tests enforce full key/placeholder
 coverage, literal authored substitutions and all supported browser language tags.
 Focused Chrome font inspection verified locally served custom font glyphs for all

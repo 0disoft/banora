@@ -65,6 +65,9 @@ Studio's tools, navigation, variations, touch controls, file/unsaved-change dial
 texture controls, sharing and manual scoring use example-owned catalogs. Static
 labels bind before authored data is populated; dynamic UI setters explicitly mark
 UI text. No global DOM observer or heuristic translation of user data is used.
+Search, help and draft modals bind their original static labels after moving into
+their permanent document owner. A non-English initial mount therefore keeps
+working when switching to any supported language, including back to English.
 Every static catalog must cover the same keys as Korean at compile time.
 Dynamic counts, board names, scoring results and error prefixes use shared typed
 templates with literal placeholder substitution. Runtime diagnostics retain their

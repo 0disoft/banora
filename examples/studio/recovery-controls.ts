@@ -105,9 +105,9 @@ export function mountRecoveryControls(
   });
   setUiText(find('draft-status'), toggle.checked ? '' : statusText.off);
   find<HTMLButtonElement>('draft-retry').disabled = true;
-  const disposeLanguage = localizeUi(host);
   // Modal ownership is independent of the temporarily borrowed menu controls.
   document.body.append(dialog);
+  const disposeLanguage = localizeUi(host);
   const disposeModalLanguage = localizeUi(dialog);
   function failure(error: unknown): void {
     setUiText(message, statusText[error instanceof DraftError ? error.code : 'failed']);

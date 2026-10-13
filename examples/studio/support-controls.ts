@@ -83,9 +83,9 @@ export function mountSupportControls(
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   let disposed = false;
   let launched = false;
-  const disposeStatic = localizeUi(host);
   // Modal ownership is independent of the temporarily borrowed menu controls.
   document.body.append(dialog);
+  const disposeStatic = localizeUi(host);
   const disposeModalLanguage = localizeUi(dialog);
   function renderActions() {
     const term = query.value.trim().toLocaleLowerCase(getUiLocale());
