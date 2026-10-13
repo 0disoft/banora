@@ -1,4 +1,4 @@
-import type { UiMessages } from '../locale.js';
+import type { UiMessages } from './locale.js';
 export const hi: UiMessages = {
   viewer: 'गो रिकॉर्ड व्यूअर',
   game: 'खेल {number}',

@@ -1,4 +1,5 @@
 import type { BanoraLocale } from '@0disoft/banora/locale';
+import { SUPPORTED_LOCALES } from '@0disoft/banora/locale';
 
 export interface StudioPreferences {
   locale: BanoraLocale;
@@ -23,7 +24,7 @@ type PreferenceStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 const choices = (values: readonly unknown[]) => (value: unknown) => values.includes(value);
 const boolean = (value: unknown) => typeof value === 'boolean';
 const checks: Record<PreferenceKey, (value: unknown) => boolean> = {
-  locale: choices(['en', 'ko', 'zh', 'ja']),
+  locale: choices(SUPPORTED_LOCALES),
   boardSize: choices(['small', 'default', 'large']),
   theme: choices(['wood', 'flat']),
   moveNumbers: boolean,
@@ -49,15 +50,9 @@ const legacyKeys: Partial<Record<PreferenceKey, string>> = {
   autosave: 'banora.studio.drafts-enabled',
 };
 export function defaultPreferences(browserLanguage: string): StudioPreferences {
-  const language = browserLanguage.toLowerCase();
+  const language = browserLanguage.trim().toLowerCase().split(/[-_]/)[0];
   return {
-    locale: language.startsWith('ko')
-      ? 'ko'
-      : language.startsWith('zh')
-        ? 'zh'
-        : language.startsWith('ja')
-          ? 'ja'
-          : 'en',
+    locale: SUPPORTED_LOCALES.find((code) => code === language) ?? 'en',
     boardSize: 'default',
     theme: 'wood',
     moveNumbers: false,

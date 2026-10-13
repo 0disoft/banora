@@ -1,4 +1,4 @@
-import type { UiMessages } from '../locale.js';
+import type { UiMessages } from './locale.js';
 export const th: UiMessages = {
   viewer: 'โปรแกรมดูบันทึกหมากล้อม',
   game: 'เกม {number}',

@@ -1,9 +1,12 @@
 import type { BanoraLocale } from '@0disoft/banora/locale';
+import { SUPPORTED_LOCALES, createUiMessages, formatUiMessage } from '@0disoft/banora/locale';
 import { koreanUi } from './ui-korean.js';
-import { chineseUi } from './ui-chinese.js';
-import { japaneseUi } from './ui-japanese.js';
+import { uiCatalogs, uiPatterns } from './ui-catalogs.js';
 let locale: BanoraLocale = 'en';
 const listeners = new Set<() => void>();
+const sdkMessages = Object.fromEntries(
+  SUPPORTED_LOCALES.map((code) => [code, createUiMessages({ locale: code })]),
+) as Record<BanoraLocale, ReturnType<typeof createUiMessages>>;
 export const getUiLocale = () => locale;
 export function subscribeUiLanguage(listener: () => void): () => void {
   listeners.add(listener);
@@ -11,78 +14,67 @@ export function subscribeUiLanguage(listener: () => void): () => void {
     listeners.delete(listener);
   };
 }
-export function translateUi(text: string): string {
-  if (locale !== 'ko' && locale !== 'zh' && locale !== 'ja') return text;
-  const activeLocale = locale;
-  const catalog: Readonly<Record<string, string>> = { ko: koreanUi, zh: chineseUi, ja: japaneseUi }[
-    activeLocale
-  ];
-  const choose = (ko: string, zh: string, ja: string) => ({ ko, zh, ja })[activeLocale];
-  const errorPrefixes: Readonly<Record<string, string>> = {
-    'Export failed': choose('저장 실패', '保存失败', '保存に失敗'),
-    'Could not open file': choose('파일을 열 수 없음', '无法打开文件', 'ファイルを開けません'),
-    'Diagram export failed': choose('이미지 저장 실패', '图片保存失败', '画像の保存に失敗'),
-    'Texture unchanged': choose('이미지 유지', '图片未更改', '画像は変更されていません'),
-    'Cannot calculate': choose('계가할 수 없음', '无法计分', '計算できません'),
-  };
+export function translateUi(text: string, activeLocale: BanoraLocale = locale): string {
+  if (!SUPPORTED_LOCALES.includes(activeLocale)) throw new TypeError('Unsupported UI locale');
+  if (activeLocale === 'en') return text;
+  const catalog = uiCatalogs[activeLocale];
+  const templates = uiPatterns[activeLocale];
+  const sdk = sdkMessages[activeLocale];
   const value = text.trim();
-  if (Object.hasOwn(catalog, value)) return text.replace(value, catalog[value]!);
+  if (Object.hasOwn(catalog, value))
+    return text.replace(value, catalog[value as keyof typeof catalog]);
+  const format = (template: string, values: Record<string, string | number> = {}) =>
+    formatUiMessage(template, values);
+  const errorPrefixes: Readonly<Record<string, string>> = {
+    'Export failed': templates.exportFailed,
+    'Could not open file': templates.couldNotOpenFile,
+    'Diagram export failed': templates.diagramExportFailed,
+    'Texture unchanged': templates.textureUnchanged,
+    'Cannot calculate': templates.cannotCalculate,
+  };
   const patterns: [RegExp, (...values: string[]) => string][] = [
-    [/^Move (\d+)$/, (n) => choose(`${n}수`, `第 ${n} 手`, `${n}手目`)],
-    [/^Game (\d+)$/, (n) => choose(`기보 ${n}`, `棋谱 ${n}`, `棋譜 ${n}`)],
-    [/^Board (\d+)$/, (n) => choose(`바둑판 ${n}`, `棋盘 ${n}`, `碁盤 ${n}`)],
-    [/^Opened (.+)\.$/, (name) => choose(`${name} 열림`, `已打开 ${name}`, `${name}を開きました`)],
-    [
-      /^(\d+) strokes? on this node$/,
-      (n) =>
-        choose(`현재 위치에 ${n}개의 선`, `当前局面有 ${n} 条笔画`, `現在の局面に ${n} 本の線`),
-    ],
+    [/^Move (\d+)$/, (number) => format(sdk.move, { number })],
+    [/^Game (\d+)$/, (number) => format(sdk.game, { number })],
+    [/^Board (\d+)$/, (number) => format(templates.board, { number })],
+    [/^Opened (.+)\.$/, (name) => format(templates.opened, { name })],
+    [/^(\d+) strokes? on this node$/, (number) => format(templates.strokes, { number })],
     [
       /^Captures  ● (\d+)  ○ (\d+)$/,
-      (black, white) =>
-        choose(
-          `잡은 돌  ● ${black}  ○ ${white}`,
-          `提子  ● ${black}  ○ ${white}`,
-          `アゲハマ  ● ${black}  ○ ${white}`,
-        ),
+      (black, white) => format(templates.captures, { black, white }),
     ],
-    [/^● Black to play$/, () => choose('● 흑 차례', '● 黑方落子', '● 黒の手番')],
-    [/^○ White to play$/, () => choose('○ 백 차례', '○ 白方落子', '○ 白の手番')],
+    [/^● Black to play$/, () => templates.blackToPlay],
+    [/^○ White to play$/, () => templates.whiteToPlay],
     [
       /^Choose the second point for this (line|arrow)\. Escape cancels\.$/,
-      (kind) =>
-        choose(
-          `${kind === 'line' ? '선' : '화살표'}의 두 번째 점을 선택하세요. Escape로 취소합니다.`,
-          `请选择${kind === 'line' ? '线段' : '箭头'}的第二个点，Escape 取消。`,
-          `${kind === 'line' ? '線' : '矢印'}の 2 点目を選択してください。Escape でキャンセル。`,
-        ),
+      (kind) => (kind === 'line' ? templates.secondLine : templates.secondArrow),
     ],
     [
       /^(Arrow|Line) (removed|added)\. Choose two points to draw another\.$/,
       (kind, action) =>
-        choose(
-          `${kind === 'Line' ? '선' : '화살표'}을 ${action === 'added' ? '추가' : '삭제'}했습니다. 두 점을 선택하면 다시 그릴 수 있습니다.`,
-          `${kind === 'Line' ? '线段' : '箭头'}已${action === 'added' ? '添加' : '删除'}。选择两个点可再次绘制。`,
-          `${kind === 'Line' ? '線' : '矢印'}を${action === 'added' ? '追加' : '削除'}しました。2 点を選択すると再び描画できます。`,
-        ),
+        kind === 'Line'
+          ? action === 'added'
+            ? templates.lineAdded
+            : templates.lineRemoved
+          : action === 'added'
+            ? templates.arrowAdded
+            : templates.arrowRemoved,
     ],
     [
       /^Provisional: (.+) · (\d+) dead stones · (\d+) seki stones · (\d+) neutral points$/,
-      (winner, dead, seki, neutral) => {
-        const result = winner
-          .replace('Black', catalog.Black!)
-          .replace('White', catalog.White!)
-          .replace('Draw', choose('무승부', '和棋', '持碁'));
-        return choose(
-          `임시 결과: ${result} · 사석 ${dead}개 · 빅 ${seki}개 · 공배 ${neutral}개`,
-          `暂定结果：${result} · 死子 ${dead} · 双活 ${seki} · 单官 ${neutral}`,
-          `暫定結果：${result} · 死石 ${dead} · セキ ${seki} · ダメ ${neutral}`,
-        );
-      },
+      (winner, dead, seki, neutral) =>
+        format(templates.provisional, {
+          winner: winner
+            .replace('Black', catalog.Black)
+            .replace('White', catalog.White)
+            .replace('Draw', templates.draw),
+          dead,
+          seki,
+          neutral,
+        }),
     ],
     [
       /^(Export failed|Could not open file|Diagram export failed|Texture unchanged|Cannot calculate): (.*)$/,
-      (prefix, detail) => `${errorPrefixes[prefix]}: ${detail}`,
+      (prefix, detail) => errorPrefixes[prefix] + ': ' + detail,
     ],
   ];
   for (const [pattern, render] of patterns) {
@@ -127,8 +119,7 @@ export function localizeUi(root: Element): () => void {
   return subscribeUiLanguage(update);
 }
 export function setUiLocale(next: BanoraLocale): void {
-  if (next !== 'en' && next !== 'ko' && next !== 'zh' && next !== 'ja')
-    throw new TypeError('Unsupported UI locale');
+  if (!SUPPORTED_LOCALES.includes(next)) throw new TypeError('Unsupported UI locale');
   locale = next;
   for (const listener of [...listeners]) listener();
   for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]'))

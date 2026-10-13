@@ -1,4 +1,4 @@
-import type { UiMessages } from '../locale.js';
+import type { UiMessages } from './locale.js';
 export const vi: UiMessages = {
   viewer: 'Trình xem kỳ phổ cờ vây',
   game: 'Ván {number}',

@@ -1,13 +1,13 @@
 import type { BoardLabels } from './board-state.js';
 import type { BanoraLocale } from './locale-codes.js';
-import { hi } from './locales/hi.js';
-import { es } from './locales/es.js';
-import { fr } from './locales/fr.js';
-import { ru } from './locales/ru.js';
-import { id } from './locales/id.js';
-import { vi } from './locales/vi.js';
-import { th } from './locales/th.js';
-import { ms } from './locales/ms.js';
+import { hi } from './locale-hi.js';
+import { es } from './locale-es.js';
+import { fr } from './locale-fr.js';
+import { ru } from './locale-ru.js';
+import { id } from './locale-id.js';
+import { vi } from './locale-vi.js';
+import { th } from './locale-th.js';
+import { ms } from './locale-ms.js';
 
 export { SUPPORTED_LOCALES } from './locale-codes.js';
 export type { BanoraLocale } from './locale-codes.js';

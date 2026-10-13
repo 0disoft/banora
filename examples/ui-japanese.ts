@@ -343,3 +343,25 @@ export const japaneseUi = {
   'First 500 nodes shown. Move controls can navigate the whole record.':
     '最初の 500 ノードを表示します。移動ボタンで棋譜全体を確認できます。',
 } satisfies Record<keyof typeof koreanUi, string>;
+
+export const japanesePatterns = {
+  board: '碁盤 {number}',
+  opened: '{name}を開きました',
+  strokes: '現在の局面に {number} 本の線',
+  captures: 'アゲハマ  ● {black}  ○ {white}',
+  blackToPlay: '● 黒の手番',
+  whiteToPlay: '○ 白の手番',
+  secondLine: '線の 2 点目を選択してください。Escape でキャンセル。',
+  secondArrow: '矢印の 2 点目を選択してください。Escape でキャンセル。',
+  lineAdded: '線を追加しました。2 点を選択すると再び描画できます。',
+  lineRemoved: '線を削除しました。2 点を選択すると再び描画できます。',
+  arrowAdded: '矢印を追加しました。2 点を選択すると再び描画できます。',
+  arrowRemoved: '矢印を削除しました。2 点を選択すると再び描画できます。',
+  draw: '持碁',
+  provisional: '暫定結果：{winner} · 死石 {dead} · セキ {seki} · ダメ {neutral}',
+  exportFailed: '保存に失敗',
+  couldNotOpenFile: 'ファイルを開けません',
+  diagramExportFailed: '画像の保存に失敗',
+  textureUnchanged: '画像は変更されていません',
+  cannotCalculate: '計算できません',
+} satisfies import('./ui-pattern-types.js').UiPatterns;

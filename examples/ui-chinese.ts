@@ -330,3 +330,25 @@ export const chineseUi = {
   'First 500 nodes shown. Move controls can navigate the whole record.':
     '显示前 500 个节点，可通过导航按钮浏览完整棋谱。',
 } satisfies Record<keyof typeof koreanUi, string>;
+
+export const chinesePatterns = {
+  board: '棋盘 {number}',
+  opened: '已打开 {name}',
+  strokes: '当前局面有 {number} 条笔画',
+  captures: '提子  ● {black}  ○ {white}',
+  blackToPlay: '● 黑方落子',
+  whiteToPlay: '○ 白方落子',
+  secondLine: '请选择线段的第二个点，Escape 取消。',
+  secondArrow: '请选择箭头的第二个点，Escape 取消。',
+  lineAdded: '线段已添加。选择两个点可再次绘制。',
+  lineRemoved: '线段已删除。选择两个点可再次绘制。',
+  arrowAdded: '箭头已添加。选择两个点可再次绘制。',
+  arrowRemoved: '箭头已删除。选择两个点可再次绘制。',
+  draw: '和棋',
+  provisional: '暂定结果：{winner} · 死子 {dead} · 双活 {seki} · 单官 {neutral}',
+  exportFailed: '保存失败',
+  couldNotOpenFile: '无法打开文件',
+  diagramExportFailed: '图片保存失败',
+  textureUnchanged: '图片未更改',
+  cannotCalculate: '无法计分',
+} satisfies import('./ui-pattern-types.js').UiPatterns;

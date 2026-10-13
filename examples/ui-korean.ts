@@ -342,3 +342,25 @@ export const koreanUi = {
   'First 500 nodes shown. Move controls can navigate the whole record.':
     '처음 500개 위치를 표시합니다. 이동 버튼으로 전체 기보를 탐색할 수 있습니다.',
 } as const;
+
+export const koreanPatterns = {
+  board: '바둑판 {number}',
+  opened: '{name} 열림',
+  strokes: '현재 위치에 {number}개의 선',
+  captures: '잡은 돌  ● {black}  ○ {white}',
+  blackToPlay: '● 흑 차례',
+  whiteToPlay: '○ 백 차례',
+  secondLine: '선의 두 번째 점을 선택하세요. Escape로 취소합니다.',
+  secondArrow: '화살표의 두 번째 점을 선택하세요. Escape로 취소합니다.',
+  lineAdded: '선을 추가했습니다. 두 점을 선택하면 다시 그릴 수 있습니다.',
+  lineRemoved: '선을 삭제했습니다. 두 점을 선택하면 다시 그릴 수 있습니다.',
+  arrowAdded: '화살표를 추가했습니다. 두 점을 선택하면 다시 그릴 수 있습니다.',
+  arrowRemoved: '화살표를 삭제했습니다. 두 점을 선택하면 다시 그릴 수 있습니다.',
+  draw: '무승부',
+  provisional: '임시 결과: {winner} · 사석 {dead}개 · 빅 {seki}개 · 공배 {neutral}개',
+  exportFailed: '저장 실패',
+  couldNotOpenFile: '파일을 열 수 없음',
+  diagramExportFailed: '이미지 저장 실패',
+  textureUnchanged: '이미지 유지',
+  cannotCalculate: '계가할 수 없음',
+} satisfies import('./ui-pattern-types.js').UiPatterns;

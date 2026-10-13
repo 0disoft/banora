@@ -397,5 +397,138 @@ async (page, studioControl) => {
     await japaneseContext.close();
   }
   await page.setViewportSize({ width: 1280, height: 1000 });
+  const expandedContext = await page.context().browser().newContext({ locale: 'en-US' });
+  try {
+    const expanded = await expandedContext.newPage();
+    await expanded.goto(`${origin}/studio/`);
+    await expanded.locator('#file').setInputFiles({
+      name: 'twelve-languages.sgf',
+      mimeType: 'application/x-go-sgf',
+      buffer: Buffer.from(
+        '(;SZ[19]GN[Authored <tag> title]PB[Player Black]PW[Player White];B[dd]C[Authored English $& comment];W[])',
+      ),
+    });
+    await expanded.locator('#next').click();
+    const cases = [
+      ['en', 'Open SGF'],
+      ['zh', '打开 SGF'],
+      ['hi', 'SGF खोलें'],
+      ['es', 'Abrir SGF'],
+      ['fr', 'Ouvrir SGF'],
+      ['ru', 'Открыть SGF'],
+      ['id', 'Buka SGF'],
+      ['ja', 'SGF を開く'],
+      ['vi', 'Mở SGF'],
+      ['ko', 'SGF 열기'],
+      ['th', 'เปิด SGF'],
+      ['ms', 'Buka SGF'],
+    ];
+    if ((await expanded.locator('#language option').count()) !== 12)
+      throw Error('Studio language selector is incomplete');
+    for (const [locale, open] of cases) {
+      await expanded.locator('#language').selectOption(locale);
+      if (
+        (await expanded.locator('html').getAttribute('lang')) !== locale ||
+        (await expanded.locator('#open').textContent()).trim() !== open
+      )
+        throw Error(`Studio locale was not applied: ${locale}`);
+      if (
+        (await expanded.locator('#game-name').textContent()) !== 'Authored <tag> title' ||
+        (await expanded.locator('#black-name').textContent()) !== 'Player Black' ||
+        (await expanded.locator('#comment').inputValue()) !== 'Authored English $& comment' ||
+        !(await expanded.locator('#tree [aria-current="true"]').textContent()).startsWith('1 · ')
+      )
+        throw Error(`Language switch changed authored state: ${locale}`);
+      for (const width of [1440, 390]) {
+        await expanded.setViewportSize({ width, height: 1000 });
+        const fits = await expanded.locator('header').evaluate((header) => {
+          const box = header.getBoundingClientRect();
+          return [...header.querySelectorAll('button,select,.brand')]
+            .filter((el) => getComputedStyle(el).display !== 'none')
+            .every((el) => {
+              const rect = el.getBoundingClientRect();
+              return (
+                rect.left >= box.left &&
+                rect.right <= box.right + 1 &&
+                rect.bottom <= box.bottom + 1
+              );
+            });
+        });
+        if (!fits) throw Error(`Localized header clipped: ${locale}/${width}`);
+      }
+      await studioControl(expanded, '#search-open', 'search', () =>
+        expanded.locator('#search-open').click(),
+      );
+      if (
+        locale !== 'en' &&
+        (await expanded.locator('#search-title').textContent()) === 'Search record'
+      )
+        throw Error(`Search dialog stayed English: ${locale}`);
+      await expanded.locator('#search-close').click();
+      await expanded.waitForFunction(() => !document.querySelector('#search-dialog').open);
+    }
+    await expanded.reload();
+    if ((await expanded.locator('#language').inputValue()) !== 'ms')
+      throw Error('New language preference did not survive reload');
+    const sdkResult = await expanded.evaluate(async () => {
+      const {
+        SUPPORTED_LOCALES,
+        RecordController,
+        mountViewer,
+        mountComparison,
+        createUiMessages,
+      } = await import('/sdk/index.js');
+      const controller = new RecordController({
+        sgf: '(;SZ[9]GN[Literal <tag> title]C[Authored $& comment];B[aa])',
+      });
+      const before = controller.getState();
+      const host = document.createElement('div'),
+        compareHost = document.createElement('div');
+      document.body.append(host, compareHost);
+      const viewer = mountViewer(host, { controller });
+      const comparison = mountComparison(compareHost, { controller });
+      try {
+        for (const locale of SUPPORTED_LOCALES) {
+          const ui = createUiMessages({ locale });
+          viewer.update({ locale });
+          comparison.update({ locale });
+          if (
+            host.querySelector('.banora-viewer').getAttribute('aria-label') !== ui.viewer ||
+            compareHost.querySelector('.banora-comparison').getAttribute('aria-label') !==
+              ui.comparison ||
+            host.querySelector('textarea').value !== 'Authored $& comment' ||
+            controller.getState() !== before
+          )
+            throw Error(`SDK language update changed presentation/state: ${locale}`);
+        }
+        return 'twelve-sdk-locales-complete';
+      } finally {
+        viewer.dispose();
+        comparison.dispose();
+        controller.dispose();
+        host.remove();
+        compareHost.remove();
+      }
+    });
+    if (sdkResult !== 'twelve-sdk-locales-complete')
+      throw Error('Expanded SDK locales did not complete');
+  } finally {
+    await expandedContext.close();
+  }
+  for (const [language, locale] of [
+    ['hi-IN', 'hi'],
+    ['th-TH', 'th'],
+  ]) {
+    const detectedContext = await page.context().browser().newContext({ locale: language });
+    try {
+      const detected = await detectedContext.newPage();
+      await detected.goto(`${origin}/studio/`);
+      await detected.locator('#board svg').waitFor();
+      if ((await detected.locator('#language').inputValue()) !== locale)
+        throw Error(`Browser locale detection failed: ${language}`);
+    } finally {
+      await detectedContext.close();
+    }
+  }
   return 'banora-locale-complete';
 };

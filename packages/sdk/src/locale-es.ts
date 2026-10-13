@@ -1,4 +1,4 @@
-import type { UiMessages } from '../locale.js';
+import type { UiMessages } from './locale.js';
 export const es: UiMessages = {
   viewer: 'Visor de partidas de go',
   game: 'Partida {number}',

@@ -14,6 +14,13 @@ In particular, migration-check is now configured as documented below.
 
 ## Standard Validation Names
 
+After `bun run build:examples`, `bun scripts/browser-smoke.ts --locale-only`
+checks all twelve Studio language selections, header controls at desktop/mobile
+widths, localized search dialogs, saved selection on reload, Hindi/Thai browser
+detection and Viewer/comparison locale updates without changing authored state.
+The locale, Studio catalog and preference tests enforce full key/placeholder
+coverage, literal authored substitutions and all supported browser language tags.
+
 After `bun run build:examples`, `bun scripts/browser-smoke.ts --fullscreen-only`
 checks native whole-page fullscreen entry/button exit/external exit, keyboard button activation,
 four-language labels, retained custom size/record selection, exact exported SGF

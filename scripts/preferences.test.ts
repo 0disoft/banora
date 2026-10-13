@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { SUPPORTED_LOCALES } from '../packages/sdk/src/locale.js';
 import {
   PreferenceStore,
   defaultPreferences,
@@ -22,6 +23,18 @@ const fixture = () => {
 };
 const encode = (value: unknown) =>
   JSON.stringify({ schemaVersion: PREFERENCE_SCHEMA_VERSION, value });
+
+test('all twelve browser languages and explicit saved selections survive reopening', () => {
+  for (const locale of SUPPORTED_LOCALES) {
+    expect(defaultPreferences(`${locale.toUpperCase()}-XX`).locale).toBe(locale);
+    const { storage } = fixture();
+    const prefs = new PreferenceStore(storage, defaultPreferences('en-US'));
+    expect(prefs.set('locale', locale)).toBe(true);
+    expect(new PreferenceStore(storage, defaultPreferences('ko-KR')).get('locale')).toBe(locale);
+  }
+  expect(defaultPreferences('xko-KR').locale).toBe('en');
+  expect(defaultPreferences('de-DE').locale).toBe('en');
+});
 test('validated legacy preferences migrate only after a successful new write', () => {
   const { values, storage } = fixture();
   values.set('banora.studio.locale', 'ja');

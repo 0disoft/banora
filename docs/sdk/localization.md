@@ -53,8 +53,9 @@ labels and are outside the built-in Viewer language bundle.
 
 ## Studio Language Selection
 
-Studio detects Korean (`ko*`), Chinese (`zh*`) and Japanese (`ja*`) browser languages
-on first load, otherwise English. Its header selector lists all four languages by their
+Studio detects all twelve supported browser language codes, including region tags
+such as `hi-IN` or `es-MX`, on first load; unsupported languages use English.
+Its header selector lists all twelve languages by their
 native names, without a script qualifier on the Chinese label. Switching does not
 reload or edit the record. An explicit selection is stored under `banora.studio.locale`; unavailable
 storage falls back to session-only selection. `html.lang` and the document title
@@ -64,7 +65,10 @@ Studio's tools, navigation, variations, touch controls, file/unsaved-change dial
 texture controls, sharing and manual scoring use example-owned catalogs. Static
 labels bind before authored data is populated; dynamic UI setters explicitly mark
 UI text. No global DOM observer or heuristic translation of user data is used.
-The Chinese and Japanese static catalogs must cover the same keys as Korean at compile time.
+Every static catalog must cover the same keys as Korean at compile time.
+Dynamic counts, board names, scoring results and error prefixes use shared typed
+templates with literal placeholder substitution. Runtime diagnostics retain their
+stable detail text, and locale codes also apply to diagnostic environment reports.
 Underlying protocol/diagnostic details and rule IDs remain English/stable, and
 linked puzzle/analysis consumer pages retain their current English UI. The comparison
 widget follows Studio's current language, including when already open.

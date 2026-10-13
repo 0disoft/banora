@@ -100,9 +100,9 @@ internal source files or require demo-only SDK hooks. A second, minimal read-onl
 embedding example verifies that the API also fits simpler consumers. Accounts,
 cloud storage and AI analysis are not part of Studio's initial workflow.
 
-The common Viewer and position comparison support English, Chinese, Hindi,
+Studio, the common Viewer and position comparison support English, Chinese, Hindi,
 Spanish, French, Russian, Indonesian, Japanese, Vietnamese, Korean, Thai and Malay.
-Studio currently exposes English, Korean, Chinese and Japanese presentation. SDK locale
+SDK locale
 selection is explicit, preserves record state and never translates authored SGF text.
 Studio variation pass captions use the SDK locale template for both empty and
 legacy `tt` passes, preserving SGF move-number overrides and the authored encoding.
@@ -149,7 +149,7 @@ nonmodal popover exposes the existing controls beside the board without scrollin
 to their lower-page sections. Controls are moved temporarily and restored on
 Back, outside click, Escape or close; values, handlers and record history are shared.
 Comparison/scoring open on selection without resetting an already-open session.
-The menu follows all four Studio languages and restores keyboard focus on close.
+The menu follows all twelve Studio languages and restores keyboard focus on close.
 Escape also returns to the menu trigger when the final Undo disables its focused
 button and the browser moves focus to the document body. An independently focused
 dialog or outside control retains ownership of its keyboard interaction.

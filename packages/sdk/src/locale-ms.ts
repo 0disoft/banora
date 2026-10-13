@@ -1,4 +1,4 @@
-import type { UiMessages } from '../locale.js';
+import type { UiMessages } from './locale.js';
 export const ms: UiMessages = {
   viewer: 'Paparan rekod Go',
   game: 'Permainan {number}',
