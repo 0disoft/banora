@@ -11,7 +11,8 @@ async (page) => {
   };
   const frame = page.locator('.board-frame');
   const width = () => frame.evaluate((element) => element.getBoundingClientRect().width);
-  const preset = (value) => page.locator(`[data-board-preset="${value}"]`);
+  const size = page.locator('#board-size');
+  const preset = (value) => size.selectOption(value);
   const exportRecord = async (name) => {
     const download = page.waitForEvent('download');
     await page.locator('#export').click();
@@ -42,15 +43,25 @@ async (page) => {
   );
   const initial = await width();
   verify(initial >= 630, 'Default board did not reclaim vertical menu space');
-  for (const value of ['small', 'default', 'large'])
-    verify(await preset(value).isVisible(), 'Preset hidden in menu');
-  await preset('small').click();
+  verify(await page.locator('.workspace-tabs #board-size').isVisible(), 'Size dropdown hidden');
+  verify((await page.locator('[data-board-preset]').count()) === 0, 'Old preset buttons remain');
+  verify(
+    (
+      await size.locator('option').evaluateAll((options) => options.map((option) => option.value))
+    ).join(',') === 'small,default,large,custom',
+    'Size choices missing',
+  );
+  await preset('small');
   const small = await width();
-  await preset('default').click();
+  await preset('default');
   const normal = await width();
-  await preset('large').click();
+  await preset('large');
   verify(small < normal && normal < (await width()), 'Preset sizes did not change the board');
-  await preset('default').click();
+  await preset('default');
+  const beforeCustom = await width();
+  await preset('custom');
+  verify((await width()) === beforeCustom, 'Selecting Custom changed the board width');
+  await preset('default');
   const drag = async (corner, dx, dy) => {
     const handle = await page.locator(`[data-resize-corner="${corner}"]`).boundingBox();
     const x = handle.x + handle.width / 2,
@@ -65,28 +76,76 @@ async (page) => {
     ['nw', 30, 30, -1],
     ['ne', 30, -30, 1],
     ['sw', -30, 30, 1],
+    ['n', 0, 30, -1],
+    ['e', 30, 0, 1],
+    ['s', 0, -30, -1],
+    ['w', 30, 0, -1],
   ]) {
+    await preset('default');
+    const target = page.locator(`[data-resize-corner="${corner}"]`);
+    await target.hover();
+    verify(
+      await target.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return (
+          style.cursor.endsWith('-resize') &&
+          style.backgroundColor === 'rgba(0, 0, 0, 0)' &&
+          getComputedStyle(element, '::before').content === 'none'
+        );
+      }),
+      `${corner} target lacks a resize cursor or still overlays an icon`,
+    );
     const before = await width();
     await drag(corner, dx, dy);
-    verify(((await width()) - before) * sign > 20, `${corner} corner did not resize`);
+    verify(((await width()) - before) * sign > 20, `${corner} target did not resize`);
   }
   verify(
     (await page.locator('#board-size').inputValue()) === 'custom',
     'Custom size not reflected in settings',
   );
   const handle = page.locator('[data-resize-corner="se"]');
+  const originBox = await handle.boundingBox();
+  const originX = originBox.x + originBox.width / 2,
+    originY = originBox.y + originBox.height / 2;
+  const beforeReturn = await width();
+  await page.mouse.move(originX, originY);
+  await page.mouse.down();
+  await page.mouse.move(originX + 50, originY + 50);
+  await page.mouse.move(originX, originY);
+  await page.mouse.up();
+  verify((await width()) === beforeReturn, 'Returning the drag pointer did not restore width');
   await handle.focus();
   const beforeKey = await width();
   await page.keyboard.press('ArrowRight');
   verify((await width()) === beforeKey + 10, 'Keyboard size adjustment failed');
   const box = await handle.boundingBox();
   const beforeCancel = await width();
-  await page.mouse.move(box.x + 15, box.y + 15);
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
   await page.mouse.move(box.x + 65, box.y + 65);
   await page.keyboard.press('Escape');
   await page.mouse.up();
   verify((await width()) === beforeCancel, 'Cancelled resize was not restored');
+  for (const [locale, text] of [
+    ['ko', '커스텀'],
+    ['zh', '自定义'],
+    ['ja', '手動調整'],
+    ['en', 'Custom'],
+  ]) {
+    await page.locator('#language').selectOption(locale);
+    verify(
+      (await size.locator('option:checked').textContent()) === text,
+      'Custom label not localized',
+    );
+    verify((await width()) === beforeCancel, 'Language change reset the custom width');
+  }
+  verify(
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem('banora.studio.preferences.boardSize')).value === 'default',
+    ),
+    'Custom selection overwrote the persisted preset',
+  );
   verify(
     (await page.locator('#move').textContent()) === 'Move 1' &&
       (await page.locator('#comment').inputValue()) === 'Resize keeps this note',
@@ -119,7 +178,7 @@ async (page) => {
   );
   await page.screenshot({ path: 'output/playwright/resize-view-menu.png' });
   await page.locator('#board-menu-panel [data-close]').click();
-  await preset('default').click();
+  await preset('default');
   for (const viewport of [
     { width: 320, height: 900 },
     { width: 390, height: 844 },
@@ -132,7 +191,7 @@ async (page) => {
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
       `Horizontal overflow at ${viewport.width}`,
     );
-    verify(await handle.isVisible(), 'Resize control disappeared');
+    verify((await handle.isVisible()) && (await size.isVisible()), 'Sizing controls disappeared');
   }
   await page.screenshot({ path: 'output/playwright/resize-desktop.png' });
   verify(errors.length === 0, errors.join('; '));

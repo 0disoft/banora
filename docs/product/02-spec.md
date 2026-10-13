@@ -27,13 +27,15 @@ replacement retains keyboard focus and final page disposal releases cached rows.
 Studio and the common Viewer mark rows with nonblank SGF `C` comments using a small speech
 bubble, a localized tooltip and an accessible description. Editing, clearing and
 Undo/Redo update the indicator without copying comment text into the row label.
-Studio offers always-visible Small / Default / Large display buttons. Default
+Studio offers one always-visible Small / Default / Large / Custom dropdown. Default
 uses the available viewport height and board container width, capped at 789px;
 Small and Large use 85% / 115% of that size, constrained by the container.
-The four corner handles support mouse/touch resizing, with a keyboard-accessible
-handle, 10px arrow steps (50px with Shift) and Escape cancellation. Custom width
-remains in the current session; selecting a preset clears it. The native View
-selector reflects custom sizing, while only preset choices persist as preferences.
+The edges and four corners have transparent resize targets with directional mouse
+cursors, without overlay icons. The bottom-right target remains keyboard-accessible,
+with 10px arrow steps (50px with Shift) and Escape cancellation. Direct resizing
+selects Custom; choosing Custom explicitly holds the current width. Custom width
+remains in the current session; selecting a preset clears it. Only preset choices
+persist as preferences.
 This scales the rendered board without changing SGF dimensions, selection, rules
 or editing history. The versioned local size preference falls back to Default
 when invalid or unavailable; valid legacy values migrate safely.

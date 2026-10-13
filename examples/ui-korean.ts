@@ -160,7 +160,7 @@ export const koreanUi = {
   'New board': '새 바둑판',
   'Placement sound': '착수 소리',
   'Resize board': '바둑판 크기 조절',
-  Custom: '직접 조절',
+  Custom: '커스텀',
   'Sound unavailable': '소리 지원 안 됨',
   'Board size': '줄 수',
   Boards: '바둑판',

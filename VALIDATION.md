@@ -15,7 +15,8 @@ In particular, migration-check is now configured as documented below.
 ## Standard Validation Names
 
 `bun scripts/browser-smoke.ts --sizing-only` checks the middle vertical rail,
-visible presets, four pointer resize handles, keyboard/cancellation, menu heading
+visible size dropdown/custom selection, invisible edge/corner resize targets,
+keyboard/cancellation, menu heading
 and grouped exports, responsive widths and exact exported SGF preservation.
 This is consumer display behavior; it does not alter SDK geometry or rule contracts.
 

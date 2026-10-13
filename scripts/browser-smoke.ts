@@ -448,7 +448,7 @@ try {
     )
       throw Error('Resizing changed the exported SGF');
     console.log(
-      'Focused sizing smoke passed: vertical controls, visible presets, four corners, keyboard/cancel, exports and responsive layout.',
+      'Focused sizing smoke passed: size dropdown/custom, invisible edges/corners, keyboard/cancel, exports and responsive layout.',
     );
   } else if (process.argv.includes('--sound-only')) {
     await scenario('sound', 'banora-sound-complete');

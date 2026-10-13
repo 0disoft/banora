@@ -1,4 +1,4 @@
-import { setUiText, subscribeUiLanguage, translateUi } from '../ui-language.js';
+import { subscribeUiLanguage, translateUi } from '../ui-language.js';
 
 /** Consumer-only display sizing; the SDK owns the board geometry and pointer mapping. */
 export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement): () => void {
@@ -8,13 +8,11 @@ export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement):
   frame.className = 'board-frame';
   board.before(frame);
   frame.append(board);
-  const presets = document.createElement('div');
-  presets.className = 'board-size-presets';
-  presets.setAttribute('role', 'group');
-  const heading = document.createElement('span');
-  setUiText(heading, 'Display size');
-  presets.append(heading);
-  const buttons = new Map<string, HTMLButtonElement>();
+  const sizing = document.createElement('div');
+  sizing.className = 'board-size-control';
+  const label = select.closest('label')!;
+  const originalParent = label.parentElement!;
+  sizing.append(label);
   const abort = new AbortController();
   const { signal } = abort;
   let custom: number | undefined;
@@ -30,7 +28,6 @@ export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement):
       }
     | undefined;
   const customOption = new Option(translateUi('Custom'), 'custom');
-  customOption.disabled = true;
   select.add(customOption);
   const handles: HTMLButtonElement[] = [];
   function limits() {
@@ -63,39 +60,14 @@ export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement):
     const width = Math.round(Math.max(min, Math.min(max, custom ?? base * scale)));
     frame.style.width = `${width}px`;
     board.dataset.displaySize = custom === undefined ? select.value : 'custom';
-    for (const [value, button] of buttons)
-      button.setAttribute('aria-pressed', String(custom === undefined && value === select.value));
     for (const handle of handles) {
       handle.setAttribute('aria-valuemin', String(Math.round(min)));
       handle.setAttribute('aria-valuemax', String(Math.round(max)));
       handle.setAttribute('aria-valuenow', String(width));
       handle.setAttribute('aria-label', translateUi('Resize board'));
-      handle.title = translateUi('Resize board');
     }
-    presets.setAttribute('aria-label', translateUi('Display size'));
   }
-  for (const [value, text] of [
-    ['small', 'Small'],
-    ['default', 'Default'],
-    ['large', 'Large'],
-  ] as const) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'button';
-    button.dataset.boardPreset = value;
-    setUiText(button, text);
-    buttons.set(value, button);
-    button.addEventListener(
-      'click',
-      () => {
-        select.value = value;
-        select.dispatchEvent(new Event('change'));
-      },
-      { signal },
-    );
-    presets.append(button);
-  }
-  rail.querySelector('#board-tabs')!.before(presets);
+  rail.querySelector('#board-tabs')!.before(sizing);
   function finish(cancel: boolean) {
     if (!drag) return;
     const current = drag;
@@ -109,7 +81,7 @@ export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement):
     if (current.handle.hasPointerCapture(current.id))
       current.handle.releasePointerCapture(current.id);
   }
-  for (const corner of ['nw', 'ne', 'sw', 'se']) {
+  for (const corner of ['n', 'e', 's', 'w', 'nw', 'ne', 'sw', 'se']) {
     const handle = document.createElement('button');
     handle.type = 'button';
     handle.className = `board-resize ${corner}`;
@@ -147,7 +119,15 @@ export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement):
         if (!drag || event.pointerId !== drag.id) return;
         const dx = (event.clientX - drag.x) * (corner.endsWith('w') ? -1 : 1);
         const dy = (event.clientY - drag.y) * (corner.startsWith('n') ? -1 : 1);
-        const delta = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+        const delta =
+          corner === 'e' || corner === 'w'
+            ? dx
+            : corner === 'n' || corner === 's'
+              ? dy
+              : Math.abs(dx) > Math.abs(dy)
+                ? dx
+                : dy;
+        if (delta === 0 && custom === drag.original) return;
         const { min, max } = limits();
         custom = Math.max(min, Math.min(max, drag.width + delta));
         select.value = 'custom';
@@ -193,7 +173,8 @@ export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement):
   select.addEventListener(
     'change',
     () => {
-      custom = undefined;
+      // Choosing Custom freezes the current width; presets return to responsive sizing.
+      custom = select.value === 'custom' ? frame.getBoundingClientRect().width : undefined;
       render();
     },
     { signal },
@@ -213,7 +194,8 @@ export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement):
     observer.disconnect();
     disposeLanguage();
     customOption.remove();
-    presets.remove();
+    originalParent.append(label);
+    sizing.remove();
     frame.replaceWith(board);
   };
 }

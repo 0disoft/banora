@@ -102,6 +102,11 @@ async (rootPage, studioControl) => {
         !Object.hasOwn(migrated, 'banora.studio.drafts-enabled'),
       'Legacy keys survived successful migration',
     );
+    await page.locator('#file').setInputFiles({
+      name: 'preferences.sgf',
+      mimeType: 'application/x-go-sgf',
+      buffer: Buffer.from('(;SZ[9];B[gc];W[cg];B[cc])'),
+    });
     await page.locator('#next').click();
     await page.locator('#next').click();
     await page.locator('#next').click();
@@ -148,6 +153,7 @@ async (rootPage, studioControl) => {
       move: await page.locator('#move').textContent(),
       stones: await page.locator('#board [data-stone]').count(),
     };
+    await page.locator('#board-size').selectOption('custom');
     await backup('preferences-before');
     await page.setViewportSize({ width: 320, height: 900 });
     await openSettings();

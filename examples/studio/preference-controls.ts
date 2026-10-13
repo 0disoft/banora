@@ -48,7 +48,7 @@ export function mountPreferenceControls(
     input.addEventListener(
       'change',
       () => {
-        if (resetting) return;
+        if (resetting || (key === 'boardSize' && input.value === 'custom')) return;
         const previous = preferences.get(key);
         const value =
           typeof previous === 'boolean'
