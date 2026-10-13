@@ -27,7 +27,7 @@ export function mountWorkspaceTabs(
   const message = document.createElement('span');
   message.setAttribute('role', 'status');
   message.className = 'workspace-tab-status';
-  bar.append(actions, tabs, message);
+  bar.append(actions, document.querySelector('.diagram-actions')!, tabs, message);
   boardPanel.after(bar);
   tabs.setAttribute(
     'aria-orientation',

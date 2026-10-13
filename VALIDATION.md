@@ -24,7 +24,8 @@ renderer key injection does not reproduce the browser's native Escape action.
 `bun scripts/browser-smoke.ts --sizing-only` checks the right-side vertical rail,
 visible size dropdown/custom selection, invisible edge/corner resize targets,
 keyboard/cancellation, menu heading
-and grouped exports, responsive widths and exact exported SGF preservation.
+and always-visible grouped SVG/PNG exports with actual downloads, responsive widths
+and exact exported SGF preservation.
 This is consumer display behavior; it does not alter SDK geometry or rule contracts.
 
 After `bun run build:examples`, `bun scripts/browser-smoke.ts --workspace-only`

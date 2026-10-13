@@ -67,7 +67,7 @@ export function mountBoardSizing(board: HTMLElement, select: HTMLSelectElement):
       handle.setAttribute('aria-label', translateUi('Resize board'));
     }
   }
-  rail.querySelector('#board-tabs')!.before(sizing);
+  rail.querySelector('.diagram-actions')!.before(sizing);
   function finish(cancel: boolean) {
     if (!drag) return;
     const current = drag;

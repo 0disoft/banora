@@ -87,8 +87,6 @@
 .board-size-control {
   display: flex;
   flex-direction: column;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
 }
 .board-size-control label {
   display: flex;
@@ -174,7 +172,15 @@
   display: flex;
   flex: 0 0 auto;
   flex-wrap: nowrap;
-  gap: 10px;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.diagram-actions .button {
+  flex: 1;
+  min-width: 0;
+  padding-inline: 10px;
+  white-space: nowrap;
 }
 .board-menu-panel .board-menu-heading {
   background: inherit;
@@ -608,6 +614,10 @@ footer #status:not(:empty) {
     flex-direction: row;
     overflow-x: auto;
     max-height: 52px;
+  }
+  .diagram-actions {
+    padding-bottom: 0;
+    border-bottom: 0;
   }
   .sidebar,
   .board-panel {

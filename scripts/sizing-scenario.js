@@ -161,6 +161,31 @@ async (page) => {
     (await page.locator('#dirty').textContent()) === 'No changes',
     'Resize dirtied the record',
   );
+  for (const format of ['svg', 'png']) {
+    const button = page.locator(`.workspace-tabs #${format}-export`);
+    verify(await button.isVisible(), `${format} export still requires opening a menu`);
+    verify(
+      (await button.getAttribute('aria-label')) === `Save ${format.toUpperCase()}`,
+      'Export accessible name missing',
+    );
+    const pending = page.waitForEvent('download');
+    await button.click();
+    const download = await pending;
+    await download.saveAs(`output/playwright/rail-diagram.${format}`);
+    const parts = [];
+    for await (const part of await download.createReadStream()) parts.push(part);
+    const data = Buffer.concat(parts);
+    verify(
+      format === 'png'
+        ? data.subarray(0, 8).toString('hex') === '89504e470d0a1a0a'
+        : data.toString('utf8').includes('xmlns="http://www.w3.org/2000/svg"'),
+      `${format} export did not download a valid image`,
+    );
+  }
+  verify(
+    (await page.locator('#dirty').textContent()) === 'No changes',
+    'Image export changed the record',
+  );
   await exportRecord('resize-after');
   await page.locator('#board-menu').click();
   await page.locator('[data-board-menu-section="view"]').click();
@@ -168,7 +193,12 @@ async (page) => {
     await page.locator('.diagram-actions').evaluate((element) => {
       const first = element.children[0].getBoundingClientRect(),
         second = element.children[1].getBoundingClientRect();
-      return Math.abs(first.top - second.top) < 1;
+      const rail = element.closest('.workspace-tabs').getBoundingClientRect();
+      return (
+        Math.abs(first.top - second.top) < 1 &&
+        first.left >= rail.left &&
+        second.right <= rail.right
+      );
     }),
     'SVG/PNG buttons are on different lines',
   );
@@ -198,6 +228,11 @@ async (page) => {
       `Horizontal overflow at ${viewport.width}`,
     );
     verify((await handle.isVisible()) && (await size.isVisible()), 'Sizing controls disappeared');
+    verify(
+      (await page.locator('#svg-export').isVisible()) &&
+        (await page.locator('#png-export').isVisible()),
+      'Image exports disappeared',
+    );
   }
   await page.screenshot({ path: 'output/playwright/resize-desktop.png' });
   verify(errors.length === 0, errors.join('; '));

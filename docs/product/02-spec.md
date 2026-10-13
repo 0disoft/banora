@@ -232,8 +232,10 @@ remain open; no work is silently evicted. These in-memory sessions are not resto
 automatically on reload. Local draft autosave flushes outgoing sessions and keeps
 independent, revision-checked owners, including rapid switches with queued writes.
 Below 1001px the rail reflows above the board to preserve usable board width.
-View menu SVG and PNG actions stay together on one row; the sticky heading uses
-the menu surface color.
+SVG and PNG export buttons stay visible together on one row in the workspace rail,
+below display sizing and above the tabs. Compact format labels retain localized
+save-action tooltips and accessible names. The View menu sticky heading uses the
+menu surface color.
 
 Studio's playback dock includes a localized placement-sound toggle. It defaults
 off and persists through the existing validated, per-field preferences. Enabling
