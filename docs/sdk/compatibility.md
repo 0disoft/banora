@@ -436,8 +436,10 @@ types/artifacts rather than inferring compatibility from the plain-browser examp
 Scope checks and releases to changed packages and affected consumers; common SDK
 changes may require adapter checks, but unrelated edits do not require a full matrix.
 Record actual tested runtime versions in the [implementation status](../engineering/08-implementation-status.md).
-The common package source is `0.1.0`; no automatic version bump or publication is
-configured. Version changes belong to an intentional release task.
+The selected common package source is `0.1.1`; no automatic version bump or
+publication is configured. This compatible patch retains the existing SDK peer
+range and framework/runtime majors, as described in the
+[follow-up release](../engineering/31-studio-localization-release.md).
 
 Local [release preparation](../ops/release.md) checks retained exact tarballs and
 production examples from clean committed source, with independently installed

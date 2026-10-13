@@ -81,6 +81,9 @@ independently retained prepared SDK from a recovered checkout.
 [Current readiness audit](engineering/30-current-readiness-audit.md) closes the
 72-question review for the agreed SDK/reference-consumer scope, with current
 public-demo execution, source-to-evidence mapping and explicit remaining limits.
+[Studio/localization follow-up](engineering/31-studio-localization-release.md)
+records the selected compatible 0.1.1 family, refreshed Studio and twelve-language
+scope separately from the initial-release evidence.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable
 commands, input limits and the external state authority boundary.

@@ -8,9 +8,12 @@
 
 Milestones establish delivery order, not release dates or completed functionality.
 Each implementation task should produce a small usable increment and a focused
-commit. Source/released packages are intentionally `0.1.0`, published on the default
-channel under [ADR 0025](../adr/0025-initial-default-channel-release.md).
-Development packages remain `0.1.0-dev.1` on `dev`. Future release versions remain UNDECIDED. Local
+commit. The initial `0.1.0` family was published on the default channel under
+[ADR 0025](../adr/0025-initial-default-channel-release.md). The next selected source
+family is `0.1.1`, with compatible variation/assessment APIs and twelve-language
+localization plus the refreshed Studio; see the
+[follow-up release](../engineering/31-studio-localization-release.md).
+Development packages retain `0.1.0-dev.1` on `dev`. Later release versions remain UNDECIDED. Local
 implementation evidence alone does not establish publication or broader runtime support.
 
 ## M1: Banora Studio and Read-Only Embedding

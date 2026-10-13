@@ -1,5 +1,11 @@
 # Current SDK Readiness Audit
 
+This audit records the initial release at `b52bf65`. Later Studio design,
+workspace, variation and twelve-language changes have their own scoped validation
+and the [0.1.1 follow-up release record](31-studio-localization-release.md).
+The original source comparisons, counts and live observations below remain
+bound to their historical commits; they do not validate the later changes.
+
 Status: the 72-question review is complete for the agreed Banora SDK and reference
 consumer scope. Every question has an implementation/evidence answer or a verified
 integration boundary. This is an initial `0.1.0` delivery, with the coverage limits

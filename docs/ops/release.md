@@ -7,6 +7,12 @@ vulnerability reporting are configured. Support remains scoped to executed evide
 
 ## Initial Default-Channel Release
 
+The selected follow-up source is now `0.1.1`, covering the refreshed Studio,
+variation/assessment additions and twelve-language catalogs. Its
+[change and validation record](../engineering/31-studio-localization-release.md)
+separates local checks from hosted preparation, publication and live deployment.
+The initial-release executions below remain historical evidence for `0.1.0`.
+
 Source versions intentionally advanced together to `0.1.0`, published on `latest`
 through [run 38278289086](https://github.com/0disoft/banora/actions/runs/38278289086).
 All five fresh registry archives passed independent installed-consumer checks.
@@ -122,7 +128,7 @@ Maintainers own source review, compatibility and artifact retention. Start in a
 reviewed Banora checkout with `bun run setup` completed. Commit intended changes;
 `bun run release prepare` requires an actual clean Git checkout and private
 `banora-workspace` root. The five packages must use the same intentional version.
-The current source release version is `0.1.0`; there is no automatic bump.
+The selected source release version is `0.1.1`; there is no automatic bump.
 
 Preparation runs the root checks and private-file/dependency gates serially, builds
 production examples and packages SDK, CLI, React, Vue and Svelte with lifecycle
