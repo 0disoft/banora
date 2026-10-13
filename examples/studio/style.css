@@ -74,6 +74,9 @@
   gap: 12px;
   margin-block: 16px;
 }
+#search-form {
+  align-items: end;
+}
 .search-actions label,
 .search-editor {
   display: grid;

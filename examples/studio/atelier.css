@@ -503,6 +503,7 @@ main {
 .navigation .button.icon {
   width: 36px;
   height: 36px;
+  min-height: 38px;
   padding: 0;
   border: 0;
   background-color: transparent;
@@ -521,13 +522,36 @@ input[type='checkbox'] {
   height: 19px;
   margin: 0 6px 0 0;
 }
+.button,
+.sharing-controls button,
+.texture-controls button,
+select:not([multiple]),
+input:not([type='checkbox']):not([type='radio']):not([type='range']) {
+  min-height: 42px;
+}
+.sharing-row:has([data-share='kind']),
+.texture-controls fieldset {
+  align-items: end;
+}
+.sharing-row label:has(select),
+.texture-controls label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.sharing-row label:has(input[type='checkbox']) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+}
 .button {
   color: inherit;
   background-color: #fffdfa;
   border-color: var(--border);
   border-radius: 6px;
   font-size: 15px;
-  min-height: 38px;
+  padding-block: 8px;
 }
 .button.primary {
   color: white;
