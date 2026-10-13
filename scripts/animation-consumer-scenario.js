@@ -20,6 +20,10 @@ async (page, studioControl) => {
     const studio = name === 'studio';
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.goto(`${origin}/${name}/`);
+    if (studio) {
+      await page.locator('#language').selectOption('en');
+      await studioControl(page, '#sample', 'record', () => page.locator('#sample').click());
+    }
     const board = page.locator(studio ? '#board svg' : '#board-host svg');
     await board.waitFor();
     verify(

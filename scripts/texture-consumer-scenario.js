@@ -15,6 +15,10 @@ async (page, studioControl) => {
   for (const name of ['studio', 'react', 'vue', 'svelte']) {
     const studio = name === 'studio';
     await page.goto(`${origin}/${name}/`);
+    if (studio) {
+      await page.locator('#language').selectOption('en');
+      await studioControl(page, '#sample', 'record', () => page.locator('#sample').click());
+    }
     await studioControl(page, '[data-texture-file="black"]', 'textures', () =>
       page.locator('[data-texture-file="black"]').waitFor(),
     );

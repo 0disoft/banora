@@ -385,7 +385,7 @@ async (page, studioControl) => {
       { x: 4, y: 5 },
     ]);
     await touch('touchEnd');
-    await mobile.getByRole('button', { name: 'Confirm placement at E4', exact: true }).click();
+    await mobile.getByRole('button', { name: 'Confirm placement at E14', exact: true }).click();
     verify(
       (await board.locator('[data-stone="4,5"]').count()) === 1,
       'Studio transformed confirmation failed',

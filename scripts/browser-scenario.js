@@ -232,7 +232,9 @@ async (page, studioControl) => {
       'Mobile overflow',
     );
     await mobile.getByRole('button', { name: 'Undo', exact: true }).click();
-    await mobile.getByRole('button', { name: 'Next move', exact: true }).click();
+    verify((await mobile.locator('#move').innerText()) === 'Move 0', 'Touch Undo failed');
+    await mobile.getByRole('button', { name: 'Redo', exact: true }).click();
+    verify((await mobile.locator('#move').innerText()) === 'Move 1', 'Touch Redo failed');
     await mobile.screenshot({ path: 'output/playwright/studio-touch.png', fullPage: true });
   } finally {
     await mobileContext.close();

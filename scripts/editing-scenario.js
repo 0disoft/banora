@@ -110,6 +110,7 @@ async (page, studioControl) => {
     page.locator('#remove-branch').click(),
   );
   await page.locator('#remove-dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.waitForFunction(() => !document.querySelector('#remove-dialog').open);
   verify(
     (await page.getByRole('button', { name: '1 · Black C7', exact: true }).count()) === 1,
     'Cancelled removal changed record',
@@ -118,7 +119,10 @@ async (page, studioControl) => {
     page.locator('#remove-branch').click(),
   );
   await page.locator('#remove-dialog').getByRole('button', { name: 'Remove', exact: true }).click();
-  await page.waitForFunction(() => document.querySelectorAll('#tree button').length === 3);
+  // Focused trees can have the same row count before and after deleting a branch.
+  await page
+    .getByRole('button', { name: '1 · Black C7', exact: true })
+    .waitFor({ state: 'detached' });
   verify(
     (await page.locator('#move').innerText()) === 'Move 0',
     'Removed selection did not return to parent',

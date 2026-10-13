@@ -65,6 +65,28 @@ language, including English. It retains authored title/player/comment text and
 the selected move, checks header bounds at desktop/mobile widths, saved locale
 on reload, and SDK Viewer/comparison language changes.
 
+The first hosted CI exposed a stale playback assertion that still expected a
+Studio setup-only row to say `Annotation`. The fixture now expects its specific
+`White stones (setup) D6` caption, while retaining move-number and focused-fold
+checks. The standalone Viewer's existing annotation caption remains separately
+checked; no SDK caption contract was changed to satisfy this fixture.
+The mobile editing scenario also now checks Undo/Redo of its own move on the
+blank initial board, rather than assuming a sample continuation exists after Undo.
+Branch deletion waits for the actual target row to disappear instead of inferring
+completion from a row count that focused trees can retain before and after deletion.
+The Studio touch-confirmation fixture expects `E14` for logical point `(4,5)` on
+the new default 19-line board; standalone rectangular-board expectations remain
+unchanged.
+
+Texture and animation consumer fixtures explicitly load the sample record before
+navigating it; a blank startup board is no longer mistaken for a loaded replay.
+
+Local browser coverage completed by retaining the passed prefix and resuming the
+remaining unchanged production scenarios after each fixture correction. The
+editing/classic/presentation/diagram/ink, touch/comparison/sharing, texture,
+animation, scoring, puzzle and analysis scopes all passed. Hosted preparation
+executes the full suite again against one retained committed candidate.
+
 The final local `bun run check` passed lint/format/boundaries, SDK/adapter/CLI
 builds, root/Svelte typechecks, 269 tests with 4,807 assertions, 143 documents with
 726 relative links, packed SDK/classic declaration consumers and 298 installed

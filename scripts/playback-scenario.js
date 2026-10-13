@@ -12,6 +12,7 @@ async (page, studioControl) => {
     ';B[];W[]'.repeat(80) +
     ')';
   await page.goto(`${origin}/studio/`);
+  await page.locator('#language').selectOption('en');
   const numbered =
     '(;SZ[9]GN[Numbered branches]AB[cc];B[aa];C[Note]N[Review](;W[]MN[23];B[bb])(;AW[dd];W[ee]))';
   const expectedLabels = [
@@ -32,9 +33,11 @@ async (page, studioControl) => {
   check(
     JSON.stringify(await page.locator('#tree button').allTextContents()) ===
       JSON.stringify(
-        expectedLabels.filter((label) => !['24 · Black B8', '2 · White E5'].includes(label)),
+        expectedLabels
+          .filter((label) => !['24 · Black B8', '2 · White E5'].includes(label))
+          .map((label) => (label === '1 · Annotation' ? '1 · White stones (setup) D6' : label)),
       ),
-    'Studio branch/pass/setup/annotation/MN numbering failed',
+    `Studio branch/pass/setup/annotation/MN numbering failed: ${await page.locator('#tree button').allTextContents()}`,
   );
   await page.getByRole('button', { name: '23 · White pass', exact: true }).click();
   await page.getByRole('button', { name: '24 · Black B8', exact: true }).click();
