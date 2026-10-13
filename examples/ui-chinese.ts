@@ -198,6 +198,7 @@ export const chineseUi = {
   'Black stones (setup)': '摆黑子',
   'White stones (setup)': '摆白子',
   'Remove stones (setup)': '移除棋子',
+  'Setup change': '修改摆子',
   Label: '文字',
   Triangle: '三角形',
   Square: '正方形',

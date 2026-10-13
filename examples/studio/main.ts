@@ -57,6 +57,7 @@ import { mountPlacementSound } from './placement-sound.js';
 import { mountBoardSizing } from './board-sizing.js';
 import { mountFullscreen } from './fullscreen.js';
 import { mountVariationMenu } from './variation-menu.js';
+import { applySetupPoint, coordinateTitle, setupNodeTitle } from './setup-editing.js';
 import './atelier.css';
 import './icons.css';
 import './fonts.css';
@@ -195,14 +196,9 @@ const view = mountBoard(find('board'), {
       );
       report(candidate ? controller.goTo(candidate.node.id) : controller.play(point));
     } else if (mode === 'setup-black' || mode === 'setup-white' || mode === 'setup-empty') {
-      report(
-        controller.setSetup([
-          {
-            ...point,
-            color: mode === 'setup-empty' ? null : mode === 'setup-black' ? 'black' : 'white',
-          },
-        ]),
-      );
+      const color = mode === 'setup-empty' ? null : mode === 'setup-black' ? 'black' : 'white';
+      const action = applySetupPoint(controller, point, color);
+      if (action) report(action.result, action.operation);
     } else if (mode === 'line' || mode === 'arrow') {
       const state = controller.getState();
       if (!connectionStart || connectionStart.node !== state.node.id) {
@@ -257,15 +253,14 @@ find('playback').querySelector('.banora-record-playback')!.append(find('sound'))
 function nodeTitle(node: SgfNode, depth: number, width: number, height: number): string {
   const value = node.properties.B?.[0] ?? node.properties.W?.[0];
   const color = node.properties.B ? ui.black : ui.white;
-  if (value === undefined)
-    return depth === 0 ? ui.start : (node.properties.N?.[0] ?? ui.annotation);
+  if (value === undefined) {
+    if (depth === 0) return ui.start;
+    if (node.properties.N) return node.properties.N[0]!;
+    return setupNodeTitle(node, height) ?? ui.annotation;
+  }
   if (!value || (value === 'tt' && width <= 19 && height <= 19))
     return formatUiMessage(ui.colorPass, { color });
-  const letters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
-  const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const x = alphabet.indexOf(value[0]!);
-  const y = alphabet.indexOf(value[1]!);
-  return `${color} ${letters[x] ?? x + 1}${height - y}`;
+  return `${color} ${coordinateTitle(value, height)}`;
 }
 function revealTreeSelection(id: string): void {
   const tree = find('tree'),

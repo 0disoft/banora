@@ -210,6 +210,16 @@ reopen. `--tree-only` selects it; full functional browser smoke includes it. The
 browser benchmark additionally verifies move/clean/row/stone state and rejects
 controller/Studio source changes during its measurement window.
 
+`scripts/setup-editing.test.ts` checks Studio point-tool no-ops without Undo
+entries, reuse of identical plain setup children without merging authored
+alternatives, consecutive changes on one setup node, SGF round-trip and per-edit
+Undo. Focused manual Chrome checks additionally covered targeted right-click
+subtree deletion/cancellation, sibling/cursor preservation, Undo/Redo, keyboard
+menu activation/Escape, root protection, four-language captions and 320px menu
+placement. A stale confirmation was rejected after importing a record with
+colliding node IDs. These checks do not claim other-engine or physical-device
+coverage.
+
 `packages/sdk/test/variations.test.ts` checks focused/nested outlines, pass and
 annotation reachability, bounded rows and distinct candidate coordinates without
 record edits. `packages/sdk/test/move-assessment.test.ts` checks targeted assessment

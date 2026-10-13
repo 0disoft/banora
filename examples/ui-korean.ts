@@ -207,6 +207,7 @@ export const koreanUi = {
   'Black stones (setup)': '흑돌 배치',
   'White stones (setup)': '백돌 배치',
   'Remove stones (setup)': '돌 제거',
+  'Setup change': '배치 수정',
   Label: '문자',
   Triangle: '삼각형',
   Square: '사각형',

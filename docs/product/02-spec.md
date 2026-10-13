@@ -43,6 +43,16 @@ path unless that path is removed, in which case it returns to the target's paren
 Undo/Redo restores/removes the subtree as one edit. Menu and confirmation targets
 are scoped to the current immutable record and workspace generation so a stale
 action cannot remove a similarly named node in another board or imported record.
+Studio setup-point tools ignore clicks where the requested placement already
+matches the board, avoiding empty edits/children and preserving Undo history.
+An identical plain one-point setup child is reused by navigation rather than
+duplicated; children with authored comments, titles or other properties are not
+merged or replaced.
+Actual setup changes after a move remain separate SGF nodes; consecutive changes
+on that setup node reuse it. Non-move setup rows show localized black/white
+placement, stone removal (with a coordinate for a single point), or mixed setup
+change captions instead of Annotation. Authored `N` titles keep priority. This
+does not change the SDK's explicit setup/repetition-reset semantics.
 Studio and the common Viewer mark rows with nonblank SGF `C` comments using a small speech
 bubble, a localized tooltip and an accessible description. Editing, clearing and
 Undo/Redo update the indicator without copying comment text into the row label.

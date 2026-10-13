@@ -206,6 +206,7 @@ export const japaneseUi = {
   'Black stones (setup)': '黒石を配置',
   'White stones (setup)': '白石を配置',
   'Remove stones (setup)': '石を除去',
+  'Setup change': '配置の変更',
   Label: '文字',
   Triangle: '三角',
   Square: '四角',
