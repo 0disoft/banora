@@ -83,8 +83,8 @@ async (page, studioControl) => {
     }
     await page.locator('#comment').fill(`Authored localized zoom ${locale}`);
     await page.locator('#comment').blur();
-    await studioControl(page, '#new', 'record', async () => {
-      await page.locator('#new').focus();
+    await studioControl(page, '#sample', 'record', async () => {
+      await page.locator('#sample').focus();
       await page.keyboard.press('Enter');
     });
     const guard = page.getByRole('dialog', { name: titles[locale], exact: true });
@@ -133,7 +133,7 @@ async (page, studioControl) => {
   await panel.locator('[data-board-menu-section="tools"]').click();
   await panel.locator('#undo').click();
   await page.keyboard.press('Escape');
-  await page.waitForFunction(() => ['app-menu', 'new'].includes(document.activeElement.id));
+  await page.waitForFunction(() => ['app-menu', 'sample'].includes(document.activeElement.id));
   verify(
     await trigger.evaluate((element) => element === document.activeElement),
     `Menu focus not restored: ${await page.evaluate(() => ({ active: document.activeElement?.id, expanded: document.querySelector('#board-menu').getAttribute('aria-expanded') })).then(JSON.stringify)}`,
@@ -144,8 +144,8 @@ async (page, studioControl) => {
   );
   await page.locator('#comment').fill(`Authored ${factor * 100}% zoom`);
   await page.locator('#comment').blur();
-  await studioControl(page, '#new', 'record', async () => {
-    await page.locator('#new').focus();
+  await studioControl(page, '#sample', 'record', async () => {
+    await page.locator('#sample').focus();
     await page.keyboard.press('Enter');
   });
   const dialog = page.getByRole('dialog', { name: 'This record has changes.', exact: true });
@@ -156,10 +156,10 @@ async (page, studioControl) => {
     'Dialog lost keyboard focus',
   );
   await page.keyboard.press('Escape');
-  await page.waitForFunction(() => ['app-menu', 'new'].includes(document.activeElement.id));
+  await page.waitForFunction(() => ['app-menu', 'sample'].includes(document.activeElement.id));
   verify(
     await page
-      .locator('#app-menu,#new')
+      .locator('#app-menu,#sample')
       .evaluateAll((elements) => elements.includes(document.activeElement)),
     'Guard focus not restored',
   );

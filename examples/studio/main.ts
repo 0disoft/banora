@@ -9,7 +9,6 @@ import {
   translateUi,
 } from '../ui-language.js';
 import {
-  RecordController,
   decodeSgf,
   mountBoard,
   mountComparison,
@@ -47,6 +46,8 @@ import type { DiagnosticOperation } from '@0disoft/banora/diagnostics';
 import { arrangeStudio } from './layout.js';
 import { applyStudioIcons } from './icons.js';
 import { createStudioTextures } from './skin.js';
+import { StudioWorkspace } from './workspace.js';
+import { mountWorkspaceTabs } from './workspace-tabs.js';
 import './atelier.css';
 import './icons.css';
 
@@ -74,7 +75,8 @@ language.value = initialLanguage;
 const disposeStaticLanguage = localizeUi(document.documentElement);
 let ui = createUiMessages({ locale: initialLanguage });
 document.documentElement.lang = initialLanguage;
-const controller = new RecordController({ sgf: sample });
+const workspace = new StudioWorkspace();
+const controller = workspace.controller;
 const diagnostics = new StudioDiagnostics();
 const comment = find<HTMLTextAreaElement>('comment');
 const tool = find<HTMLSelectElement>('tool');
@@ -86,7 +88,6 @@ const status = find('status');
 const dialog = find<HTMLDialogElement>('unsaved');
 const file = find<HTMLInputElement>('file');
 const games = find<HTMLSelectElement>('games');
-let filename = 'opening-study.sgf';
 let opening = false;
 let disposed = false;
 let fileReadSequence = 0;
@@ -293,7 +294,15 @@ function renderTree(state: ControllerState): void {
 const renderState = (state: ControllerState) => {
   if (connectionStart?.node !== state.node.id) connectionStart = undefined;
   const root = state.record.games[state.gameIndex]!;
-  find('game-name').textContent = root.properties.GN?.[0] ?? filename.replace(/\.sgf$/i, '');
+  const title = root.properties.GN?.[0];
+  if (title) {
+    delete find('game-name').dataset.uiText;
+    find('game-name').textContent = title;
+  } else
+    setUiText(
+      find('game-name'),
+      workspace.active.filename.replace(/\.sgf$/i, '').replace(/^board-(\d+)$/, 'Board $1'),
+    );
   find('black-name').textContent = root.properties.PB?.[0] ?? ui.black;
   find('white-name').textContent = root.properties.PW?.[0] ?? ui.white;
   setUiText(
@@ -372,7 +381,7 @@ function exportRecord(): boolean {
     );
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename;
+    link.download = workspace.active.filename;
     // A second modal (recovery) may remain open after replacement approval.
     // Keep the download action inside the active modal's non-inert subtree.
     (document.querySelector<HTMLDialogElement>('dialog:modal') ?? document.body).append(link);
@@ -466,8 +475,8 @@ async function openRecord(
       setUiText(status, 'Record changed during approval. Open it again.');
       return false;
     }
-    const previousName = filename;
-    filename = safeDraftFilename(name);
+    const previousName = workspace.active.filename;
+    workspace.rename(safeDraftFilename(name));
     const result = controller.loadSgf(input, { discardChanges: true, locator });
     if (!result.ok) {
       complete({
@@ -475,11 +484,11 @@ async function openRecord(
         failure: describeDiagnosticFailure('controller', result.reason),
       });
       finished = true;
-      filename = previousName;
+      workspace.rename(previousName);
       report(result, 'import', false);
       return false;
     }
-    setUiText(status, `Opened ${filename}.`);
+    setUiText(status, `Opened ${workspace.active.filename}.`);
     complete({ status: 'success' });
     finished = true;
     return true;
@@ -545,8 +554,8 @@ async function openCheckpoint(input: unknown, name: string, signal: AbortSignal)
       setUiText(status, 'Record changed during approval. Open it again.');
       return false;
     }
-    const previousName = filename;
-    filename = safeDraftFilename(name);
+    const previousName = workspace.active.filename;
+    workspace.rename(safeDraftFilename(name));
     const result = controller.loadCheckpoint(parsed.value, { discardChanges: true });
     if (!result.ok) {
       complete({
@@ -554,7 +563,7 @@ async function openCheckpoint(input: unknown, name: string, signal: AbortSignal)
         failure: describeDiagnosticFailure('controller', result.reason),
       });
       finished = true;
-      filename = previousName;
+      workspace.rename(previousName);
       report(result, 'restore', false);
       return false;
     }
@@ -575,8 +584,24 @@ file.addEventListener('change', () => {
 find('sample').addEventListener('click', () => {
   void openRecord(sample, 'opening-study.sgf');
 });
-find('new').addEventListener('click', () => {
-  void openRecord('(;FF[4]GM[1]CA[UTF-8]SZ[19])', 'untitled.sgf');
+const disposeWorkspaceTabs = mountWorkspaceTabs(workspace, {
+  canAct: () => !disposed && !opening && !document.querySelector('dialog:modal'),
+  close: async (id) => {
+    workspace.select(id);
+    const target = workspace.active;
+    const approved = await mayReplace();
+    if (!approved || disposed || workspace.active !== target) return false;
+    return workspace.close(id, true);
+  },
+});
+const disposeWorkspaceSwitch = workspace.beforeSwitch(() => {
+  fileReadSequence++;
+  connectionStart = undefined;
+  playbackControls.playback.pause();
+  comparison?.dispose();
+  comparison = undefined;
+  find('comparison-panel').hidden = true;
+  status.textContent = '';
 });
 find('export').addEventListener('click', exportRecord);
 find('previous').addEventListener('click', () => report(controller.previous(), 'navigate'));
@@ -686,7 +711,7 @@ const transformView = () => {
 find('rotation').addEventListener('change', transformView);
 find('flip-x').addEventListener('change', transformView);
 async function exportDiagram(format: 'svg' | 'png') {
-  const name = `${filename.replace(/\.sgf$/i, '')}-move-${controller.getState().position.moveNumber}.${format}`;
+  const name = `${workspace.active.filename.replace(/\.sgf$/i, '')}-move-${controller.getState().position.moveNumber}.${format}`;
   try {
     // CSS wood grain decorates the consumer only. Capture an opaque SDK surface
     // synchronously so standalone diagrams remain independent of Studio CSS.
@@ -769,7 +794,7 @@ document.addEventListener('keydown', (event) => {
   }
 });
 window.addEventListener('beforeunload', (event) => {
-  if (controller.getState().dirty) {
+  if (workspace.dirty) {
     event.preventDefault();
     event.returnValue = '';
   }
@@ -779,6 +804,8 @@ window.addEventListener('pagehide', (event) => {
   playbackControls.playback.pause();
   if (!event.persisted) {
     disposed = true;
+    disposeWorkspaceTabs();
+    disposeWorkspaceSwitch();
     treeButtons.clear();
     selectedTreeRow = undefined;
     lastTreeState = undefined;
@@ -844,7 +871,8 @@ const disposeSharing = mountSharing(find('sharing-host'), controller, {
 const disposeScoring = mountScoringControls(find('scoring-host'), controller);
 const disposeRecovery = mountRecoveryControls(find('drafts-host'), controller, {
   diagnostics,
-  filename: () => filename,
+  filename: () => workspace.active.filename,
+  workspace,
   replace: openCheckpoint,
   autosave: preferences.get('autosave'),
   onAutosaveChange: (enabled) => {

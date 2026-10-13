@@ -30,6 +30,7 @@ export function translateUi(text: string): string {
   const patterns: [RegExp, (...values: string[]) => string][] = [
     [/^Move (\d+)$/, (n) => choose(`${n}수`, `第 ${n} 手`, `${n}手目`)],
     [/^Game (\d+)$/, (n) => choose(`기보 ${n}`, `棋谱 ${n}`, `棋譜 ${n}`)],
+    [/^Board (\d+)$/, (n) => choose(`바둑판 ${n}`, `棋盘 ${n}`, `碁盤 ${n}`)],
     [/^Opened (.+)\.$/, (name) => choose(`${name} 열림`, `已打开 ${name}`, `${name}を開きました`)],
     [
       /^(\d+) strokes? on this node$/,

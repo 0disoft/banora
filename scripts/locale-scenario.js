@@ -360,7 +360,7 @@ async (page, studioControl) => {
     if (
       (await chinesePage.locator('#language').inputValue()) !== 'zh' ||
       (await chinesePage.locator('html').getAttribute('lang')) !== 'zh' ||
-      (await chinesePage.locator('#game-name').textContent()) !== 'Opening study'
+      (await chinesePage.locator('#game-name').textContent()) !== '棋盘 1'
     )
       throw Error('Chinese browser detection failed or translated authored title');
     await chinesePage.locator('#language').selectOption('ko');
@@ -381,7 +381,7 @@ async (page, studioControl) => {
     if (
       (await japanesePage.locator('#language').inputValue()) !== 'ja' ||
       (await japanesePage.locator('html').getAttribute('lang')) !== 'ja' ||
-      (await japanesePage.locator('#game-name').textContent()) !== 'Opening study'
+      (await japanesePage.locator('#game-name').textContent()) !== '碁盤 1'
     )
       throw Error('Japanese browser detection failed or translated authored title');
     await japanesePage.locator('#language').selectOption('zh');

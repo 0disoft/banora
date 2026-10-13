@@ -358,6 +358,7 @@ async function diagramSmoke(): Promise<void> {
 async function desktopSmoke(address: string): Promise<void> {
   // Preserve each scenario and its artifact assertions; CDP input scopes stay in full smoke.
   const checks: readonly [string, () => Promise<void>][] = [
+    ['workspace', () => scenario('workspace', 'banora-workspace-complete')],
     ['accessibility', () => scenario('accessibility', 'banora-accessibility-complete')],
     ['tree', treeNavigation],
     ['support', supportSmoke],
@@ -437,6 +438,20 @@ try {
     await browserPerformance();
   } else if (process.argv.includes('--desktop-only')) {
     await desktopSmoke(address);
+  } else if (process.argv.includes('--workspace-only')) {
+    await scenario('workspace', 'banora-workspace-complete');
+    const first = await readFile(resolve(output, 'workspace-first.sgf'), 'utf8');
+    const second = await readFile(resolve(output, 'workspace-second.sgf'), 'utf8');
+    if (
+      !first.includes('SZ[19]') ||
+      !first.includes('First board note') ||
+      !second.includes('SZ[13]') ||
+      !second.includes('Second board note')
+    )
+      throw Error('Workspace export lost independent content');
+    console.log(
+      'Focused workspace smoke passed: default size, tabs, independent history, close/export guards, playback, locales and narrow layouts.',
+    );
   } else if (process.argv.includes('--tree-only')) {
     await treeNavigation();
     console.log(
@@ -526,6 +541,7 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await scenario('workspace', 'banora-workspace-complete');
     await scenario('accessibility', 'banora-accessibility-complete');
     await treeNavigation();
     await supportSmoke();

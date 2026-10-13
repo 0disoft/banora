@@ -3,6 +3,51 @@ import { RecordController } from '@0disoft/banora/controller';
 import { DraftAutosave } from '../examples/studio/draft-session.js';
 import { DraftError } from '../examples/studio/draft-store.js';
 import type { StudioDraft } from '../examples/studio/draft-store.js';
+import { StudioWorkspace } from '../examples/studio/workspace.js';
+
+test('rapid board switches preserve every queued draft and reuse each board revision', async () => {
+  const workspace = new StudioWorkspace();
+  const calls: { draft: StudioDraft; expected: number; resolve(): void }[] = [];
+  const autosave = new DraftAutosave(
+    workspace.controller,
+    () => workspace.active.filename,
+    {
+      save: (draft, expected) =>
+        new Promise<void>((resolve) => calls.push({ draft, expected, resolve })),
+    },
+    true,
+    () => {},
+    { ownerKey: () => workspace.active.draftOwner },
+  );
+  workspace.beforeSwitch(() => {
+    void autosave.flush();
+  });
+  const first = workspace.active.id;
+  workspace.controller.setComment('first');
+  workspace.add(13);
+  workspace.controller.setComment('second');
+  workspace.add(9);
+  workspace.controller.setComment('third');
+  const running = autosave.flush();
+  expect(calls).toHaveLength(1);
+  calls[0]!.resolve();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(calls[1]!.draft.checkpoint.sgf).toContain('second');
+  calls[1]!.resolve();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(calls[2]!.draft.checkpoint.sgf).toContain('third');
+  calls[2]!.resolve();
+  await running;
+  workspace.select(first);
+  workspace.controller.setComment('first revised');
+  const revised = autosave.flush();
+  expect(calls[3]!.draft.id).toBe(calls[0]!.draft.id);
+  expect(calls[3]!.expected).toBe(1);
+  calls[3]!.resolve();
+  await revised;
+  await autosave.close();
+  workspace.dispose();
+});
 
 test('serial draft saves isolate replaced records and never report an old completion as current', async () => {
   const controller = new RecordController({ size: 5 });

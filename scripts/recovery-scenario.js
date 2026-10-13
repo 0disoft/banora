@@ -203,7 +203,13 @@ async (rootPage, studioControl) => {
     });
     db.close();
   });
-  await studioControl(page, '#new', 'record', () => page.locator('#new').click());
+  await page
+    .locator('#file')
+    .setInputFiles({
+      name: 'capacity-replacement.sgf',
+      mimeType: 'application/x-go-sgf',
+      buffer: Buffer.from('(;SZ[19])'),
+    });
   await page.locator('#unsaved button[value="discard"]').click();
   await expect(page.locator('#draft-status')).toHaveText(
     '20 drafts saved. Delete one to continue.',

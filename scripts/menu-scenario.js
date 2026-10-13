@@ -58,7 +58,10 @@ async (page) => {
     await panel.locator('#games').isVisible(),
     'Header menu did not expose collection selection',
   );
-  verify(await panel.locator('#new').isVisible(), 'Header menu did not expose new record');
+  verify(
+    await page.locator('.workspace-tabs #new').isVisible(),
+    'New board action is not visible beside the tabs',
+  );
   await panel.locator('[data-close]').click();
   verify(
     await page.locator('#app-menu').evaluate((element) => element === document.activeElement),

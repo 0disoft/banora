@@ -13,6 +13,7 @@ import type { DraftEntry, StudioDraft } from './draft-store.js';
 import { localizeUi, setUiText, getUiLocale } from '../ui-language.js';
 import type { StudioDiagnostics } from './diagnostics.js';
 import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
+import type { StudioWorkspace } from './workspace.js';
 
 const statusText: Record<AutosaveStatus, string> = {
   idle: '',
@@ -36,6 +37,7 @@ export function mountRecoveryControls(
     filename(): string;
     replace(checkpoint: unknown, filename: string, signal: AbortSignal): Promise<boolean>;
     autosave: boolean;
+    workspace?: StudioWorkspace;
     onAutosaveChange(enabled: boolean): void;
   },
 ): () => void {
@@ -96,7 +98,11 @@ export function mountRecoveryControls(
       find<HTMLButtonElement>('draft-retry').disabled =
         status === 'saved' || status === 'idle' || status === 'saving' || status === 'off';
     },
+    options.workspace ? { ownerKey: () => options.workspace!.active.draftOwner } : undefined,
   );
+  const disposeWorkspace = options.workspace?.beforeSwitch(() => {
+    void autosave.flush();
+  });
   setUiText(find('draft-status'), toggle.checked ? '' : statusText.off);
   find<HTMLButtonElement>('draft-retry').disabled = true;
   const disposeLanguage = localizeUi(host);
@@ -379,6 +385,7 @@ export function mountRecoveryControls(
   return () => {
     if (disposed) return;
     disposed = true;
+    disposeWorkspace?.();
     abort.abort();
     disposeLanguage();
     requestSequence++;

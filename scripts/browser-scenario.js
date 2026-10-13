@@ -12,6 +12,7 @@ async (page, studioControl) => {
     if (!condition) throw Error(message);
   };
   await page.setViewportSize({ width: 1440, height: 1080 });
+  await studioControl(page, '#sample', 'record', () => page.locator('#sample').click());
   await page.getByRole('button', { name: 'Next move', exact: true }).click();
   const board = page.getByRole('application');
   await board.focus();
@@ -56,20 +57,20 @@ async (page, studioControl) => {
   await page.getByRole('checkbox', { name: 'Move numbers' }).uncheck();
   await page.screenshot({ path: 'output/playwright/studio-desktop.png', fullPage: true });
   await page.locator('#comment').fill('Dirty guard');
-  await studioControl(page, '#new', 'record', () =>
-    page.getByRole('button', { name: 'New record', exact: true }).click(),
+  await studioControl(page, '#sample', 'record', () =>
+    page.getByRole('button', { name: 'Example game', exact: true }).click(),
   );
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.waitForFunction(() => !document.querySelector('dialog').open);
   verify((await page.locator('#comment').inputValue()) === 'Dirty guard', 'Cancel lost changes');
-  await studioControl(page, '#new', 'record', () =>
-    page.getByRole('button', { name: 'New record', exact: true }).click(),
+  await studioControl(page, '#sample', 'record', () =>
+    page.getByRole('button', { name: 'Example game', exact: true }).click(),
   );
   await page.getByRole('button', { name: 'Discard', exact: true }).click();
   await page.waitForFunction(
     () =>
       document.querySelector('#board svg[role="application"]').getAttribute('data-board-width') ===
-      '19',
+      '9',
   );
   await page.locator('#comment').fill('Export before replace');
   await studioControl(page, '#sample', 'record', () =>

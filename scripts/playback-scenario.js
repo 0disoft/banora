@@ -127,8 +127,8 @@ async (page, studioControl) => {
   await page.locator('#comment').fill('Dialog keyboard guard');
   await page.locator('#comment').blur();
   await page.getByRole('button', { name: 'Play record', exact: true }).click();
-  await studioControl(page, '#new', 'record', async () => {
-    await page.getByRole('button', { name: 'New record', exact: true }).focus();
+  await studioControl(page, '#sample', 'record', async () => {
+    await page.getByRole('button', { name: 'Example game', exact: true }).focus();
     await page.keyboard.press('Enter');
   });
   await page.locator('#unsaved[open]').waitFor();

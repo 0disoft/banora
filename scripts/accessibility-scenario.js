@@ -48,6 +48,7 @@ async (rootPage, studioControl) => {
   }
   try {
     await page.goto(`${origin}/studio/`);
+    await studioControl(page, '#sample', 'record', () => page.locator('#sample').click());
     for (const width of [1280, 320]) {
       await page.setViewportSize({ width, height: width === 320 ? 480 : 900 });
       for (const [locale, [unsaved, removal]] of Object.entries(titles)) {
@@ -58,12 +59,14 @@ async (rootPage, studioControl) => {
         await page.locator('#comment').blur();
         const dirty = await page.locator('#dirty').textContent();
         const count = await page.locator('#tree button').count();
-        await studioControl(page, '#new', 'record', async () => {
-          await page.locator('#new').focus();
+        await studioControl(page, '#sample', 'record', async () => {
+          await page.locator('#sample').focus();
           await page.keyboard.press('Enter');
         });
         await guard(unsaved, `unsaved-${locale}-${width}`);
-        await page.waitForFunction(() => ['app-menu', 'new'].includes(document.activeElement.id));
+        await page.waitForFunction(() =>
+          ['app-menu', 'sample'].includes(document.activeElement.id),
+        );
         check(
           (await page.locator('#comment').inputValue()) === note &&
             (await page.locator('#dirty').textContent()) === dirty &&
@@ -72,7 +75,7 @@ async (rootPage, studioControl) => {
         );
         check(
           await page
-            .locator('#app-menu,#new')
+            .locator('#app-menu,#sample')
             .evaluateAll((elements) => elements.includes(document.activeElement)),
           'Replacement cancellation did not restore the invoking control focus',
         );

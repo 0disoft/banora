@@ -200,6 +200,24 @@ SDK board and embedded stones. Materials are excluded from record/share data.
 Modal dialogs own their body-level surface independently of borrowed controls;
 moving or hiding a menu cannot hide an active recovery, search, or help dialog.
 
+Studio starts with an empty 19 × 19 board. The visible workspace strip selects
+19, 13 or 9 lines for a new board; this is distinct from the Small / Default /
+Large display-size preference. New board adds and activates an internal tab
+without replacing another record or requesting its discard. Each tab retains
+its actual SDK controller, selected node, comments, Undo/Redo and export baseline.
+Opening an SGF, example or backup replaces only the active tab through the existing
+dirty-record guard; SGF collection selection remains within that tab. Tab titles
+use authored game names or localized defaults, with an unsaved indicator.
+
+Tabs support mouse selection and Left/Right/Home/End keyboard navigation without
+triggering record playback shortcuts. A switch pauses playback and invalidates
+pending imports/search previews and position comparison. Closing a dirty tab
+requires Export / Discard / Cancel; closing the last tab creates a fresh 19-line
+board. The browser exit guard includes inactive dirty tabs. Up to 20 boards may
+remain open; no work is silently evicted. These in-memory sessions are not restored
+automatically on reload. Local draft autosave flushes outgoing sessions and keeps
+independent, revision-checked owners, including rapid switches with queued writes.
+
 Keep previous/next/branch navigation separate from edit Undo/Redo. Variation creation,
 comment changes and marker changes are undoable; a comment editing session is one
 undo unit. Navigation creates no edit entry and restores the selected path's rule

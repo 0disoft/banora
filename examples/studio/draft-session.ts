@@ -17,25 +17,35 @@ export class DraftAutosave {
   #needsSave = false;
   #status: AutosaveStatus = 'idle';
   #timer: ReturnType<typeof setTimeout> | undefined;
-  #queued: { owner: Owner; epoch: number; draft: StudioDraft } | undefined;
+  #queued = new Map<Owner, { epoch: number; draft: StudioDraft }>();
   #running: Promise<void> | undefined;
   #closed = false;
   #unsubscribe: () => void;
   #seen: ControllerState;
+  #owners = new WeakMap<object, Owner>();
+  #ownerKey: object | undefined;
   constructor(
     private readonly controller: RecordController,
     private readonly filename: () => string,
     private readonly store: Pick<DraftStore, 'save'>,
     private enabled: boolean,
     private readonly changed: (status: AutosaveStatus) => void,
+    private readonly session?: { ownerKey(): object },
   ) {
     this.#seen = controller.getState();
     this.#owner = this.#newOwner(this.#seen.recordGeneration);
+    this.#ownerKey = session?.ownerKey();
+    if (this.#ownerKey) this.#owners.set(this.#ownerKey, this.#owner);
     this.#status = enabled ? 'idle' : 'off';
     this.#unsubscribe = controller.subscribe((state) => {
       if (state === this.#seen || this.#closed) return;
       this.#seen = state;
-      if (state.recordGeneration !== this.#owner.generation)
+      const key = this.session?.ownerKey();
+      if (key && key !== this.#ownerKey) {
+        this.#ownerKey = key;
+        this.#owner = this.#owners.get(key) ?? this.#newOwner(state.recordGeneration);
+        this.#owners.set(key, this.#owner);
+      } else if (!key && state.recordGeneration !== this.#owner.generation)
         this.#owner = this.#newOwner(state.recordGeneration);
       this.#epoch++;
       this.#schedule();
@@ -60,9 +70,10 @@ export class DraftAutosave {
     this.enabled = enabled;
     this.#epoch++;
     clearTimeout(this.#timer);
-    this.#queued = undefined;
+    this.#queued.clear();
     if (enabled) {
       this.#owner = this.#newOwner(this.controller.getState().recordGeneration);
+      if (this.#ownerKey) this.#owners.set(this.#ownerKey, this.#owner);
       this.#schedule();
     } else this.#publish('off');
   }
@@ -79,6 +90,7 @@ export class DraftAutosave {
     if (this.#closed || !this.enabled) return;
     if (this.#status === 'conflict')
       this.#owner = this.#newOwner(this.controller.getState().recordGeneration);
+    if (this.#ownerKey) this.#owners.set(this.#ownerKey, this.#owner);
     this.#epoch++;
     this.#publish('saving');
     void this.flush();
@@ -89,8 +101,7 @@ export class DraftAutosave {
     if (this.#closed || !this.enabled || !this.#needsSave || this.#capturedEpoch === this.#epoch)
       return this.#running ?? Promise.resolve();
     try {
-      this.#queued = {
-        owner: this.#owner,
+      this.#queued.set(this.#owner, {
         epoch: this.#epoch,
         draft: {
           schemaVersion: 'banora.studio-draft/v1',
@@ -100,7 +111,7 @@ export class DraftAutosave {
           revision: this.#owner.revision + 1,
           checkpoint: this.controller.createCheckpoint(),
         },
-      };
+      });
       this.#capturedEpoch = this.#epoch;
     } catch {
       this.#publish('invalid');
@@ -113,9 +124,10 @@ export class DraftAutosave {
     return this.#running;
   }
   async #drain(): Promise<void> {
-    while (this.#queued) {
-      const job = this.#queued;
-      this.#queued = undefined;
+    while (this.#queued.size) {
+      const [owner, pending] = this.#queued.entries().next().value!;
+      const job = { ...pending, owner };
+      this.#queued.delete(owner);
       // A prior write may have finished since this checkpoint was queued.
       const draft = { ...job.draft, revision: job.owner.revision + 1 };
       try {
