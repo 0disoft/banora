@@ -6,9 +6,8 @@ editors, puzzles, and analysis interfaces.
 **Status: initial 0.1 release.** Headless rules/SGF/controller, SVG rendering,
 viewer/Studio, optional React/Vue/Svelte adapters, manual scoring, authored puzzles
 and external analysis integration/display are implemented within documented
-coverage. The five-package family is available through npm's default channel,
-with independent fresh-registry installation checks for the initial release.
-The selected follow-up source is `0.1.1`; see its
+coverage. The five-package family is available through npm's default channel
+at `0.1.1`, with independent fresh-registry installation checks. See its
 [change and validation record](docs/engineering/31-studio-localization-release.md).
 The published `0.1.0-dev.1`
 remains available through `dev`. See the [release guide](docs/ops/release.md).
@@ -31,7 +30,7 @@ your application uses. Initial 0.x releases follow the documented compatibility
 matrix and do not promise a 1.0 API commitment; see the
 [release guide](docs/ops/release.md) for recorded publication and support limits.
 
-The [0.1.0 release](https://github.com/0disoft/banora/releases/tag/v0.1.0) retains
+The [0.1.1 release](https://github.com/0disoft/banora/releases/tag/v0.1.1) retains
 the exact reviewed prepared bundle and manifest.
 
 ## Local Development

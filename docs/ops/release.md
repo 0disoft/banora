@@ -1,16 +1,20 @@
 # Release
 
-Status: five `0.1.0` packages published on `latest` through protected GitHub OIDC,
-with fresh registry-download/installed-consumer health and actual default npm
-installation/README checks passed. Public source, GitHub Pages and private
+Status: five `0.1.1` packages published on `latest` through protected GitHub OIDC,
+with fresh registry-download/installed-consumer health and retained public
+release recovery passed. Public source, GitHub Pages and private
 vulnerability reporting are configured. Support remains scoped to executed evidence.
 
 ## Initial Default-Channel Release
 
-The selected follow-up source is now `0.1.1`, covering the refreshed Studio,
+The follow-up `0.1.1` is now published, covering the refreshed Studio,
 variation/assessment additions and twelve-language catalogs. Its
 [change and validation record](../engineering/31-studio-localization-release.md)
-separates local checks from hosted preparation, publication and live deployment.
+records successful hosted preparation, publication, independent registry health,
+public release recovery and live deployment. Vue/Svelte propagation exceeded the
+bounded confirmation window; each published archive was independently downloaded
+and verified before resuming, with all five reused without upload in the final
+successful [publication/health attempt](https://github.com/0disoft/banora/actions/runs/38435071736/attempts/3).
 The initial-release executions below remain historical evidence for `0.1.0`.
 
 Source versions intentionally advanced together to `0.1.0`, published on `latest`
