@@ -28,7 +28,14 @@ export function mountBoardMenu(): () => void {
   const close = panel.querySelector<HTMLButtonElement>('[data-close]')!;
   const choices = panel.querySelector<HTMLElement>('.board-menu-choices')!;
   const content = panel.querySelector<HTMLElement>('.board-menu-content')!;
-  const groups = [
+  interface MenuGroup {
+    id: string;
+    label: string;
+    controls: HTMLElement[];
+    launch?: { button: string; dialog: string };
+    reveal?: { button: string; panel: string };
+  }
+  const groups: MenuGroup[] = [
     { id: 'record', label: 'Game', controls: [find('record-actions'), find('record-details')] },
     {
       id: 'tools',
@@ -43,22 +50,67 @@ export function mountBoardMenu(): () => void {
       id: 'comparison',
       label: 'Compare positions',
       controls: [row('compare'), find('comparison-panel')],
+      reveal: { button: 'compare', panel: 'comparison-panel' },
     },
     { id: 'share', label: 'Share', controls: [find('sharing-host')] },
-    { id: 'drafts', label: 'Local drafts', controls: [find('drafts-host')] },
-    { id: 'search', label: 'Search record', controls: [find('search-host')] },
-    { id: 'support', label: 'Help', controls: [find('support-host'), find('example-links')] },
+    {
+      id: 'drafts',
+      label: 'Local drafts',
+      controls: [],
+      launch: { button: 'drafts-open', dialog: 'drafts-dialog' },
+    },
+    {
+      id: 'search',
+      label: 'Search record',
+      controls: [],
+      launch: { button: 'search-open', dialog: 'search-dialog' },
+    },
+    {
+      id: 'support',
+      label: 'Help',
+      controls: [],
+      launch: { button: 'support-open', dialog: 'support-dialog' },
+    },
     { id: 'preferences', label: 'Settings', controls: [find('preferences-host')] },
     {
       id: 'scoring',
       label: 'Score position',
       controls: [find('scoring-host')],
+      reveal: { button: 'score-open', panel: 'score-panel' },
     },
   ];
   let active: (typeof groups)[number] | undefined;
   let borrowed: { control: HTMLElement; placeholder: Comment }[] = [];
   const abort = new AbortController();
   const { signal } = abort;
+  const modalOpeners = new Map<HTMLElement, HTMLButtonElement>();
+  // Help owns its links permanently rather than leaving them in a redundant launcher screen.
+  const links = find('example-links');
+  const linksPlaceholder = document.createComment('help links');
+  links.before(linksPlaceholder);
+  find('support-dialog').querySelector('.dialog-actions')!.before(links);
+  for (const group of groups) {
+    if (!group.launch) continue;
+    const dialog = find(group.launch.dialog);
+    dialog.addEventListener(
+      'close',
+      () => {
+        const opener = modalOpeners.get(dialog);
+        modalOpeners.delete(dialog);
+        const focused = document.activeElement;
+        if (
+          opener &&
+          !document.querySelector('dialog:modal') &&
+          !panel.matches(':popover-open') &&
+          (focused === document.body ||
+            triggers.includes(focused as HTMLButtonElement) ||
+            (focused instanceof HTMLElement && !focused.checkVisibility()))
+        )
+          opener.focus({ preventScroll: true });
+      },
+      { signal },
+    );
+  }
   for (const entry of triggers) {
     entry.addEventListener(
       'click',
@@ -121,9 +173,19 @@ export function mountBoardMenu(): () => void {
     button.addEventListener(
       'click',
       () => {
+        if (group.launch) {
+          modalOpeners.set(find(group.launch.dialog), trigger);
+          panel.hidePopover();
+          trigger.focus({ preventScroll: true });
+          find(group.launch.button).click();
+          return;
+        }
         select(group);
+        if (group.reveal && find(group.reveal.panel).hidden) find(group.reveal.button).click();
         content
-          .querySelector<HTMLElement>('select,input,button:not(:disabled),textarea')
+          .querySelector<HTMLElement>(
+            'select,input,textarea,button:not(:disabled):not(#compare):not(#score-open)',
+          )
           ?.focus({ preventScroll: true });
       },
       { signal },
@@ -180,6 +242,25 @@ export function mountBoardMenu(): () => void {
   );
   panel.addEventListener('toggle', position, { signal });
   panel.addEventListener('change', position, { signal });
+  content.addEventListener(
+    'click',
+    (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (
+        (active?.id === 'scoring' &&
+          target.closest('#score-close') &&
+          find('score-panel').hidden) ||
+        (active?.id === 'comparison' &&
+          target.closest('#compare') &&
+          find('comparison-panel').hidden)
+      ) {
+        panel.hidePopover();
+        trigger.focus({ preventScroll: true });
+      }
+    },
+    { signal },
+  );
   // A completed Undo can disable its focused button and leave focus on body.
   // Escape still belongs to this open menu; unrelated dialogs retain their focus.
   document.addEventListener(
@@ -208,6 +289,8 @@ export function mountBoardMenu(): () => void {
     abort.abort();
     disposeStatic();
     disposeLanguage();
+    modalOpeners.clear();
+    linksPlaceholder.replaceWith(links);
     panel.remove();
     for (const entry of triggers) entry.removeAttribute('popovertarget');
   };

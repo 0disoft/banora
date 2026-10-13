@@ -257,7 +257,6 @@ async (rootPage, studioControl) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator('#board-menu').click();
     await page.locator('[data-board-menu-section="search"]').click();
-    await page.locator('#board-menu-panel #search-open').click();
     await close();
     if (
       await page

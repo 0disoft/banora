@@ -176,7 +176,10 @@ export function mountRecoveryControls(
     if (disposed || sequence !== requestSequence) return;
     if (result) {
       dialog.close();
-      find('drafts-open').focus({ preventScroll: true });
+      const opener = find('drafts-open');
+      (opener.checkVisibility() ? opener : document.getElementById('board-menu'))?.focus({
+        preventScroll: true,
+      });
     }
   }
   async function operation(
@@ -276,7 +279,10 @@ export function mountRecoveryControls(
       requestSequence++;
       busy = false;
       controls();
-      find('drafts-open').focus({ preventScroll: true });
+      const opener = find('drafts-open');
+      (opener.checkVisibility() ? opener : document.getElementById('board-menu'))?.focus({
+        preventScroll: true,
+      });
     },
     { signal },
   );

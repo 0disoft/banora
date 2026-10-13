@@ -540,7 +540,7 @@ try {
   } else if (process.argv.includes('--menu-only')) {
     await scenario('menu', 'banora-menu-complete');
     console.log(
-      'Focused board menu smoke passed: control restoration, keyboard, shared Undo, scoring session and mobile zoom.',
+      'Focused board menu smoke passed: direct dialogs, immediate tool settings, focus/keyboard, shared Undo, retained sessions and mobile zoom.',
     );
   } else if (process.argv.includes('--scoring-only')) {
     await scoringSmoke();

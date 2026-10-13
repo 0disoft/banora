@@ -212,6 +212,13 @@ uses wood grain as display decoration. Standalone image exports retain an opaque
 SDK board and embedded stones. Materials are excluded from record/share data.
 Modal dialogs own their body-level surface independently of borrowed controls;
 moving or hiding a menu cannot hide an active recovery, search, or help dialog.
+Search, Local drafts and Help entries close the popover and launch their existing
+dialogs directly, without a second launcher screen. Closing returns focus to the
+invoking header/board menu unless a dialog action intentionally navigates elsewhere.
+Comparison and scoring entries reveal their working controls immediately; reopening
+retains an active comparison/scoring session instead of restarting it. Help retains
+the example links in its own dialog. Settings groups continue to borrow one set of
+existing controls, preserving listener, history and state ownership.
 
 Studio starts with an empty 19 × 19 board. A vertical workspace rail to the right
 of the board selects

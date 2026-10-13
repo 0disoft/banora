@@ -18,9 +18,21 @@ export async function studioControl(
     return action();
   const panel = page.locator('#board-menu-panel:popover-open');
   if (await panel.count()) await page.locator('#board-menu-panel [data-close]').click();
+  const comparisonWasOpen = await page.locator('#comparison-panel:not([hidden])').count();
   await page.locator('#app-menu').click();
   await page.locator(`[data-board-menu-section="${section}"]`).click();
   try {
+    // Menu selection itself now launches these tools, using their real existing handlers.
+    const dialogs: Record<string, string> = {
+      '#search-open': '#search-dialog:modal',
+      '#drafts-open': '#drafts-dialog:modal',
+      '#support-open': '#support-dialog:modal',
+    };
+    const dialog = dialogs[selector];
+    if (dialog && (await page.locator(dialog).count())) return;
+    if (selector === '#score-open' && (await page.locator('#score-panel:not([hidden])').count()))
+      return;
+    if (selector === '#compare' && !comparisonWasOpen) return;
     return await action();
   } finally {
     if ((await panel.count()) && !(await page.locator('dialog:modal').count()))

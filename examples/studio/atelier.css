@@ -544,6 +544,9 @@ select {
 .board-menu-panel .board-toolbar {
   display: contents;
 }
+.board-menu-content #score-open {
+  display: none;
+}
 .board-menu-panel .editing-tools {
   flex-wrap: wrap;
   gap: 16px;

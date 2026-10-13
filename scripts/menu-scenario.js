@@ -4,6 +4,8 @@ async (page) => {
   await page.goto(`${origin}/studio/`);
   await page.locator('#language').selectOption('en');
   const panel = page.locator('#board-menu-panel');
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
   const trigger = page.locator('#board-menu');
   const verify = (condition, message) => {
     if (!condition) throw Error(message);
@@ -19,6 +21,11 @@ async (page) => {
       (await panel.locator('.board-menu-content > *').count()) === 0,
       'Borrowed controls not restored',
     );
+  };
+  const dialogs = {
+    drafts: ['#drafts-dialog', '#draft-close'],
+    search: ['#search-dialog', '#search-close'],
+    support: ['#support-dialog', '#support-close'],
   };
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 900 });
@@ -38,7 +45,16 @@ async (page) => {
       'scoring',
     ]) {
       await open(section);
-      const fits = await panel.evaluate((element) => {
+      const dialog = dialogs[section];
+      const surface = dialog ? page.locator(dialog[0]) : panel;
+      if (dialog) {
+        await surface.waitFor({ state: 'visible' });
+        verify(
+          !(await panel.evaluate((element) => element.matches(':popover-open'))),
+          'Modal retained the intermediate menu',
+        );
+      }
+      const fits = await surface.evaluate((element) => {
         const rect = element.getBoundingClientRect();
         return (
           rect.left >= 11 &&
@@ -49,6 +65,25 @@ async (page) => {
         );
       });
       verify(fits, `${section} menu overflow at ${width}px`);
+      if (dialog) {
+        if (width === 320) await page.keyboard.press('Escape');
+        else await page.locator(dialog[1]).click();
+        await surface.waitFor({ state: 'hidden' });
+        await page.waitForFunction(
+          () => document.activeElement === document.getElementById('board-menu'),
+        );
+        continue;
+      }
+      if (section === 'comparison')
+        verify(
+          await panel.locator('#comparison-board').isVisible(),
+          'Comparison required a second click',
+        );
+      if (section === 'scoring')
+        verify(
+          await panel.locator('#score-profile').isVisible(),
+          'Scoring required a second click',
+        );
       await close();
     }
   }
@@ -67,8 +102,24 @@ async (page) => {
     await page.locator('#app-menu').evaluate((element) => element === document.activeElement),
     'Header menu did not restore its own focus',
   );
+  for (const locale of ['en', 'ko', 'zh', 'ja']) {
+    await page.locator('#language').selectOption(locale);
+    for (const [section, [dialog, closer]] of Object.entries(dialogs)) {
+      await page.locator('#app-menu').click();
+      await page.locator(`[data-board-menu-section="${section}"]`).click();
+      await page.locator(dialog).waitFor({ state: 'visible' });
+      verify(
+        (await page.locator('#app-menu').getAttribute('aria-expanded')) === 'false',
+        'Header stayed expanded under a modal',
+      );
+      await page.locator(closer).click();
+      await page.waitForFunction(
+        () => document.activeElement === document.getElementById('app-menu'),
+      );
+    }
+  }
+  await page.locator('#language').selectOption('en');
   await open('drafts');
-  await panel.locator('#drafts-open').click();
   await page.locator('#drafts-dialog').waitFor({ state: 'visible' });
   await page.locator('#draft-close').click();
   if (await panel.evaluate((element) => element.matches(':popover-open'))) await close();
@@ -108,7 +159,6 @@ async (page) => {
   await open('tools');
   await panel.locator('[data-back]').click();
   await panel.locator('[data-board-menu-section="scoring"]').click();
-  await panel.locator('#score-open').click();
   await panel.locator('#score-komi').fill('7.5');
   await panel.locator('#score-komi').dispatchEvent('change');
   await close();
@@ -160,5 +210,6 @@ async (page) => {
     await context.close();
   }
   await page.setViewportSize({ width: 1280, height: 900 });
+  verify(errors.length === 0, errors.join('; '));
   return 'banora-menu-complete';
 };

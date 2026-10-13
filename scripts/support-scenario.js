@@ -236,6 +236,10 @@ async (rootPage, studioControl) => {
       page.locator('#draft-autosave').uncheck(),
     );
     await page.locator('#draft-close').click();
+    await upload('(;SZ[5]GN[Consent baseline];B[aa])');
+    await page.waitForFunction(
+      () => document.querySelector('#game-name').textContent === 'Consent baseline',
+    );
     // Delay the public File API, not SDK/controller internals, to reproduce consent changes during real file reading.
     await page.evaluate(() => {
       const original = File.prototype.arrayBuffer;
@@ -286,7 +290,6 @@ async (rootPage, studioControl) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator('#board-menu').click();
     await page.locator('[data-board-menu-section="support"]').click();
-    await page.locator('#board-menu-panel #support-open').click();
     await close();
     if (
       await page
