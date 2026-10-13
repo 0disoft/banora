@@ -228,6 +228,8 @@ export const koreanUi = {
   White: '백',
   'Make main line': '주 변화도로 지정',
   'Remove continuation': '이후 진행 삭제',
+  'Delete variation': '변화도 삭제',
+  'Variation actions': '변화도 메뉴',
   'Touch placement': '터치 착수',
   'Drag, then release': '끌어서 놓기',
   'Drag, then confirm': '끌어서 확인',

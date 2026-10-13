@@ -227,6 +227,8 @@ export const japaneseUi = {
   White: '白',
   'Make main line': '本譜にする',
   'Remove continuation': '以降の変化を削除',
+  'Delete variation': '変化を削除',
+  'Variation actions': '変化メニュー',
   'Touch placement': 'タッチ操作',
   'Drag, then release': 'ドラッグして離す',
   'Drag, then confirm': 'ドラッグして確定',

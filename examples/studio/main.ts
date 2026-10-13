@@ -56,6 +56,7 @@ import { mountWorkspaceTabs } from './workspace-tabs.js';
 import { mountPlacementSound } from './placement-sound.js';
 import { mountBoardSizing } from './board-sizing.js';
 import { mountFullscreen } from './fullscreen.js';
+import { mountVariationMenu } from './variation-menu.js';
 import './atelier.css';
 import './icons.css';
 import './fonts.css';
@@ -296,6 +297,8 @@ function renderTree(state: ControllerState): void {
     const wrapper = document.createElement('div');
     wrapper.setAttribute('role', 'listitem');
     const button = document.createElement('button');
+    button.dataset.node = node.id;
+    if (depth > 0) button.setAttribute('aria-haspopup', 'menu');
     button.setAttribute('aria-current', String(node.id === state.node.id));
     button.style.paddingLeft = `${10 + Math.min(indent, 8) * 13}px`;
     if (branch) {
@@ -708,16 +711,30 @@ find<HTMLSelectElement>('next-player').addEventListener('change', (event) =>
   report(controller.setSetup([], (event.target as HTMLSelectElement).value as 'black' | 'white')),
 );
 const removal = find<HTMLDialogElement>('remove-dialog');
-let removalTarget: string | undefined;
-find('remove-branch').addEventListener('click', () => {
-  removalTarget = controller.getState().node.id;
+let removalTarget: { id: string; state: ControllerState } | undefined;
+function requestRemoval(id: string): void {
+  const target = controller.inspectNode(id);
+  if (!target || target.path.length <= 1 || removal.open) return;
+  removalTarget = { id, state: controller.getState() };
+  find('remove-target').textContent = treeButtons.get(id)?.textContent ?? '';
   removal.returnValue = 'cancel';
   removal.showModal();
-});
+}
+find('remove-branch').addEventListener('click', () =>
+  requestRemoval(controller.getState().node.id),
+);
+const disposeVariationMenu = mountVariationMenu(find('tree'), controller, requestRemoval);
 removal.addEventListener('close', () => {
-  if (removal.returnValue === 'remove' && removalTarget)
-    report(controller.removeBranch(removalTarget));
+  const state = controller.getState();
+  if (
+    removal.returnValue === 'remove' &&
+    removalTarget?.state.record === state.record &&
+    removalTarget.state.recordGeneration === state.recordGeneration &&
+    removalTarget.state.gameIndex === state.gameIndex
+  )
+    report(controller.removeBranch(removalTarget.id));
   removalTarget = undefined;
+  treeButtons.get(controller.getState().node.id)?.focus({ preventScroll: true });
 });
 comment.addEventListener('focus', () => controller.beginEditGroup());
 comment.addEventListener('input', () => report(controller.setComment(comment.value)));
@@ -891,6 +908,7 @@ window.addEventListener('pagehide', (event) => {
     disposeBoardSizing();
     disposeWorkspaceTabs();
     disposeWorkspaceSwitch();
+    disposeVariationMenu();
     treeButtons.clear();
     selectedTreeRow = undefined;
     lastTreeState = undefined;

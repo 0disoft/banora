@@ -36,6 +36,13 @@ existing tree rows when only the selected position changes within the
 same immutable record/game. The first 500 rows and at most one selected tail row
 remain bounded. Record/game/language changes rebuild labels and metadata; tail
 replacement retains keyboard focus and final page disposal releases cached rows.
+Studio variation rows offer a right-click menu (also Shift+F10 / Context Menu)
+to delete the targeted node and its descendants after confirmation. Root nodes
+cannot be deleted. Sibling paths remain intact; selection stays on its existing
+path unless that path is removed, in which case it returns to the target's parent.
+Undo/Redo restores/removes the subtree as one edit. Menu and confirmation targets
+are scoped to the current immutable record and workspace generation so a stale
+action cannot remove a similarly named node in another board or imported record.
 Studio and the common Viewer mark rows with nonblank SGF `C` comments using a small speech
 bubble, a localized tooltip and an accessible description. Editing, clearing and
 Undo/Redo update the indicator without copying comment text into the row label.

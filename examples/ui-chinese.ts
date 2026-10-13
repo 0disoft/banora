@@ -219,6 +219,8 @@ export const chineseUi = {
   White: '白',
   'Make main line': '设为主线',
   'Remove continuation': '删除后续变化',
+  'Delete variation': '删除变化',
+  'Variation actions': '变化菜单',
   'Touch placement': '触屏落子',
   'Drag, then release': '拖动后松开',
   'Drag, then confirm': '拖动后确认',
