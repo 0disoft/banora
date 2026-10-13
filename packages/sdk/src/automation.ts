@@ -1,5 +1,11 @@
 import { RecordController } from './controller.js';
-import type { CommandResult, MarkerKind, ConnectionKind, ControllerState } from './controller.js';
+import type {
+  CommandResult,
+  MarkerKind,
+  ConnectionKind,
+  ControllerState,
+  MoveAssessment,
+} from './controller.js';
 import type { Point, SetupStone, Color } from './core.js';
 import { play } from './core.js';
 import { recordNodeAt, serializeSgf, pointFromSgf } from './sgf.js';
@@ -28,6 +34,7 @@ export type AutomationOperation =
   | { op: 'next'; variation?: number }
   | { op: 'goto'; target: RecordLocator }
   | { op: 'comment'; text: string }
+  | { op: 'move-assessment'; value: MoveAssessment | null; target?: RecordLocator }
   | ({ op: 'search' } & RecordSearchOptions)
   | {
       op: 'comment-batch';
@@ -112,6 +119,7 @@ const diagnosticOperations = {
   undo: 'edit',
   redo: 'edit',
   comment: 'edit',
+  'move-assessment': 'edit',
   marker: 'edit',
   setup: 'edit',
   connection: 'edit',
@@ -250,6 +258,12 @@ function runAutomation(input: unknown, journal?: DiagnosticJournal) {
           break;
         case 'comment':
           result = controller.setComment(operation.text);
+          break;
+        case 'move-assessment':
+          result = controller.setMoveAssessment(
+            operation.value,
+            operation.target ? targetId(operation.target) : undefined,
+          );
           break;
         case 'search': {
           const { op: _op, ...options } = operation;

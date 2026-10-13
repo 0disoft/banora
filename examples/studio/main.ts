@@ -18,6 +18,8 @@ import {
   getVariationRows,
   variationPathKey,
   variationCandidates,
+  getMoveAssessment,
+  pointToSgf,
 } from '@0disoft/banora';
 import type {
   BoardRotation,
@@ -90,6 +92,15 @@ const penOption = document.createElement('option');
 penOption.value = 'pen';
 setUiText(penOption, 'Freehand ink');
 tool.append(penOption);
+for (const [value, label] of [
+  ['good-move', 'Good move'],
+  ['bad-move', 'Bad move'],
+]) {
+  const option = document.createElement('option');
+  option.value = value!;
+  setUiText(option, label!);
+  tool.append(option);
+}
 const status = find('status');
 const disposeFullscreen = mountFullscreen(find<HTMLButtonElement>('fullscreen'), () => {
   status.textContent = translateUi('Fullscreen unavailable');
@@ -147,6 +158,35 @@ const view = mountBoard(find('board'), {
     : false,
   onPoint(point) {
     const mode = tool.value;
+    const state = controller.getState();
+    const value = pointToSgf(point);
+    const recordedMove = () => {
+      const child = state.node.children.find(
+        (node) => (node.properties.B?.[0] ?? node.properties.W?.[0]) === value,
+      );
+      if (child) return child;
+      const color = state.position.board[point.y * state.position.width + point.x];
+      if (!color) return undefined;
+      const key = color === 'black' ? 'B' : 'W';
+      for (let i = state.path.length - 1; i >= 0; i--) {
+        const node = controller.inspectNode(state.path[i]!)?.node;
+        if (node?.properties[key]?.[0] === value) return node;
+      }
+      return undefined;
+    };
+    if (mode === 'good-move' || mode === 'bad-move' || mode === 'erase') {
+      const target = recordedMove();
+      if (mode !== 'erase') {
+        if (target)
+          report(controller.setMoveAssessment(mode === 'good-move' ? 'good' : 'bad', target.id));
+        else setUiText(status, 'Choose a recorded move');
+        return;
+      }
+      if (target && getMoveAssessment(target)) {
+        report(controller.setMoveAssessment(null, target.id));
+        return;
+      }
+    }
     if (mode === 'play') {
       const candidate = variationCandidates(controller.getState()).find(
         (entry) => entry.point.x === point.x && entry.point.y === point.y,
@@ -269,14 +309,25 @@ function renderTree(state: ControllerState): void {
     const text = document.createElement('span');
     text.textContent = `${moveNumber} · ${nodeTitle(node, depth, state.position.width, state.position.height)}`;
     button.append(dot, text);
+    const assessment = getMoveAssessment(node);
+    const descriptions: string[] = [];
+    if (assessment) {
+      const indicator = document.createElement('span');
+      indicator.className = `banora-move-assessment ${assessment}`;
+      indicator.title = assessment === 'good' ? ui.goodMove : ui.badMove;
+      indicator.setAttribute('aria-hidden', 'true');
+      descriptions.push(indicator.title);
+      button.append(indicator);
+    }
     if (node.properties.C?.[0]?.trim()) {
       const indicator = document.createElement('span');
       indicator.className = 'banora-comment-indicator';
       indicator.title = ui.hasComment;
       indicator.setAttribute('aria-hidden', 'true');
-      button.setAttribute('aria-description', ui.hasComment);
+      descriptions.push(ui.hasComment);
       button.append(indicator);
     }
+    if (descriptions.length) button.setAttribute('aria-description', descriptions.join(' · '));
     button.addEventListener('click', () => report(controller.goTo(node.id), 'navigate'));
     wrapper.append(button);
     fragment.append(wrapper);
@@ -672,7 +723,7 @@ comment.addEventListener('input', () => report(controller.setComment(comment.val
 comment.addEventListener('blur', () => controller.endEditGroup());
 function updateInk() {
   view.update({
-    variationHints: tool.value === 'play',
+    variationHints: ['play', 'good-move', 'bad-move', 'erase'].includes(tool.value),
     drawing:
       tool.value === 'pen'
         ? {

@@ -30,6 +30,16 @@ import type { CommentChange, CommentBatchPreview } from './comment-batch.js';
 export type { CommentChange, CommentBatchPreview, CommentBatchEdit } from './comment-batch.js';
 
 export type MarkerKind = 'triangle' | 'square' | 'circle' | 'cross' | 'label';
+export type MoveAssessment = 'good' | 'bad';
+/** Imported SGF emphasis values 1/2 share the same visual assessment. */
+export function getMoveAssessment(node: SgfNode): MoveAssessment | null {
+  if (!node.properties.B && !node.properties.W) return null;
+  return ['1', '2'].includes(node.properties.BM?.[0] ?? '')
+    ? 'bad'
+    : ['1', '2'].includes(node.properties.TE?.[0] ?? '')
+      ? 'good'
+      : null;
+}
 export interface Marker {
   readonly point: Point;
   readonly kind: MarkerKind;
@@ -382,6 +392,29 @@ export class RecordController {
         state.node.rawProperties,
       ),
       id,
+    );
+  }
+  /** Mutually exclusive SGF move annotations; targeting another node preserves selection. */
+  setMoveAssessment(assessment: MoveAssessment | null, nodeId = this.#selected): CommandResult {
+    this.#assertLive();
+    if (assessment !== null && assessment !== 'good' && assessment !== 'bad')
+      return { ok: false, reason: 'invalid-annotation' };
+    const node = this.#index.nodes.get(nodeId);
+    if (!node) return { ok: false, reason: 'node-not-found' };
+    if (!node.properties.B && !node.properties.W) return { ok: false, reason: 'invalid-edit' };
+    const properties = { ...node.properties };
+    for (const key of ['TE', 'BM', 'DO', 'IT']) delete properties[key];
+    if (assessment) properties[assessment === 'good' ? 'TE' : 'BM'] = ['1'];
+    if (
+      ['TE', 'BM', 'DO', 'IT'].every(
+        (key) => JSON.stringify(properties[key]) === JSON.stringify(node.properties[key]),
+      )
+    )
+      return { ok: true };
+    return this.#edit(
+      createSgfNode(node.id, properties, node.children, node.rawProperties),
+      this.#selected,
+      node.id,
     );
   }
   setComment(comment: string): CommandResult {

@@ -867,6 +867,27 @@ footer #status:not(:empty) {
 .tree button[aria-expanded='true'] .variation-disclosure::before {
   transform: rotate(45deg);
 }
+.tree .banora-move-assessment {
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  background: currentColor;
+}
+.tree .banora-move-assessment.good {
+  color: #337858;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10' cy='10' r='7.5'/%3E%3Cpath d='m6.5 10 2.4 2.5 4.8-5'/%3E%3C/g%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+.tree .banora-move-assessment.bad {
+  color: #ae5042;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='7.5'/%3E%3Cpath d='m7 7 6 6m0-6-6 6'/%3E%3C/g%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+.tree .banora-move-assessment + .banora-comment-indicator {
+  margin-left: 0;
+}
 
 .board [data-coordinate] {
   font-size: 0.37px;

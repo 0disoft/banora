@@ -210,6 +210,15 @@ reopen. `--tree-only` selects it; full functional browser smoke includes it. The
 browser benchmark additionally verifies move/clean/row/stone state and rejects
 controller/Studio source changes during its measurement window.
 
+`packages/sdk/test/variations.test.ts` checks focused/nested outlines, pass and
+annotation reachability, bounded rows and distinct candidate coordinates without
+record edits. `packages/sdk/test/move-assessment.test.ts` checks targeted assessment
+edits, selection/property preservation, invalid/non-move targets, Undo/Redo and
+schema-validated automation. Focused local Chrome inspection additionally checked
+desktop/320px candidate activation, selective expansion, four-language assessment
+icons/accessible descriptions, erase/Undo and actual SGF export/reopen. This does
+not establish other browser-engine or physical-device coverage.
+
 Production file-import scenarios must await an observable newly loaded record,
 not merely `setInputFiles`: Studio reads file bytes asynchronously. Search uses
 distinct authored titles, then exercises detached navigation/selection controls

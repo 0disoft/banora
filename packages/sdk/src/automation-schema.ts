@@ -36,6 +36,7 @@ const definitions: Record<string, Schema> = {
   next: object({ variation: integer(0, 49_999) }, []),
   goto: object({ target: locator }),
   comment: object({ text: text() }),
+  'move-assessment': object({ value: choice(['good', 'bad', null]), target: locator }, ['value']),
   search: object(
     {
       query: text(512),

@@ -48,13 +48,19 @@ resumes its working SGF, baseline, selection and rules. Do not combine it with
 across requests, while Undo/Redo remains request-local. See [recovery](recovery.md).
 
 Supported operation names are `play`, `previous`, `next`, `goto`, `comment`,
-`marker`, `setup`, `connection`, `stroke`, `remove-stroke`, `clear-strokes`,
+`move-assessment`, `marker`, `setup`, `connection`, `stroke`, `remove-stroke`, `clear-strokes`,
 `remove-branch`, `reorder-branch`, `undo`, `redo`, `legal-points`, `score`, `search`
 and `comment-batch`.
 Read their exact arguments from the schema rather than guessing CLI flag syntax.
 Markers with null kind remove the point's marks; setup replaces that node's setup.
 Scoring requires an explicit named profile and manually agreed dead/seki status.
 Legal points use the selected position's actual replayed rules/history.
+
+`move-assessment` accepts `{value: 'good' | 'bad' | null, target?: {gameIndex, path}}`.
+It writes SGF `TE[1]` or `BM[1]` to a recorded move, including a pass; null clears
+move annotations. An explicit target keeps the current selection. Assessments
+replace mutually exclusive `TE`/`BM`/`DO`/`IT`, preserve other authored properties,
+and participate in Undo/Redo. Non-move or missing targets fail without an edit.
 
 `search` accepts `{query, properties?, caseSensitive?, gameIndex?, offset?, limit?}`
 and returns `results[].value` with whole-record counts, paginated hits/portable

@@ -385,6 +385,7 @@ This differs from the lower-level `setup`, which always returns a new epoch.
 | `inspectNode(id)`                                                              | Read an immutable snapshot at another node without navigation, history changes or notifications; missing IDs return null                                  |
 | `goTo(id)` / `previous()` / `next(variation?)`                                 | Select an existing node/path without creating an edit                                                                                                     |
 | `play(pointOrNull)`                                                            | Validate a new move/pass; reuse an existing matching continuation or append an undoable branch                                                            |
+| `setMoveAssessment('good' \| 'bad' \| null, nodeId?)`                          | Undoably set mutually exclusive SGF `TE[1]` / `BM[1]`, or clear move annotations; an optional target preserves selection                                  |
 | `setComment(text)` / `setMarker(point, kindOrNull, label?)`                    | Undoable comments and triangle/square/circle/cross/label edits                                                                                            |
 | `previewComments(changes)` / `applyComments(preview)` / `setComments(changes)` | Validate multi-node comment changes without mutation, then apply atomically as one Undo unit; stale or foreign previews are refused                       |
 | `setConnection(from, to, 'line' \| 'arrow', present?)`                         | Add/remove a node-local SGF line or directed arrow; endpoints must differ                                                                                 |
@@ -485,8 +486,15 @@ and reopen retain the annotations; this is an extension, not universal SGF marku
 `@0disoft/banora/board` and the root export expose `mountBoard(container, options?)`.
 The returned `BoardView` exposes `controller`, `update(options)`, `exportSvg`,
 `exportPng` and idempotent `dispose()`. Options include `controller`, `readOnly`, `theme: 'wood' | 'flat'`,
-`coordinates`, `moveNumbers`, integer `crop`, `transform`, `drawing`, `touch`,
+`coordinates`, `moveNumbers`, `variationHints`, integer `crop`, `transform`, `drawing`, `touch`,
 `stoneTextures`, `placementAnimation` and `onPoint(point)`.
+
+`variationHints: true` shows transient A/B labels on distinct empty child move
+points at a fork. With no custom `onPoint`, activating one selects the existing
+child without an edit, including on read-only boards. A custom `onPoint` retains
+host authority. Hints follow transforms/crops and never appear in diagram exports.
+`getVariationRows(state, focused?, limit?)`, `variationPathKey(state)` and
+`variationCandidates(state)` expose DOM-free projections from controller state.
 
 An externally supplied controller survives view disposal. If omitted, the view
 creates and disposes its own controller. The SDK owns its appended SVG, live
@@ -825,11 +833,17 @@ coordinator, timer lifetime and recorded-node navigation without game edits.
 
 `@0disoft/banora/viewer` and the root export expose `mountViewer(container, options?)`.
 `ViewerOptions` accepts either a shared `controller` or initial `sgf` text/bytes,
-`editable` (default false), `comments`, `variations`, `playback:{intervalMs?}` and
+`editable` (default false), `comments`, `variations`, `variationMode`, `playback:{intervalMs?}` and
 nested `board` options. Playback defaults to 1 second with Play/Pause and a
 0.5–5 second interval selector; it advances recorded nodes only.
 Supplying both controller and SGF throws. The viewer includes game selection,
 move controls, branch selection, player information/captures and comments.
+
+`variationMode: 'focused'` folds unselected branch continuations, retains every
+fork choice, unfolds the selected path and enables board hints unless explicitly
+overridden in `board`. The default `'all'` retains the full bounded outline.
+Rows display imported and authored SGF `TE`/`BM` assessments beside comment icons;
+`getMoveAssessment(node)` returns `'good'`, `'bad'` or null without DOM access.
 
 The returned `ViewerView` exposes `controller`, `playback`, `update(options)`, board-only diagram
 exports and idempotent `dispose()`. Updating presentation/editability retains the same controller and

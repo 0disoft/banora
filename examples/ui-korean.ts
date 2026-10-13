@@ -1,4 +1,7 @@
 export const koreanUi = {
+  'Good move': '정수',
+  'Bad move': '악수',
+  'Choose a recorded move': '기보의 착수점을 선택하세요',
   'not specified': '미지정',
   'Reset saved display settings.': '저장된 표시 설정을 초기화합니다.',
   'Board theme': '바둑판 테마',

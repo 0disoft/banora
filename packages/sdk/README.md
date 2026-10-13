@@ -29,6 +29,12 @@ existing child node without creating a move, and hints are omitted from diagrams
 `getVariationRows(controller.getState(), true)` and
 `variationCandidates(controller.getState())` provide the same projections without a DOM.
 
+`controller.setMoveAssessment('good' | 'bad' | null, nodeId?)` annotates a recorded
+move with SGF `TE[1]` / `BM[1]`, or clears its move annotations. An optional node
+target preserves selection. Undo/Redo restores prior properties, and Viewer rows
+show localized assessment icons. The automation/CLI JSON operation is
+`{ "op": "move-assessment", "value": "good", "target": { "gameIndex": 0, "path": [0] } }`.
+
 The viewer is read-only by default. Use `editable: true` to edit, or pass a
 host-owned `RecordController` and dispose that controller separately. See the
 [SDK guide](https://github.com/0disoft/banora/blob/main/docs/sdk/README.md),

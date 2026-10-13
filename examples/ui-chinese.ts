@@ -1,6 +1,9 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const chineseUi = {
+  'Good move': '好棋',
+  'Bad move': '恶手',
+  'Choose a recorded move': '请选择棋谱中的落子点',
   'not specified': '未指定',
   'Reset saved display settings.': '重置已保存的显示设置。',
   'Board theme': '棋盘主题',

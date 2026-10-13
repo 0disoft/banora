@@ -28,7 +28,7 @@ returning before a fork folds its continuations again. Transient A/B hints mark
 distinct empty child move intersections at the current fork. Activating a hint
 navigates to the existing node without editing the record. Passes and annotation
 nodes remain selectable through the tree. Hints follow board transforms/crops and
-are excluded from diagram exports. Other editing tools hide the hints. Common
+are excluded from diagram exports. Setup, shape and ink tools hide the hints. Common
 Viewer consumers can opt into this behavior with `variationMode: 'focused'`;
 its default remains the complete bounded outline. Standalone boards expose
 `variationHints` as an opt-in presentation option. Studio reuses
@@ -39,6 +39,16 @@ replacement retains keyboard focus and final page disposal releases cached rows.
 Studio and the common Viewer mark rows with nonblank SGF `C` comments using a small speech
 bubble, a localized tooltip and an accessible description. Editing, clearing and
 Undo/Redo update the indicator without copying comment text into the row label.
+Studio's Good move / Bad move tools apply SGF `TE[1]` / `BM[1]` to a clicked
+recorded stone or immediate fork candidate, preserving the selected position.
+Erase marker removes an existing move assessment before point markup. Assessments
+are mutually exclusive with `TE`, `BM`, `DO`, and `IT`; clearing removes these
+move annotations. Imported emphasis values remain intact until explicitly edited.
+Studio and common Viewer rows show a check/cross circle with localized tooltip and
+accessible description beside any comment indicator. Undo/Redo and SGF export/
+import retain assessments. This is manual authoring, not engine evaluation.
+The controller exposes `setMoveAssessment(value, nodeId?)`, and automation accepts
+`{ op: 'move-assessment', value: 'good' | 'bad' | null, target?: locator }`.
 Studio offers one always-visible Small / Default / Large / Custom dropdown. Default
 uses the available viewport height and board container width, capped at 789px;
 Small and Large use 85% / 115% of that size, constrained by the container.

@@ -2,7 +2,7 @@ import { createUiMessages, createBoardLabels, formatUiMessage } from './locale.j
 import type { LocaleOptions } from './locale.js';
 import { mountBoard } from './board.js';
 import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
-import { RecordController } from './controller.js';
+import { RecordController, getMoveAssessment } from './controller.js';
 import type { CommandResult, ControllerState } from './controller.js';
 import { pointFromSgf } from './sgf.js';
 import type { SgfNode } from './sgf.js';
@@ -33,6 +33,7 @@ export interface ViewerView {
 }
 
 const stylesheet = `${selectStyles('.banora-viewer')}
+.banora-viewer .banora-move-assessment{display:inline-block;flex:none;width:16px;height:16px;margin-left:auto;background:currentColor}.banora-viewer .banora-move-assessment.good{color:#337858;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10' cy='10' r='7.5'/%3E%3Cpath d='m6.5 10 2.4 2.5 4.8-5'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}.banora-viewer .banora-move-assessment.bad{color:#ae5042;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='7.5'/%3E%3Cpath d='m7 7 6 6m0-6-6 6'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}.banora-viewer .banora-move-assessment+.banora-comment-indicator{margin-left:0}
 .banora-viewer .variation-disclosure{width:10px;flex:none;text-align:center}.banora-viewer button[aria-expanded] .variation-disclosure::before{content:'';display:inline-block;width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}.banora-viewer button[aria-expanded=true] .variation-disclosure::before{transform:rotate(45deg)}
 .banora-viewer{font:15px system-ui;color:var(--banora-text,#294738);background:var(--banora-surface,#fafbf5);border:1px solid #d9e1d4;border-radius:12px;padding:18px;box-sizing:border-box;max-width:100%;min-width:0}
 .banora-viewer header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.banora-viewer h2{font-size:17px;margin:0}.banora-viewer button,.banora-viewer select{font:inherit;color:inherit;border:1px solid #cfd9cb;background:#fff;border-radius:7px;padding:8px 11px;cursor:pointer}.banora-viewer button:disabled{opacity:.4;cursor:default}.banora-viewer button:focus-visible,.banora-viewer select:focus-visible,.banora-viewer textarea:focus-visible{outline:3px solid #589474;outline-offset:3px}
@@ -191,6 +192,16 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
         disclosure.setAttribute('aria-hidden', 'true');
         entry.prepend(disclosure);
       }
+      const descriptions: string[] = [];
+      const assessment = getMoveAssessment(node);
+      if (assessment) {
+        const indicator = document.createElement('span');
+        indicator.className = `banora-move-assessment ${assessment}`;
+        indicator.title = assessment === 'good' ? ui.goodMove : ui.badMove;
+        indicator.setAttribute('aria-hidden', 'true');
+        descriptions.push(indicator.title);
+        entry.append(indicator);
+      }
       if (node.properties.C?.[0]?.trim()) {
         const indicator = document.createElement('span');
         indicator.className = 'banora-comment-indicator';
@@ -198,9 +209,10 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
         indicator.setAttribute('aria-hidden', 'true');
         indicator.innerHTML =
           '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h14v10H8l-4 3v-3H3Z"/></svg>';
-        entry.setAttribute('aria-description', ui.hasComment);
+        descriptions.push(ui.hasComment);
         entry.append(indicator);
       }
+      if (descriptions.length) entry.setAttribute('aria-description', descriptions.join(' · '));
       entry.style.paddingLeft = `${10 + Math.min(indent, 8) * 12}px`;
       entry.setAttribute('aria-current', String(node.id === state.node.id));
       if (node.id === state.node.id) selected = entry;

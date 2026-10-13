@@ -1,6 +1,9 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const japaneseUi = {
+  'Good move': '好手',
+  'Bad move': '悪手',
+  'Choose a recorded move': '棋譜の着手点を選んでください',
   'not specified': '未指定',
   'Reset saved display settings.': '保存した表示設定をリセットします。',
   'Board theme': '盤面テーマ',
