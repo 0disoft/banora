@@ -4,6 +4,7 @@
   --accent: #975d46;
   --border: #dedad2;
   --muted: #716d66;
+  --studio-header-height: 60px;
 }
 .workspace-tabs {
   display: flex;
@@ -14,8 +15,8 @@
   border-left: 1px solid var(--border);
   position: sticky;
   top: 0;
-  max-height: calc(100dvh - 76px);
-  height: calc(100dvh - 76px);
+  max-height: calc(100dvh - var(--studio-header-height));
+  height: calc(100dvh - var(--studio-header-height));
   align-self: start;
   background: #faf8f4;
   min-width: 0;
@@ -214,7 +215,7 @@ svg:focus-visible {
   outline-color: var(--accent);
 }
 .header {
-  height: 76px;
+  height: var(--studio-header-height);
   padding: 0 36px;
   background: #faf8f4;
 }
@@ -264,7 +265,7 @@ main {
   grid-template-columns: 309px minmax(0, 1fr) 190px;
   gap: 0;
   align-items: stretch;
-  min-height: calc(100dvh - 76px);
+  min-height: calc(100dvh - var(--studio-header-height));
 }
 .sidebar {
   display: flex;
@@ -465,7 +466,7 @@ main {
   background-color: transparent;
 }
 .board {
-  --board-width: min(789px, calc(100dvh - 335px));
+  --board-width: min(789px, calc(100dvh - var(--studio-header-height) - 259px));
   width: 100%;
   max-width: var(--board-width);
   margin: 0 auto;
@@ -689,8 +690,8 @@ footer #status:not(:empty) {
 @media (max-width: 700px) {
   .header {
     height: auto;
-    min-height: 70px;
-    padding: 14px 16px;
+    min-height: var(--studio-header-height);
+    padding: 8px 16px;
     gap: 12px;
     flex-wrap: wrap;
   }
@@ -925,7 +926,7 @@ main > #comparison-panel {
 
 @media (max-width: 700px) {
   .header {
-    gap: 12px 8px;
+    gap: 8px;
   }
   .header-actions {
     display: contents;

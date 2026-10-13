@@ -110,7 +110,9 @@ Difference summaries use concise counts and + / − / ↔ legends. Locale change
 preserve pinned positions, the main cursor, Undo history and authored text.
 
 Studio prioritizes controls and record content over introductory or promotional
-copy. File actions sit directly above the workspace. Keyboard guidance is available
+copy. File actions sit in a compact 60px desktop header directly above the workspace;
+on narrow screens the header wraps with reduced vertical padding.
+Keyboard guidance is available
 through localized tooltips rather than persistent paragraphs; texture help lists
 only accepted formats and size limits. The idle status is empty, while errors,
 active operations and unsaved-change confirmations remain visible. Sharing includes
