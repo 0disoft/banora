@@ -2,25 +2,37 @@
 @import '@fontsource-variable/noto-sans-kr';
 @import '@fontsource-variable/noto-sans-sc';
 @import '@fontsource-variable/noto-sans-jp';
+@import '@fontsource-variable/noto-sans-devanagari';
+@import '@fontsource-variable/noto-sans-thai';
 
 :root {
   --studio-script-font: 'Noto Sans KR Variable';
   --studio-ui-font:
-    'Inter Variable', var(--studio-script-font), ui-sans-serif, system-ui, sans-serif;
+    'Inter Variable', var(--studio-script-font), 'Noto Sans Devanagari Variable',
+    'Noto Sans Thai Variable', ui-sans-serif, system-ui, sans-serif;
   font-family: var(--studio-ui-font);
   font-weight: 400;
 }
 :root:lang(ko),
 :root:lang(zh),
-:root:lang(ja) {
+:root:lang(ja),
+:root:lang(hi),
+:root:lang(th) {
   --studio-ui-font:
-    var(--studio-script-font), 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    var(--studio-script-font), 'Inter Variable', 'Noto Sans KR Variable',
+    'Noto Sans Devanagari Variable', 'Noto Sans Thai Variable', ui-sans-serif, system-ui, sans-serif;
 }
 :root:lang(zh) {
   --studio-script-font: 'Noto Sans SC Variable';
 }
 :root:lang(ja) {
   --studio-script-font: 'Noto Sans JP Variable';
+}
+:root:lang(hi) {
+  --studio-script-font: 'Noto Sans Devanagari Variable';
+}
+:root:lang(th) {
+  --studio-script-font: 'Noto Sans Thai Variable';
 }
 :root
   :is(

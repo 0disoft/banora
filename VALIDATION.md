@@ -20,6 +20,9 @@ widths, localized search dialogs, saved selection on reload, Hindi/Thai browser
 detection and Viewer/comparison locale updates without changing authored state.
 The locale, Studio catalog and preference tests enforce full key/placeholder
 coverage, literal authored substitutions and all supported browser language tags.
+Focused Chrome font inspection verified locally served custom font glyphs for all
+twelve languages, including Cyrillic/Vietnamese Inter and Devanagari/Thai Noto,
+with unclipped header controls at 320px. Hindi and Thai screenshots were inspected.
 
 After `bun run build:examples`, `bun scripts/browser-smoke.ts --fullscreen-only`
 checks native whole-page fullscreen entry/button exit/external exit, keyboard button activation,
