@@ -10,6 +10,9 @@
   font-family: var(--studio-ui-font);
   font-weight: 400;
 }
+:root:lang(ko) {
+  --studio-ui-font: 'Noto Sans KR Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
 :root:lang(zh) {
   --studio-script-font: 'Noto Sans SC Variable';
 }
