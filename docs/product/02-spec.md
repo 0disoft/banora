@@ -92,11 +92,14 @@ copy. File actions sit directly above the workspace. Keyboard guidance is availa
 through localized tooltips rather than persistent paragraphs; texture help lists
 only accepted formats and size limits. The idle status is empty, while errors,
 active operations and unsaved-change confirmations remain visible. Sharing includes
-a concise link-access notice. Korean Studio UI uses self-hosted Noto Sans KR,
-including controls and dialog headings, with system fonts as fallback. Language
-switches update the font without reloading. Font assets are loaded from the same
-origin and apply only to Studio; SDK consumers choose their own fonts. Authored
-SGF text, the Latin wordmark and exported diagram fonts remain unchanged.
+a concise link-access notice. Studio UI uses self-hosted Inter for Latin text
+and numbers, with Noto Sans KR, SC and JP for Korean, Chinese and Japanese text
+respectively, including controls and dialog headings. English uses KR as the
+non-Latin fallback, followed by system fonts. Language switches update the font
+without reloading. Base text uses weight 400, ordinary buttons 500 and headings
+600; selected states retain their emphasis. Unicode subsets load as needed from
+the same origin and apply only to Studio; SDK consumers choose their own fonts.
+Authored SGF text, the Latin wordmark and exported diagram fonts remain unchanged.
 Sharing controls report clipboard completion or failure only for the latest copy
 request, provided no newer link creation or import has superseded its feedback.
 Clipboard writes use the exact displayed link and leave the record unchanged.

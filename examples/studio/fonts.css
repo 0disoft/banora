@@ -1,0 +1,45 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/noto-sans-kr';
+@import '@fontsource-variable/noto-sans-sc';
+@import '@fontsource-variable/noto-sans-jp';
+
+:root {
+  --studio-script-font: 'Noto Sans KR Variable';
+  --studio-ui-font:
+    'Inter Variable', var(--studio-script-font), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--studio-ui-font);
+  font-weight: 400;
+}
+:root:lang(zh) {
+  --studio-script-font: 'Noto Sans SC Variable';
+}
+:root:lang(ja) {
+  --studio-script-font: 'Noto Sans JP Variable';
+}
+:root
+  :is(
+    h1,
+    h2,
+    h3,
+    button,
+    input,
+    select,
+    textarea,
+    .banora-viewer,
+    .banora-comparison,
+    .banora-analysis,
+    .banora-puzzle
+  ) {
+  font-family: var(--studio-ui-font);
+}
+button,
+.button {
+  font-weight: 500;
+}
+:root :is(h1, h2, h3) {
+  font-weight: 600;
+}
+/* The SDK touch confirmation panel sets its font inline. */
+:root [data-touch-confirm] {
+  font-family: var(--studio-ui-font) !important;
+}
