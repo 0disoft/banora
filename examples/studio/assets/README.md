@@ -21,15 +21,18 @@ from `@phosphor-icons/core` on the `2.x` line. Its notice ships in
 `examples/public/licenses/phosphor-icons.txt`; Vite copies that notice into the
 example distribution. No font service or icon CDN is required.
 
-Studio uses OFL-1.1-licensed variable fonts from Fontsource on the `5.x` line:
+Studio uses OFL-1.1-licensed fonts from Fontsource on the `5.x` line:
 Noto Sans KR, SC, JP, Devanagari and Thai take priority for all text in the Korean,
 Chinese, Japanese, Hindi and Thai UI respectively, including Latin text and numbers.
-English, Spanish, French, Russian, Indonesian, Vietnamese and Malay use Inter.
+English, Spanish, French, Indonesian and Malay use variable Noto Sans.
+Vietnamese uses Be Vietnam Pro with static 400/500/600/700 faces; Russian uses
+PT Sans with static 400/700 faces and bold buttons/headings. Inter is removed.
 Devanagari and Thai are also available as fallbacks for native language names.
 `fonts.css` owns the language-specific
 stacks and font imports. Vite bundles the WOFF2 Unicode subsets
 locally; browsers fetch only the subsets needed for displayed text. Their
-licenses ship as `inter.txt`, `noto-sans-kr.txt`, `noto-sans-sc.txt`,
+licenses ship as `noto-sans.txt`, `be-vietnam-pro.txt`, `pt-sans.txt`,
+`noto-sans-kr.txt`, `noto-sans-sc.txt`,
 `noto-sans-jp.txt`, `noto-sans-devanagari.txt` and `noto-sans-thai.txt`
 in `examples/public/licenses/` and are copied into the example
 distribution. These fonts are not part of SDK packages.

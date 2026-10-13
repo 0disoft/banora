@@ -21,8 +21,15 @@ detection and Viewer/comparison locale updates without changing authored state.
 The locale, Studio catalog and preference tests enforce full key/placeholder
 coverage, literal authored substitutions and all supported browser language tags.
 Focused Chrome font inspection verified locally served custom font glyphs for all
-twelve languages, including Cyrillic/Vietnamese Inter and Devanagari/Thai Noto,
-with unclipped header controls at 320px. Hindi and Thai screenshots were inspected.
+twelve languages: Noto Sans for English/Spanish/French/Indonesian/Malay,
+Be Vietnam Pro for Vietnamese, PT Sans for Russian, and the matching Noto families
+for Korean/Chinese/Japanese/Hindi/Thai. This includes Latin text in localized
+controls and Russian's real bold face. Header controls remain unclipped at 320px,
+fonts load from the page origin, and Russian/Vietnamese desktop screenshots were
+inspected after changing the font stacks. Hindi/Thai screenshots were inspected
+during the preceding language expansion. Build, lint, format, typecheck and docs
+passed for the font change; the full test suite and other browser engines were
+not rerun because this increment changes Studio CSS and font assets only.
 
 After `bun run build:examples`, `bun scripts/browser-smoke.ts --fullscreen-only`
 checks native whole-page fullscreen entry/button exit/external exit, keyboard button activation,

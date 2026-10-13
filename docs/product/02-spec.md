@@ -124,11 +124,14 @@ active operations and unsaved-change confirmations remain visible. Sharing inclu
 a concise link-access notice. Korean, Chinese, Japanese, Hindi and Thai Studio UI
 prioritize self-hosted Noto Sans KR, SC, JP, Devanagari and Thai respectively for
 all text, including Latin text and numbers, controls and dialog headings. English,
-Spanish, French, Russian, Indonesian, Vietnamese and Malay use Inter. KR,
+Spanish, French, Indonesian and Malay use Noto Sans. Vietnamese uses Be Vietnam
+Pro and Russian uses PT Sans. KR,
 Devanagari and Thai remain available as fallbacks for multilingual language names,
 followed by system fonts. Language switches update the font
 without reloading. Base text uses weight 400, ordinary buttons 500 and headings
-600; selected states retain their emphasis. Unicode subsets load as needed from
+600; Vietnamese loads real 400/500/600/700 faces and Russian uses real 400/700
+faces with bold buttons and headings. Selected states retain their emphasis.
+Unicode subsets load as needed from
 the same origin and apply only to Studio; SDK consumers choose their own fonts.
 Authored SGF text, the Latin wordmark and exported diagram fonts remain unchanged.
 Sharing controls report clipboard completion or failure only for the latest copy
