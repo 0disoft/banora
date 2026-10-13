@@ -849,6 +849,24 @@ footer #status:not(:empty) {
   border-inline-start: 1px solid #d2cec6;
   margin-inline-start: 6px;
 }
+.tree .variation-disclosure {
+  width: 10px;
+  flex: none;
+  text-align: center;
+  line-height: 1;
+}
+.tree button[aria-expanded] .variation-disclosure::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+.tree button[aria-expanded='true'] .variation-disclosure::before {
+  transform: rotate(45deg);
+}
 
 .board [data-coordinate] {
   font-size: 0.37px;

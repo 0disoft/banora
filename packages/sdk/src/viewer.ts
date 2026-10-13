@@ -10,6 +10,7 @@ import { mountPlaybackControls } from './playback-controls.js';
 import { normalizePlaybackInterval } from './playback.js';
 import type { PlaybackOptions, RecordPlayback } from './playback.js';
 import { selectStyles } from './select-style.js';
+import { getVariationRows } from './variations.js';
 
 export interface ViewerOptions extends LocaleOptions {
   readonly controller?: RecordController;
@@ -17,6 +18,8 @@ export interface ViewerOptions extends LocaleOptions {
   readonly editable?: boolean;
   readonly comments?: boolean;
   readonly variations?: boolean;
+  /** Keep fork candidates visible and expand only the selected path. Default: all rows. */
+  readonly variationMode?: 'all' | 'focused';
   readonly playback?: PlaybackOptions;
   readonly board?: Omit<BoardOptions, 'controller' | 'readOnly' | 'nodeId'>;
 }
@@ -30,6 +33,7 @@ export interface ViewerView {
 }
 
 const stylesheet = `${selectStyles('.banora-viewer')}
+.banora-viewer .variation-disclosure{width:10px;flex:none;text-align:center}.banora-viewer button[aria-expanded] .variation-disclosure::before{content:'';display:inline-block;width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}.banora-viewer button[aria-expanded=true] .variation-disclosure::before{transform:rotate(45deg)}
 .banora-viewer{font:15px system-ui;color:var(--banora-text,#294738);background:var(--banora-surface,#fafbf5);border:1px solid #d9e1d4;border-radius:12px;padding:18px;box-sizing:border-box;max-width:100%;min-width:0}
 .banora-viewer header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.banora-viewer h2{font-size:17px;margin:0}.banora-viewer button,.banora-viewer select{font:inherit;color:inherit;border:1px solid #cfd9cb;background:#fff;border-radius:7px;padding:8px 11px;cursor:pointer}.banora-viewer button:disabled{opacity:.4;cursor:default}.banora-viewer button:focus-visible,.banora-viewer select:focus-visible,.banora-viewer textarea:focus-visible{outline:3px solid #589474;outline-offset:3px}
 .banora-viewer nav{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:7px;margin-top:14px}.banora-viewer [data-summary]{font-size:13px;text-align:center;margin:12px 0}.banora-viewer [data-tree]{max-height:220px;overflow:auto;display:grid;gap:3px;margin-top:10px}.banora-viewer [data-tree] button{display:flex;align-items:center;gap:8px;text-align:left;width:100%;border:0;background:transparent}.banora-viewer [data-tree] button[aria-current=true]{background:#e3efdf;font-weight:600}.banora-viewer .banora-comment-indicator{display:inline-flex;flex:none;margin-left:auto;opacity:.8}.banora-viewer details{margin-top:16px}.banora-viewer summary{cursor:pointer}.banora-viewer [data-notes]{display:block;margin-top:16px}.banora-viewer textarea{display:block;width:100%;min-height:100px;box-sizing:border-box;resize:vertical;font:inherit;line-height:1.6;border:1px solid #d2dccd;border-radius:8px;margin-top:7px;padding:10px;background:#fff;color:inherit}.banora-viewer [data-status]{font-size:13px;color:#687b69;margin:12px 0 0}.banora-viewer [hidden]{display:none!important}
@@ -123,6 +127,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   let board: BoardView;
   try {
     board = mountBoard(boardContainer, {
+      variationHints: options.variationMode === 'focused',
       ...options.board,
       labels: { ...createBoardLabels(options), ...options.board?.labels },
       controller,
@@ -163,10 +168,14 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     lastTree = { record: state.record, selected: state.node.id };
     const focusInside = tree.contains(document.activeElement);
     const fragment = document.createDocumentFragment();
-    const pending = [{ node: state.record.games[state.gameIndex]!, indent: 0, parentMove: 0 }];
-    let count = 0;
     let selected: HTMLButtonElement | undefined;
-    const row = (node: SgfNode, indent: number, moveNumber: number) => {
+    const row = (
+      node: SgfNode,
+      indent: number,
+      moveNumber: number,
+      branch = false,
+      collapsed = false,
+    ) => {
       const item = document.createElement('div');
       item.setAttribute('role', 'listitem');
       const entry = document.createElement('button');
@@ -175,6 +184,13 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       entry.textContent = label;
       entry.setAttribute('aria-label', formatUiMessage(ui.selectNode, { label }));
       entry.dataset.node = node.id;
+      if (branch && options.variationMode === 'focused') {
+        if (node.children.length) entry.setAttribute('aria-expanded', String(!collapsed));
+        const disclosure = document.createElement('span');
+        disclosure.className = 'variation-disclosure';
+        disclosure.setAttribute('aria-hidden', 'true');
+        entry.prepend(disclosure);
+      }
       if (node.properties.C?.[0]?.trim()) {
         const indicator = document.createElement('span');
         indicator.className = 'banora-comment-indicator';
@@ -191,23 +207,12 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       item.append(entry);
       fragment.append(item);
     };
-    while (pending.length && count++ < 500) {
-      const item = pending.pop()!;
-      const props = item.node.properties;
-      const moveNumber = props.MN
-        ? Number(props.MN[0])
-        : item.parentMove + (props.B || props.W ? 1 : 0);
-      row(item.node, item.indent, moveNumber);
-      for (let i = item.node.children.length - 1; i >= 0; i--)
-        pending.push({
-          node: item.node.children[i]!,
-          indent: item.indent + (item.node.children.length > 1 ? 1 : 0),
-          parentMove: moveNumber,
-        });
-    }
+    const outline = getVariationRows(state, options.variationMode === 'focused');
+    for (const item of outline.rows)
+      row(item.node, item.indent, item.moveNumber, item.branch, item.collapsed);
     if (!selected) row(state.node, 0, state.position.moveNumber);
     tree.replaceChildren(fragment);
-    treeNote.textContent = pending.length ? ui.treeLimit : '';
+    treeNote.textContent = outline.truncated ? ui.treeLimit : '';
     if (focusInside) selected?.focus({ preventScroll: true });
   }
   function renderLabels(): void {
@@ -314,6 +319,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       const merged = { ...options, ...next, board: { ...options.board, ...next.board } };
       const nextUi = createUiMessages(merged);
       board.update({
+        variationHints: merged.board.variationHints ?? merged.variationMode === 'focused',
         // The board owns resolved settings, including crops cleared on size changes.
         // Do not replay old board options during unrelated Viewer updates.
         ...next.board,

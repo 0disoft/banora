@@ -1,6 +1,7 @@
 import type { BoardFrame, BoardBinding } from './board-frame.js';
 import type { RecordController, ControllerState } from './controller.js';
 import { expandSgfPoints, pointFromSgf } from './sgf.js';
+import { variationCandidates } from './variations.js';
 
 /** A projection, not another record or rules engine. Number traversal stays lazy. */
 export function recordBoardBinding(controller: RecordController, owned: boolean): BoardBinding {
@@ -67,6 +68,12 @@ export function recordBoardBinding(controller: RecordController, owned: boolean)
     },
     subscribe: (listener) => controller.subscribe((state) => listener(frame(state))),
     play: (point) => controller.play(point),
+    selectVariation: (point) => {
+      const candidate = variationCandidates(controller.getState()).find(
+        (entry) => entry.point.x === point.x && entry.point.y === point.y,
+      );
+      return candidate ? controller.goTo(candidate.node.id).ok : false;
+    },
     addStroke: (points, style) => controller.addStroke(points, style),
     previous: () => {
       controller.previous();

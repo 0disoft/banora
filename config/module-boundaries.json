@@ -33,7 +33,8 @@
     "sgf",
     "share",
     "stone-textures",
-    "textures"
+    "textures",
+    "variations"
   ],
   "browser": [
     "analysis-overlay",

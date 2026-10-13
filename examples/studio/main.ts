@@ -15,6 +15,9 @@ import {
   mountPlaybackControls,
   parseSgf,
   parseRecordCheckpoint,
+  getVariationRows,
+  variationPathKey,
+  variationCandidates,
 } from '@0disoft/banora';
 import type {
   BoardRotation,
@@ -97,7 +100,9 @@ const games = find<HTMLSelectElement>('games');
 let opening = false;
 let disposed = false;
 let fileReadSequence = 0;
-let lastTreeState: { record: ControllerState['record']; gameIndex: number; id: string } | undefined;
+let lastTreeState:
+  | { record: ControllerState['record']; gameIndex: number; id: string; branches: string }
+  | undefined;
 const treeButtons = new Map<string, HTMLButtonElement>();
 let selectedTreeRow: HTMLDivElement | undefined;
 let connectionStart: { point: Point; node: string } | undefined;
@@ -134,6 +139,7 @@ const view = mountBoard(find('board'), {
   theme: preferences.get('theme'),
   stoneTextures,
   moveNumbers: preferences.get('moveNumbers'),
+  variationHints: true,
   transform: { rotation: preferences.get('rotation'), flipX: preferences.get('flipX') },
   touch: { mode: preferences.get('touchMode'), magnifier: preferences.get('touchMagnifier') },
   placementAnimation: preferences.get('animation')
@@ -141,8 +147,12 @@ const view = mountBoard(find('board'), {
     : false,
   onPoint(point) {
     const mode = tool.value;
-    if (mode === 'play') report(controller.play(point));
-    else if (mode === 'setup-black' || mode === 'setup-white' || mode === 'setup-empty') {
+    if (mode === 'play') {
+      const candidate = variationCandidates(controller.getState()).find(
+        (entry) => entry.point.x === point.x && entry.point.y === point.y,
+      );
+      report(candidate ? controller.goTo(candidate.node.id) : controller.play(point));
+    } else if (mode === 'setup-black' || mode === 'setup-white' || mode === 'setup-empty') {
       report(
         controller.setSetup([
           {
@@ -226,20 +236,34 @@ function revealTreeSelection(id: string): void {
 }
 function renderTree(state: ControllerState): void {
   const previous = lastTreeState;
-  const reuse = previous?.record === state.record && previous.gameIndex === state.gameIndex;
+  const branches = variationPathKey(state);
+  const reuse =
+    previous?.record === state.record &&
+    previous.gameIndex === state.gameIndex &&
+    previous.branches === branches;
   if (reuse && previous.id === state.node.id) return;
-  lastTreeState = { record: state.record, gameIndex: state.gameIndex, id: state.node.id };
+  lastTreeState = { record: state.record, gameIndex: state.gameIndex, id: state.node.id, branches };
   const fragment = document.createDocumentFragment();
-  const pending = [
-    { node: state.record.games[state.gameIndex]!, depth: 0, indent: 0, parentMove: 0 },
-  ];
-  let count = 0;
-  const row = (node: SgfNode, depth: number, indent: number, moveNumber: number) => {
+  const row = (
+    node: SgfNode,
+    depth: number,
+    indent: number,
+    moveNumber: number,
+    branch = false,
+    collapsed = false,
+  ) => {
     const wrapper = document.createElement('div');
     wrapper.setAttribute('role', 'listitem');
     const button = document.createElement('button');
     button.setAttribute('aria-current', String(node.id === state.node.id));
     button.style.paddingLeft = `${10 + Math.min(indent, 8) * 13}px`;
+    if (branch) {
+      if (node.children.length) button.setAttribute('aria-expanded', String(!collapsed));
+      const disclosure = document.createElement('span');
+      disclosure.className = 'variation-disclosure';
+      disclosure.setAttribute('aria-hidden', 'true');
+      button.append(disclosure);
+    }
     const dot = document.createElement('span');
     dot.className = `tree-dot ${node.properties.W ? 'white' : node.properties.B ? '' : 'root'}`;
     const text = document.createElement('span');
@@ -279,28 +303,16 @@ function renderTree(state: ControllerState): void {
   }
   treeButtons.clear();
   selectedTreeRow = undefined;
-  while (pending.length && count++ < 500) {
-    const entry = pending.pop()!;
-    const props = entry.node.properties;
-    const moveNumber = props.MN
-      ? Number(props.MN[0])
-      : entry.parentMove + (props.B || props.W ? 1 : 0);
-    row(entry.node, entry.depth, entry.indent, moveNumber);
-    for (let i = entry.node.children.length - 1; i >= 0; i--)
-      pending.push({
-        node: entry.node.children[i]!,
-        depth: entry.depth + 1,
-        indent: entry.indent + (entry.node.children.length > 1 ? 1 : 0),
-        parentMove: moveNumber,
-      });
-  }
+  const outline = getVariationRows(state, true);
+  for (const entry of outline.rows)
+    row(entry.node, entry.depth, entry.indent, entry.moveNumber, entry.branch, entry.collapsed);
   if (!treeButtons.has(state.node.id))
     selectedTreeRow = row(state.node, state.path.length - 1, 0, state.position.moveNumber);
   find('tree').replaceChildren(fragment);
   revealTreeSelection(state.node.id);
   setUiText(
     find('tree-note'),
-    pending.length ? 'First 500 nodes shown. Move controls can navigate the whole record.' : '',
+    outline.truncated ? 'First 500 nodes shown. Move controls can navigate the whole record.' : '',
   );
 }
 const renderState = (state: ControllerState) => {
@@ -660,6 +672,7 @@ comment.addEventListener('input', () => report(controller.setComment(comment.val
 comment.addEventListener('blur', () => controller.endEditGroup());
 function updateInk() {
   view.update({
+    variationHints: tool.value === 'play',
     drawing:
       tool.value === 'pen'
         ? {

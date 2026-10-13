@@ -21,7 +21,17 @@ Variation rows show the position's move number alongside the move or annotation 
 using branch-local counts (including passes) and SGF `MN` overrides. Setup/comment-only
 nodes retain their position's number rather than counting as moves. Studio and the
 common Viewer indent all sibling paths equally below a fork. Single-child
-continuations keep that indentation; nested forks add another level. Studio reuses
+continuations keep that indentation; nested forks add another level. Studio keeps
+fork rows visible but folds unselected continuations. Selecting a branch, including
+through playback/keyboard navigation, unfolds that path up to subsequent forks;
+returning before a fork folds its continuations again. Transient A/B hints mark
+distinct empty child move intersections at the current fork. Activating a hint
+navigates to the existing node without editing the record. Passes and annotation
+nodes remain selectable through the tree. Hints follow board transforms/crops and
+are excluded from diagram exports. Other editing tools hide the hints. Common
+Viewer consumers can opt into this behavior with `variationMode: 'focused'`;
+its default remains the complete bounded outline. Standalone boards expose
+`variationHints` as an opt-in presentation option. Studio reuses
 existing tree rows when only the selected position changes within the
 same immutable record/game. The first 500 rows and at most one selected tail row
 remain bounded. Record/game/language changes rebuild labels and metadata; tail

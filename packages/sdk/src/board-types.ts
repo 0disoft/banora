@@ -20,6 +20,8 @@ export interface BoardOptions {
   readonly theme?: 'wood' | 'flat';
   readonly coordinates?: boolean;
   readonly moveNumbers?: boolean;
+  /** Show transient A/B candidates at record forks; activating one follows its existing node. */
+  readonly variationHints?: boolean;
   readonly crop?: BoardCrop | null;
   readonly transform?: BoardTransform;
   /** Opt-in freehand mode; null/undefined restores ordinary point activation. */

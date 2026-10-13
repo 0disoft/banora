@@ -32,6 +32,7 @@ export interface BoardBinding {
   inspectNode(id: string): BoardFrame | null;
   subscribe(listener: (state: BoardFrame) => void): () => void;
   play(point: Point): CommandResult;
+  selectVariation?(point: Point): boolean;
   addStroke(points: readonly Point[], style?: StrokeStyle): CommandResult;
   previous(): void;
   next(): void;

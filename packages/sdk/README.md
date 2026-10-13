@@ -20,6 +20,15 @@ const viewer = mountViewer(container, { sgf: '(;FF[4]GM[1]SZ[9];B[cc];W[gg])' })
 // When removing the view, call viewer.dispose() to release its owned controller.
 ```
 
+Use `variationMode: 'focused'` to keep fork choices visible while folding
+unselected continuations. The selected path unfolds automatically. The default
+`'all'` keeps the complete bounded outline. Focused viewers show A/B hints on the
+board; `board: { variationHints: false }` disables them. Standalone `mountBoard`
+consumers can opt in with `variationHints: true`. Selecting a hint follows an
+existing child node without creating a move, and hints are omitted from diagrams.
+`getVariationRows(controller.getState(), true)` and
+`variationCandidates(controller.getState())` provide the same projections without a DOM.
+
 The viewer is read-only by default. Use `editable: true` to edit, or pass a
 host-owned `RecordController` and dispose that controller separately. See the
 [SDK guide](https://github.com/0disoft/banora/blob/main/docs/sdk/README.md),

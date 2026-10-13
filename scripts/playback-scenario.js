@@ -31,9 +31,12 @@ async (page, studioControl) => {
   await page.locator('#game-name').filter({ hasText: 'Numbered branches' }).waitFor();
   check(
     JSON.stringify(await page.locator('#tree button').allTextContents()) ===
-      JSON.stringify(expectedLabels),
+      JSON.stringify(
+        expectedLabels.filter((label) => !['24 · Black B8', '2 · White E5'].includes(label)),
+      ),
     'Studio branch/pass/setup/annotation/MN numbering failed',
   );
+  await page.getByRole('button', { name: '23 · White pass', exact: true }).click();
   await page.getByRole('button', { name: '24 · Black B8', exact: true }).click();
   check(
     (await page.locator('#move').textContent()) === 'Move 24',

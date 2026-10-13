@@ -1,4 +1,5 @@
 import { paintBoardOverlays } from './board-overlays.js';
+import { variationCandidates } from './variations.js';
 import type { Point } from './core.js';
 import type { BoardCrop } from './geometry.js';
 import { displayCrop, normalizeBoardTransform } from './geometry.js';
@@ -401,6 +402,47 @@ export function paintBoard(context: PaintContext): void {
       opacity: 0.55,
       'data-dim': `${point.x},${point.y}`,
     });
+  }
+  if (options.variationHints && state.recordState) {
+    for (const candidate of variationCandidates(state.recordState)) {
+      if (!visible(candidate.point)) continue;
+      const at = displayPoint(candidate.point);
+      const hint = element('g', {
+        'data-variation-hint': candidate.node.id,
+        'data-preview': '',
+        'pointer-events': 'none',
+        role: 'img',
+        'aria-label': `${candidate.label} · ${coordinate(candidate.point)}`,
+      });
+      hint.append(
+        element('circle', {
+          cx: at.x,
+          cy: at.y,
+          r: 0.36,
+          fill: '#fffaf0',
+          'fill-opacity': 0.9,
+          stroke: '#975d46',
+          'stroke-width': 0.06,
+        }),
+      );
+      hint.append(
+        element(
+          'text',
+          {
+            x: at.x,
+            y: at.y,
+            'text-anchor': 'middle',
+            'dominant-baseline': 'central',
+            'font-size': 0.38,
+            'font-family': 'system-ui',
+            'font-weight': 700,
+            fill: '#754530',
+          },
+          candidate.label,
+        ),
+      );
+      fragment.append(hint);
+    }
   }
   if (document.activeElement === svg && visible(focus)) {
     const point = displayPoint(focus);

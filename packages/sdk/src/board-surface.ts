@@ -333,6 +333,14 @@ export function mountBoardSurface(
   }
   function activate(point: Point): void {
     if (!available) return;
+    if (
+      options.variationHints &&
+      !options.onPoint &&
+      !options.nodeId &&
+      !options.drawing &&
+      controller.selectVariation?.(point)
+    )
+      return;
     if (options.onPoint) options.onPoint(Object.freeze({ ...point }));
     else if (!readOnly()) {
       const result = controller.play(point);
