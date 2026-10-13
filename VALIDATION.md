@@ -23,6 +23,13 @@ tests cover controller ownership, monotonic freshness, bounded sessions and
 serialized draft revisions across rapid switches. This scope changes the Studio
 consumer, not the SDK session API or portable checkpoint schema.
 
+`bun scripts/browser-smoke.ts --sound-only` checks actual nonzero native Web Audio
+buffers starting in a running context after a gesture, manual/recorded placements,
+muting without stopping playback, silent history/passes/imports/tabs, localized
+toggle names, saved preferences and reset. It does not certify physical speaker
+output or subjective audio quality. `scripts/placement-sound.test.ts` checks
+placement classification against actual SDK controllers and workspace generations.
+
 - format
 - lint
 - typecheck

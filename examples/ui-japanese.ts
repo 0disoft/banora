@@ -157,6 +157,8 @@ export const japaneseUi = {
   'Unsaved changes': '未保存の変更',
   'New record': '新しい棋譜',
   'New board': '新しい碁盤',
+  'Placement sound': '着手音',
+  'Sound unavailable': '音声は利用できません',
   'Board size': '路数',
   Boards: '碁盤',
   'Close board': '碁盤を閉じる',

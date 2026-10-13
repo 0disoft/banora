@@ -218,6 +218,15 @@ remain open; no work is silently evicted. These in-memory sessions are not resto
 automatically on reload. Local draft autosave flushes outgoing sessions and keeps
 independent, revision-checked owners, including rapid switches with queued writes.
 
+Studio's playback dock includes a localized placement-sound toggle. It defaults
+off and persists through the existing validated, per-field preferences. Enabling
+it permits a short locally synthesized Web Audio click for a forward stone
+placement, including recorded playback. Passes, rejected moves, comments,
+Undo/Redo, imports, tab switches and initial rendering remain silent. Muting
+stops pending sounds without pausing playback. Audio initializes after a user
+gesture, uses no external recording or network resource, and is disposed with
+the consumer. Unsupported browsers retain silent editing with a disabled toggle.
+
 Keep previous/next/branch navigation separate from edit Undo/Redo. Variation creation,
 comment changes and marker changes are undoable; a comment editing session is one
 undo unit. Navigation creates no edit entry and restores the selected path's rule

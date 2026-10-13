@@ -158,6 +158,8 @@ export const koreanUi = {
   'Unsaved changes': '저장하지 않은 변경',
   'New record': '새 기보',
   'New board': '새 바둑판',
+  'Placement sound': '착수 소리',
+  'Sound unavailable': '소리 지원 안 됨',
   'Board size': '줄 수',
   Boards: '바둑판',
   'Close board': '바둑판 닫기',

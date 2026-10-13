@@ -316,6 +316,28 @@ main {
 .primary-tools label:has(#flip-x) {
   order: 3;
 }
+.navigation #playback #sound {
+  order: 8;
+  display: grid;
+  place-items: center;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+#sound::before {
+  content: '';
+  width: 21px;
+  height: 21px;
+  background: currentColor;
+  mask: var(--icon-muted) center / contain no-repeat;
+}
+.navigation #playback #sound[aria-pressed='true'] {
+  color: var(--accent);
+  background: #eee2d8;
+}
+#sound[aria-pressed='true']::before {
+  mask-image: var(--icon-sound);
+}
 .primary-tools > label {
   color: inherit;
   font-size: 15px;

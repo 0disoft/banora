@@ -13,6 +13,7 @@ export interface StudioPreferences {
   animationDuration: 80 | 160 | 320 | 1000;
   playbackInterval: number;
   autosave: boolean;
+  sound: boolean;
 }
 export type PreferenceKey = keyof StudioPreferences;
 export type PreferenceStatus = 'ready' | 'unavailable' | 'invalid' | 'newer';
@@ -39,6 +40,7 @@ const checks: Record<PreferenceKey, (value: unknown) => boolean> = {
     value <= 5000 &&
     value % 500 === 0,
   autosave: boolean,
+  sound: boolean,
 };
 export const PREFERENCE_KEYS = Object.freeze(Object.keys(checks) as PreferenceKey[]);
 const legacyKeys: Partial<Record<PreferenceKey, string>> = {
@@ -67,6 +69,7 @@ export function defaultPreferences(browserLanguage: string): StudioPreferences {
     animationDuration: 160,
     playbackInterval: 1000,
     autosave: true,
+    sound: false,
   };
 }
 /** Scalar-only preferences; per-field writes cannot clobber another tab's other settings. */

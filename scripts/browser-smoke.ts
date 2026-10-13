@@ -359,6 +359,7 @@ async function desktopSmoke(address: string): Promise<void> {
   // Preserve each scenario and its artifact assertions; CDP input scopes stay in full smoke.
   const checks: readonly [string, () => Promise<void>][] = [
     ['workspace', () => scenario('workspace', 'banora-workspace-complete')],
+    ['sound', () => scenario('sound', 'banora-sound-complete')],
     ['accessibility', () => scenario('accessibility', 'banora-accessibility-complete')],
     ['tree', treeNavigation],
     ['support', supportSmoke],
@@ -438,6 +439,11 @@ try {
     await browserPerformance();
   } else if (process.argv.includes('--desktop-only')) {
     await desktopSmoke(address);
+  } else if (process.argv.includes('--sound-only')) {
+    await scenario('sound', 'banora-sound-complete');
+    console.log(
+      'Focused sound smoke passed: actual native audio, mute, replay, silent history/tabs/imports, locales and preferences.',
+    );
   } else if (process.argv.includes('--workspace-only')) {
     await scenario('workspace', 'banora-workspace-complete');
     const first = await readFile(resolve(output, 'workspace-first.sgf'), 'utf8');
@@ -542,6 +548,7 @@ try {
     console.log('Focused comparison smoke passed.');
   } else {
     await scenario('workspace', 'banora-workspace-complete');
+    await scenario('sound', 'banora-sound-complete');
     await scenario('accessibility', 'banora-accessibility-complete');
     await treeNavigation();
     await supportSmoke();

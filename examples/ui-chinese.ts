@@ -149,6 +149,8 @@ export const chineseUi = {
   'Unsaved changes': '有未保存的更改',
   'New record': '新建棋谱',
   'New board': '新建棋盘',
+  'Placement sound': '落子音效',
+  'Sound unavailable': '不支持音效',
   'Board size': '路数',
   Boards: '棋盘',
   'Close board': '关闭棋盘',

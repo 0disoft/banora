@@ -48,6 +48,7 @@ import { applyStudioIcons } from './icons.js';
 import { createStudioTextures } from './skin.js';
 import { StudioWorkspace } from './workspace.js';
 import { mountWorkspaceTabs } from './workspace-tabs.js';
+import { mountPlacementSound } from './placement-sound.js';
 import './atelier.css';
 import './icons.css';
 
@@ -189,6 +190,12 @@ const disposePlaybackPreference = playbackControls.playback.subscribe((state) =>
   if (state.intervalMs !== preferences.get('playbackInterval'))
     preferences.set('playbackInterval', state.intervalMs);
 });
+const placementSound = mountPlacementSound(
+  find<HTMLButtonElement>('sound'),
+  controller,
+  preferences,
+);
+find('playback').querySelector('.banora-record-playback')!.append(find('sound'));
 
 function nodeTitle(node: SgfNode, depth: number, width: number, height: number): string {
   const value = node.properties.B?.[0] ?? node.properties.W?.[0];
@@ -618,8 +625,12 @@ find('last').addEventListener('click', () => {
   report(controller.goTo(node.id), 'navigate');
 });
 find('pass').addEventListener('click', () => report(controller.play(null)));
-find('undo').addEventListener('click', () => report(controller.undo()));
-find('redo').addEventListener('click', () => report(controller.redo()));
+find('undo').addEventListener('click', () =>
+  placementSound.silently(() => report(controller.undo())),
+);
+find('redo').addEventListener('click', () =>
+  placementSound.silently(() => report(controller.redo())),
+);
 find('promote-branch').addEventListener('click', () =>
   report(controller.reorderBranch(controller.getState().node.id, 0)),
 );
@@ -790,7 +801,7 @@ document.addEventListener('keydown', (event) => {
     return;
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
     event.preventDefault();
-    report(event.shiftKey ? controller.redo() : controller.undo());
+    placementSound.silently(() => report(event.shiftKey ? controller.redo() : controller.undo()));
   }
 });
 window.addEventListener('beforeunload', (event) => {
@@ -804,6 +815,7 @@ window.addEventListener('pagehide', (event) => {
   playbackControls.playback.pause();
   if (!event.persisted) {
     disposed = true;
+    placementSound.dispose();
     disposeWorkspaceTabs();
     disposeWorkspaceSwitch();
     treeButtons.clear();
