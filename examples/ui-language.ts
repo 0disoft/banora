@@ -12,7 +12,7 @@ export function subscribeUiLanguage(listener: () => void): () => void {
   };
 }
 export function translateUi(text: string): string {
-  if (locale === 'en') return text;
+  if (locale !== 'ko' && locale !== 'zh' && locale !== 'ja') return text;
   const activeLocale = locale;
   const catalog: Readonly<Record<string, string>> = { ko: koreanUi, zh: chineseUi, ja: japaneseUi }[
     activeLocale

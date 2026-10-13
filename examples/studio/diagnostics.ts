@@ -1,4 +1,5 @@
 import { DiagnosticJournal } from '@0disoft/banora/diagnostics';
+import type { BanoraLocale } from '@0disoft/banora/locale';
 import type {
   DiagnosticInput,
   DiagnosticOperation,
@@ -72,7 +73,7 @@ export class StudioDiagnostics {
       } as DiagnosticInput);
     };
   }
-  createReport(locale: 'en' | 'ko' | 'zh' | 'ja'): DiagnosticReport {
+  createReport(locale: BanoraLocale): DiagnosticReport {
     return this.#journal.createReport({ runtime: 'browser', locale });
   }
   subscribe(listener: () => void): () => void {

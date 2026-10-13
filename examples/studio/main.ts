@@ -990,6 +990,14 @@ const localizedTitles: Record<BanoraLocale, string> = {
   ko: 'Banora Studio — 바둑 기보 작업 공간',
   zh: 'Banora Studio — 围棋棋谱工作区',
   ja: 'Banora Studio — 囲碁棋譜ワークスペース',
+  hi: 'Banora Studio — गो रिकॉर्ड कार्यक्षेत्र',
+  es: 'Banora Studio — Espacio de partidas de go',
+  fr: 'Banora Studio — Espace de parties de go',
+  ru: 'Banora Studio — Рабочее пространство партий го',
+  id: 'Banora Studio — Ruang kerja catatan Go',
+  vi: 'Banora Studio — Không gian kỳ phổ cờ vây',
+  th: 'Banora Studio — พื้นที่ทำงานบันทึกหมากล้อม',
+  ms: 'Banora Studio — Ruang kerja rekod Go',
 };
 const disposeLanguage = subscribeUiLanguage(() => {
   const locale = getUiLocale();

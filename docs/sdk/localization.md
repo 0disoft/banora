@@ -3,8 +3,10 @@
 The optional `@0disoft/banora/locale` module (also exported from the root and classic
 browser global) provides `BanoraLocale`, `LocaleOptions`, `UiMessages`,
 `createUiMessages(options)`, `formatUiMessage(template, values)` and
-`createBoardLabels(options)`. The built-in languages are English (`en`),
-Korean (`ko`), Chinese (`zh`, using simplified characters) and Japanese (`ja`). SDK defaults are
+`createBoardLabels(options)` and the immutable `SUPPORTED_LOCALES` list. Built-in
+languages are English (`en`), Chinese (`zh`, simplified characters), Hindi (`hi`),
+Spanish (`es`), French (`fr`), Russian (`ru`), Indonesian (`id`), Japanese (`ja`),
+Vietnamese (`vi`), Korean (`ko`), Thai (`th`) and Malay (`ms`). SDK defaults are
 explicitly English; they never read navigator, local storage, or a machine locale.
 These helpers are DOM-free.
 

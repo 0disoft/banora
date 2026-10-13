@@ -4,6 +4,17 @@ import type { DiagnosticInput, DiagnosticEnvironment } from '../src/diagnostics.
 import { RecordController } from '../src/controller.js';
 import { parseSgf } from '../src/sgf.js';
 import { runInNewContext } from 'node:vm';
+import { SUPPORTED_LOCALES } from '../src/locale.js';
+
+test('reports accept every supported UI locale without changing recorded evidence', () => {
+  const journal = new DiagnosticJournal();
+  journal.record({ operation: 'edit', status: 'success' });
+  for (const locale of SUPPORTED_LOCALES) {
+    const report = journal.createReport({ runtime: 'browser', locale });
+    expect(report.environment.locale).toBe(locale);
+    expect(report.events).toHaveLength(1);
+  }
+});
 
 test('actual SDK failures become safe local evidence without authored data or controller effects', () => {
   const privateText = 'Private player/path/comment';

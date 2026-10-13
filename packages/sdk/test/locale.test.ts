@@ -1,5 +1,10 @@
 import { test, expect } from 'bun:test';
-import { createUiMessages, createBoardLabels, formatUiMessage } from '../src/locale.js';
+import {
+  SUPPORTED_LOCALES,
+  createUiMessages,
+  createBoardLabels,
+  formatUiMessage,
+} from '../src/locale.js';
 
 test('UI locales are explicit, immutable and safe literal template substitutions', () => {
   const english = createUiMessages();
@@ -68,7 +73,7 @@ test('Japanese templates preserve placeholders, literal values and English defau
 
 test('comparison messages preserve placeholders in every locale and authored substitutions', () => {
   const english = createUiMessages();
-  for (const locale of ['ko', 'zh', 'ja'] as const) {
+  for (const locale of SUPPORTED_LOCALES.filter((locale) => locale !== 'en')) {
     const ui = createUiMessages({ locale });
     for (const key of Object.keys(english) as (keyof typeof english)[])
       expect(ui[key].match(/\{\w+\}/g)?.sort() ?? []).toEqual(

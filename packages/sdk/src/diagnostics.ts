@@ -3,6 +3,8 @@ import type { AnalysisFailureReason } from './analysis-types.js';
 import type { SgfDiagnostic } from './sgf.js';
 import type { AutomationError } from './automation.js';
 import type { ScoreFailure } from './scoring.js';
+import { SUPPORTED_LOCALES } from './locale-codes.js';
+import type { BanoraLocale } from './locale-codes.js';
 
 export type DiagnosticRecovery =
   | 'correct-input'
@@ -151,7 +153,7 @@ export interface DiagnosticEnvironment {
   readonly runtime?: 'browser' | 'node' | 'bun' | 'unknown';
   readonly runtimeMajor?: number;
   readonly platform?: 'windows' | 'macos' | 'linux' | 'android' | 'ios' | 'unknown';
-  readonly locale?: 'en' | 'ko' | 'zh' | 'ja';
+  readonly locale?: BanoraLocale;
 }
 export interface DiagnosticSummary {
   readonly operation: DiagnosticOperation;
@@ -198,7 +200,7 @@ function environment(input: DiagnosticEnvironment): DiagnosticEnvironment {
   const choices = {
     runtime: ['browser', 'node', 'bun', 'unknown'],
     platform: ['windows', 'macos', 'linux', 'android', 'ios', 'unknown'],
-    locale: ['en', 'ko', 'zh', 'ja'],
+    locale: SUPPORTED_LOCALES as readonly string[],
   };
   for (const key of ['runtime', 'platform', 'locale'] as const) {
     const value = data[key];

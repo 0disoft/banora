@@ -100,7 +100,9 @@ internal source files or require demo-only SDK hooks. A second, minimal read-onl
 embedding example verifies that the API also fits simpler consumers. Accounts,
 cloud storage and AI analysis are not part of Studio's initial workflow.
 
-Studio, the common Viewer and position comparison support English, Korean, Chinese and Japanese presentation. SDK locale
+The common Viewer and position comparison support English, Chinese, Hindi,
+Spanish, French, Russian, Indonesian, Japanese, Vietnamese, Korean, Thai and Malay.
+Studio currently exposes English, Korean, Chinese and Japanese presentation. SDK locale
 selection is explicit, preserves record state and never translates authored SGF text.
 Studio variation pass captions use the SDK locale template for both empty and
 legacy `tt` passes, preserving SGF move-number overrides and the authored encoding.

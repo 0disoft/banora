@@ -1,6 +1,16 @@
 import type { BoardLabels } from './board-state.js';
+import type { BanoraLocale } from './locale-codes.js';
+import { hi } from './locales/hi.js';
+import { es } from './locales/es.js';
+import { fr } from './locales/fr.js';
+import { ru } from './locales/ru.js';
+import { id } from './locales/id.js';
+import { vi } from './locales/vi.js';
+import { th } from './locales/th.js';
+import { ms } from './locales/ms.js';
 
-export type BanoraLocale = 'en' | 'ko' | 'zh' | 'ja';
+export { SUPPORTED_LOCALES } from './locale-codes.js';
+export type { BanoraLocale } from './locale-codes.js';
 const english = {
   viewer: 'Go record viewer',
   game: 'Game {number}',
@@ -261,6 +271,14 @@ const catalogs: Readonly<Record<BanoraLocale, UiMessages>> = {
   ko: korean,
   zh: chinese,
   ja: japanese,
+  hi,
+  es,
+  fr,
+  ru,
+  id,
+  vi,
+  th,
+  ms,
 };
 /** Explicit and DOM-free: SDK defaults never depend on browser or machine language. */
 export function createUiMessages(options: LocaleOptions = {}): UiMessages {
