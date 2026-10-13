@@ -21,7 +21,7 @@ and narrow-layout discovery in Chrome. Other engines, physical devices and brows
 F11/Escape UI keys themselves are outside this focused consumer check. Synthetic
 renderer key injection does not reproduce the browser's native Escape action.
 
-`bun scripts/browser-smoke.ts --sizing-only` checks the middle vertical rail,
+`bun scripts/browser-smoke.ts --sizing-only` checks the right-side vertical rail,
 visible size dropdown/custom selection, invisible edge/corner resize targets,
 keyboard/cancellation, menu heading
 and grouped exports, responsive widths and exact exported SGF preservation.

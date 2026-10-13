@@ -28,7 +28,7 @@ export function mountWorkspaceTabs(
   message.setAttribute('role', 'status');
   message.className = 'workspace-tab-status';
   bar.append(actions, tabs, message);
-  boardPanel.before(bar);
+  boardPanel.after(bar);
   tabs.setAttribute(
     'aria-orientation',
     matchMedia('(min-width: 1001px)').matches ? 'vertical' : 'horizontal',

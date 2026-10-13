@@ -213,8 +213,8 @@ SDK board and embedded stones. Materials are excluded from record/share data.
 Modal dialogs own their body-level surface independently of borrowed controls;
 moving or hiding a menu cannot hide an active recovery, search, or help dialog.
 
-Studio starts with an empty 19 × 19 board. A vertical workspace rail between the
-metadata sidebar and board selects
+Studio starts with an empty 19 × 19 board. A vertical workspace rail to the right
+of the board selects
 19, 13 or 9 lines for a new board; this is distinct from the Small / Default /
 Large display-size preference. New board adds and activates an internal tab
 without replacing another record or requesting its discard. Each tab retains

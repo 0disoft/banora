@@ -33,9 +33,15 @@ async (page) => {
       const sidebar = document.querySelector('.sidebar').getBoundingClientRect();
       const rail = document.querySelector('.workspace-tabs').getBoundingClientRect();
       const board = element.getBoundingClientRect();
-      return sidebar.right <= rail.left + 1 && rail.right <= board.left && rail.width < 200;
+      const panel = document.querySelector('.board-panel').getBoundingClientRect();
+      return (
+        sidebar.right <= panel.left + 1 &&
+        board.right <= rail.left &&
+        Math.abs(panel.right - rail.left) <= 1 &&
+        rail.width < 200
+      );
     }),
-    'Board controls were not moved into the middle vertical rail',
+    'Board controls were not moved to the right of the board',
   );
   verify(
     (await page.locator('#board-tabs').getAttribute('aria-orientation')) === 'vertical',
