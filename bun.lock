@@ -9,6 +9,7 @@
         "@0disoft/banora-react": "workspace:*",
         "@0disoft/banora-svelte": "workspace:*",
         "@0disoft/banora-vue": "workspace:*",
+        "@fontsource-variable/noto-sans-kr": "5.x",
         "@phosphor-icons/core": "2.x",
         "@playwright/cli": "0.x",
         "@sveltejs/vite-plugin-svelte": "7.x",
@@ -98,6 +99,8 @@
     "@babel/parser": ["@babel/parser@7.29.9", "", { "dependencies": { "@babel/types": "^7.29.8" }, "bin": "./bin/babel-parser.js" }, "sha512-CjXrNHTnvqBVqHgdBysY3vk2T8tpJHb5/RMeHJBTyVa9xgugCB0CJTx/3oO8RV2QRQP391RWpB7D6hLjm8V9uA=="],
 
     "@babel/types": ["@babel/types@7.29.8", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg=="],
+
+    "@fontsource-variable/noto-sans-kr": ["@fontsource-variable/noto-sans-kr@5.3.1", "", {}, "sha512-f5aty6Qgk2LVU5TjCtXHxiYHqUWYW8f75ll0Chn8ucCqoOlIomcACUwf1V47yUt6wTdWZiGr3dcbQk+zlOspMA=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 

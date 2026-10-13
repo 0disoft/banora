@@ -50,6 +50,7 @@
     "@0disoft/banora-react": "workspace:*",
     "@0disoft/banora-svelte": "workspace:*",
     "@0disoft/banora-vue": "workspace:*",
+    "@fontsource-variable/noto-sans-kr": "5.x",
     "@phosphor-icons/core": "2.x",
     "@playwright/cli": "0.x",
     "@sveltejs/vite-plugin-svelte": "7.x",

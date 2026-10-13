@@ -20,3 +20,9 @@ UI icons use the MIT-licensed Phosphor Regular/Fill assets, imported individuall
 from `@phosphor-icons/core` on the `2.x` line. Its notice ships in
 `examples/public/licenses/phosphor-icons.txt`; Vite copies that notice into the
 example distribution. No font service or icon CDN is required.
+
+Korean Studio text uses the OFL-1.1-licensed Noto Sans KR variable font from
+`@fontsource-variable/noto-sans-kr` on the `5.x` line. Vite bundles its WOFF2
+Unicode subsets locally; browsers fetch only the subsets needed for displayed
+text. Its license ships in `examples/public/licenses/noto-sans-kr.txt` and is
+copied into the example distribution. This font is not part of SDK packages.

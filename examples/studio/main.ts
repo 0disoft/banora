@@ -56,6 +56,7 @@ import { mountWorkspaceTabs } from './workspace-tabs.js';
 import { mountPlacementSound } from './placement-sound.js';
 import { mountBoardSizing } from './board-sizing.js';
 import { mountFullscreen } from './fullscreen.js';
+import '@fontsource-variable/noto-sans-kr';
 import './atelier.css';
 import './icons.css';
 

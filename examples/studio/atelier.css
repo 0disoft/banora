@@ -5,6 +5,28 @@
   --border: #dedad2;
   --muted: #716d66;
 }
+:root:lang(ko) {
+  font-family: 'Noto Sans KR Variable', ui-sans-serif, system-ui, sans-serif;
+}
+:root:lang(ko)
+  :is(
+    h1,
+    h2,
+    button,
+    input,
+    select,
+    textarea,
+    .banora-viewer,
+    .banora-comparison,
+    .banora-analysis,
+    .banora-puzzle
+  ) {
+  font-family: 'Noto Sans KR Variable', ui-sans-serif, system-ui, sans-serif;
+}
+/* The SDK touch confirmation panel sets its font inline. */
+:root:lang(ko) [data-touch-confirm] {
+  font-family: 'Noto Sans KR Variable', ui-sans-serif, system-ui, sans-serif !important;
+}
 .workspace-tabs {
   display: flex;
   flex-direction: column;
