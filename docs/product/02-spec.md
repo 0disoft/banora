@@ -22,7 +22,8 @@ using branch-local counts (including passes) and SGF `MN` overrides. Setup/comme
 nodes retain their position's number rather than counting as moves. Studio and the
 common Viewer indent all sibling paths equally below a fork. Single-child
 continuations keep that indentation; nested forks add another level. Focused rows
-reserve the same disclosure gutter even when no arrow is shown, so linear moves
+reserve the same disclosure gutter even when no arrow is shown. Right/down arrows
+share a fixed icon box and visual center. Linear moves
 stay aligned with their branch and never shift left when the arrow disappears.
 Studio keeps fork rows visible but folds unselected continuations. Selecting a branch, including
 through playback/keyboard navigation, unfolds that path up to subsequent forks;
