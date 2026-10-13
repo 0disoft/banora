@@ -228,12 +228,15 @@ the menu surface color.
 
 Studio's playback dock includes a localized placement-sound toggle. It defaults
 off and persists through the existing validated, per-field preferences. Enabling
-it permits a short locally synthesized Web Audio click for a forward stone
+it permits a short locally synthesized Web Audio wood impact for a forward stone
 placement, including recorded playback. Passes, rejected moves, comments,
 Undo/Redo, imports, tab switches and initial rendering remain silent. Muting
 stops pending sounds without pausing playback. Audio initializes after a user
 gesture, uses no external recording or network resource, and is disposed with
-the consumer. Unsupported browsers retain silent editing with a disabled toggle.
+the consumer. A crisp broadband attack and rapidly damped, fixed-frequency wooden
+resonances replace the softer filtered click and pitch sweep. The cached waveform
+retains amplitude headroom and fades to silence. Unsupported browsers retain
+silent editing with a disabled toggle.
 
 Keep previous/next/branch navigation separate from edit Undo/Redo. Variation creation,
 comment changes and marker changes are undoable; a comment editing session is one

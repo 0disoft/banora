@@ -33,7 +33,8 @@ buffers starting in a running context after a gesture, manual/recorded placement
 muting without stopping playback, silent history/passes/imports/tabs, localized
 toggle names, saved preferences and reset. It does not certify physical speaker
 output or subjective audio quality. `scripts/placement-sound.test.ts` checks
-placement classification against actual SDK controllers and workspace generations.
+placement classification against actual SDK controllers and workspace generations,
+plus finite, unclipped impact samples and rapid decay at 44.1/48 kHz.
 
 - format
 - lint

@@ -1,6 +1,7 @@
 import type { ControllerState, RecordController } from '@0disoft/banora';
 import { subscribeUiLanguage, translateUi } from '../ui-language.js';
 import type { PreferenceStore } from './preferences.js';
+import { createWoodImpact } from './wood-impact.js';
 
 /** One forward recorded/edited placement, excluding imports, tabs, passes and refreshes. */
 export function isPlacementStep(previous: ControllerState, next: ControllerState): boolean {
@@ -22,7 +23,7 @@ export function mountPlacementSound(
 ): { silently<T>(action: () => T): T; dispose(): void } {
   const available = typeof AudioContext !== 'undefined';
   let context: AudioContext | undefined;
-  let noise: AudioBuffer | undefined;
+  let impact: AudioBuffer | undefined;
   let enabled = preferences.get('sound');
   let epoch = 0;
   let silent = 0;
@@ -59,42 +60,25 @@ export function mountPlacementSound(
     }
   }
   function click(audio: AudioContext) {
-    if (!noise) {
-      noise = audio.createBuffer(1, Math.ceil(audio.sampleRate * 0.055), audio.sampleRate);
-      const values = noise.getChannelData(0);
-      for (let index = 0; index < values.length; index++)
-        values[index] = (Math.random() * 2 - 1) * Math.exp(-index / (audio.sampleRate * 0.009));
+    if (!impact) {
+      const samples = createWoodImpact(audio.sampleRate);
+      impact = audio.createBuffer(1, samples.length, audio.sampleRate);
+      impact.getChannelData(0).set(samples);
     }
     const at = audio.currentTime;
     const source = audio.createBufferSource();
-    source.buffer = noise;
-    const filter = audio.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 2100;
-    filter.Q.value = 0.7;
+    source.buffer = impact;
     const volume = audio.createGain();
-    volume.gain.value = 0.38;
-    source.connect(filter).connect(volume).connect(audio.destination);
-    const body = audio.createOscillator();
-    body.frequency.setValueAtTime(620, at);
-    body.frequency.exponentialRampToValueAtTime(250, at + 0.04);
-    const envelope = audio.createGain();
-    envelope.gain.setValueAtTime(0.045, at);
-    envelope.gain.exponentialRampToValueAtTime(0.0001, at + 0.05);
-    body.connect(envelope).connect(audio.destination);
-    for (const node of [source, body]) {
-      sources.add(node);
-      node.onended = () => {
-        sources.delete(node);
-        node.disconnect();
-        if (node === source) {
-          filter.disconnect();
-          volume.disconnect();
-        } else envelope.disconnect();
-      };
-      node.start(at);
-      node.stop(at + 0.06);
-    }
+    volume.gain.value = 0.68;
+    source.connect(volume).connect(audio.destination);
+    sources.add(source);
+    source.onended = () => {
+      sources.delete(source);
+      source.disconnect();
+      volume.disconnect();
+    };
+    source.start(at);
+    source.stop(at + impact.duration + 0.002);
   }
   const disposePreferences = preferences.subscribe(() => {
     const next = preferences.get('sound');
