@@ -69,8 +69,11 @@ async (page, studioControl) => {
   await page.getByRole('button', { name: 'Discard', exact: true }).click();
   await page.waitForFunction(
     () =>
-      document.querySelector('#board svg[role="application"]').getAttribute('data-board-width') ===
-      '9',
+      !document.querySelector('#unsaved').open &&
+      document
+        .querySelector('#comment')
+        .value.startsWith('An original example for exploring variations.') &&
+      document.querySelector('#dirty').textContent === 'No changes',
   );
   await page.locator('#comment').fill('Export before replace');
   await studioControl(page, '#sample', 'record', () =>
@@ -81,8 +84,11 @@ async (page, studioControl) => {
   await (await guardedDownload).saveAs('output/playwright/browser-guard.sgf');
   await page.waitForFunction(
     () =>
-      document.querySelector('#board svg[role="application"]').getAttribute('data-board-width') ===
-      '9',
+      !document.querySelector('#unsaved').open &&
+      document
+        .querySelector('#comment')
+        .value.startsWith('An original example for exploring variations.') &&
+      document.querySelector('#dirty').textContent === 'No changes',
   );
   await page.locator('#file').setInputFiles('output/playwright/browser-guard.sgf');
   await page.waitForFunction(

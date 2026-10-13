@@ -80,6 +80,9 @@ unchanged.
 
 Texture and animation consumer fixtures explicitly load the sample record before
 navigating it; a blank startup board is no longer mistaken for a loaded replay.
+Replacement-guard fixtures wait for the actual clean, restored-sample-comment destination
+after Discard or Export/continue, not a board width shared by both records. This
+prevents a following import from racing the preceding asynchronous replacement.
 
 Local browser coverage completed by retaining the passed prefix and resuming the
 remaining unchanged production scenarios after each fixture correction. The
@@ -98,6 +101,17 @@ physical-device behavior, every browser engine or native-speaker translation
 quality. The owner waived physical-device and screen-reader validation.
 
 ## Publication and Recovery
+
+The [Pages execution 38431564271](https://github.com/0disoft/banora/actions/runs/38431564271)
+deployed `9844346612e5d814e35a43231f886e8f876392f8` and completed its live-byte
+health and archive jobs. The public build receipt matches that source/run.
+A separate public Chrome inspection verified all twelve language selections,
+locally served rendered fonts, exact search/help labels, 390px layout, saved
+language on reload and an actual SGF download/reopen retaining Korean text,
+literal `$&`/`<tag>` content and the unknown `XX` property. Later changes only
+strengthen the replacement-guard fixture and documentation; the deployed Studio
+runtime remains unchanged. A local receipt does not replace package publication
+or independently installed registry health.
 
 Use one committed source for the existing manual preparation and protected OIDC
 publication workflows. Download and verify that retained candidate, bind its full
