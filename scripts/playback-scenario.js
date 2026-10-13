@@ -152,6 +152,8 @@ async (page, studioControl) => {
     'Cancelling a modal resumed playback',
   );
   await page.locator('#comment').fill('');
+  await page.locator('#comment').blur();
+  await page.waitForFunction(() => document.querySelector('#dirty').textContent === 'No changes');
   await page.screenshot({ path: 'output/playwright/studio-playback.png', fullPage: true });
 
   for (const name of ['viewer', 'react', 'vue', 'svelte', 'browser']) {

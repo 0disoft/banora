@@ -83,6 +83,9 @@ navigating it; a blank startup board is no longer mistaken for a loaded replay.
 Replacement-guard fixtures wait for the actual clean, restored-sample-comment destination
 after Discard or Export/continue, not a board width shared by both records. This
 prevents a following import from racing the preceding asynchronous replacement.
+The playback fixture commits its restored blank comment and waits for the clean
+baseline before navigating away; otherwise the intended before-unload guard
+interrupts the driver's callback instead of completing the consumer checks.
 
 Local browser coverage completed by retaining the passed prefix and resuming the
 remaining unchanged production scenarios after each fixture correction. The
