@@ -1,0 +1,76 @@
+import { describe, expect, test } from 'bun:test';
+import { StudioWorkspace } from '../examples/studio/workspace.js';
+
+describe('Studio multi-board sessions', () => {
+  test('starts at 19 and retains independent position, comments, undo and export baselines', () => {
+    const workspace = new StudioWorkspace();
+    const controller = workspace.controller;
+    const first = workspace.active.id;
+    expect(controller.getState().position.width).toBe(19);
+    controller.play({ x: 3, y: 3 });
+    controller.setComment('first board');
+    const second = workspace.add(13);
+    expect(controller.getState().position.width).toBe(13);
+    expect(controller.getState().dirty).toBe(false);
+    controller.play({ x: 2, y: 2 });
+    controller.setComment('second board');
+    const ticket = controller.prepareExport();
+    controller.acknowledgeExport(ticket.id);
+    workspace.select(first);
+    expect(controller.getState().position.moveNumber).toBe(1);
+    expect(controller.getState().node.properties.C).toEqual(['first board']);
+    expect(controller.getState().dirty).toBe(true);
+    controller.undo();
+    expect(controller.getState().node.properties.C).toBeUndefined();
+    workspace.select(second.id);
+    expect(controller.getState().node.properties.C).toEqual(['second board']);
+    expect(controller.getState().dirty).toBe(false);
+    controller.undo();
+    expect(controller.getState().dirty).toBe(true);
+    workspace.dispose();
+  });
+  test('stable subscribers and captured methods follow selection with increasing generations', () => {
+    const workspace = new StudioWorkspace();
+    const controller = workspace.controller;
+    const play = controller.play;
+    const generations: number[] = [];
+    const dispose = controller.subscribe((state) => generations.push(state.recordGeneration));
+    const first = workspace.active;
+    workspace.add(9);
+    play({ x: 0, y: 0 });
+    expect(first.controller.getState().position.moveNumber).toBe(0);
+    expect(controller.getState().position.moveNumber).toBe(1);
+    workspace.select(first.id);
+    expect(generations.at(-1)).toBeGreaterThan(generations[0]!);
+    expect(controller.getState()).toBe(controller.getState());
+    dispose();
+    workspace.dispose();
+  });
+  test('flush hooks observe the outgoing session and draft identities survive switches', () => {
+    const workspace = new StudioWorkspace();
+    const first = workspace.active;
+    const owner = first.draftOwner;
+    const outgoing: number[] = [];
+    workspace.beforeSwitch(() => outgoing.push(workspace.active.id));
+    const second = workspace.add();
+    workspace.select(first.id);
+    expect(outgoing).toEqual([first.id, second.id]);
+    expect(workspace.active.draftOwner).toBe(owner);
+    workspace.controller.loadSgf('(;SZ[9])');
+    expect(workspace.active.draftOwner).not.toBe(owner);
+    workspace.dispose();
+  });
+  test('rejects invalid sizes and dirty closes, resets the last tab without silently evicting work', () => {
+    const workspace = new StudioWorkspace();
+    expect(() => workspace.add(12)).toThrow();
+    workspace.controller.setComment('keep');
+    expect(workspace.close(workspace.active.id)).toBe(false);
+    expect(workspace.close(workspace.active.id, true)).toBe(true);
+    expect(workspace.boards).toHaveLength(1);
+    expect(workspace.controller.getState().position.width).toBe(19);
+    for (let index = 1; index < 20; index++) workspace.add();
+    expect(() => workspace.add()).toThrow('Close a board');
+    expect(workspace.boards).toHaveLength(20);
+    workspace.dispose();
+  });
+});
