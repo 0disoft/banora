@@ -296,13 +296,11 @@ function renderTree(state: ControllerState): void {
     if (depth > 0) button.setAttribute('aria-haspopup', 'menu');
     button.setAttribute('aria-current', String(node.id === state.node.id));
     button.style.paddingLeft = `${10 + Math.min(indent, 8) * 13}px`;
-    if (branch) {
-      if (node.children.length) button.setAttribute('aria-expanded', String(!collapsed));
-      const disclosure = document.createElement('span');
-      disclosure.className = 'variation-disclosure';
-      disclosure.setAttribute('aria-hidden', 'true');
-      button.append(disclosure);
-    }
+    if (branch && node.children.length) button.setAttribute('aria-expanded', String(!collapsed));
+    const disclosure = document.createElement('span');
+    disclosure.className = 'variation-disclosure';
+    disclosure.setAttribute('aria-hidden', 'true');
+    button.append(disclosure);
     const dot = document.createElement('span');
     dot.className = `tree-dot ${node.properties.W ? 'white' : node.properties.B ? '' : 'root'}`;
     const text = document.createElement('span');

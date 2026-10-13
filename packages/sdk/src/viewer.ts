@@ -185,8 +185,8 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       entry.textContent = label;
       entry.setAttribute('aria-label', formatUiMessage(ui.selectNode, { label }));
       entry.dataset.node = node.id;
-      if (branch && options.variationMode === 'focused') {
-        if (node.children.length) entry.setAttribute('aria-expanded', String(!collapsed));
+      if (options.variationMode === 'focused') {
+        if (branch && node.children.length) entry.setAttribute('aria-expanded', String(!collapsed));
         const disclosure = document.createElement('span');
         disclosure.className = 'variation-disclosure';
         disclosure.setAttribute('aria-hidden', 'true');

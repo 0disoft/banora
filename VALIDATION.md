@@ -206,7 +206,10 @@ physical screen-reader or untested engine support.
 The production `tree-navigation` scenario covers Studio keyboard focus across
 navigation and bounded tail-row replacement, exact selection/MN/annotation labels,
 collection/language/import changes, comment indicator Undo and actual SGF export/
-reopen. `--tree-only` selects it; full functional browser smoke includes it. The
+reopen. It also checks actual horizontal positions across nested sibling forks
+and their linear continuations in Studio and the common focused Viewer, including
+row reuse, folding, assessment/comment icons and unchanged exported content.
+`--tree-only` selects it; full functional browser smoke includes it. The
 browser benchmark additionally verifies move/clean/row/stone state and rejects
 controller/Studio source changes during its measurement window.
 

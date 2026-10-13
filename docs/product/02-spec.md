@@ -21,8 +21,10 @@ Variation rows show the position's move number alongside the move or annotation 
 using branch-local counts (including passes) and SGF `MN` overrides. Setup/comment-only
 nodes retain their position's number rather than counting as moves. Studio and the
 common Viewer indent all sibling paths equally below a fork. Single-child
-continuations keep that indentation; nested forks add another level. Studio keeps
-fork rows visible but folds unselected continuations. Selecting a branch, including
+continuations keep that indentation; nested forks add another level. Focused rows
+reserve the same disclosure gutter even when no arrow is shown, so linear moves
+stay aligned with their branch and never shift left when the arrow disappears.
+Studio keeps fork rows visible but folds unselected continuations. Selecting a branch, including
 through playback/keyboard navigation, unfolds that path up to subsequent forks;
 returning before a fork folds its continuations again. Transient A/B hints mark
 distinct empty child move intersections at the current fork. Activating a hint
