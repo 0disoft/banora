@@ -114,11 +114,10 @@ copy. File actions sit directly above the workspace. Keyboard guidance is availa
 through localized tooltips rather than persistent paragraphs; texture help lists
 only accepted formats and size limits. The idle status is empty, while errors,
 active operations and unsaved-change confirmations remain visible. Sharing includes
-a concise link-access notice. Korean Studio UI prioritizes self-hosted Noto Sans KR
-for all text, including Latin text and numbers, controls and dialog headings.
-Other languages use Inter for Latin text and numbers, with Noto Sans SC and JP
-for Chinese and Japanese text respectively. English uses KR as the
-non-Latin fallback, followed by system fonts. Language switches update the font
+a concise link-access notice. Korean, Chinese and Japanese Studio UI prioritize
+self-hosted Noto Sans KR, SC and JP respectively for all text, including Latin
+text and numbers, controls and dialog headings. English uses Inter with KR as
+the non-Latin fallback, followed by system fonts. Language switches update the font
 without reloading. Base text uses weight 400, ordinary buttons 500 and headings
 600; selected states retain their emphasis. Unicode subsets load as needed from
 the same origin and apply only to Studio; SDK consumers choose their own fonts.
