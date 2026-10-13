@@ -150,6 +150,8 @@ export const chineseUi = {
   'New record': '新建棋谱',
   'New board': '新建棋盘',
   'Placement sound': '落子音效',
+  'Resize board': '调整棋盘大小',
+  Custom: '自定义',
   'Sound unavailable': '不支持音效',
   'Board size': '路数',
   Boards: '棋盘',

@@ -7,20 +7,27 @@
 }
 .workspace-tabs {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 16px;
-  width: 100%;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--border);
+  padding: 22px 12px;
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  max-height: calc(100dvh - 76px);
+  height: calc(100dvh - 76px);
+  align-self: start;
+  background: #faf8f4;
   min-width: 0;
 }
 #board-tabs {
   display: flex;
+  flex-direction: column;
   gap: 8px;
   flex: 1 1 0;
   min-width: 0;
-  overflow-x: auto;
+  overflow-y: auto;
+  min-height: 0;
   padding: 4px;
 }
 .workspace-tab {
@@ -44,6 +51,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1 1 0;
+  min-width: 0;
 }
 .close-board {
   display: grid;
@@ -64,7 +73,8 @@
 .workspace-tab-actions,
 .workspace-tab-actions label {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px;
   flex: 0 0 auto;
 }
@@ -74,18 +84,84 @@
 .workspace-tab-status:empty {
   display: none;
 }
-@media (max-width: 700px) {
-  .workspace-tabs {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  #board-tabs {
-    flex-basis: 100%;
-  }
-  .workspace-tab-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
+.board-size-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.board-size-presets > span {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.board-size-presets [aria-pressed='true'] {
+  border-color: var(--accent);
+  background: #eee2d8;
+  color: #704531;
+}
+.board-frame {
+  position: relative;
+  max-width: 100%;
+  margin: 0 auto;
+}
+.board-frame > .board[data-display-size] {
+  max-width: none;
+  margin: 0;
+}
+.board-resize {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #92795760;
+  border-radius: 6px;
+  background: #faf8f4de;
+  color: #6b5034;
+  touch-action: none;
+  z-index: 1;
+}
+.board-resize::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  mask: var(--icon-resize) center / contain no-repeat;
+}
+.board-resize.nw {
+  top: -8px;
+  left: -8px;
+  cursor: nwse-resize;
+}
+.board-resize.ne {
+  top: -8px;
+  right: -8px;
+  cursor: nesw-resize;
+}
+.board-resize.sw {
+  bottom: -8px;
+  left: -8px;
+  cursor: nesw-resize;
+}
+.board-resize.se {
+  bottom: -8px;
+  right: -8px;
+  cursor: nwse-resize;
+}
+.board-frame.resizing {
+  user-select: none;
+}
+.diagram-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+.board-menu-panel .board-menu-heading {
+  background: inherit;
 }
 body {
   font-size: 16px;
@@ -146,7 +222,7 @@ main {
 }
 .workspace {
   display: grid;
-  grid-template-columns: 309px minmax(0, 1fr);
+  grid-template-columns: 309px 170px minmax(0, 1fr);
   gap: 0;
   align-items: stretch;
   min-height: calc(100dvh - 76px);
@@ -273,7 +349,7 @@ main {
   color: var(--accent);
 }
 .board-panel {
-  padding: 10px 100px 34px 28px;
+  padding: 12px 28px 16px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -372,7 +448,7 @@ main {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  margin: 28px auto 0;
+  margin: 20px auto 0;
   padding: 7px 16px;
   border: 1px solid var(--border);
   border-radius: 40px;
@@ -487,6 +563,42 @@ footer #status:not(:empty) {
   .workspace {
     grid-template-columns: 255px minmax(0, 1fr);
   }
+  .workspace-tabs {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 18px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    max-height: none;
+    height: auto;
+  }
+  .workspace-tab-actions,
+  .workspace-tab-actions label,
+  .board-size-presets {
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    border: 0;
+  }
+  .board-size-presets {
+    flex-wrap: wrap;
+  }
+  #board-tabs {
+    order: 2;
+    flex-basis: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    max-height: 52px;
+  }
+  .sidebar,
+  .board-panel {
+    grid-row: 2;
+  }
   .sidebar {
     padding: 24px;
   }
@@ -531,6 +643,10 @@ footer #status:not(:empty) {
   .workspace {
     display: flex;
     flex-direction: column;
+  }
+  .workspace-tabs {
+    order: -1;
+    align-self: stretch;
   }
   .board-panel {
     order: 0;

@@ -14,6 +14,11 @@ In particular, migration-check is now configured as documented below.
 
 ## Standard Validation Names
 
+`bun scripts/browser-smoke.ts --sizing-only` checks the middle vertical rail,
+visible presets, four pointer resize handles, keyboard/cancellation, menu heading
+and grouped exports, responsive widths and exact exported SGF preservation.
+This is consumer display behavior; it does not alter SDK geometry or rule contracts.
+
 After `bun run build:examples`, `bun scripts/browser-smoke.ts --workspace-only`
 checks the default 19-line Studio board, 9/13/19 creation, internal tabs, independent
 comments/Undo/selection/export, dirty close and inactive-exit guards, playback

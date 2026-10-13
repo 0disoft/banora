@@ -158,6 +158,8 @@ export const japaneseUi = {
   'New record': '新しい棋譜',
   'New board': '新しい碁盤',
   'Placement sound': '着手音',
+  'Resize board': '碁盤のサイズ変更',
+  Custom: '手動調整',
   'Sound unavailable': '音声は利用できません',
   'Board size': '路数',
   Boards: '碁盤',

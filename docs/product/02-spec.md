@@ -27,9 +27,13 @@ replacement retains keyboard focus and final page disposal releases cached rows.
 Studio and the common Viewer mark rows with nonblank SGF `C` comments using a small speech
 bubble, a localized tooltip and an accessible description. Editing, clearing and
 Undo/Redo update the indicator without copying comment text into the row label.
-Studio offers Small / Default / Large display sizes, with the existing 620px board
-width as Default and 85% / 115% width caps for Small / Large. Small also reduces
-the available width on narrow screens; Large is constrained by its container.
+Studio offers always-visible Small / Default / Large display buttons. Default
+uses the available viewport height and board container width, capped at 789px;
+Small and Large use 85% / 115% of that size, constrained by the container.
+The four corner handles support mouse/touch resizing, with a keyboard-accessible
+handle, 10px arrow steps (50px with Shift) and Escape cancellation. Custom width
+remains in the current session; selecting a preset clears it. The native View
+selector reflects custom sizing, while only preset choices persist as preferences.
 This scales the rendered board without changing SGF dimensions, selection, rules
 or editing history. The versioned local size preference falls back to Default
 when invalid or unavailable; valid legacy values migrate safely.
@@ -200,7 +204,8 @@ SDK board and embedded stones. Materials are excluded from record/share data.
 Modal dialogs own their body-level surface independently of borrowed controls;
 moving or hiding a menu cannot hide an active recovery, search, or help dialog.
 
-Studio starts with an empty 19 × 19 board. The visible workspace strip selects
+Studio starts with an empty 19 × 19 board. A vertical workspace rail between the
+metadata sidebar and board selects
 19, 13 or 9 lines for a new board; this is distinct from the Small / Default /
 Large display-size preference. New board adds and activates an internal tab
 without replacing another record or requesting its discard. Each tab retains
@@ -209,7 +214,7 @@ Opening an SGF, example or backup replaces only the active tab through the exist
 dirty-record guard; SGF collection selection remains within that tab. Tab titles
 use authored game names or localized defaults, with an unsaved indicator.
 
-Tabs support mouse selection and Left/Right/Home/End keyboard navigation without
+Tabs support mouse selection and Up/Down/Left/Right/Home/End keyboard navigation without
 triggering record playback shortcuts. A switch pauses playback and invalidates
 pending imports/search previews and position comparison. Closing a dirty tab
 requires Export / Discard / Cancel; closing the last tab creates a fresh 19-line
@@ -217,6 +222,9 @@ board. The browser exit guard includes inactive dirty tabs. Up to 20 boards may
 remain open; no work is silently evicted. These in-memory sessions are not restored
 automatically on reload. Local draft autosave flushes outgoing sessions and keeps
 independent, revision-checked owners, including rapid switches with queued writes.
+Below 1001px the rail reflows above the board to preserve usable board width.
+View menu SVG and PNG actions stay together on one row; the sticky heading uses
+the menu surface color.
 
 Studio's playback dock includes a localized placement-sound toggle. It defaults
 off and persists through the existing validated, per-field preferences. Enabling

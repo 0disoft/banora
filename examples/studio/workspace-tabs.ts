@@ -6,7 +6,7 @@ export function mountWorkspaceTabs(
   options: { canAct(): boolean; close(id: number): Promise<boolean> },
 ): () => void {
   const boardPanel = document.querySelector('.board-panel')!;
-  const bar = document.createElement('div');
+  const bar = document.createElement('aside');
   bar.className = 'workspace-tabs';
   const tabs = document.createElement('div');
   tabs.id = 'board-tabs';
@@ -27,8 +27,12 @@ export function mountWorkspaceTabs(
   const message = document.createElement('span');
   message.setAttribute('role', 'status');
   message.className = 'workspace-tab-status';
-  bar.append(tabs, actions, message);
-  boardPanel.prepend(bar);
+  bar.append(actions, tabs, message);
+  boardPanel.before(bar);
+  tabs.setAttribute(
+    'aria-orientation',
+    matchMedia('(min-width: 1001px)').matches ? 'vertical' : 'horizontal',
+  );
   document.getElementById('board')!.setAttribute('role', 'tabpanel');
   const abort = new AbortController();
   const { signal } = abort;
@@ -107,8 +111,15 @@ export function mountWorkspaceTabs(
     if (selected) {
       const bounds = tabs.getBoundingClientRect(),
         rect = selected.getBoundingClientRect();
-      if (rect.left < bounds.left) tabs.scrollLeft += rect.left - bounds.left;
-      else if (rect.right > bounds.right) tabs.scrollLeft += rect.right - bounds.right;
+      const vertical = matchMedia('(min-width: 1001px)').matches;
+      tabs.setAttribute('aria-orientation', vertical ? 'vertical' : 'horizontal');
+      if (vertical) {
+        if (rect.top < bounds.top) tabs.scrollTop += rect.top - bounds.top;
+        else if (rect.bottom > bounds.bottom) tabs.scrollTop += rect.bottom - bounds.bottom;
+      } else {
+        if (rect.left < bounds.left) tabs.scrollLeft += rect.left - bounds.left;
+        else if (rect.right > bounds.right) tabs.scrollLeft += rect.right - bounds.right;
+      }
     }
   }
   document.addEventListener(
@@ -130,9 +141,9 @@ export function mountWorkspaceTabs(
           ? 0
           : event.key === 'End'
             ? buttons.length - 1
-            : event.key === 'ArrowRight'
+            : ['ArrowRight', 'ArrowDown'].includes(event.key)
               ? (index + 1) % buttons.length
-              : event.key === 'ArrowLeft'
+              : ['ArrowLeft', 'ArrowUp'].includes(event.key)
                 ? (index - 1 + buttons.length) % buttons.length
                 : undefined;
       if (next === undefined || !options.canAct() || closing) return;
@@ -159,6 +170,15 @@ export function mountWorkspaceTabs(
     { signal },
   );
   const unsubscribe = workspace.subscribe(render);
+  window.addEventListener(
+    'resize',
+    () =>
+      tabs.setAttribute(
+        'aria-orientation',
+        matchMedia('(min-width: 1001px)').matches ? 'vertical' : 'horizontal',
+      ),
+    { signal },
+  );
   const disposeLanguage = subscribeUiLanguage(() => {
     caption.textContent = translateUi('Board size');
     render();

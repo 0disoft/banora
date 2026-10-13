@@ -47,6 +47,10 @@ export function arrangeStudio(): void {
   appMenu.title = 'Board menu';
   document.querySelector('.header-actions')!.append(appMenu);
   reservoir.append(settings);
+  const exports = document.createElement('div');
+  exports.className = 'diagram-actions';
+  find('svg-export').before(exports);
+  exports.append(find('svg-export'), find('png-export'));
 
   for (const row of [...boardPanel.querySelectorAll(':scope > .editing-tools')])
     reservoir.append(row);

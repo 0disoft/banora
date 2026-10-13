@@ -360,6 +360,7 @@ async function desktopSmoke(address: string): Promise<void> {
   const checks: readonly [string, () => Promise<void>][] = [
     ['workspace', () => scenario('workspace', 'banora-workspace-complete')],
     ['sound', () => scenario('sound', 'banora-sound-complete')],
+    ['sizing', () => scenario('sizing', 'banora-sizing-complete')],
     ['accessibility', () => scenario('accessibility', 'banora-accessibility-complete')],
     ['tree', treeNavigation],
     ['support', supportSmoke],
@@ -439,6 +440,16 @@ try {
     await browserPerformance();
   } else if (process.argv.includes('--desktop-only')) {
     await desktopSmoke(address);
+  } else if (process.argv.includes('--sizing-only')) {
+    await scenario('sizing', 'banora-sizing-complete');
+    if (
+      (await readFile(resolve(output, 'resize-before.sgf'), 'utf8')) !==
+      (await readFile(resolve(output, 'resize-after.sgf'), 'utf8'))
+    )
+      throw Error('Resizing changed the exported SGF');
+    console.log(
+      'Focused sizing smoke passed: vertical controls, visible presets, four corners, keyboard/cancel, exports and responsive layout.',
+    );
   } else if (process.argv.includes('--sound-only')) {
     await scenario('sound', 'banora-sound-complete');
     console.log(
@@ -549,6 +560,7 @@ try {
   } else {
     await scenario('workspace', 'banora-workspace-complete');
     await scenario('sound', 'banora-sound-complete');
+    await scenario('sizing', 'banora-sizing-complete');
     await scenario('accessibility', 'banora-accessibility-complete');
     await treeNavigation();
     await supportSmoke();
