@@ -244,7 +244,7 @@ main {
 }
 .workspace {
   display: grid;
-  grid-template-columns: 309px minmax(0, 1fr) 170px;
+  grid-template-columns: 309px minmax(0, 1fr) 190px;
   gap: 0;
   align-items: stretch;
   min-height: calc(100dvh - 76px);
