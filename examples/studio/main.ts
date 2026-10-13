@@ -290,7 +290,7 @@ function renderTree(state: ControllerState): void {
       pending.push({
         node: entry.node.children[i]!,
         depth: entry.depth + 1,
-        indent: entry.indent + (i > 0 ? 1 : 0),
+        indent: entry.indent + (entry.node.children.length > 1 ? 1 : 0),
         parentMove: moveNumber,
       });
   }

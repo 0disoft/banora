@@ -201,7 +201,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       for (let i = item.node.children.length - 1; i >= 0; i--)
         pending.push({
           node: item.node.children[i]!,
-          indent: item.indent + (i > 0 ? 1 : 0),
+          indent: item.indent + (item.node.children.length > 1 ? 1 : 0),
           parentMove: moveNumber,
         });
     }

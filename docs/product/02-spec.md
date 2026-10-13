@@ -19,7 +19,9 @@ repository. Public demo hosting remains a separate action. The initial
 layout consists of the board, move controls, a variation tree, and a comments panel.
 Variation rows show the position's move number alongside the move or annotation label,
 using branch-local counts (including passes) and SGF `MN` overrides. Setup/comment-only
-nodes retain their position's number rather than counting as moves. Studio reuses
+nodes retain their position's number rather than counting as moves. Studio and the
+common Viewer indent all sibling paths equally below a fork. Single-child
+continuations keep that indentation; nested forks add another level. Studio reuses
 existing tree rows when only the selected position changes within the
 same immutable record/game. The first 500 rows and at most one selected tail row
 remain bounded. Record/game/language changes rebuild labels and metadata; tail
