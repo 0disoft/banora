@@ -559,6 +559,10 @@ handicap/setup and branch rendering, Cancel/Export & continue, actual export/reo
 and retention after malformed bytes. It requires a completed Result and downloaded
 SGF content. This uses browser-created File/DataTransfer/DragEvent objects; it does
 not claim native operating-system file-drag automation.
+The comparison scenario also checks Korean/Chinese/Japanese pane labels and
+summaries, preserved pins/controller state/authored comments, literal defensively
+copied message overrides and atomic rejection of invalid locale/message updates.
+
 `--comparison-only` similarly selects the comparison scenario without rerunning
 unrelated browser flows during implementation.
 `--share-only` selects production link opening/creation, clipboard fallback,

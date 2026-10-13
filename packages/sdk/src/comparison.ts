@@ -5,13 +5,17 @@ import type { RecordController } from './controller.js';
 import { displayCrop, normalizeBoardTransform } from './geometry.js';
 import { normalizeStoneTextures } from './stone-textures.js';
 import { selectStyles } from './select-style.js';
+import { createUiMessages, createBoardLabels, formatUiMessage } from './locale.js';
+import type { LocaleOptions } from './locale.js';
+import { pointFromSgf } from './sgf.js';
+import { boardColumnLabel } from './board-layout.js';
 
 export type ComparisonSide = 'left' | 'right';
 export type ComparisonBoardOptions = Pick<
   BoardOptions,
   'theme' | 'coordinates' | 'moveNumbers' | 'crop' | 'transform' | 'stoneTextures'
 >;
-export interface ComparisonOptions {
+export interface ComparisonOptions extends LocaleOptions {
   readonly controller: RecordController;
   readonly left?: string;
   readonly right?: string;
@@ -36,6 +40,11 @@ export function mountComparison(
   let left = initial.left ?? state.node.id,
     right = initial.right ?? state.node.id,
     generation = state.recordGeneration;
+  let ui = createUiMessages(initial);
+  let localeOptions: LocaleOptions = {
+    locale: initial.locale,
+    messages: initial.messages === undefined ? undefined : Object.freeze({ ...initial.messages }),
+  };
   const pickBoard = (board?: ComparisonBoardOptions): ComparisonBoardOptions => ({
     theme: board?.theme,
     coordinates: board?.coordinates,
@@ -61,7 +70,7 @@ export function mountComparison(
   validate(left, right, boardOptions);
   const root = document.createElement('section');
   root.className = 'banora-comparison';
-  root.setAttribute('aria-label', 'Go position comparison');
+  root.setAttribute('aria-label', ui.comparison);
   root.setAttribute('role', 'region');
   const style = document.createElement('style');
   style.textContent = `.banora-comparison{font:15px system-ui;color:#173d31}.banora-comparison [data-panes]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.banora-comparison [data-pane]{min-width:0}.banora-comparison label{display:block;font-weight:600;margin-bottom:8px}.banora-comparison select{width:100%;font:inherit;color:inherit;padding:8px;border:1px solid #cfd9cb;border-radius:7px;background:#fff;margin:6px 0}.banora-comparison [data-notes]{font-size:13px;white-space:pre-wrap;margin:10px 0;overflow-wrap:anywhere}.banora-comparison [data-result]{line-height:1.6}.banora-comparison [data-limit]{font-size:13px;color:#687b69}@media(max-width:700px){.banora-comparison [data-panes]{grid-template-columns:1fr}}`;
@@ -73,16 +82,17 @@ export function mountComparison(
   grid.setAttribute('data-panes', '');
   const panes = {} as Record<
     ComparisonSide,
-    { select: HTMLSelectElement; board: HTMLElement; notes: HTMLElement }
+    { label: Text; select: HTMLSelectElement; board: HTMLElement; notes: HTMLElement }
   >;
   const abort = new AbortController();
   for (const side of ['left', 'right'] as const) {
     const pane = document.createElement('section');
     pane.setAttribute('data-pane', side);
     const label = document.createElement('label');
-    label.textContent = `${side === 'left' ? 'Left' : 'Right'} position`;
+    const caption = document.createTextNode(side === 'left' ? ui.leftPosition : ui.rightPosition);
+    label.append(caption);
     const select = document.createElement('select');
-    select.setAttribute('aria-label', label.textContent);
+    select.setAttribute('aria-label', caption.data);
     label.append(select);
     const host = document.createElement('div');
     host.setAttribute('data-position', side);
@@ -90,7 +100,7 @@ export function mountComparison(
     notes.setAttribute('data-notes', side);
     pane.append(label, host, notes);
     grid.append(pane);
-    panes[side] = { select, board: host, notes };
+    panes[side] = { label: caption, select, board: host, notes };
     select.addEventListener(
       'change',
       () => {
@@ -98,7 +108,9 @@ export function mountComparison(
           update({ [side]: select.value });
         } catch (error) {
           render();
-          summary.textContent = `Comparison rejected: ${error instanceof Error ? error.message : String(error)}`;
+          summary.textContent = formatUiMessage(ui.comparisonRejected, {
+            reason: error instanceof Error ? error.message : String(error),
+          });
         }
       },
       { signal: abort.signal },
@@ -110,40 +122,55 @@ export function mountComparison(
   container.append(root);
   function render(): void {
     const current = controller.getState();
+    root.lang = localeOptions.locale ?? 'en';
+    root.setAttribute('aria-label', ui.comparison);
     if (current.recordGeneration !== generation) {
       generation = current.recordGeneration;
       left = right = current.node.id;
       boardOptions = { ...boardOptions, crop: null };
       syncBoards();
     }
-    const pending = current.record.games.map((node, index) => ({
-      node,
-      depth: 0,
-      game: index + 1,
-    }));
+    const pending = current.record.games.map((node, index) => {
+      const { width, height } = controller.inspectNode(node.id)!.position;
+      return { node, depth: 0, game: index + 1, width, height };
+    });
     const rows: { id: string; label: string }[] = [];
     let count = 0;
     while (pending.length && count++ < 500) {
-      const { node, depth, game } = pending.shift()!;
-      const caption =
-        node.properties.N?.[0] ??
-        (node.properties.B
-          ? `Black ${node.properties.B[0] || 'pass'}`
-          : node.properties.W
-            ? `White ${node.properties.W[0] || 'pass'}`
-            : 'Annotation');
+      const { node, depth, game, width, height } = pending.shift()!;
+      let caption = node.properties.N?.[0] ?? ui.annotation;
+      const move = node.properties.B?.[0] ?? node.properties.W?.[0];
+      if (node.properties.N === undefined && move !== undefined) {
+        const color = node.properties.B ? ui.black : ui.white;
+        // SGF tt is the legacy pass encoding on boards up to 19 lines.
+        if (!move || (move === 'tt' && width <= 19 && height <= 19))
+          caption = formatUiMessage(ui.colorPass, { color });
+        else {
+          const point = pointFromSgf(move, width, height);
+          caption = `${color} ${boardColumnLabel(point.x)}${height - point.y}`;
+        }
+      }
       rows.push({
         id: node.id,
-        label: `Game ${game} · ${depth === 0 ? 'Start' : `Node ${depth}`} · ${caption} (${node.id})`,
+        label: formatUiMessage(ui.comparisonRow, {
+          game: formatUiMessage(ui.game, { number: game }),
+          position: depth === 0 ? ui.start : formatUiMessage(ui.comparisonNode, { number: depth }),
+          caption,
+        }),
       });
-      pending.unshift(...node.children.map((child) => ({ node: child, depth: depth + 1, game })));
+      pending.unshift(
+        ...node.children.map((child) => ({ node: child, depth: depth + 1, game, width, height })),
+      );
     }
     const selected = new Set(rows.map((row) => row.id));
     for (const id of [left, right])
       if (!selected.has(id)) {
         rows.push({
           id,
-          label: controller.inspectNode(id) ? `Selected node ${id}` : `Unavailable node ${id}`,
+          label: formatUiMessage(
+            controller.inspectNode(id) ? ui.selectedNode : ui.unavailableNode,
+            { id },
+          ),
         });
         selected.add(id);
       }
@@ -151,6 +178,8 @@ export function mountComparison(
       const pane = panes[side],
         id = side === 'left' ? left : right,
         snapshot = controller.inspectNode(id);
+      pane.label.data = side === 'left' ? ui.leftPosition : ui.rightPosition;
+      pane.select.setAttribute('aria-label', pane.label.data);
       pane.select.replaceChildren(
         ...rows.map((row) => {
           const option = document.createElement('option');
@@ -162,37 +191,50 @@ export function mountComparison(
       pane.select.value = id;
       pane.notes.textContent =
         snapshot?.node.properties.C?.[0] ??
-        (snapshot
-          ? 'No comments on this position.'
-          : 'Node unavailable. Restore the branch or choose another position.');
+        (snapshot ? ui.noComments : ui.comparisonNodeUnavailable);
     }
     const first = controller.inspectNode(left),
       second = controller.inspectNode(right);
-    if (!first || !second)
-      summary.textContent =
-        'Comparison unavailable. Choose two existing nodes or restore the removed branch.';
+    if (!first || !second) summary.textContent = ui.comparisonUnavailable;
     else if (
       first.position.width !== second.position.width ||
       first.position.height !== second.position.height
     )
-      summary.textContent = `Different board dimensions: ${first.position.width} × ${first.position.height} and ${second.position.width} × ${second.position.height}. No intersections are compared.`;
+      summary.textContent = formatUiMessage(ui.comparisonDimensions, {
+        leftWidth: first.position.width,
+        leftHeight: first.position.height,
+        rightWidth: second.position.width,
+        rightHeight: second.position.height,
+      });
     else {
       const changes = comparePositions(first.position, second.position);
       const added = changes.filter((change) => change.before === null).length,
         removed = changes.filter((change) => change.after === null).length;
-      summary.textContent = `${changes.length} changed intersection${changes.length === 1 ? '' : 's'} from left to right: ${added} added, ${removed} removed, ${changes.length - added - removed} color changed. + added · − removed · ↔ replaced on each board relative to the other.`;
+      summary.textContent = formatUiMessage(ui.comparisonSummary, {
+        count: changes.length,
+        added,
+        removed,
+        replaced: changes.length - added - removed,
+      });
     }
-    limit.textContent = pending.length
-      ? 'First 500 nodes plus selected nodes shown. The API can compare any node in the record.'
-      : '';
+    limit.textContent = pending.length ? ui.comparisonLimit : '';
   }
   function syncBoards(): void {
-    const common = { ...boardOptions, referenceGeneration: generation };
+    const common = {
+      ...boardOptions,
+      labels: createBoardLabels(localeOptions),
+      referenceGeneration: generation,
+    };
     views.left.update({ ...common, nodeId: left, compareTo: right });
     views.right.update({ ...common, nodeId: right, compareTo: left });
   }
   function update(next: Omit<ComparisonOptions, 'controller'>): void {
     if (disposed) throw new Error('Comparison view is disposed');
+    const nextLocale = {
+      locale: Object.hasOwn(next, 'locale') ? next.locale : localeOptions.locale,
+      messages: Object.hasOwn(next, 'messages') ? next.messages : localeOptions.messages,
+    };
+    const nextUi = createUiMessages(nextLocale);
     const a = next.left ?? left,
       b = next.right ?? right,
       board = pickBoard({
@@ -204,6 +246,12 @@ export function mountComparison(
             : boardOptions.transform,
       });
     validate(a, b, board, true);
+    ui = nextUi;
+    localeOptions = {
+      locale: nextLocale.locale,
+      messages:
+        nextLocale.messages === undefined ? undefined : Object.freeze({ ...nextLocale.messages }),
+    };
     left = a;
     right = b;
     boardOptions = board;
@@ -215,6 +263,7 @@ export function mountComparison(
   try {
     views.left = mountBoard(panes.left.board, {
       ...boardOptions,
+      labels: createBoardLabels(localeOptions),
       controller,
       nodeId: left,
       compareTo: right,
@@ -222,6 +271,7 @@ export function mountComparison(
     });
     views.right = mountBoard(panes.right.board, {
       ...boardOptions,
+      labels: createBoardLabels(localeOptions),
       controller,
       nodeId: right,
       compareTo: left,

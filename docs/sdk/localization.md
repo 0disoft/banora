@@ -8,12 +8,19 @@ Korean (`ko`), Chinese (`zh`, using simplified characters) and Japanese (`ja`). 
 explicitly English; they never read navigator, local storage, or a machine locale.
 These helpers are DOM-free.
 
-`mountViewer` and `mountPlaybackControls` accept `locale` and an optional
+`mountViewer`, `mountComparison` and `mountPlaybackControls` accept `locale` and an optional
 `messages: Partial<UiMessages>` bag. Framework Viewer props forward both options.
 `viewer.update({locale:'ko'})` changes labels in place, preserving record selection,
 editing history and playback settings. `playbackControls.update({locale:'ko'})`
 changes only control text. A direct controls update replaces the locale/message
 configuration; Viewer updates merge its existing options.
+Comparison updates retain their locale/message configuration when omitted;
+`comparison.update({locale:'ko'})` relabels both selectors, summaries, comment
+fallbacks and board accessibility without changing pins, cursor, record or Undo.
+Invalid locale/message updates reject before changing presentation. Authored
+node titles and comments remain literal. Selector move captions use board
+coordinates, including localized empty/legacy passes; internal node IDs remain
+option values rather than appearing in normal row captions.
 
 ```ts
 import { mountViewer, mountBoard, createBoardLabels } from '@0disoft/banora';
@@ -57,4 +64,5 @@ labels bind before authored data is populated; dynamic UI setters explicitly mar
 UI text. No global DOM observer or heuristic translation of user data is used.
 The Chinese and Japanese static catalogs must cover the same keys as Korean at compile time.
 Underlying protocol/diagnostic details and rule IDs remain English/stable, and
-linked puzzle/analysis consumer pages and the comparison widget retain their current English UI.
+linked puzzle/analysis consumer pages retain their current English UI. The comparison
+widget follows Studio's current language, including when already open.

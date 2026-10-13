@@ -97,12 +97,17 @@ internal source files or require demo-only SDK hooks. A second, minimal read-onl
 embedding example verifies that the API also fits simpler consumers. Accounts,
 cloud storage and AI analysis are not part of Studio's initial workflow.
 
-Studio and the common Viewer support English, Korean, Chinese and Japanese presentation. SDK locale
+Studio, the common Viewer and position comparison support English, Korean, Chinese and Japanese presentation. SDK locale
 selection is explicit, preserves record state and never translates authored SGF text.
 Studio variation pass captions use the SDK locale template for both empty and
 legacy `tt` passes, preserving SGF move-number overrides and the authored encoding.
 Missing komi is a localized presentation label; it never inserts a default `KM`
 property into the record.
+Comparison follows Studio language changes while open, translating pane labels,
+node captions, counts, empty-comment fallbacks, limits and accessibility labels.
+Move captions use board coordinates rather than SGF point codes or internal IDs.
+Difference summaries use concise counts and + / − / ↔ legends. Locale changes
+preserve pinned positions, the main cursor, Undo history and authored text.
 
 Studio prioritizes controls and record content over introductory or promotional
 copy. File actions sit directly above the workspace. Keyboard guidance is available

@@ -849,6 +849,7 @@ find('compare').addEventListener('click', () => {
     find('comparison-panel').hidden = false;
     comparison = mountComparison(find('comparison-board'), {
       controller,
+      locale: getUiLocale(),
       left: state.node.id,
       right: state.node.children[0]?.id ?? state.node.id,
       board: {
@@ -1001,6 +1002,7 @@ const disposeLanguage = subscribeUiLanguage(() => {
   games.dataset.record = '';
   view.update({ labels: createBoardLabels({ locale }) });
   playbackControls.update({ locale });
+  comparison?.update({ locale });
   renderState(controller.getState());
   updateToolHint();
 });

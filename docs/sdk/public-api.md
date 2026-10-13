@@ -711,14 +711,16 @@ its controller's cursor and accepts `board.compareTo`, but does not accept `node
 the root and `@0disoft/banora/comparison`. It borrows one controller, composes two pinned
 boards, shows node selectors/comments and a left-to-right change count. Omitted
 nodes default to the current node. `board` accepts only theme, coordinates, move
-numbers, crop, transform and stone textures, applied to both panes. Updates validate before changing
-the pair/configuration; selecting nodes never changes the main cursor, dirty state
+numbers, crop, transform and stone textures, applied to both panes.
+`locale` and optional `messages: Partial<UiMessages>` localize comparison text and
+board accessibility; they default to English and update without changing pins.
+Updates validate before changing the pair/configuration; selecting nodes never changes the main cursor, dirty state
 or edit history. Missing/deleted selections remain unavailable until restored or
 reselected. Successful record replacement explicitly resets both panes to the new
 cursor and clears the old crop, avoiding recycled-ID confusion. Different-sized
 games can be shown side by side but are not diffed.
 
-The returned `ComparisonView` exposes `controller`, `update({left?,right?,board?})`,
+The returned `ComparisonView` exposes `controller`, `update({left?,right?,board?,locale?,messages?})`,
 `exportSvg('left'|'right', options?)`, `exportPng(side, options?)` and idempotent
 `dispose()`. Disposal releases both boards, subscriptions, listeners, lens portals
 and owned comparison DOM while preserving the borrowed controller/other host children.

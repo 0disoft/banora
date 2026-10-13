@@ -311,6 +311,11 @@ async (page, studioControl) => {
   await page.reload();
   if ((await page.locator('#language').inputValue()) !== 'ja')
     throw Error('Language preference not retained');
+  // Reload now starts a blank 19-line workspace, so texture checks need an explicit record.
+  await page.locator('#file').setInputFiles('output/playwright/localized-preserved.sgf');
+  await page.waitForFunction(
+    () => document.querySelector('#game-name').textContent === 'Opening study',
+  );
   await page.locator('#language').selectOption('en');
   await page.locator('#board-menu').click();
   await page.locator('[data-board-menu-section="textures"]').click();

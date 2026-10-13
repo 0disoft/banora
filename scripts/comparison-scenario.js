@@ -27,10 +27,51 @@ async (page, studioControl) => {
       if (!condition) throw Error(message);
     };
     const summary = () => region.querySelector('[data-result]').textContent;
+    const localizationState = controller.getState();
+    for (const [locale, leftLabel, rightLabel, changed] of [
+      ['ko', '왼쪽 위치', '오른쪽 위치', '변경 3'],
+      ['zh', '左侧局面', '右侧局面', '变化 3'],
+      ['ja', '左の局面', '右の局面', '変更 3'],
+    ]) {
+      view.update({ locale });
+      verify(
+        region.querySelector(`[aria-label="${leftLabel}"]`).value === left &&
+          region.querySelector(`[aria-label="${rightLabel}"]`).value === right &&
+          summary().startsWith(changed) &&
+          region.querySelector('[data-notes="right"]').textContent === 'Right note' &&
+          a.dataset.nodeId === left &&
+          b.dataset.nodeId === right &&
+          controller.getState() === localizationState,
+        'Comparison localization changed pins, authored comments or controller state',
+      );
+    }
+    const custom = { leftPosition: '<tag>Custom</tag>' };
+    view.update({ locale: 'ko', messages: custom });
+    custom.leftPosition = 'Mutated';
+    view.update({ right });
     verify(
-      summary().startsWith(
-        '3 changed intersections from left to right: 1 added, 1 removed, 1 color changed',
-      ),
+      region.querySelector('select').getAttribute('aria-label') === '<tag>Custom</tag>' &&
+        !region.querySelector('tag'),
+      'Comparison message override was mutated or interpreted as HTML',
+    );
+    for (const next of [
+      { locale: 'invalid', left: alternate },
+      { messages: { leftPosition: 3 }, right: alternate },
+    ]) {
+      let rejected = false;
+      try {
+        view.update(next);
+      } catch {
+        rejected = true;
+      }
+      verify(
+        rejected && a.dataset.nodeId === left && b.dataset.nodeId === right,
+        'Invalid comparison locale update changed pinned nodes',
+      );
+    }
+    view.update({ locale: 'en', messages: {} });
+    verify(
+      summary().startsWith('3 changed intersections · +1 added · −1 removed · ↔1 color changed'),
       'Comparison summary failed',
     );
     verify(

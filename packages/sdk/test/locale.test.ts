@@ -65,3 +65,32 @@ test('Japanese templates preserve placeholders, literal values and English defau
   );
   expect(createUiMessages().move).toBe('Move {number}');
 });
+
+test('comparison messages preserve placeholders in every locale and authored substitutions', () => {
+  const english = createUiMessages();
+  for (const locale of ['ko', 'zh', 'ja'] as const) {
+    const ui = createUiMessages({ locale });
+    for (const key of Object.keys(english) as (keyof typeof english)[])
+      expect(ui[key].match(/\{\w+\}/g)?.sort() ?? []).toEqual(
+        english[key].match(/\{\w+\}/g)?.sort() ?? [],
+      );
+    const authored = '<tag>$& {id}</tag>';
+    expect(
+      formatUiMessage(ui.comparisonRow, {
+        game: '1',
+        position: '2',
+        caption: authored,
+      }),
+    ).toContain(authored);
+    expect(
+      formatUiMessage(ui.comparisonSummary, {
+        count: 3,
+        added: 1,
+        removed: 1,
+        replaced: 1,
+      }),
+    ).not.toContain('{');
+    expect(ui.leftPosition).not.toBe(english.leftPosition);
+    expect(ui.noComments).not.toBe(english.noComments);
+  }
+});
