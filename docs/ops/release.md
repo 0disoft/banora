@@ -132,7 +132,10 @@ Maintainers own source review, compatibility and artifact retention. Start in a
 reviewed Banora checkout with `bun run setup` completed. Commit intended changes;
 `bun run release prepare` requires an actual clean Git checkout and private
 `banora-workspace` root. The five packages must use the same intentional version.
-The selected source release version is `0.1.1`; there is no automatic bump.
+The selected source release version is `0.1.2`; there is no automatic bump.
+This authorized patch is being prepared for the transient-notice and localized
+failure fixes; publication remains pending until recorded in the
+[execution record](../engineering/32-notice-localization-release.md).
 
 Preparation runs the root checks and private-file/dependency gates serially, builds
 production examples and packages SDK, CLI, React, Vue and Svelte with lifecycle

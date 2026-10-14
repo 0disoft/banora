@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/banora",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Framework-independent Go board, rules and SGF toolkit",
   "type": "module",
   "license": "MIT",
