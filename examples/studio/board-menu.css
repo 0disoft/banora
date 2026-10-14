@@ -189,6 +189,102 @@
 .board-menu-footer [data-board-menu-section='preferences'] {
   color: var(--accent);
 }
+.board-menu-section {
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+}
+.board-menu-section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.board-menu-section:last-child {
+  padding-bottom: 0;
+}
+.board-menu-section h3 {
+  margin-bottom: 14px;
+  color: inherit;
+}
+.board-menu-section > summary {
+  cursor: pointer;
+}
+.board-menu-section > summary h3 {
+  display: inline;
+  margin: 0;
+}
+.board-menu-section[open] > summary {
+  margin-bottom: 14px;
+}
+.board-menu-section #board-settings {
+  display: block;
+}
+.board-menu-section .board-presentation {
+  justify-content: flex-start;
+}
+.board-menu-section .theme-label {
+  font-size: 14px !important;
+}
+.board-menu-panel .board-menu-section .editing-tools {
+  gap: 12px;
+  border: 0;
+  padding: 0;
+}
+.board-menu-section > .editing-tools + .editing-tools {
+  margin-top: 14px;
+}
+.board-menu-section label:not(.checkbox):not(:has(input[type='file'])) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.board-menu-section select,
+.board-menu-section input:not([type='checkbox']):not([type='file']):not([type='color']) {
+  min-height: 42px;
+  font-size: 14px;
+}
+.board-menu-section #record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.board-menu-section #record-details {
+  display: grid;
+  gap: 12px;
+}
+.board-menu-section #record-details dl,
+.board-menu-section .position-info {
+  margin: 0;
+}
+.board-menu-section #record-details dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.board-menu-section #record-details dd {
+  margin: 0;
+}
+.board-menu-section .texture-controls {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+}
+.board-menu-section .texture-controls > h2 {
+  display: none;
+}
+.board-menu-section .texture-controls > p {
+  margin-top: 0;
+  color: var(--muted);
+}
+.board-menu-section .texture-controls fieldset {
+  border-color: var(--border);
+  padding: 12px;
+}
+.board-menu-section #settings-reset {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 @media (max-width: 560px) {
   .board-menu-panel {
     padding: 16px;

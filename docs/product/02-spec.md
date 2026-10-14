@@ -164,6 +164,14 @@ separate launcher page for each small setting. At narrow widths the columns stac
 with bounded vertical scrolling. Record/edit combines collection information and
 editing tools; All settings combines appearance, rotation, stone-image uploads,
 animation, touch and saved-preference reset. SVG/PNG remain in the visible rail.
+The combined destinations use titled sections with consistent row spacing:
+record/edit separates record information, editing tools and next-player actions;
+All settings separates view, stone images, animation, touch and saved settings.
+The detailed stone-image uploads are initially folded behind a native disclosure
+so ordinary display settings remain compact; the direct Change action still opens
+the image controls immediately.
+The reset action is visually distinct, while existing controls retain their
+original handlers and per-field preference ownership.
 Existing controls are borrowed temporarily and restored on Back, outside click,
 Escape or close; values, handlers and record history are shared. Help's action
 search opens the consolidated destination or focuses an inline setting directly.

@@ -40,7 +40,8 @@ export function mountBoardMenu(): () => void {
   interface MenuGroup {
     id: string;
     label: string;
-    controls: HTMLElement[];
+    controls?: HTMLElement[];
+    sections?: { label: string; controls: HTMLElement[] }[];
     launch?: { button: string; dialog: string };
     reveal?: { button: string; panel: string };
   }
@@ -48,12 +49,10 @@ export function mountBoardMenu(): () => void {
     {
       id: 'tools',
       label: 'Record & edit',
-      controls: [
-        find('record-actions'),
-        find('record-details'),
-        row('tool'),
-        find('ink-control'),
-        row('next-player'),
+      sections: [
+        { label: 'Game', controls: [find('record-actions'), find('record-details')] },
+        { label: 'Tool', controls: [row('tool'), find('ink-control')] },
+        { label: 'Next player', controls: [row('next-player')] },
       ],
     },
     { id: 'textures', label: 'Stone textures', controls: [find('texture-host')] },
@@ -85,13 +84,12 @@ export function mountBoardMenu(): () => void {
     {
       id: 'preferences',
       label: 'All settings',
-      controls: [
-        find('board-settings'),
-        row('rotation'),
-        find('texture-host'),
-        row('animation'),
-        row('touch-mode'),
-        find('preferences-host'),
+      sections: [
+        { label: 'View', controls: [find('board-settings'), row('rotation')] },
+        { label: 'Stone textures', controls: [find('texture-host')] },
+        { label: 'Animation', controls: [row('animation')] },
+        { label: 'Touch placement', controls: [row('touch-mode')] },
+        { label: 'Settings', controls: [find('preferences-host')] },
       ],
     },
     {
@@ -164,6 +162,7 @@ export function mountBoardMenu(): () => void {
   function restore() {
     for (const { control, placeholder } of borrowed) placeholder.replaceWith(control);
     borrowed = [];
+    content.replaceChildren();
   }
   function borrow(controls: HTMLElement[], destination: HTMLElement) {
     for (const control of controls) {
@@ -174,7 +173,6 @@ export function mountBoardMenu(): () => void {
     }
   }
   function position() {
-    if (!panel.matches(':popover-open')) return;
     const viewport = window.visualViewport;
     const width = viewport?.width ?? innerWidth;
     const height = viewport?.height ?? innerHeight;
@@ -183,6 +181,8 @@ export function mountBoardMenu(): () => void {
     const gutter = 12;
     panel.style.maxWidth = `${Math.max(0, width - 2 * gutter)}px`;
     panel.style.maxHeight = `${Math.max(0, height - 2 * gutter)}px`;
+    // Refresh bounds before opening as well: the last open may have used a narrow viewport.
+    if (!panel.matches(':popover-open')) return;
     const anchor = trigger.getBoundingClientRect();
     const left = Math.max(
       offsetLeft + gutter,
@@ -203,7 +203,22 @@ export function mountBoardMenu(): () => void {
     back.hidden = !group;
     panel.dataset.section = group?.id ?? '';
     setUiText(title, group?.label ?? 'Board menu');
-    if (group) borrow(group.controls, content);
+    if (group?.sections) {
+      for (const section of group.sections) {
+        const collapsible = section.label === 'Stone textures';
+        const container = document.createElement(collapsible ? 'details' : 'section');
+        container.className = 'board-menu-section';
+        const heading = document.createElement('h3');
+        setUiText(heading, section.label);
+        if (collapsible) {
+          const summary = document.createElement('summary');
+          summary.append(heading);
+          container.append(summary);
+        } else container.append(heading);
+        content.append(container);
+        borrow(section.controls, container);
+      }
+    } else if (group) borrow(group.controls ?? [], content);
     else {
       borrow(quickControls, quick);
       quickControls[0]!.after(textureRow);

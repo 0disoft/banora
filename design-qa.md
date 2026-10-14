@@ -74,3 +74,24 @@
 - [x] Translate new labels and retain keyboard-operable native controls.
 
 final result: passed
+
+## Interior grouping follow-up
+
+Record/edit now separates record information, tools and next-player actions with
+translated section headings and consistent separators. All settings separates
+view, images, animation, touch and saved settings. Detailed image uploads start
+folded in a native keyboard-operable disclosure; the direct image-change action
+still opens them immediately. Controls keep their original DOM owners and handlers.
+
+Desktop and narrow captures:
+`output/playwright/menu-record-grouped.png`,
+`output/playwright/menu-settings-grouped.png`,
+`output/playwright/menu-settings-grouped-mobile.png`.
+The initial view-theme control inherited trailing alignment and lost its label at
+narrow widths; scoped styles restore leading alignment and the visible label.
+The post-fix captures are the evidence for the final grouping. This follow-up
+does not change the selected home layout, API, data schemas or external assets.
+The repeated language/viewport menu scenario exposed stale closed-popover bounds;
+the menu now refreshes viewport constraints before opening. The final production
+menu scenario passed after that fix, including all twelve languages, desktop/
+narrow transitions, folded image uploads and restored control ownership.

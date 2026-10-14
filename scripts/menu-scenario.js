@@ -112,6 +112,23 @@ async (page) => {
         );
       });
       verify(fits, `${section} menu overflow at ${width}px`);
+      if (section === 'tools' || section === 'preferences') {
+        verify(
+          (await panel.locator('.board-menu-section').count()) === (section === 'tools' ? 3 : 5),
+          `${section} lost its grouped controls`,
+        );
+        if (section === 'preferences') {
+          verify(
+            !(await panel.locator('[data-texture-file="black"]').isVisible()),
+            'Detailed texture uploads cluttered settings by default',
+          );
+          await panel.locator('details.board-menu-section summary').click();
+          verify(
+            await panel.locator('[data-texture-file="black"]').isVisible(),
+            'Expanded stone image controls were not reachable',
+          );
+        }
+      }
       if (dialog) {
         if (width === 320) await page.keyboard.press('Escape');
         else await page.locator(dialog[1]).click();
