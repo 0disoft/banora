@@ -1,5 +1,9 @@
 import type { koreanUi } from '../ui-korean.js';
 export const frUi = {
+  'Record & edit': 'Partie et édition',
+  'View & controls': 'Affichage et commandes',
+  'All settings': 'Tous les réglages',
+  Change: 'Modifier',
   'Good move': 'Bon coup',
   'Bad move': 'Mauvais coup',
   'Choose a recorded move': 'Choisissez un coup enregistré',

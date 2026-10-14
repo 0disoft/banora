@@ -1,5 +1,9 @@
 import type { koreanUi } from '../ui-korean.js';
 export const ruUi = {
+  'Record & edit': 'Партия и правка',
+  'View & controls': 'Вид и управление',
+  'All settings': 'Все настройки',
+  Change: 'Изменить',
   'Good move': 'Хороший ход',
   'Bad move': 'Плохой ход',
   'Choose a recorded move': 'Выберите записанный ход',

@@ -1,5 +1,9 @@
 import type { koreanUi } from '../ui-korean.js';
 export const msUi = {
+  'Record & edit': 'Rekod dan sunting',
+  'View & controls': 'Paparan dan kawalan',
+  'All settings': 'Semua tetapan',
+  Change: 'Tukar',
   'Good move': 'Langkah baik',
   'Bad move': 'Langkah buruk',
   'Choose a recorded move': 'Pilih langkah dalam rekod',

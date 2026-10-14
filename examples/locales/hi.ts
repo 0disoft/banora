@@ -1,5 +1,9 @@
 import type { koreanUi } from '../ui-korean.js';
 export const hiUi = {
+  'Record & edit': 'रिकॉर्ड और संपादन',
+  'View & controls': 'दृश्य और नियंत्रण',
+  'All settings': 'सभी सेटिंग',
+  Change: 'बदलें',
   'Good move': 'अच्छी चाल',
   'Bad move': 'खराब चाल',
   'Choose a recorded move': 'रिकॉर्ड की चाल चुनें',

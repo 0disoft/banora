@@ -27,15 +27,62 @@ async (page) => {
     search: ['#search-dialog', '#search-close'],
     support: ['#support-dialog', '#support-close'],
   };
+  await trigger.click();
+  verify(await panel.locator('#theme').isVisible(), 'Theme required an extra menu step');
+  verify(await panel.locator('#animation').isVisible(), 'Animation required an extra menu step');
+  verify(await panel.locator('#touch-mode').isVisible(), 'Touch required an extra menu step');
+  verify(
+    (await panel.locator('.board-menu-choices button').count()) === 6,
+    'Action list was not consolidated',
+  );
+  const initialAnimation = await panel.locator('#animation').isChecked();
+  await panel.locator('#animation').setChecked(!initialAnimation);
+  verify(
+    (await panel.locator('#animation-duration').isDisabled()) === initialAnimation,
+    'Inline animation did not update duration',
+  );
+  await close();
+  await trigger.click();
+  verify(
+    (await panel.locator('#animation').isChecked()) === !initialAnimation,
+    'Reopening reset inline preferences',
+  );
+  await panel.locator('#animation').setChecked(initialAnimation);
+  await close();
+  for (const locale of ['en', 'ko', 'zh', 'ja', 'hi', 'es', 'fr', 'ru', 'id', 'vi', 'th', 'ms']) {
+    await page.locator('#language').selectOption(locale);
+    for (const width of [1440, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      await trigger.click();
+      verify(await panel.locator('#animation').isVisible(), `Missing inline settings in ${locale}`);
+      verify(
+        (await panel.locator('.board-menu-textures > [data-ui-text]').textContent()).trim().length >
+          0,
+        'Missing stone image label',
+      );
+      verify(
+        await panel.evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
+        `Menu overflow in ${locale} at ${width}px`,
+      );
+      if (width === 1440) {
+        verify(
+          await panel.evaluate((element) => {
+            const actions = element.querySelector('.board-menu-actions').getBoundingClientRect();
+            const settings = element.querySelector('.board-menu-settings').getBoundingClientRect();
+            return Math.abs(actions.top - settings.top) < 1 && settings.left >= actions.right;
+          }),
+          'Desktop menu did not retain aligned columns',
+        );
+      }
+      await close();
+    }
+  }
+  await page.locator('#language').selectOption('en');
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 900 });
     for (const section of [
-      'record',
       'tools',
-      'view',
       'textures',
-      'touch',
-      'animation',
       'comparison',
       'share',
       'drafts',
@@ -88,7 +135,7 @@ async (page) => {
     }
   }
   await page.locator('#app-menu').click();
-  await page.locator('[data-board-menu-section="record"]').click();
+  await page.locator('[data-board-menu-section="tools"]').click();
   verify(
     await panel.locator('#games').isVisible(),
     'Header menu did not expose collection selection',

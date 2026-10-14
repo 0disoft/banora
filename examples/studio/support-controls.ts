@@ -115,14 +115,22 @@ export function mountSupportControls(
         if (id.startsWith('@')) {
           const panel = document.getElementById('board-menu-panel')!;
           if (!panel.matches(':popover-open')) target.click();
+          const section = id.slice(1);
+          const setting = { view: 'rotation', touch: 'touch-mode', animation: 'animation' }[
+            section as 'view' | 'touch' | 'animation'
+          ];
+          const destination = section === 'view' ? 'preferences' : section;
           panel
-            .querySelector<HTMLButtonElement>(`[data-board-menu-section="${id.slice(1)}"]`)
+            .querySelector<HTMLButtonElement>(`[data-board-menu-section="${destination}"]`)
             ?.click();
+          if (setting) document.getElementById(setting)?.focus({ preventScroll: true });
         } else if (target instanceof HTMLSelectElement) {
           if (!target.checkVisibility()) {
             const panel = document.getElementById('board-menu-panel')!;
             if (!panel.matches(':popover-open')) document.getElementById('board-menu')!.click();
-            panel.querySelector<HTMLButtonElement>('[data-board-menu-section="view"]')!.click();
+            panel
+              .querySelector<HTMLButtonElement>('[data-board-menu-section="preferences"]')!
+              .click();
           }
           target.focus({ preventScroll: true });
         } else target.click();

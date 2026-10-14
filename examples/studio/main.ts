@@ -66,6 +66,7 @@ import { mountVariationMenu } from './variation-menu.js';
 import { applySetupPoint, coordinateTitle, setupNodeTitle } from './setup-editing.js';
 import './atelier.css';
 import './icons.css';
+import './board-menu.css';
 import './fonts.css';
 
 arrangeStudio();

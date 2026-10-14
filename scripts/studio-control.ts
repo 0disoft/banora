@@ -20,7 +20,11 @@ export async function studioControl(
   if (await panel.count()) await page.locator('#board-menu-panel [data-close]').click();
   const comparisonWasOpen = await page.locator('#comparison-panel:not([hidden])').count();
   await page.locator('#app-menu').click();
-  await page.locator(`[data-board-menu-section="${section}"]`).click();
+  if (!(await page.locator(selector).isVisible())) {
+    const destination =
+      section === 'record' ? 'tools' : section === 'view' ? 'preferences' : section;
+    await page.locator(`[data-board-menu-section="${destination}"]`).click();
+  }
   try {
     // Menu selection itself now launches these tools, using their real existing handlers.
     const dialogs: Record<string, string> = {

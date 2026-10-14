@@ -16,7 +16,13 @@ export function mountBoardMenu(): () => void {
     <button type="button" class="button icon" data-back aria-label="Back" title="Back" hidden></button>
     <h2 id="board-menu-title"></h2>
     <button type="button" class="button icon" data-close aria-label="Close menu" title="Close menu"></button>
-    </div><div class="board-menu-choices"></div><div class="board-menu-content"></div>`;
+    </div><div class="board-menu-home">
+      <div class="board-menu-columns">
+        <section class="board-menu-actions"><h3 data-ui-text="Actions"></h3><div class="board-menu-choices"></div></section>
+        <section class="board-menu-settings"><h3 data-ui-text="View & controls"></h3><div class="board-menu-quick"></div></section>
+      </div>
+      <div class="board-menu-footer"></div>
+    </div><div class="board-menu-content"></div>`;
   document.body.append(panel);
   for (const entry of triggers) {
     entry.setAttribute('popovertarget', panel.id);
@@ -27,6 +33,9 @@ export function mountBoardMenu(): () => void {
   const back = panel.querySelector<HTMLButtonElement>('[data-back]')!;
   const close = panel.querySelector<HTMLButtonElement>('[data-close]')!;
   const choices = panel.querySelector<HTMLElement>('.board-menu-choices')!;
+  const home = panel.querySelector<HTMLElement>('.board-menu-home')!;
+  const quick = panel.querySelector<HTMLElement>('.board-menu-quick')!;
+  const footer = panel.querySelector<HTMLElement>('.board-menu-footer')!;
   const content = panel.querySelector<HTMLElement>('.board-menu-content')!;
   interface MenuGroup {
     id: string;
@@ -36,16 +45,18 @@ export function mountBoardMenu(): () => void {
     reveal?: { button: string; panel: string };
   }
   const groups: MenuGroup[] = [
-    { id: 'record', label: 'Game', controls: [find('record-actions'), find('record-details')] },
     {
       id: 'tools',
-      label: 'Tool',
-      controls: [row('tool'), find('ink-control'), row('next-player')],
+      label: 'Record & edit',
+      controls: [
+        find('record-actions'),
+        find('record-details'),
+        row('tool'),
+        find('ink-control'),
+        row('next-player'),
+      ],
     },
-    { id: 'view', label: 'View', controls: [find('board-settings'), row('rotation')] },
     { id: 'textures', label: 'Stone textures', controls: [find('texture-host')] },
-    { id: 'touch', label: 'Touch placement', controls: [row('touch-mode')] },
-    { id: 'animation', label: 'Animation', controls: [row('animation')] },
     {
       id: 'comparison',
       label: 'Compare positions',
@@ -71,7 +82,18 @@ export function mountBoardMenu(): () => void {
       controls: [],
       launch: { button: 'support-open', dialog: 'support-dialog' },
     },
-    { id: 'preferences', label: 'Settings', controls: [find('preferences-host')] },
+    {
+      id: 'preferences',
+      label: 'All settings',
+      controls: [
+        find('board-settings'),
+        row('rotation'),
+        find('texture-host'),
+        row('animation'),
+        row('touch-mode'),
+        find('preferences-host'),
+      ],
+    },
     {
       id: 'scoring',
       label: 'Score position',
@@ -79,6 +101,25 @@ export function mountBoardMenu(): () => void {
       reveal: { button: 'score-open', panel: 'score-panel' },
     },
   ];
+  const quickControls = [
+    find('theme').closest<HTMLElement>('label')!,
+    row('animation'),
+    row('touch-mode'),
+  ];
+  const textureRow = document.createElement('div');
+  textureRow.className = 'board-menu-textures';
+  textureRow.innerHTML = `<span id="board-menu-texture-label" data-ui-text="Stone textures"></span><span class="board-menu-stone-previews" aria-hidden="true"></span>`;
+  setUiText(textureRow.firstElementChild as HTMLElement, 'Stone textures');
+  for (const color of ['black', 'white']) {
+    const preview = document.createElement('img');
+    preview.src =
+      color === 'black'
+        ? new URL('./assets/black-stone.webp', import.meta.url).href
+        : new URL('./assets/white-stone.webp', import.meta.url).href;
+    preview.alt = '';
+    textureRow.querySelector('.board-menu-stone-previews')!.append(preview);
+  }
+  const buttons = new Map<string, HTMLButtonElement>();
   let active: (typeof groups)[number] | undefined;
   let borrowed: { control: HTMLElement; placeholder: Comment }[] = [];
   const abort = new AbortController();
@@ -124,6 +165,14 @@ export function mountBoardMenu(): () => void {
     for (const { control, placeholder } of borrowed) placeholder.replaceWith(control);
     borrowed = [];
   }
+  function borrow(controls: HTMLElement[], destination: HTMLElement) {
+    for (const control of controls) {
+      const placeholder = document.createComment('board-menu control');
+      control.before(placeholder);
+      borrowed.push({ control, placeholder });
+      destination.append(control);
+    }
+  }
   function position() {
     if (!panel.matches(':popover-open')) return;
     const viewport = window.visualViewport;
@@ -149,17 +198,15 @@ export function mountBoardMenu(): () => void {
   function select(group?: (typeof groups)[number]) {
     restore();
     active = group;
-    choices.hidden = !!group;
+    home.hidden = !!group;
+    content.hidden = !group;
     back.hidden = !group;
     panel.dataset.section = group?.id ?? '';
     setUiText(title, group?.label ?? 'Board menu');
-    if (group) {
-      for (const control of group.controls) {
-        const placeholder = document.createComment('board-menu control');
-        control.before(placeholder);
-        borrowed.push({ control, placeholder });
-        content.append(control);
-      }
+    if (group) borrow(group.controls, content);
+    else {
+      borrow(quickControls, quick);
+      quickControls[0]!.after(textureRow);
     }
     panel.scrollTop = 0;
     position();
@@ -167,9 +214,16 @@ export function mountBoardMenu(): () => void {
   for (const group of groups) {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'button';
+    button.className = 'button board-menu-action';
     button.dataset.boardMenuSection = group.id;
-    setUiText(button, group.label);
+    const label = document.createElement('span');
+    setUiText(label, group.id === 'textures' ? 'Change' : group.label);
+    if (group.id === 'textures') {
+      label.id = 'board-menu-change-label';
+      button.setAttribute('aria-labelledby', 'board-menu-texture-label board-menu-change-label');
+    }
+    button.append(label);
+    buttons.set(group.id, button);
     button.addEventListener(
       'click',
       () => {
@@ -190,8 +244,13 @@ export function mountBoardMenu(): () => void {
       },
       { signal },
     );
-    choices.append(button);
   }
+  for (const id of ['tools', 'search', 'comparison', 'scoring', 'share', 'drafts'])
+    choices.append(buttons.get(id)!);
+  textureRow.append(buttons.get('textures')!);
+  footer.append(buttons.get('support')!, buttons.get('preferences')!);
+  for (const element of panel.querySelectorAll<HTMLElement>('[data-ui-text]'))
+    setUiText(element, element.dataset.uiText!);
   const disposeStatic = localizeUi(panel);
   const disposeLanguage = subscribeUiLanguage(() => {
     for (const entry of triggers) {
@@ -211,9 +270,7 @@ export function mountBoardMenu(): () => void {
     () => {
       const previous = active?.id;
       select();
-      choices
-        .querySelector<HTMLElement>(`[data-board-menu-section="${previous}"]`)
-        ?.focus({ preventScroll: true });
+      buttons.get(previous!)?.focus({ preventScroll: true });
     },
     { signal },
   );

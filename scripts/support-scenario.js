@@ -118,21 +118,21 @@ async (rootPage, studioControl) => {
       'Settings action did not open its menu',
     );
     await page.locator('#board-menu-panel [data-close]').click();
-    for (const [name, section] of [
-      ['Tool', 'tools'],
-      ['View', 'view'],
-      ['Touch placement', 'touch'],
-      ['Animation', 'animation'],
-      ['Stone textures', 'textures'],
-      ['Compare positions', 'comparison'],
-      ['Share', 'share'],
-      ['Score position', 'scoring'],
+    for (const [name, section, heading, focused] of [
+      ['Tool', 'tools', 'Record & edit'],
+      ['View', 'preferences', 'All settings', 'rotation'],
+      ['Touch placement', '', 'Board menu', 'touch-mode'],
+      ['Animation', '', 'Board menu', 'animation'],
+      ['Stone textures', 'textures', 'Stone textures'],
+      ['Compare positions', 'comparison', 'Compare positions'],
+      ['Share', 'share', 'Share'],
+      ['Score position', 'scoring', 'Score position'],
     ]) {
       await open();
       await page.locator('#support-query').fill(name);
       await page.locator('#support-actions').getByRole('button', { name, exact: true }).click();
       check(
-        (await page.locator('#board-menu-title').textContent()) === name &&
+        (await page.locator('#board-menu-title').textContent()) === heading &&
           (await page
             .locator('#board-menu-panel')
             .evaluate(
@@ -142,6 +142,13 @@ async (rootPage, studioControl) => {
             )),
         `Action routed to wrong section: ${name}`,
       );
+      if (focused)
+        check(
+          await page
+            .locator(`#${focused}`)
+            .evaluate((element) => document.activeElement === element),
+          `Help did not focus ${focused}`,
+        );
       await page.locator('#board-menu-panel [data-close]').click();
     }
     for (const [name, id] of [

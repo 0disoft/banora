@@ -155,11 +155,18 @@ Single-select dropdowns in Studio, shared widgets and examples place their chevr
 They remain native controls, with system appearance restored in forced-colors mode.
 SDK styles are scoped to owned widgets; host dropdowns and listboxes are unaffected.
 
-Studio's board header includes a menu icon for tools, view/export, stone textures,
-touch settings, animation, comparison, sharing, local drafts, settings and scoring. A viewport-bounded,
-nonmodal popover exposes the existing controls beside the board without scrolling
-to their lower-page sections. Controls are moved temporarily and restored on
-Back, outside click, Escape or close; values, handlers and record history are shared.
+Studio's board and application header menus share a viewport-bounded nonmodal
+popover. Its compact desktop home has two aligned columns: six direct actions
+(record/edit, search, comparison, scoring, sharing and local drafts) on the left,
+and editable board theme, stone-image access, animation/duration and touch settings
+on the right. Help and All settings sit in a separated footer. There is no
+separate launcher page for each small setting. At narrow widths the columns stack
+with bounded vertical scrolling. Record/edit combines collection information and
+editing tools; All settings combines appearance, rotation, stone-image uploads,
+animation, touch and saved-preference reset. SVG/PNG remain in the visible rail.
+Existing controls are borrowed temporarily and restored on Back, outside click,
+Escape or close; values, handlers and record history are shared. Help's action
+search opens the consolidated destination or focuses an inline setting directly.
 Comparison/scoring open on selection without resetting an already-open session.
 The menu follows all twelve Studio languages and restores keyboard focus on close.
 Escape also returns to the menu trigger when the final Undo disables its focused
@@ -169,7 +176,7 @@ dialog or outside control retains ownership of its keyboard interaction.
 Studio restores language, display size/theme, move-number visibility, rotation/
 reflection, touch mode/magnifier, animation enablement/duration, playback interval
 and autosave from validated per-field local preferences. Each interaction writes
-only its field; open tabs keep independent session values. **Settings → Reset
+only its field; open tabs keep independent session values. **All settings → Reset
 saved settings** restores browser-language/default presentation and pauses playback
 without changing SGF, selection, Undo, dirty/export baseline, drafts or unrelated
 storage. Corrupt/future settings remain untouched until that explicit reset;

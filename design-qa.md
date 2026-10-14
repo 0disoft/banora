@@ -1,98 +1,76 @@
-# Atelier Studio design QA
-
-Date: 2026-10-13
-
-final result: passed
+# Studio consolidated menu design QA
 
 ## Target and evidence
 
-The target is the user's selected Atelier attachment, not another generated
-concept. The exact reference was opened and copied without modification to
-`output/playwright/atelier-reference.png` (SHA-256
-`EE70CD077BF85FD79ECBBD9D9677DE98DE3C5143A343D92EA868E0F80CB6BC68`).
-The live consumer is `http://127.0.0.1:4317/studio/`.
-
-Reference and final desktop capture both measure 1488 × 1058 pixels. The live
-viewport is 1488 × 1058 CSS pixels, captured with CSS scale at approximately DPR 1.
-`output/playwright/atelier-desktop.png` shows Korean, wood, a 19 × 19 board,
-move 34, a selected commented position and paused 1-second playback. The authored
-35-move review fixture reproduces that interaction state without claiming to be
-a historical game. Its full position differs from the illustration. The mock's
-checked number toggle contradicts its unnumbered stones; the live toggle truthfully
-shows the SDK state. The live move count and dirty status also reflect actual data.
-
-`output/playwright/atelier-comparison.png` combines the reference and live capture
-in one visual input: the full composition at half scale, followed by native-density
-sidebar, toolbar and playback crops. That combined input was opened and reviewed
-after the final capture. `output/playwright/atelier-mobile.png` records the same
-position at 390 × 844 CSS pixels. These local, ignored artifacts are QA evidence,
-not source-of-truth design specifications or shipped assets.
-
-## Review iterations
-
-The initial comparison was blocked on P1/P2 findings. The final comparison uses
-the revised captures after these changes:
-
-| Finding                                                                                       | Resolution and post-fix evidence                                                                                                                                                   |
-| --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P1: Large board pushed playback below a 900-pixel desktop viewport.                           | Default board width respects viewport height; at 1440 × 900 the dock ends at 868 pixels. The final desktop composition keeps the dock beside the primary task.                     |
-| P1: Advanced controls moved into menus could hide search, support and recovery dialogs.       | Dialogs live independently on the document body, retain localization and dispose cleanly. Their functional browser scenarios passed.                                               |
-| P1: Default texture decoding delayed editor readiness and raced persisted preferences.        | Validated inline PNG textures initialize synchronously through the public SDK API; focused texture and preferences scenarios passed.                                               |
-| P2: Mobile header, control wrapping and sidebar order overflowed or obscured primary actions. | Header and toolbar wrap, board precedes sidebar, metadata remains first. The 390-pixel capture was inspected; 320/390-pixel checks found no horizontal page overflow.              |
-| P2: Menu replacement cancellation could leave keyboard focus on the body.                     | Invoking-control restoration falls back to the visible app menu when its original control is hidden, while respecting other modal focus. Keyboard guard scenarios passed.          |
-| P2: Navigating through a long variation list did not reveal the selected row.                 | Only the tree container scrolls to reveal selection, preserving page position. Tree-navigation checks passed.                                                                      |
-| P2: Display-only wood styling could make standalone exports transparent.                      | Export capture temporarily excludes the display skin; actual SVG and PNG downloads retain opaque board backgrounds and embedded stone tiles. Diagram and texture scenarios passed. |
-
-No actionable P0/P1/P2 finding remains within this redesign's scope.
+- Selected visual truth: third displayed concept,
+  `C:/Users/cherr/.codex/generated_images/01a12200-9d93-7ea2-8de1-69a7cb6b8e95/exec-10bda862-2a03-4123-bdef-8dcc3b46163b.png`.
+- Implementation: `http://127.0.0.1:4317/studio/`, Korean, board menu home open.
+- Source raster: 1374 × 1145 pixels; its menu is a close-up composition rather than
+  a CSS viewport specification. The owner selected the compact adaptation.
+- Desktop viewport: 1440 × 1000 CSS pixels, device scale factor 1.
+  Full screenshot: `output/playwright/menu-design-wide.png`.
+- Focused menu screenshot: `output/playwright/menu-design-panel.png`, 680 × 536
+  CSS/pixel dimensions. Review compares menu regions and relative hierarchy;
+  source and implementation are not asserted to have identical physical scale.
+- Narrow viewport and screenshot: 320 × 900 CSS/pixels, scale factor 1,
+  `output/playwright/menu-design-mobile.png`.
+- Source, focused implementation and narrow screenshot were opened together in
+  the same visual inspection input. Full desktop composition was also inspected.
 
 ## Required fidelity surfaces
 
-- Typography: serif Banora wordmark, readable existing system UI stack, localized
-  native controls and preserved accessible names. No externally hosted font.
-- Spacing: continuous 309-pixel desktop sidebar, compact toolstrip, centered square
-  board, separated comment editor and capsule transport. Mobile reflows rather
-  than shrinking the entire desktop page.
-- Colors: warm ivory surfaces, brown ink and terracotta selected/action tokens;
-  restrained borders and focus states.
-- Imagery: individually generated hinoki and black/white stone assets, optimized
-  to approximately 64 KiB total. Public SDK textures remain replaceable; real
-  library icons use Phosphor with its bundled MIT notice.
-- Copy: existing functional labels in English, Korean, Chinese and Japanese;
-  no introductory marketing copy, fictional save state or invented game length.
+- Typography: existing Noto Sans KR Variable is the first computed Korean font.
+  A 20px menu title and 14–15px labels preserve readable hierarchy at the intentionally
+  reduced menu size. Labels wrap instead of clipping.
+- Layout: two aligned columns, one vertical separator, six plain action rows,
+  inline controls and a separated footer match the selected structure. The 680px
+  width and tighter spacing are the requested compact adaptation. At narrow widths
+  columns stack and the viewport-bounded surface scrolls vertically.
+- Colors: existing ivory surface, terracotta accent and warm-gray borders are
+  reused. The sticky heading uses the same surface as the menu.
+- Images/icons: existing black/white stone WebP assets and Phosphor Regular icons
+  are reused. Stone thumbnails are decorative default-style illustrations rather
+  than a claim to preview a currently uploaded custom texture. No new raster assets
+  or icon library are required. Checkboxes retain native semantics and keyboard
+  behavior with switch styling; forced-colors restores native appearance.
+- Copy/content: record/edit combines the previous Game and Tool destinations;
+  simple settings no longer have separate menu destinations. Help and All settings
+  occupy the footer. All four new labels are present in eleven non-English catalogs
+  plus the derived English catalog. The existing touch magnifier remains available,
+  although the conceptual image did not depict that control.
 
-Remaining P3 differences: native font metrics make the comment wrap differently;
-the SDK board is truly square whereas the illustration is slightly rectangular;
-the real variation tree shows actual record rows; unsupported decorative tree
-actions from the illustration were omitted. These do not block this handoff.
+## Comparison history
 
-## Validation and limits
+- Initial inspection found a P2 missing Stone textures label. Its dynamically
+  created text binding was outside the panel during initial localization. Initialize
+  that binding directly. The updated focused screenshot shows the Korean stone-image label.
+- Refined the small inline boolean controls to match the reference switches;
+  retained their input elements, listeners and focus outlines.
+- Post-fix inspection of the focused desktop and narrow captures found no remaining
+  actionable P0/P1/P2 layout, copy or fidelity differences. Compact dimensions,
+  native dropdowns, existing labels and the extra touch magnifier are intentional.
 
-Passed locally: lint, format, TypeScript, repository boundaries, documentation
-checks, example production build, scenario-result unit checks and dependency
-audit. Chrome browser scenarios passed for accessibility guards, variation
-navigation, support, search, preferences, recovery, four locales, menus, playback,
-controlled boards, file drops, repetition rules, framework lifecycle, editing,
-classic distribution, transforms, diagrams, ink, touch, comparison and sharing.
-After correcting menu access in the texture tests, focused texture and animation
-runs passed; focused scoring and sharing runs also completed successfully.
+## Functional evidence and limits
 
-Earlier full-browser invocations stopped on outdated inline-control assumptions;
-they are not reported as a completed full-suite run. The passing prefix and final
-focused runs establish the affected behavior. SDK-wide unit/packaging/performance,
-unaffected analysis/puzzle scenarios, other browser engines and hosted CI were not
-repeated for this consumer redesign. Physical devices and screen readers remain
-owner-waived. Native page-zoom coverage was not newly completed in this pass.
-Cross-platform font rendering and untested engines remain practical limitations.
+- Production menu smoke: immediate inline settings, preference retention, all twelve
+  languages at desktop/320px widths, direct dialogs, focus restoration, Escape,
+  shared Undo, retained scoring sessions and pinch-zoom bounds passed.
+- Production saved-preference migration/reset and record/draft retention passed.
+- Production Help action discovery, including direct focus of inline animation/
+  touch controls and the consolidated record/settings destinations, passed after
+  updating the fixture's obsolete destination-heading expectations.
+- Production twelve-language locale smoke passed, including moved dialogs and
+  live failure-message bindings.
+- Browser visual session reported zero console errors.
+- Other browser engines, physical touch devices and native-speaker proofreading
+  are outside this focused UI increment. The full SDK/browser matrix is not needed
+  to establish this menu layout; it has not been rerun for this change.
 
-Product source of truth updated: `docs/product/02-spec.md`. Asset provenance and
-license details are in `examples/studio/assets/README.md`.
-Public SDK API, database contracts, repository hygiene configuration, package
-versions and CI workflows are unchanged. The local browser scenario wrapper now
-supplies a typed helper that opens real Studio menus before operating controls;
-it never forces clicks or changes hidden states to bypass the UI.
+## Implementation checklist
 
-Skills used: Product Design image-to-code/design-qa, Imagegen for material assets,
-Playwright, and repository feature, SDK, refactor, test-hardening and dependency
-upgrade guidance. Browser-client bootstrap was unavailable in this host; the
-already authorized Chrome CLI supplied actual rendered and functional evidence.
-No deployment or publication is part of this handoff.
+- [x] Consolidate command navigation and inline settings without duplicating inputs.
+- [x] Preserve shared state, borrowed-control restoration and modal focus ownership.
+- [x] Match selected layout with desktop and narrow visual inspection.
+- [x] Translate new labels and retain keyboard-operable native controls.
+
+final result: passed

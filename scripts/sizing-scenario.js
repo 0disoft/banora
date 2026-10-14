@@ -188,7 +188,7 @@ async (page) => {
   );
   await exportRecord('resize-after');
   await page.locator('#board-menu').click();
-  await page.locator('[data-board-menu-section="view"]').click();
+  await page.locator('[data-board-menu-section="preferences"]').click();
   verify(
     await page.locator('.diagram-actions').evaluate((element) => {
       const first = element.children[0].getBoundingClientRect(),

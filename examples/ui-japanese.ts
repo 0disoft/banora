@@ -1,6 +1,10 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const japaneseUi = {
+  'Record & edit': '棋譜・編集',
+  'View & controls': '表示・操作',
+  'All settings': 'すべての設定',
+  Change: '変更',
   'Good move': '好手',
   'Bad move': '悪手',
   'Choose a recorded move': '棋譜の着手点を選んでください',

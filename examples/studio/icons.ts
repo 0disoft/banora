@@ -16,6 +16,13 @@ import sound from '@phosphor-icons/core/assets/regular/speaker-high.svg?url';
 import muted from '@phosphor-icons/core/assets/regular/speaker-slash.svg?url';
 import fullscreen from '@phosphor-icons/core/assets/regular/arrows-out.svg?url';
 import restore from '@phosphor-icons/core/assets/regular/arrows-in.svg?url';
+import record from '@phosphor-icons/core/assets/regular/note-pencil.svg?url';
+import search from '@phosphor-icons/core/assets/regular/magnifying-glass.svg?url';
+import compare from '@phosphor-icons/core/assets/regular/split-horizontal.svg?url';
+import score from '@phosphor-icons/core/assets/regular/calculator.svg?url';
+import share from '@phosphor-icons/core/assets/regular/share-network.svg?url';
+import draft from '@phosphor-icons/core/assets/regular/file-text.svg?url';
+import help from '@phosphor-icons/core/assets/regular/question.svg?url';
 
 export function applyStudioIcons(): void {
   for (const [name, url] of Object.entries({
@@ -37,6 +44,13 @@ export function applyStudioIcons(): void {
     muted,
     fullscreen,
     restore,
+    record,
+    search,
+    compare,
+    score,
+    share,
+    draft,
+    help,
   }))
     document.documentElement.style.setProperty(`--icon-${name}`, `url("${url}")`);
 }

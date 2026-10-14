@@ -1,4 +1,8 @@
 export const koreanUi = {
+  'Record & edit': '기보·편집',
+  'View & controls': '보기·조작',
+  'All settings': '모든 설정',
+  Change: '변경',
   'Good move': '정수',
   'Bad move': '악수',
   'Choose a recorded move': '기보의 착수점을 선택하세요',

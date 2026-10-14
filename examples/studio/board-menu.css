@@ -1,0 +1,207 @@
+.board-menu-panel {
+  width: min(680px, calc(100vw - 24px));
+  padding: 20px;
+}
+.board-menu-heading {
+  margin-bottom: 20px;
+}
+.board-menu-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.board-menu-columns {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.85fr) minmax(0, 1.15fr);
+}
+.board-menu-panel h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+.board-menu-actions {
+  padding-right: 20px;
+}
+.board-menu-settings {
+  min-width: 0;
+  padding-left: 24px;
+  border-left: 1px solid var(--border);
+}
+.board-menu-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.board-menu-panel .board-menu-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  padding: 10px 8px;
+  min-height: 42px;
+  text-align: start;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.board-menu-panel .board-menu-action:hover {
+  background: #eee2d8;
+}
+.board-menu-choices .board-menu-action::before,
+.board-menu-footer [data-board-menu-section='support']::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  flex: none;
+  background: currentColor;
+  mask: var(--icon) center / contain no-repeat;
+}
+[data-board-menu-section='tools'] {
+  --icon: var(--icon-record);
+}
+[data-board-menu-section='search'] {
+  --icon: var(--icon-search);
+}
+[data-board-menu-section='comparison'] {
+  --icon: var(--icon-compare);
+}
+[data-board-menu-section='scoring'] {
+  --icon: var(--icon-score);
+}
+[data-board-menu-section='share'] {
+  --icon: var(--icon-share);
+}
+[data-board-menu-section='drafts'] {
+  --icon: var(--icon-draft);
+}
+[data-board-menu-section='support'] {
+  --icon: var(--icon-help);
+}
+.board-menu-quick > label,
+.board-menu-panel .board-menu-quick .editing-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin: 0;
+  padding: 16px 0;
+  border: 0;
+}
+.board-menu-quick > label {
+  padding-top: 0;
+}
+.board-menu-quick label:not(.checkbox) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.board-menu-quick .checkbox {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+.board-menu-quick label,
+.board-menu-textures {
+  font-size: 14px;
+  color: inherit;
+}
+.board-menu-quick .checkbox {
+  font-size: 14px !important;
+}
+.board-menu-quick input[type='checkbox'] {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border: 1px solid var(--muted);
+  border-radius: 20px;
+  background: #d4cec5;
+  cursor: pointer;
+}
+.board-menu-quick input[type='checkbox']::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fffdfa;
+}
+.board-menu-quick input[type='checkbox']:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.board-menu-quick input[type='checkbox']:checked::before {
+  left: 16px;
+}
+@media (forced-colors: active) {
+  .board-menu-quick input[type='checkbox'] {
+    appearance: auto;
+  }
+  .board-menu-quick input[type='checkbox']::before {
+    display: none;
+  }
+}
+.board-menu-quick select {
+  width: 100%;
+  height: 40px;
+  padding-block: 6px;
+  font-size: 14px;
+}
+.board-menu-textures {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.board-menu-stone-previews {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.board-menu-stone-previews img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+.board-menu-panel .board-menu-textures .button {
+  padding-inline: 4px;
+  color: var(--accent);
+}
+.board-menu-panel .board-menu-quick .editing-tools:has(#touch-mode) {
+  border-top: 1px solid var(--border);
+}
+.board-menu-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.board-menu-footer [data-board-menu-section='preferences'] {
+  color: var(--accent);
+}
+@media (max-width: 560px) {
+  .board-menu-panel {
+    padding: 16px;
+  }
+  .board-menu-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .board-menu-actions {
+    padding: 0 0 16px;
+  }
+  .board-menu-settings {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    padding: 16px 0 0;
+  }
+}

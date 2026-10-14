@@ -1,6 +1,10 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const chineseUi = {
+  'Record & edit': '棋谱与编辑',
+  'View & controls': '显示与操作',
+  'All settings': '全部设置',
+  Change: '更改',
   'Good move': '好棋',
   'Bad move': '恶手',
   'Choose a recorded move': '请选择棋谱中的落子点',

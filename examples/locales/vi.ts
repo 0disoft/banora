@@ -1,5 +1,9 @@
 import type { koreanUi } from '../ui-korean.js';
 export const viUi = {
+  'Record & edit': 'Kỳ phổ và chỉnh sửa',
+  'View & controls': 'Hiển thị và thao tác',
+  'All settings': 'Tất cả cài đặt',
+  Change: 'Thay đổi',
   'Good move': 'Nước hay',
   'Bad move': 'Nước dở',
   'Choose a recorded move': 'Chọn nước trong kỳ phổ',

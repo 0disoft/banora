@@ -1,5 +1,9 @@
 import type { koreanUi } from '../ui-korean.js';
 export const esUi = {
+  'Record & edit': 'Partida y edición',
+  'View & controls': 'Vista y controles',
+  'All settings': 'Todos los ajustes',
+  Change: 'Cambiar',
   'Good move': 'Buena jugada',
   'Bad move': 'Mala jugada',
   'Choose a recorded move': 'Elige una jugada registrada',

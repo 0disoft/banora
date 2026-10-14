@@ -1,5 +1,9 @@
 import type { koreanUi } from '../ui-korean.js';
 export const thUi = {
+  'Record & edit': 'บันทึกและแก้ไข',
+  'View & controls': 'มุมมองและการควบคุม',
+  'All settings': 'การตั้งค่าทั้งหมด',
+  Change: 'เปลี่ยน',
   'Good move': 'ตาที่ดี',
   'Bad move': 'ตาที่ไม่ดี',
   'Choose a recorded move': 'เลือกตาที่บันทึกไว้',
