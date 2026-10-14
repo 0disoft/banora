@@ -109,6 +109,9 @@ The [release](ops/release.md) and [rollback](ops/rollback.md) procedures own loc
 retained-artifact preparation, integrity checks and isolated restaging.
 [Maintainer recovery](ops/maintainer-recovery.md) owns source/artifact retention
 and offline Git restoration, distinct from private provider authentication.
+[Consolidated Studio menu deployment](engineering/33-studio-menu-deployment.md)
+records the compact menu, grouped settings, affected CI, public byte health and
+actual public-browser verification without a new npm release.
 [Demo deployment](ops/demo-deployment.md) records the public source, GitHub private
 reporting and manually deployed Pages site. npm authority remains separate; these procedures
 do not establish hosted-service infrastructure or publication.

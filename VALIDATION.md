@@ -14,6 +14,13 @@ In particular, migration-check is now configured as documented below.
 
 ## Standard Validation Names
 
+The [consolidated menu deployment](docs/engineering/33-studio-menu-deployment.md)
+records local root checks (272 tests), final focused Chrome menu/preferences/share
+checks, the corrected sharing-fixture assumption, successful affected hosted CI,
+457-file public byte health and actual public menu/mobile/SGF round-trip checks.
+The final hosted rerun selected sharing only; completion of the full browser
+matrix and other-engine/device execution is not claimed for this increment.
+
 After `bun run build:examples`, `bun scripts/browser-smoke.ts --locale-only`
 checks all twelve Studio language selections, header controls at desktop/mobile
 widths, localized search dialogs, saved selection on reload, Hindi/Thai browser

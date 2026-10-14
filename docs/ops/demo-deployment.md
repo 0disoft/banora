@@ -1,12 +1,13 @@
 # Demo Deployment
 
 Status: public GitHub source and private vulnerability reporting enabled on
-October 12, 2026. GitHub Pages deployment and live browser verification passed
-for the notice/localization patch at source `358198a` through
-[run 38505743666](https://github.com/0disoft/banora/actions/runs/38505743666);
-see the [follow-up execution record](../engineering/32-notice-localization-release.md).
-All 457 live files match, and live Chrome import/edit/export/reopen passed.
-The earlier `9844346` and `9c35e23` executions remain historical. npm publication is separate.
+October 12, 2026. The consolidated Studio menu is deployed at source `4b865b6`
+through [run 38561146638](https://github.com/0disoft/banora/actions/runs/38561146638).
+Build, deploy, live-byte health and original draft capture passed. All 457 files
+match; public Chrome menu/settings/mobile and actual SGF import/edit/export/reopen
+passed. See the [menu deployment record](../engineering/33-studio-menu-deployment.md).
+The notice/localization [run 38505743666](https://github.com/0disoft/banora/actions/runs/38505743666)
+and earlier executions remain historical. npm publication is separate.
 
 ## Ownership and Destination
 

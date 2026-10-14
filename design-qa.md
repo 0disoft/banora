@@ -95,3 +95,13 @@ The repeated language/viewport menu scenario exposed stale closed-popover bounds
 the menu now refreshes viewport constraints before opening. The final production
 menu scenario passed after that fix, including all twelve languages, desktop/
 narrow transitions, folded image uploads and restored control ownership.
+
+## Public verification
+
+Pages run `38561146638` deployed source `4b865b6`; the build identity was checked
+in an actual public Chrome session. `output/playwright/live-menu-desktop.png`,
+`output/playwright/live-menu-settings.png` and
+`output/playwright/live-menu-mobile.png` capture the live home/interior/narrow
+states. Direct search/focus return, inline animation, folded uploads and actual
+Unicode/unknown-property SGF download/reopen passed, with no page errors or failed
+site responses during that flow. Public byte health matched all 457 deployed files.
