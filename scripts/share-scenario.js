@@ -73,7 +73,11 @@ async (page, studioControl) => {
       (await notes.inputValue()) === '제로디 🦆 <img src=x onerror=alert(1)>',
       `${name}: Unicode/comment target lost`,
     );
-    verify((await page.locator('img').count()) === 0, `${name}: SGF comment interpreted as HTML`);
+    // Studio has owned stone thumbnails; reject the authored payload anywhere in the page.
+    verify(
+      (await page.locator('img[onerror], img[src="x"]').count()) === 0,
+      `${name}: SGF comment interpreted as HTML`,
+    );
     const count = await svg.locator('[data-stroke]').count();
     verify(count > 0, `${name}: shared ink missing`);
     await studioControl(page, '[data-share="create"]', 'share', () => selector('create').click());
