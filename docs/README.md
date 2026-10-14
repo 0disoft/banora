@@ -84,6 +84,9 @@ public-demo execution, source-to-evidence mapping and explicit remaining limits.
 [Studio/localization follow-up](engineering/31-studio-localization-release.md)
 records the selected compatible 0.1.1 family, refreshed Studio and twelve-language
 scope separately from the initial-release evidence.
+[Notice/localization patch](engineering/32-notice-localization-release.md) records
+the published 0.1.2 family, three-second notices, localized failures, hosted checks,
+fresh-registry health and verified public release recovery.
 
 The [terminal automation contract](sdk/automation.md) documents machine-readable
 commands, input limits and the external state authority boundary.

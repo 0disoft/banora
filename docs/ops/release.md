@@ -1,11 +1,17 @@
 # Release
 
-Status: five `0.1.1` packages published on `latest` through protected GitHub OIDC,
+Status: five `0.1.2` packages published on `latest` through protected GitHub OIDC,
 with fresh registry-download/installed-consumer health and retained public
 release recovery passed. Public source, GitHub Pages and private
 vulnerability reporting are configured. Support remains scoped to executed evidence.
 
 ## Initial Default-Channel Release
+
+The compatible `0.1.2` notice/failure localization patch passed hosted preparation
+`38507482467`, protected publication and fresh installed-consumer health
+`38507979327`. Its public `v0.1.2` release retains all reviewed archives and
+receipts; independently downloaded assets and the 572-file recovered bundle match.
+See the [execution record](../engineering/32-notice-localization-release.md).
 
 The follow-up `0.1.1` is now published, covering the refreshed Studio,
 variation/assessment additions and twelve-language catalogs. Its
@@ -133,8 +139,8 @@ reviewed Banora checkout with `bun run setup` completed. Commit intended changes
 `bun run release prepare` requires an actual clean Git checkout and private
 `banora-workspace` root. The five packages must use the same intentional version.
 The selected source release version is `0.1.2`; there is no automatic bump.
-This authorized patch is being prepared for the transient-notice and localized
-failure fixes; publication remains pending until recorded in the
+This authorized patch is published for the transient-notice and localized
+failure fixes, with preparation, publication and recovery recorded in the
 [execution record](../engineering/32-notice-localization-release.md).
 
 Preparation runs the root checks and private-file/dependency gates serially, builds

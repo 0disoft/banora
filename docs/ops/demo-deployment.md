@@ -2,10 +2,11 @@
 
 Status: public GitHub source and private vulnerability reporting enabled on
 October 12, 2026. GitHub Pages deployment and live browser verification passed
-for the twelve-language Studio at source `9844346` through
-[run 38431564271](https://github.com/0disoft/banora/actions/runs/38431564271);
-see the [follow-up execution record](../engineering/31-studio-localization-release.md).
-The earlier `9c35e23` execution remains historical. npm publication is separate.
+for the notice/localization patch at source `358198a` through
+[run 38505743666](https://github.com/0disoft/banora/actions/runs/38505743666);
+see the [follow-up execution record](../engineering/32-notice-localization-release.md).
+All 457 live files match, and live Chrome import/edit/export/reopen passed.
+The earlier `9844346` and `9c35e23` executions remain historical. npm publication is separate.
 
 ## Ownership and Destination
 

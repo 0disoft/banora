@@ -44,6 +44,9 @@ the [release record](../engineering/27-initial-default-channel-release-evidence.
 The compatible `0.1.1` follow-up is also published on the default channel, with
 fresh installed SDK/CLI/framework health and retained-release recovery; see its
 [execution record](../engineering/31-studio-localization-release.md).
+The `0.1.2` notice/failure localization patch also passed hosted preparation,
+fresh-registry installed consumers and public release recovery; see its
+[execution record](../engineering/32-notice-localization-release.md).
 This does not extend the executed environment matrix or promise a 1.0 API commitment.
 See [ADR 0023](../adr/0023-existing-publisher-package-identity.md). Actual symbols are
 listed in the [public API](public-api.md). CommonJS support is
@@ -439,10 +442,10 @@ types/artifacts rather than inferring compatibility from the plain-browser examp
 Scope checks and releases to changed packages and affected consumers; common SDK
 changes may require adapter checks, but unrelated edits do not require a full matrix.
 Record actual tested runtime versions in the [implementation status](../engineering/08-implementation-status.md).
-The current published common package source is `0.1.1`; no automatic version bump or
+The current published common package source is `0.1.2`; no automatic version bump or
 publication is configured. This compatible patch retains the existing SDK peer
 range and framework/runtime majors, as described in the
-[follow-up release](../engineering/31-studio-localization-release.md).
+[follow-up release](../engineering/32-notice-localization-release.md).
 
 Local [release preparation](../ops/release.md) checks retained exact tarballs and
 production examples from clean committed source, with independently installed

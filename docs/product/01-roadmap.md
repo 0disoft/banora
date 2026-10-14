@@ -1,18 +1,18 @@
 # Roadmap
 
 - Status: M1-M4 implementation/local exit evidence complete in the declared matrix;
-  see the [delivery audit](../engineering/10-delivery-audit.md). Follow-up `0.1.1`
+  see the [delivery audit](../engineering/10-delivery-audit.md). Follow-up `0.1.2`
   is published on the default npm channel with independent installed-consumer
-  health; see the [release record](../engineering/31-studio-localization-release.md).
+  health; see the [release record](../engineering/32-notice-localization-release.md).
 - Source of truth for capabilities: [Product specification](02-spec.md)
 
 Milestones establish delivery order, not release dates or completed functionality.
 Each implementation task should produce a small usable increment and a focused
 commit. The initial `0.1.0` family was published on the default channel under
 [ADR 0025](../adr/0025-initial-default-channel-release.md). The current published
-family is `0.1.1`, with compatible variation/assessment APIs and twelve-language
-localization plus the refreshed Studio; see the
-[follow-up release](../engineering/31-studio-localization-release.md).
+family is `0.1.2`, with compatible variation/assessment APIs, twelve-language
+localization, transient notices and localized failure feedback in the refreshed Studio; see the
+[follow-up release](../engineering/32-notice-localization-release.md).
 Development packages retain `0.1.0-dev.1` on `dev`. Later release versions remain UNDECIDED. Local
 implementation evidence alone does not establish publication or broader runtime support.
 
