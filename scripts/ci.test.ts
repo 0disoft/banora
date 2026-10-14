@@ -131,6 +131,24 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
       if (command[0] === 'run') expect(Object.hasOwn(metadata.scripts, command[1]!)).toBe(true);
 });
 
+test('manual CI without event diff metadata reaches the complete read-only check plan', async () => {
+  const workflow = Bun.YAML.parse(await readFile('.github/workflows/ci.yml', 'utf8')) as {
+    jobs: { validate: { env: { BASE_SHA: string } } };
+  };
+  const fallback = workflow.jobs.validate.env.BASE_SHA.match(/'([0]{40})'/)?.[1];
+  expect(fallback).toBeDefined();
+  const result = Bun.spawnSync(
+    [process.execPath, 'scripts/ci.ts', 'plan', '--base', fallback!, '--head', 'HEAD', '--dry-run'],
+    { stdout: 'pipe', stderr: 'pipe' },
+  );
+  expect(result.exitCode).toBe(0);
+  const plan = JSON.parse(result.stdout.toString());
+  expect(plan.paths).toBeNull();
+  expect(plan.plan).toMatchObject({ browser: ['all'], adapters: true, starter: true, audit: true });
+  expect(plan.commands).toContainEqual(['scripts/browser-smoke.ts']);
+  expect(workflowSignals(workflow)).toEqual([]);
+});
+
 test('manual candidate preparation keeps read-only authority and selects code verification without hiding mixed runtime changes', async () => {
   const path = '.github/workflows/prepare-release.yml';
   const isolated = planChecks([path, 'scripts/release.ts', 'scripts/publication-plan.ts']);

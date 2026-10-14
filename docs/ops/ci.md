@@ -41,7 +41,10 @@ Actual tool/dependency versions appear in setup/doctor output.
 
 `scripts/ci.ts` compares verified commit IDs using Git's NUL-separated path output.
 Deleted/renamed paths remain visible; unknown or unavailable comparisons select
-full checks. The public local routes are:
+full checks. A manual workflow dispatch supplies a nonempty zero-SHA sentinel
+because it has neither PR base metadata nor a push `before` value. The planner
+therefore selects complete checks instead of failing argument parsing on an empty
+`--base`. Push and PR comparisons keep their actual commit IDs. The public local routes are:
 
 ```sh
 bun run ci:plan --base HEAD~1 --head HEAD

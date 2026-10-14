@@ -31,6 +31,11 @@ custom message bags gain no required fields. All five package versions advance
 together to `0.1.2`; compatible SDK peer ranges and framework/tool majors remain
 unchanged. There is no database, saved-data migration, credential, repository
 hygiene or CI authority change. The headless module inventory registers the helper.
+The existing CI workflow's manual dispatch now supplies a zero-SHA fallback when
+event diff metadata is absent; this selects full checks without changing permissions,
+events, job count, concurrency or normal push/PR comparisons. Manual run
+`38506787214` exposed the old empty-argument failure. The actual CLI boundary is
+covered by a workflow/plan regression test. Local full browser smoke also passed.
 
 ## Executed Local Validation
 
