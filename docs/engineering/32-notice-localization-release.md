@@ -3,6 +3,19 @@
 Status: authorized `0.1.2` preparation; hosted preparation, public demo deployment
 and npm publication are pending. The prior published version remains `0.1.1`.
 
+The first hosted preparation stopped in its full browser gate because the support
+consent-race fixture still waited for the old raw `Invalid SGF point` exception.
+The fixture now checks the localized SGF-property explanation while retaining all
+opt-in/disable/clear and private-content assertions. No runtime change was needed.
+Preparation `38505740808` retained no approved candidate and published no packages.
+The focused support browser check, lint, format and documentation checks passed
+after correcting this assertion.
+
+Pages run `38505743666` successfully deployed runtime source `358198a` and passed
+live-byte health/archive. Public Chrome verified Korean/English rejection feedback,
+three-second expiration, dirty-state retention and SGF import/edit/export/reopen,
+including Korean text, literal `<tag>`/`$&` content and unknown SGF properties.
+
 ## Changes and Compatibility
 
 Source fixes `dd5d09e` and `0184c11` add three-second Studio action notices and

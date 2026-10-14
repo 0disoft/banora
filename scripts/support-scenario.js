@@ -256,8 +256,10 @@ async (rootPage, studioControl) => {
         delete window.releaseFileRead;
         await complete();
       });
-      await page.waitForFunction(() =>
-        document.querySelector('#status').textContent.includes('Invalid SGF point'),
+      await page.waitForFunction(
+        () =>
+          document.querySelector('#status').textContent ===
+          'The SGF file contains invalid properties.',
       );
     };
     await upload('(;SZ[5];B[PrivatePending])');
