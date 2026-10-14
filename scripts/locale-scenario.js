@@ -492,6 +492,29 @@ async (page, studioControl) => {
     await expanded.reload();
     if ((await expanded.locator('#language').inputValue()) !== 'ms')
       throw Error('New language preference did not survive reload');
+    await expanded.locator('#tool').selectOption('good-move');
+    const rejectUnrecordedPoint = async () => {
+      await expanded.locator('#board svg').focus();
+      await expanded.keyboard.press('Enter');
+      await expanded.waitForFunction(() => document.querySelector('#status').textContent !== '');
+    };
+    await rejectUnrecordedPoint();
+    await expanded.waitForTimeout(1800);
+    await rejectUnrecordedPoint();
+    await expanded.locator('#language').selectOption('ko');
+    await expanded.waitForTimeout(1800);
+    if (!(await expanded.locator('#status').isVisible()))
+      throw Error('The previous notice timer dismissed newer feedback');
+    await expanded.waitForFunction(
+      () => document.querySelector('#status').textContent === '',
+      undefined,
+      {
+        timeout: 2000,
+      },
+    );
+    await expanded.locator('#language').selectOption('ms');
+    if (await expanded.locator('#status').isVisible())
+      throw Error('Changing language revived expired feedback');
     const sdkResult = await expanded.evaluate(async () => {
       const {
         SUPPORTED_LOCALES,

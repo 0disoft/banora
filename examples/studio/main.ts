@@ -56,6 +56,7 @@ import { mountWorkspaceTabs } from './workspace-tabs.js';
 import { mountPlacementSound } from './placement-sound.js';
 import { mountBoardSizing } from './board-sizing.js';
 import { mountFullscreen } from './fullscreen.js';
+import { mountStatusNotice } from './status-notice.js';
 import { mountVariationMenu } from './variation-menu.js';
 import { applySetupPoint, coordinateTitle, setupNodeTitle } from './setup-editing.js';
 import './atelier.css';
@@ -104,9 +105,10 @@ for (const [value, label] of [
   setUiText(option, label!);
   tool.append(option);
 }
-const status = find('status');
+const statusNotice = mountStatusNotice(find('status'));
+const showStatus = statusNotice.show;
 const disposeFullscreen = mountFullscreen(find<HTMLButtonElement>('fullscreen'), () => {
-  status.textContent = translateUi('Fullscreen unavailable');
+  showStatus('Fullscreen unavailable');
 });
 const dialog = find<HTMLDialogElement>('unsaved');
 const file = find<HTMLInputElement>('file');
@@ -141,8 +143,7 @@ function report(
       )
     : undefined;
   if (!result.ok)
-    setUiText(
-      status,
+    showStatus(
       (result.diagnostics?.map((item) => item.message).join('; ') ??
         `Action rejected: ${result.reason.replaceAll('-', ' ')}.`) + (id ? ` (${id})` : ''),
     );
@@ -182,7 +183,7 @@ const view = mountBoard(find('board'), {
       if (mode !== 'erase') {
         if (target)
           report(controller.setMoveAssessment(mode === 'good-move' ? 'good' : 'bad', target.id));
-        else setUiText(status, 'Choose a recorded move');
+        else showStatus('Choose a recorded move');
         return;
       }
       if (target && getMoveAssessment(target)) {
@@ -203,7 +204,7 @@ const view = mountBoard(find('board'), {
       const state = controller.getState();
       if (!connectionStart || connectionStart.node !== state.node.id) {
         connectionStart = { point, node: state.node.id };
-        setUiText(status, `Choose the second point for this ${mode}. Escape cancels.`);
+        showStatus(`Choose the second point for this ${mode}. Escape cancels.`);
       } else {
         const start = connectionStart.point;
         connectionStart = undefined;
@@ -216,8 +217,7 @@ const view = mountBoard(find('board'), {
         );
         const result = controller.setConnection(start, point, mode, !existing);
         if (result.ok)
-          setUiText(
-            status,
+          showStatus(
             `${mode === 'arrow' ? 'Arrow' : 'Line'} ${existing ? 'removed' : 'added'}. Choose two points to draw another.`,
           );
         else report(result);
@@ -460,13 +460,13 @@ function exportRecord(): boolean {
     link.click();
     link.remove();
     report(controller.acknowledgeExport(ticket.id), 'export', false);
-    setUiText(status, 'SGF download started.');
+    showStatus('SGF download started.');
     complete({ status: 'success' });
     return true;
   } catch (error) {
     controller.cancelExport(ticket.id);
     complete({ status: 'failure', failure: describeDiagnosticFailure('io', 'write') });
-    setUiText(status, `Export failed: ${String(error)}`);
+    showStatus(`Export failed: ${String(error)}`);
     return false;
   } finally {
     if (url) setTimeout(() => URL.revokeObjectURL(url!), 30_000);
@@ -533,7 +533,7 @@ async function openRecord(
         failure: describeDiagnosticFailure('sgf', parsed.diagnostics[0]?.code),
       });
       finished = true;
-      setUiText(status, parsed.diagnostics.map((item) => item.message).join('; '));
+      showStatus(parsed.diagnostics.map((item) => item.message).join('; '));
       return false;
     }
     const approved = await mayReplace(signal);
@@ -544,7 +544,7 @@ async function openRecord(
         failure: describeDiagnosticFailure('controller', 'stale-preview'),
       });
       finished = true;
-      setUiText(status, 'Record changed during approval. Open it again.');
+      showStatus('Record changed during approval. Open it again.');
       return false;
     }
     const previousName = workspace.active.filename;
@@ -560,7 +560,7 @@ async function openRecord(
       report(result, 'import', false);
       return false;
     }
-    setUiText(status, `Opened ${workspace.active.filename}.`);
+    showStatus(`Opened ${workspace.active.filename}.`);
     complete({ status: 'success' });
     finished = true;
     return true;
@@ -580,7 +580,7 @@ async function openFile(selected?: File): Promise<void> {
     generation === controller.getState().recordGeneration;
   if (selected.size > 5 * 1024 * 1024) {
     complete({ status: 'failure', failure: describeDiagnosticFailure('sgf', 'limit') });
-    setUiText(status, 'SGF file exceeds the 5 MiB input limit.');
+    showStatus('SGF file exceeds the 5 MiB input limit.');
     return;
   }
   try {
@@ -596,7 +596,7 @@ async function openFile(selected?: File): Promise<void> {
         ? { status: 'failure', failure: describeDiagnosticFailure('io', 'read') }
         : { status: 'cancelled' },
     );
-    if (current()) setUiText(status, `Could not open file: ${String(error)}`);
+    if (current()) showStatus(`Could not open file: ${String(error)}`);
   }
 }
 async function openCheckpoint(input: unknown, name: string, signal: AbortSignal): Promise<boolean> {
@@ -612,7 +612,7 @@ async function openCheckpoint(input: unknown, name: string, signal: AbortSignal)
         failure: describeDiagnosticFailure('controller', 'invalid-checkpoint'),
       });
       finished = true;
-      setUiText(status, 'Invalid backup. Current record kept.');
+      showStatus('Invalid backup. Current record kept.');
       return false;
     }
     const approved = await mayReplace(signal);
@@ -623,7 +623,7 @@ async function openCheckpoint(input: unknown, name: string, signal: AbortSignal)
         failure: describeDiagnosticFailure('controller', 'stale-preview'),
       });
       finished = true;
-      setUiText(status, 'Record changed during approval. Open it again.');
+      showStatus('Record changed during approval. Open it again.');
       return false;
     }
     const previousName = workspace.active.filename;
@@ -639,7 +639,7 @@ async function openCheckpoint(input: unknown, name: string, signal: AbortSignal)
       report(result, 'restore', false);
       return false;
     }
-    setUiText(status, 'Draft restored.');
+    showStatus('Draft restored.');
     complete({ status: 'success' });
     finished = true;
     return true;
@@ -674,7 +674,7 @@ const disposeWorkspaceSwitch = workspace.beforeSwitch(() => {
   comparison?.dispose();
   comparison = undefined;
   find('comparison-panel').hidden = true;
-  status.textContent = '';
+  statusNotice.clear();
 });
 find('export').addEventListener('click', exportRecord);
 find('previous').addEventListener('click', () => report(controller.previous(), 'navigate'));
@@ -825,9 +825,9 @@ async function exportDiagram(format: 'svg' | 'png') {
     link.download = name;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
-    setUiText(status, 'Diagram download started.');
+    showStatus('Diagram download started.');
   } catch (error) {
-    setUiText(status, `Diagram export failed: ${String(error)}`);
+    showStatus(`Diagram export failed: ${String(error)}`);
   }
 }
 find('svg-export').addEventListener('click', () => {
@@ -877,7 +877,7 @@ games.addEventListener('change', () =>
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && connectionStart) {
     connectionStart = undefined;
-    setUiText(status, 'Connection cancelled.');
+    showStatus('Connection cancelled.');
   }
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
     return;
@@ -899,6 +899,7 @@ window.addEventListener('pagehide', (event) => {
     disposed = true;
     placementSound.dispose();
     disposeFullscreen();
+    statusNotice.dispose();
     disposeBoardSizing();
     disposeWorkspaceTabs();
     disposeWorkspaceSwitch();

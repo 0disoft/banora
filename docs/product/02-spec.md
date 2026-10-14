@@ -119,8 +119,12 @@ copy. File actions sit in a compact 60px desktop header directly above the works
 on narrow screens the header wraps with reduced vertical padding.
 Keyboard guidance is available
 through localized tooltips rather than persistent paragraphs; texture help lists
-only accepted formats and size limits. The idle status is empty, while errors,
-active operations and unsaved-change confirmations remain visible. Sharing includes
+only accepted formats and size limits. The idle status is empty. Transient action
+feedback, including rejected moves and file/export messages, disappears three
+seconds after the latest notice. A newer notice restarts its timer, language
+changes do not extend it or revive expired feedback, and disposal clears pending
+timers. The separate unsaved-record indicator and unsaved-change confirmations
+remain visible while relevant. Sharing includes
 a concise link-access notice. Korean, Chinese, Japanese, Hindi and Thai Studio UI
 prioritize self-hosted Noto Sans KR, SC, JP, Devanagari and Thai respectively for
 all text, including Latin text and numbers, controls and dialog headings. English,

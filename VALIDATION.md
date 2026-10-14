@@ -21,6 +21,9 @@ detection and Viewer/comparison locale updates without changing authored state.
 The twelve-language modal checks begin with a Korean browser locale and assert
 exact search/help/draft headings and close labels after each switch, covering
 the moved-modal binding regression rather than only rejecting English text.
+They also check three-second transient feedback, replacement of the previous
+timer and language changes without reviving expired notices. The persistent
+unsaved-record indicator is separate from these notices.
 The locale, Studio catalog and preference tests enforce full key/placeholder
 coverage, literal authored substitutions and all supported browser language tags.
 Focused Chrome font inspection verified locally served custom font glyphs for all
