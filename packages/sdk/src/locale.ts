@@ -8,6 +8,7 @@ import { id } from './locale-id.js';
 import { vi } from './locale-vi.js';
 import { th } from './locale-th.js';
 import { ms } from './locale-ms.js';
+export { formatUiFailure } from './locale-failures.js';
 
 export { SUPPORTED_LOCALES } from './locale-codes.js';
 export type { BanoraLocale } from './locale-codes.js';

@@ -95,7 +95,8 @@ async (page, studioControl) => {
     verify((await component('deadPrisoners')) === 2, 'Keyboard group selection failed');
     await studioControl(page, '#score-komi', 'scoring', () => page.locator('#score-komi').fill(''));
     verify(
-      (await page.locator('#score-result').innerText()).startsWith('Cannot calculate') &&
+      (await page.locator('#score-result').innerText()) ===
+        'Check the komi, handicap and score adjustments.' &&
         (await page.locator('#score-breakdown tbody tr').count()) === 0,
       'Invalid input retained a stale report',
     );

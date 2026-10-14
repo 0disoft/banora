@@ -24,6 +24,19 @@ the moved-modal binding regression rather than only rejecting English text.
 They also check three-second transient feedback, replacement of the previous
 timer and language changes without reviving expired notices. The persistent
 unsaved-record indicator is separate from these notices.
+The same focused scenario now exercises occupied intersections and invalid SGF
+imports in all twelve languages, preserving stones and dirty state. Live texture,
+sharing and scoring failures follow each language switch without reverting to raw
+codes or English exception text. Unit coverage exhausts controller/SGF/score/share
+failure unions in every locale, including unknown-code fallback and invalid locales.
+For this notice/failure follow-up, `build:examples` and `check` passed (271 tests,
+53 test files, packed SDK/classic/CLI consumers), along with Chrome `--locale-only`,
+`--scoring-only`, `--share-only`, `--texture-only` and `--drop-only` browser checks.
+The static Studio/menu/dialog catalog audit found no missing owned labels outside
+intentional language names, format identifiers, brands and authored/default record
+content. The full browser matrix and other engines were not rerun; focused scenarios
+cover the changed feedback and file/control paths. Native-speaker proofreading is
+not part of these automated checks.
 The locale, Studio catalog and preference tests enforce full key/placeholder
 coverage, literal authored substitutions and all supported browser language tags.
 Focused Chrome font inspection verified locally served custom font glyphs for all

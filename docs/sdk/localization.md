@@ -3,12 +3,22 @@
 The optional `@0disoft/banora/locale` module (also exported from the root and classic
 browser global) provides `BanoraLocale`, `LocaleOptions`, `UiMessages`,
 `createUiMessages(options)`, `formatUiMessage(template, values)` and
-`createBoardLabels(options)` and the immutable `SUPPORTED_LOCALES` list. Built-in
+`createBoardLabels(options)`, `formatUiFailure(code, {locale?})` and the immutable
+`SUPPORTED_LOCALES` list. Built-in
 languages are English (`en`), Chinese (`zh`, simplified characters), Hindi (`hi`),
 Spanish (`es`), French (`fr`), Russian (`ru`), Indonesian (`id`), Japanese (`ja`),
 Vietnamese (`vi`), Korean (`ko`), Thai (`th`) and Malay (`ms`). SDK defaults are
 explicitly English; they never read navigator, local storage, or a machine locale.
 These helpers are DOM-free.
+
+`formatUiFailure` presents controller reasons directly (for example `occupied`),
+SGF diagnostic categories as `sgf-${code}`, score reasons as `score-${reason}` and
+share reasons as `share-${reason}`. Texture and file feedback use `texture`,
+`io-read`, `io-write` and `io-diagram`. Every category has a human explanation in
+all twelve languages. Unknown codes use a localized generic explanation; arbitrary
+error text is never echoed. Unsupported locales and nonstring codes throw
+`TypeError`. Existing command results, diagnostic details and machine codes are
+unchanged. No new required fields are added to custom `UiMessages` bags.
 
 `mountViewer`, `mountComparison` and `mountPlaybackControls` accept `locale` and an optional
 `messages: Partial<UiMessages>` bag. Framework Viewer props forward both options.
@@ -69,9 +79,13 @@ Search, help and draft modals bind their original static labels after moving int
 their permanent document owner. A non-English initial mount therefore keeps
 working when switching to any supported language, including back to English.
 Every static catalog must cover the same keys as Korean at compile time.
-Dynamic counts, board names, scoring results and error prefixes use shared typed
-templates with literal placeholder substitution. Runtime diagnostics retain their
-stable detail text, and locale codes also apply to diagnostic environment reports.
+Dynamic counts, board names and scoring results use shared typed templates with
+literal placeholder substitution. Rejected moves, SGF imports, file/diagram exports,
+sharing, textures and scoring failures display localized explanations rather than
+raw machine reasons or exception text. Visible feedback follows language changes;
+switching languages does not restart or revive Studio's three-second action notice.
+Viewer failures also follow `viewer.update({locale})`. Diagnostic collection retains
+its stable machine codes and detail contract, and locale codes also apply to diagnostic environment reports.
 Underlying protocol/diagnostic details and rule IDs remain English/stable, and
 linked puzzle/analysis consumer pages retain their current English UI. The comparison
 widget follows Studio's current language, including when already open.

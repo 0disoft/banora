@@ -515,6 +515,94 @@ async (page, studioControl) => {
     await expanded.locator('#language').selectOption('ms');
     if (await expanded.locator('#status').isVisible())
       throw Error('Changing language revived expired feedback');
+    await expanded.setViewportSize({ width: 1440, height: 1000 });
+    await expanded.locator('#language').selectOption('en');
+    await expanded.locator('#tool').selectOption('play');
+    await expanded.locator('#board svg').focus();
+    await expanded.keyboard.press('Enter');
+    await expanded.keyboard.press('Enter');
+    const failureText = (code, locale) =>
+      expanded.evaluate(
+        async ({ code, locale }) => {
+          const { formatUiFailure } = await import('/sdk/index.js');
+          return formatUiFailure(code, { locale });
+        },
+        { code, locale },
+      );
+    for (const [locale] of cases) {
+      await expanded.locator('#language').selectOption(locale);
+      const expected = await failureText('occupied', locale);
+      if ((await expanded.locator('#status').textContent()) !== expected)
+        throw Error(`Visible move rejection did not follow the language: ${locale}`);
+      await expanded.locator('#board svg').focus();
+      await expanded.keyboard.press('Enter');
+      if (
+        (await expanded.locator('#board [data-stone]').count()) !== 1 ||
+        (await expanded.locator('#status').textContent()) !== expected
+      )
+        throw Error(`Rejected move changed stones or leaked an error code: ${locale}`);
+    }
+    await expanded.waitForFunction(() => document.querySelector('#status').textContent === '');
+    await expanded.locator('#language').selectOption('ko');
+    if (
+      (await expanded.locator('#status').isVisible()) ||
+      (await expanded.locator('#dirty').textContent()) !== '저장하지 않은 변경'
+    )
+      throw Error('Expired rejection revived or hid the persistent dirty indicator');
+    await expanded.locator('#undo').click();
+    // Invalid imports must leave the record untouched and translate the SGF category.
+    for (const [locale] of cases) {
+      await expanded.locator('#language').selectOption(locale);
+      await expanded.locator('#file').setInputFiles({
+        name: 'invalid.sgf',
+        mimeType: 'application/x-go-sgf',
+        buffer: Buffer.from('('),
+      });
+      await expanded.waitForFunction(() => document.querySelector('#status').textContent !== '');
+      if (
+        (await expanded.locator('#status').textContent()) !==
+          (await failureText('sgf-syntax', locale)) ||
+        (await expanded.locator('#board [data-stone]').count()) !== 0
+      )
+        throw Error(`Invalid SGF feedback was not translated or changed the record: ${locale}`);
+    }
+    // Keep real asynchronous texture, sharing and scoring failures visible while switching languages.
+    await studioControl(expanded, '[data-texture-file="black"]', 'textures', () =>
+      expanded.locator('[data-texture-file="black"]').setInputFiles({
+        name: 'spoof.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from('<svg/>'),
+      }),
+    );
+    await expanded.waitForFunction(
+      () => document.querySelector('[data-texture-status="black"]').dataset.uiFailure === 'texture',
+    );
+    await studioControl(expanded, '[data-share="input"]', 'share', () =>
+      expanded.locator('[data-share="input"]').fill('not-a-link'),
+    );
+    await studioControl(expanded, '[data-share="open"]', 'share', () =>
+      expanded.locator('[data-share="open"]').click(),
+    );
+    await studioControl(expanded, '#score-open', 'scoring', () =>
+      expanded.locator('#score-open').click(),
+    );
+    await studioControl(expanded, '#score-komi', 'scoring', () =>
+      expanded.locator('#score-komi').fill(''),
+    );
+    for (const [locale] of cases) {
+      await expanded.locator('#language').selectOption(locale);
+      for (const [selector, code] of [
+        ['[data-texture-status="black"]', 'texture'],
+        ['[data-share="status"]', 'share-invalid-url'],
+        ['#score-result', 'score-invalid-options'],
+      ]) {
+        if (
+          (await expanded.locator(selector).getAttribute('data-ui-failure')) !== code ||
+          (await expanded.locator(selector).textContent()) !== (await failureText(code, locale))
+        )
+          throw Error(`Failure translation did not follow the language: ${locale}/${code}`);
+      }
+    }
     const sdkResult = await expanded.evaluate(async () => {
       const {
         SUPPORTED_LOCALES,

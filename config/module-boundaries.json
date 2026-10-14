@@ -23,6 +23,7 @@
     "katago-protocol",
     "locale",
     "locale-codes",
+    "locale-failures",
     "locale-es",
     "locale-fr",
     "locale-hi",

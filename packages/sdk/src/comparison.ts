@@ -5,7 +5,7 @@ import type { RecordController } from './controller.js';
 import { displayCrop, normalizeBoardTransform } from './geometry.js';
 import { normalizeStoneTextures } from './stone-textures.js';
 import { selectStyles } from './select-style.js';
-import { createUiMessages, createBoardLabels, formatUiMessage } from './locale.js';
+import { createUiMessages, createBoardLabels, formatUiMessage, formatUiFailure } from './locale.js';
 import type { LocaleOptions } from './locale.js';
 import { pointFromSgf } from './sgf.js';
 import { boardColumnLabel } from './board-layout.js';
@@ -106,10 +106,10 @@ export function mountComparison(
       () => {
         try {
           update({ [side]: select.value });
-        } catch (error) {
+        } catch {
           render();
           summary.textContent = formatUiMessage(ui.comparisonRejected, {
-            reason: error instanceof Error ? error.message : String(error),
+            reason: formatUiFailure('node-not-found', localeOptions),
           });
         }
       },

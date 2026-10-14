@@ -1,5 +1,10 @@
 import type { BanoraLocale } from '@0disoft/banora/locale';
-import { SUPPORTED_LOCALES, createUiMessages, formatUiMessage } from '@0disoft/banora/locale';
+import {
+  SUPPORTED_LOCALES,
+  createUiMessages,
+  formatUiMessage,
+  formatUiFailure,
+} from '@0disoft/banora/locale';
 import { koreanUi } from './ui-korean.js';
 import { uiCatalogs, uiPatterns } from './ui-catalogs.js';
 let locale: BanoraLocale = 'en';
@@ -85,8 +90,15 @@ export function translateUi(text: string, activeLocale: BanoraLocale = locale): 
 }
 /** Call only on SDK/example-owned UI text, never on authored SGF fields or inputs. */
 export function setUiText(element: HTMLElement, english: string): void {
+  delete element.dataset.uiFailure;
   element.dataset.uiText = english;
   element.textContent = translateUi(english);
+}
+/** Keep the machine code separate from displayed feedback so language changes remain live. */
+export function setUiFailure(element: HTMLElement, code: string): void {
+  delete element.dataset.uiText;
+  element.dataset.uiFailure = code;
+  element.textContent = formatUiFailure(code, { locale });
 }
 /** Bind initial static UI once, before authored fields are populated. No DOM observer. */
 export function localizeUi(root: Element): () => void {
@@ -97,7 +109,7 @@ export function localizeUi(root: Element): () => void {
     const node = walker.currentNode as Text;
     if (
       node.parentElement?.closest(
-        'script,style,svg,textarea,[data-ui-text],#game-name,#black-name,#white-name,#language',
+        'script,style,svg,textarea,[data-ui-text],[data-ui-failure],#game-name,#black-name,#white-name,#language',
       )
     )
       continue;
@@ -124,4 +136,6 @@ export function setUiLocale(next: BanoraLocale): void {
   for (const listener of [...listeners]) listener();
   for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]'))
     element.textContent = translateUi(element.dataset.uiText!);
+  for (const element of document.querySelectorAll<HTMLElement>('[data-ui-failure]'))
+    element.textContent = formatUiFailure(element.dataset.uiFailure!, { locale });
 }

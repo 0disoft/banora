@@ -215,7 +215,7 @@ async (page, studioControl) => {
       await drop(older, 'delayed-invalid.sgf');
       await drop(Buffer.from('(bad'), 'latest-invalid.sgf');
       await page.waitForFunction(() =>
-        document.querySelector('#status').textContent.includes('Unexpected'),
+        document.querySelector('#status').textContent.includes('SGF file has invalid syntax'),
       );
       await page.evaluate(() => window.finishFileRead());
       verify(

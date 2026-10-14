@@ -1,4 +1,9 @@
-import { createUiMessages, createBoardLabels, formatUiMessage } from '@0disoft/banora/locale';
+import {
+  createUiMessages,
+  createBoardLabels,
+  formatUiMessage,
+  formatUiFailure,
+} from '@0disoft/banora/locale';
 import type { BanoraLocale } from '@0disoft/banora/locale';
 import {
   getUiLocale,
@@ -144,8 +149,11 @@ function report(
     : undefined;
   if (!result.ok)
     showStatus(
-      (result.diagnostics?.map((item) => item.message).join('; ') ??
-        `Action rejected: ${result.reason.replaceAll('-', ' ')}.`) + (id ? ` (${id})` : ''),
+      () =>
+        (result.diagnostics
+          ?.map((item) => formatUiFailure(`sgf-${item.code}`, { locale: getUiLocale() }))
+          .join('; ') ?? formatUiFailure(result.reason, { locale: getUiLocale() })) +
+        (id ? ` (${id})` : ''),
     );
 }
 const view = mountBoard(find('board'), {
@@ -463,10 +471,10 @@ function exportRecord(): boolean {
     showStatus('SGF download started.');
     complete({ status: 'success' });
     return true;
-  } catch (error) {
+  } catch {
     controller.cancelExport(ticket.id);
     complete({ status: 'failure', failure: describeDiagnosticFailure('io', 'write') });
-    showStatus(`Export failed: ${String(error)}`);
+    showStatus(() => formatUiFailure('io-write', { locale: getUiLocale() }));
     return false;
   } finally {
     if (url) setTimeout(() => URL.revokeObjectURL(url!), 30_000);
@@ -533,7 +541,11 @@ async function openRecord(
         failure: describeDiagnosticFailure('sgf', parsed.diagnostics[0]?.code),
       });
       finished = true;
-      showStatus(parsed.diagnostics.map((item) => item.message).join('; '));
+      showStatus(() =>
+        parsed.diagnostics
+          .map((item) => formatUiFailure(`sgf-${item.code}`, { locale: getUiLocale() }))
+          .join('; '),
+      );
       return false;
     }
     const approved = await mayReplace(signal);
@@ -590,13 +602,13 @@ async function openFile(selected?: File): Promise<void> {
       return;
     }
     await openRecord(bytes, selected.name, undefined, undefined, complete);
-  } catch (error) {
+  } catch {
     complete(
       current()
         ? { status: 'failure', failure: describeDiagnosticFailure('io', 'read') }
         : { status: 'cancelled' },
     );
-    if (current()) showStatus(`Could not open file: ${String(error)}`);
+    if (current()) showStatus(() => formatUiFailure('io-read', { locale: getUiLocale() }));
   }
 }
 async function openCheckpoint(input: unknown, name: string, signal: AbortSignal): Promise<boolean> {
@@ -826,8 +838,8 @@ async function exportDiagram(format: 'svg' | 'png') {
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 30_000);
     showStatus('Diagram download started.');
-  } catch (error) {
-    showStatus(`Diagram export failed: ${String(error)}`);
+  } catch {
+    showStatus(() => formatUiFailure('io-diagram', { locale: getUiLocale() }));
   }
 }
 find('svg-export').addEventListener('click', () => {

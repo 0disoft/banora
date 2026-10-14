@@ -150,7 +150,7 @@ async (page, studioControl) => {
     await wait(() =>
       document
         .querySelector('[data-texture-status="black"]')
-        .textContent.startsWith('Texture unchanged:'),
+        .textContent.startsWith('The stone image could not be loaded.'),
     );
     verify(
       (await main.evaluate((svg) => svg.outerHTML)) === beforeBad,

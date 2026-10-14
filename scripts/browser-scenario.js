@@ -23,7 +23,7 @@ async (page, studioControl) => {
   await page.keyboard.press('Enter');
   verify(
     (await page.locator('#move').innerText()) === 'Move 2' &&
-      (await page.locator('#status').innerText()).includes('occupied'),
+      (await page.locator('#status').innerText()).includes('already a stone'),
     'Illegal move mutated position',
   );
   await page
@@ -98,7 +98,7 @@ async (page, studioControl) => {
     .locator('#file')
     .setInputFiles({ name: 'invalid.sgf', mimeType: 'text/plain', buffer: Buffer.from('(bad') });
   await page.waitForFunction(() =>
-    document.querySelector('#status').textContent.includes('Unexpected'),
+    document.querySelector('#status').textContent.includes('SGF file has invalid syntax'),
   );
   verify(
     (await page.locator('#comment').inputValue()) === 'Export before replace',

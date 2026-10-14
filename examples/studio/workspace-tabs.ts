@@ -1,5 +1,5 @@
 import type { StudioWorkspace } from './workspace.js';
-import { setUiText, subscribeUiLanguage, translateUi } from '../ui-language.js';
+import { setUiText, setUiFailure, subscribeUiLanguage, translateUi } from '../ui-language.js';
 
 export function mountWorkspaceTabs(
   workspace: StudioWorkspace,
@@ -161,10 +161,15 @@ export function mountWorkspaceTabs(
       if (closing || !options.canAct()) return;
       try {
         workspace.add(Number(size.value));
-        message.textContent = '';
+        setUiText(message, '');
         tabs.querySelector<HTMLElement>('[aria-selected="true"]')?.focus({ preventScroll: true });
       } catch (error) {
-        setUiText(message, error instanceof Error ? error.message : 'Could not create board.');
+        if (
+          error instanceof RangeError &&
+          error.message === 'Close a board before opening another.'
+        )
+          setUiText(message, error.message);
+        else setUiFailure(message, 'unknown');
       }
     },
     { signal },

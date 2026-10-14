@@ -1,4 +1,4 @@
-import { localizeUi, setUiText } from './ui-language.js';
+import { localizeUi, setUiText, setUiFailure } from './ui-language.js';
 import { createShareLink, decodeShareLink } from '@0disoft/banora/share';
 import type { ShareKind, SharedRecord } from '@0disoft/banora/share';
 import type { RecordController, SgfRecord } from '@0disoft/banora';
@@ -48,10 +48,11 @@ export function mountSharing(
   host.append(panel);
   const disposeLanguage = localizeUi(panel);
   let feedbackRevision = 0;
-  const report = (message: string) => {
+  const report = (message: string, failure?: string) => {
     if (signal.aborted) return;
     feedbackRevision++;
-    setUiText(status, message);
+    if (failure) setUiFailure(status, failure);
+    else setUiText(status, message);
   };
   const notice = () => {
     const position = kind.value === 'position';
@@ -75,7 +76,7 @@ export function mountSharing(
       if (!result.ok) {
         output.value = '';
         copy.disabled = true;
-        report(result.message);
+        report('', `share-${result.reason}`);
         return;
       }
       output.value = result.value;
@@ -158,7 +159,7 @@ export function mountSharing(
     feedbackRevision++;
     const decoded = decodeShareLink(text.trim());
     if (!decoded.ok) {
-      report(decoded.message);
+      report('', `share-${decoded.reason}`);
       return;
     }
     busy = true;
@@ -185,7 +186,7 @@ export function mountSharing(
           discardChanges: true,
         });
         if (!result.ok) {
-          report(`Shared record was not opened: ${result.reason}.`);
+          report('', result.reason);
           return;
         }
       }
@@ -194,8 +195,8 @@ export function mountSharing(
           ? 'Opened a static position. Capture and repetition history are not included.'
           : 'Opened the shared record at its saved target.',
       );
-    } catch (error) {
-      report(`Could not open the share: ${String(error)}`);
+    } catch {
+      report('', 'import');
     } finally {
       busy = false;
       if (!signal.aborted) open.disabled = false;

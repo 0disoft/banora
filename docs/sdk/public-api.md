@@ -829,6 +829,9 @@ Studio's Save SVG/PNG actions and all three framework examples exercise this con
 
 The [UI localization contract](localization.md) defines twelve built-in `locale` codes and `SUPPORTED_LOCALES`,
 message overrides, native props and localized board accessibility labels.
+The additive `formatUiFailure(code, {locale?})` root/locale/classic helper formats
+controller, SGF, scoring, sharing and file feedback without changing machine results.
+Unknown codes use a localized generic explanation.
 
 The [record playback contract](playback.md) describes the optional headless
 coordinator, timer lifetime and recorded-node navigation without game edits.

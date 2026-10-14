@@ -190,7 +190,7 @@ async (page, studioControl) => {
     );
     await studioControl(page, '[data-share="open"]', 'share', () => selector('open').click());
     verify(
-      (await selector('status').innerText()) === 'Unsupported Banora share version',
+      (await selector('status').innerText()) === 'This share link version is not supported.',
       `${name}: malformed link not reported`,
     );
     await page.evaluate(async () => {
@@ -198,7 +198,7 @@ async (page, studioControl) => {
       await new Promise(requestAnimationFrame);
     });
     verify(
-      (await selector('status').innerText()) === 'Unsupported Banora share version',
+      (await selector('status').innerText()) === 'This share link version is not supported.',
       `${name}: clipboard completion hid a newer import error`,
     );
     verify(

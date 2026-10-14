@@ -121,7 +121,10 @@ Keyboard guidance is available
 through localized tooltips rather than persistent paragraphs; texture help lists
 only accepted formats and size limits. The idle status is empty. Transient action
 feedback, including rejected moves and file/export messages, disappears three
-seconds after the latest notice. A newer notice restarts its timer, language
+seconds after the latest notice. Rejections and import, share, scoring, texture and
+file failures use human explanations in all twelve languages; machine codes and
+arbitrary exception text do not appear as ordinary action feedback. These messages
+follow a language switch while visible. A newer notice restarts its timer, language
 changes do not extend it or revive expired feedback, and disposal clears pending
 timers. The separate unsaved-record indicator and unsaved-change confirmations
 remain visible while relevant. Sharing includes

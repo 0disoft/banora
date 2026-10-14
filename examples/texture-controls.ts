@@ -1,4 +1,4 @@
-import { localizeUi, setUiText } from './ui-language.js';
+import { localizeUi, setUiText, setUiFailure } from './ui-language.js';
 import { prepareStoneTexture } from '@0disoft/banora';
 import type { Color, StoneTexture, StoneTextures } from '@0disoft/banora';
 import './texture-controls.css';
@@ -89,9 +89,8 @@ export function mountTextureControls(
         current[color] = texture;
         reset.disabled = false;
         setUiText(status, 'Custom texture active.');
-      } catch (error) {
-        if (!operation.signal.aborted && !abort.signal.aborted)
-          setUiText(status, `Texture unchanged: ${String(error)}`);
+      } catch {
+        if (!operation.signal.aborted && !abort.signal.aborted) setUiFailure(status, 'texture');
       } finally {
         if (pending[color] === operation) delete pending[color];
       }

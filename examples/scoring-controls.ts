@@ -1,4 +1,11 @@
-import { localizeUi, setUiText } from './ui-language.js';
+import {
+  getUiLocale,
+  localizeUi,
+  setUiText,
+  setUiFailure,
+  subscribeUiLanguage,
+} from './ui-language.js';
+import { createBoardLabels } from '@0disoft/banora/locale';
 import {
   RecordController,
   createSgfNode,
@@ -168,6 +175,14 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
         : 'Territory total = territory + captured/dead/pass prisoners + komi + adjustment. Living stones are shown for reference.',
     );
   }
+  const rejectScore = (reason: string) => {
+    report = undefined;
+    clearView();
+    find<HTMLTableElement>('score-breakdown').tBodies[0]!.replaceChildren();
+    setUiText(warning, '');
+    setUiText(find('score-formula'), '');
+    setUiFailure(result, `score-${reason}`);
+  };
   function calculate() {
     if (!opened || disposed || !bound) return;
     try {
@@ -180,7 +195,10 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
         deadStones: dead,
         sekiStones: seki,
       });
-      if (!scored.ok) throw Error(scored.message);
+      if (!scored.ok) {
+        rejectScore(scored.reason);
+        return;
+      }
       report = scored.value;
       dead = report.deadStones;
       seki = report.sekiStones;
@@ -190,22 +208,15 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
         display = new RecordController({ sgf });
         view = mountBoard(find('score-board'), {
           controller: display,
+          labels: createBoardLabels({ locale: getUiLocale() }),
           readOnly: true,
           onPoint: markGroup,
           touch: { mode: 'release' },
         });
       } else if (!display.loadSgf(sgf, { discardChanges: true }).ok)
         throw Error('Could not display scoring marks');
-    } catch (error) {
-      report = undefined;
-      clearView();
-      find<HTMLTableElement>('score-breakdown').tBodies[0]!.replaceChildren();
-      setUiText(warning, '');
-      setUiText(find('score-formula'), '');
-      setUiText(
-        result,
-        `Cannot calculate: ${error instanceof Error ? error.message : String(error)}`,
-      );
+    } catch {
+      rejectScore('invalid-position');
     }
   }
   function markGroup(point: Point) {
@@ -306,12 +317,16 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
       bind(state);
     else bound = state;
   });
+  const disposeBoardLanguage = subscribeUiLanguage(() =>
+    view?.update({ labels: createBoardLabels({ locale: getUiLocale() }) }),
+  );
   return () => {
     disposed = true;
     abort.abort();
     unsubscribe();
     clearView();
     disposeLanguage();
+    disposeBoardLanguage();
     root.remove();
   };
 }

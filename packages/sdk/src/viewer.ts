@@ -1,4 +1,4 @@
-import { createUiMessages, createBoardLabels, formatUiMessage } from './locale.js';
+import { createUiMessages, createBoardLabels, formatUiMessage, formatUiFailure } from './locale.js';
 import type { LocaleOptions } from './locale.js';
 import { mountBoard } from './board.js';
 import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
@@ -80,11 +80,18 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   const status = document.createElement('p');
   status.dataset.status = '';
   status.setAttribute('role', 'status');
+  let lastFailure: Exclude<CommandResult, { readonly ok: true }> | undefined;
+  const renderStatus = () => {
+    status.textContent = lastFailure
+      ? (lastFailure.diagnostics
+          ?.map((item) => formatUiFailure(`sgf-${item.code}`, options))
+          .join('; ') ??
+        formatUiMessage(ui.rejected, { reason: formatUiFailure(lastFailure.reason, options) }))
+      : '';
+  };
   const report = (result: CommandResult) => {
-    status.textContent = result.ok
-      ? ''
-      : (result.diagnostics?.map((item) => item.message).join('; ') ??
-        formatUiMessage(ui.rejected, { reason: result.reason }));
+    lastFailure = result.ok ? undefined : result;
+    renderStatus();
   };
   const button = (label: string, text: string, action: () => CommandResult) => {
     const element = document.createElement('button');
@@ -344,6 +351,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       root.lang = options.locale ?? 'en';
       lastTree = undefined;
       renderLabels();
+      renderStatus();
       playbackControls.update(options);
       if (interval !== undefined) playbackControls.playback.setInterval(interval);
       if ((previous.editable && !options.editable) || next.comments === false) endCommentGroup();
