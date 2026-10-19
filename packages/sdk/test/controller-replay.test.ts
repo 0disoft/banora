@@ -159,3 +159,45 @@ test('single and cross-game batch comments retain bounded warm positions without
     controller.dispose();
   }
 });
+
+test('path edits share frozen ancestor data and retain held snapshots and untouched branches', () => {
+  const controller = new RecordController({
+    sgf: '(;SZ[9]XX[keep\\:raw];B[aa](;W[bb];B[cc])(;W[dd]))',
+  });
+  try {
+    const original = controller.getState().record;
+    const root = original.games[0]!,
+      fork = root.children[0]!;
+    const target = fork.children[0]!.children[0]!;
+    const untouched = fork.children[1]!;
+    const originalSgf = serializeSgf(original);
+    controller.goTo(target.id);
+    expect(controller.setComment('single').ok).toBe(true);
+    const after = controller.getState().record.games[0]!;
+    expect(after).not.toBe(root);
+    expect(after.properties).toBe(root.properties);
+    expect(after.rawProperties).toBe(root.rawProperties);
+    expect(after.children[0]!.properties).toBe(fork.properties);
+    expect(after.children[0]!.children[1]).toBe(untouched);
+    expect(Object.isFrozen(after.children)).toBe(true);
+    expect(serializeSgf(original)).toBe(originalSgf);
+    expect(
+      controller.setComments([
+        { nodeId: target.id, text: 'batch' },
+        { nodeId: untouched.id, text: 'other branch' },
+      ]).ok,
+    ).toBe(true);
+    const batch = controller.getState().record.games[0]!;
+    expect(batch.properties).toBe(root.properties);
+    expect(batch.rawProperties).toBe(root.rawProperties);
+    expect(batch.children[0]!.properties).toBe(fork.properties);
+    expect(after.children[0]!.children[1]!.properties.C).toBeUndefined();
+    expect(serializeSgf(original)).toBe(originalSgf);
+    expectColdReplay(controller.getState());
+    expect(controller.undo().ok && controller.undo().ok).toBe(true);
+    expect(controller.getState().record).toBe(original);
+    expect(controller.getState().dirty).toBe(false);
+  } finally {
+    controller.dispose();
+  }
+});

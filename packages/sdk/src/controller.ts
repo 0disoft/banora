@@ -15,6 +15,7 @@ import {
   applyRecordNode,
   indexRecord,
   initialRecordPosition,
+  replaceRecordChildren,
   semanticRecord,
   sgfColor,
 } from './record-runtime.js';
@@ -322,11 +323,9 @@ export class RecordController {
     let updated = replacement;
     for (let i = path.length - 2; i >= 0; i--) {
       const parent = this.#index.nodes.get(path[i]!)!;
-      updated = createSgfNode(
-        parent.id,
-        parent.properties,
+      updated = replaceRecordChildren(
+        parent,
         parent.children.map((child) => (child.id === path[i + 1] ? updated : child)),
-        parent.rawProperties,
       );
     }
     const game = this.#index.games.get(target)!;

@@ -49,6 +49,11 @@ export function applyRecordNode(position: Position, node: SgfNode): Position {
   return position;
 }
 
+/** Replace children on an SDK-owned immutable node without copying unchanged properties. */
+export function replaceRecordChildren(node: SgfNode, children: readonly SgfNode[]): SgfNode {
+  return Object.freeze({ ...node, children: Object.freeze([...children]) });
+}
+
 export interface RecordIndex {
   nodes: Map<string, SgfNode>;
   parents: Map<string, string | null>;

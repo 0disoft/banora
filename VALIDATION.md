@@ -226,6 +226,13 @@ warmup, five measured sessions) reduced median ten-edit session time from 66.03
 to 42.71 ms for 300 moves and from 870.15 to 721.21 ms for the authored 5,000-move
 stress fixture. These are local SDK samples, without a timing threshold or device/
 browser latency claim; full-record validation and dirty comparison still run.
+A separate path-sharing regression checks single and batch edits, frozen ancestor
+property/raw-value reuse, unchanged branches, held snapshot serialization, cold
+replay and Undo restoration. Before/after Node samples (one warmup/five sessions)
+reduced ten tail-comment edits from 40.19 to 34.14 ms at 300 moves and 633.83 to
+524.64 ms at 5,000 moves. Ancestor construction shares immutable property objects
+instead of cloning them; full candidate validation and semantic dirty comparison
+remain. These local measurements do not establish browser or device latency.
 
 ## Required Final Report
 

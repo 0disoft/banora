@@ -358,6 +358,9 @@ history. Edit history must not substitute for repetition history.
 Comment-only single and batch edits retain the bounded position cache: they change
 no moves, setup, move numbers or rule history. Other edits, Undo/Redo and record
 or checkpoint replacement continue to invalidate replayed positions.
+Immutable path edits and comment batches share unchanged ancestor properties and
+original escaping data. Rebuilt child arrays remain frozen; changing a node's own
+properties still creates a defensive immutable copy.
 
 Dirty state compares semantic record content with its export baseline, excluding
 navigation and presentation. Imported records start clean. Successful export advances

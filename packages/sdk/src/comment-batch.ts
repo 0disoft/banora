@@ -1,4 +1,5 @@
 import { createSgfNode } from './sgf.js';
+import { replaceRecordChildren } from './record-runtime.js';
 import type { SgfNode, SgfRecord } from './sgf.js';
 
 export interface CommentChange {
@@ -80,20 +81,15 @@ export function buildCommentBatch(
     const changedComment = change && change.text !== (node.properties.C?.[0] ?? '');
     const changedChild = node.children.some((child) => replacements.has(child));
     if (!changedComment && !changedChild) continue;
-    const properties = { ...node.properties };
-    if (changedComment) {
-      if (change.text) properties.C = [change.text];
-      else delete properties.C;
+    const children = node.children.map((child) => replacements.get(child) ?? child);
+    if (!changedComment) {
+      replacements.set(node, replaceRecordChildren(node, children));
+      continue;
     }
-    replacements.set(
-      node,
-      createSgfNode(
-        node.id,
-        properties,
-        node.children.map((child) => replacements.get(child) ?? child),
-        node.rawProperties,
-      ),
-    );
+    const properties = { ...node.properties };
+    if (change.text) properties.C = [change.text];
+    else delete properties.C;
+    replacements.set(node, createSgfNode(node.id, properties, children, node.rawProperties));
   }
   if (seen.size !== requested.size) throw new CommentBatchError('node-not-found');
   const candidate = edits.length
