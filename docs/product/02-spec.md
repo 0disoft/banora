@@ -355,6 +355,9 @@ Keep previous/next/branch navigation separate from edit Undo/Redo. Variation cre
 comment changes and marker changes are undoable; a comment editing session is one
 undo unit. Navigation creates no edit entry and restores the selected path's rule
 history. Edit history must not substitute for repetition history.
+Comment-only single and batch edits retain the bounded position cache: they change
+no moves, setup, move numbers or rule history. Other edits, Undo/Redo and record
+or checkpoint replacement continue to invalidate replayed positions.
 
 Dirty state compares semantic record content with its export baseline, excluding
 navigation and presentation. Imported records start clean. Successful export advances

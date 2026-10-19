@@ -214,11 +214,18 @@ no source checkout, browser or extra template interpreter is required.
 
 `scripts/performance.test.ts` checks legal authored workloads and fresh warm/sample
 measurement/verification/disposal behavior without time thresholds. The opt-in `perf`
-runner rebuilds public Node SDK artifacts and records 24 original/authored workload
-cases. `packages/sdk/test/controller-replay.test.ts` compares warm/evicted states
+runner rebuilds public Node SDK artifacts and records 27 original/authored workload
+cases, including ten grouped comment edits at the final node. `packages/sdk/test/controller-replay.test.ts` compares warm/evicted states
 with fresh replay across captures/passes/setup/MN/collections/branches and guards
 cache invalidation through edits/Undo/import/checkpoint rules. Shared controller
 changes also run the production browser suite; desktop SDK timing does not prove paint latency.
+The comment-cache regression retains warm positions across single/grouped and
+cross-game batch edits, compares their rule histories with cold replay and checks
+Undo/Redo plus setup/import/checkpoint invalidation. Local Node 24 samples (one
+warmup, five measured sessions) reduced median ten-edit session time from 66.03
+to 42.71 ms for 300 moves and from 870.15 to 721.21 ms for the authored 5,000-move
+stress fixture. These are local SDK samples, without a timing threshold or device/
+browser latency claim; full-record validation and dirty comparison still run.
 
 ## Required Final Report
 

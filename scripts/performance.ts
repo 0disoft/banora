@@ -192,6 +192,30 @@ function cases(input: Workload): [string, number, () => Harness][] {
       },
     ],
     [
+      'tail-comment-session',
+      10,
+      controller(
+        (editor) => {
+          editor.beginEditGroup();
+          for (let index = 0; index < 10; index++)
+            assert(editor.setComment(`Benchmark tail review ${index}`).ok);
+          editor.endEditGroup();
+        },
+        (editor) => {
+          assert(
+            editor.getState().node.properties.C?.[0] === 'Benchmark tail review 9' &&
+              editor.getState().position.moveNumber === input.mainIds.length - 1 &&
+              editor.getState().dirty &&
+              editor.undo().ok &&
+              !editor.getState().dirty,
+          );
+        },
+        (editor) => {
+          assert(editor.goTo(input.mainIds.at(-1)!).ok);
+        },
+      ),
+    ],
+    [
       'comment-batch',
       1,
       controller(

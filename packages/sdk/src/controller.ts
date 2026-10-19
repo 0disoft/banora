@@ -95,6 +95,11 @@ export interface ExportTicket {
   readonly id: number;
   readonly text: string;
 }
+interface EditOptions {
+  grouped?: boolean;
+  /** Only validated comment edits may retain rule-relevant positions. */
+  commentOnly?: boolean;
+}
 interface EditEntry {
   record: SgfRecord;
   selected: string;
@@ -278,9 +283,9 @@ export class RecordController {
       this.#notifying = false;
     }
   }
-  #reindex(): void {
+  #reindex(commentOnly = false): void {
     this.#index = indexRecord(this.#record);
-    this.#positionCache.clear();
+    if (!commentOnly) this.#positionCache.clear();
   }
   #refreshDirty(): void {
     this.#dirty = semanticRecord(this.#record) !== this.#baseline;
@@ -311,7 +316,7 @@ export class RecordController {
     replacement: SgfNode,
     selected = this.#selected,
     target = this.#selected,
-    grouped = false,
+    options: EditOptions = {},
   ): CommandResult {
     const path = this.#path(target);
     let updated = replacement;
@@ -332,12 +337,12 @@ export class RecordController {
     });
     const validation = parseSgf(serializeSgf(candidate), this.#limits);
     if (!validation.ok) return { ok: false, reason: 'limit', diagnostics: validation.diagnostics };
-    return this.#commit(candidate, selected, grouped);
+    return this.#commit(candidate, selected, options);
   }
   /** Commit only a candidate already validated by this controller. */
-  #commit(candidate: SgfRecord, selected: string, grouped = false): CommandResult {
+  #commit(candidate: SgfRecord, selected: string, options: EditOptions = {}): CommandResult {
     // Rejected candidates must leave the active comment session intact.
-    if (!grouped) this.endEditGroup();
+    if (!options.grouped) this.endEditGroup();
     if (!this.#group || !this.#groupRecorded) {
       this.#undo.push({ record: this.#record, selected: this.#selected });
       if (this.#undo.length > 100) this.#undo.shift();
@@ -346,7 +351,7 @@ export class RecordController {
     this.#redo = [];
     this.#record = candidate;
     this.#selected = selected;
-    this.#reindex();
+    this.#reindex(options.commentOnly);
     this.#refreshDirty();
     this.#notify();
     return { ok: true };
@@ -431,7 +436,7 @@ export class RecordController {
       createSgfNode(node.id, properties, node.children, node.rawProperties),
       this.#selected,
       this.#selected,
-      true,
+      { grouped: true, commentOnly: true },
     );
   }
   /** Construct a validated preview without edits, navigation, notifications or export acknowledgment. */
@@ -462,7 +467,7 @@ export class RecordController {
       return { ok: false, reason: 'invalid-edit' };
     if (preview.source !== this.#record) return { ok: false, reason: 'stale-preview' };
     if (!preview.edits.length) return { ok: true };
-    return this.#commit(preview.record, this.#selected);
+    return this.#commit(preview.record, this.#selected, { commentOnly: true });
   }
   /** Apply a checked bounded batch as one notification and Undo unit. */
   setComments(changes: readonly CommentChange[]): CommandResult {

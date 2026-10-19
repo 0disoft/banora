@@ -84,6 +84,7 @@ test('cached positions cannot survive setup edits, Undo, import or checkpoint po
     controller.next();
     controller.next();
     expectColdReplay(controller.getState());
+    expect(controller.setComment('keep warmed history').ok).toBe(true);
     const root = controller.getState().record.games[0]!.id;
     controller.goTo(root);
     expect(controller.setSetup([{ x: 2, y: 2, color: 'white' }], 'black').ok).toBe(true);
@@ -109,6 +110,51 @@ test('cached positions cannot survive setup edits, Undo, import or checkpoint po
     expectColdReplay(controller.getState());
     expect(controller.getState().position.width).toBe(13);
     expect(controller.getState().position.board[0]).toBe('white');
+  } finally {
+    controller.dispose();
+  }
+});
+
+test('single and cross-game batch comments retain bounded warm positions without changing replay history', () => {
+  const controller = new RecordController({
+    sgf: '(;SZ[5]AB[aa];B[bb]' + ';W[];B[]'.repeat(300) + ')(;SZ[9];W[hh])',
+    rules: { ko: 'situational-superko', passStones: true },
+  });
+  try {
+    const root = controller.getState().record.games[0]!;
+    let tail = root;
+    while (tail.children[0]) tail = tail.children[0];
+    const other = controller.getState().record.games[1]!.children[0]!;
+    expect(controller.goTo(tail.id).ok).toBe(true);
+    const before = controller.getState();
+    const otherPosition = controller.inspectNode(other.id)!.position;
+    controller.beginEditGroup();
+    expect(controller.setComment('first').ok).toBe(true);
+    expect(controller.getState().position).toBe(before.position);
+    expect(controller.setComment('final').ok).toBe(true);
+    controller.endEditGroup();
+    expect(controller.getState().position).toBe(before.position);
+    expect(before.node.properties.C).toBeUndefined();
+    expect(
+      controller.setComments([
+        { nodeId: root.id, text: 'root comment' },
+        { nodeId: tail.id, text: 'tail batch' },
+        { nodeId: other.id, text: 'other game' },
+      ]).ok,
+    ).toBe(true);
+    expect(controller.getState().position).toBe(before.position);
+    expect(controller.inspectNode(other.id)!.position).toBe(otherPosition);
+    expectColdReplay(controller.getState());
+    expectColdReplay(controller.inspectNode(other.id)!);
+    expect(controller.undo().ok).toBe(true);
+    expect(controller.getState().node.properties.C).toEqual(['final']);
+    expectColdReplay(controller.getState());
+    expect(controller.undo().ok).toBe(true);
+    expect(controller.getState().dirty).toBe(false);
+    expectColdReplay(controller.getState());
+    expect(controller.redo().ok && controller.redo().ok).toBe(true);
+    expect(controller.getState().node.properties.C).toEqual(['tail batch']);
+    expectColdReplay(controller.getState());
   } finally {
     controller.dispose();
   }
