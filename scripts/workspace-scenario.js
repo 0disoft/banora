@@ -18,10 +18,29 @@ async (page) => {
     await (await download).saveAs(`output/playwright/${name}.sgf`);
   };
   verify((await width()) === '19', 'Default board is not 19 × 19');
+  await page.locator('#file').setInputFiles({
+    name: 'board-1.sgf',
+    mimeType: 'application/x-go-sgf',
+    buffer: Buffer.from('(;SZ[19]GN[])'),
+  });
+  await page.waitForFunction(
+    () => document.querySelector('#status').textContent === 'Opened board-1.sgf.',
+  );
+  const emptyTitleFallback = (await tab(1).textContent()) === 'Board 1';
   await page.locator('#board svg').focus();
   await page.keyboard.press('Enter');
+  await page.evaluate(() => {
+    globalThis.workspaceStableTab = document.querySelector('#board-tab-1');
+  });
   await page.locator('#comment').fill('First board note');
   await page.locator('#comment').blur();
+  const retainedTab = await page.evaluate(
+    () => globalThis.workspaceStableTab === document.querySelector('#board-tab-1'),
+  );
+  verify(
+    emptyTitleFallback && retainedTab,
+    `Workspace tabs: empty title fallback=${emptyTitleFallback}, retained after comment=${retainedTab}`,
+  );
   await page.locator('#new-board-size').selectOption('13');
   await page.locator('#new').click();
   verify(
@@ -69,6 +88,17 @@ async (page) => {
   });
   await page.waitForFunction(
     () => document.querySelector('#game-name').textContent === 'Replay <tag>',
+  );
+  await page.evaluate(() => {
+    globalThis.workspaceStableTab = document.querySelector('#board-tab-2');
+  });
+  await page.locator('#next').click();
+  await page.locator('#previous').click();
+  verify(
+    await page.evaluate(
+      () => globalThis.workspaceStableTab === document.querySelector('#board-tab-2'),
+    ),
+    'Move navigation rebuilt unchanged workspace tabs',
   );
   await page.getByRole('button', { name: 'Play record', exact: true }).click();
   await tab(3).click();

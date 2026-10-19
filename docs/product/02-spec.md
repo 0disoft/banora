@@ -314,6 +314,10 @@ its actual SDK controller, selected node, comments, Undo/Redo and export baselin
 Opening an SGF, example or backup replaces only the active tab through the existing
 dirty-record guard; SGF collection selection remains within that tab. Tab titles
 use authored game names or localized defaults, with an unsaved indicator.
+An empty authored game name falls back to the filename, matching the main heading.
+Move navigation and comment edits reuse existing tab elements when titles, dirty
+indicators, dimensions and selection are unchanged; language changes still refresh
+all tab labels and accessible close names.
 
 Tabs support mouse selection and Up/Down/Left/Right/Home/End keyboard navigation without
 triggering record playback shortcuts. A switch pauses playback and invalidates

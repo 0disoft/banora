@@ -75,8 +75,11 @@ After `bun run build:examples`, `bun scripts/browser-smoke.ts --workspace-only`
 checks the default 19-line Studio board, 9/13/19 creation, internal tabs, independent
 comments/Undo/selection/export, dirty close and inactive-exit guards, playback
 cancellation, localized authored titles and narrow layouts. It also verifies the
-actual downloaded SGFs. `scripts/studio-workspace.test.ts` and the draft-session
-tests cover controller ownership, monotonic freshness, bounded sessions and
+actual downloaded SGFs. The focused browser scenario also imports an empty `GN[]`
+title and checks its filename fallback, and verifies tab-element retention through
+comment edits and move navigation. These checks establish avoided tab replacement,
+not measured end-to-end latency gains. `scripts/studio-workspace.test.ts` and the
+draft-session tests cover controller ownership, monotonic freshness, bounded sessions and
 serialized draft revisions across rapid switches. This scope changes the Studio
 consumer, not the SDK session API or portable checkpoint schema.
 

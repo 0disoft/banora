@@ -37,21 +37,52 @@ export function mountWorkspaceTabs(
   const abort = new AbortController();
   const { signal } = abort;
   let closing = false;
+  let previousTabs:
+    | { id: number; title: string; dirty: boolean; width: number; height: number }[]
+    | undefined;
+  let previousActive = 0;
   function render() {
+    const activeId = workspace.active.id;
+    const nextTabs = workspace.boards.map((board) => {
+      const state = board.controller.getState();
+      const authoredName = state.record.games[state.gameIndex]!.properties.GN?.[0];
+      return {
+        id: board.id,
+        title:
+          authoredName ||
+          translateUi(board.filename.replace(/\.sgf$/i, '').replace(/^board-(\d+)$/, 'Board $1')),
+        dirty: state.dirty,
+        width: state.position.width,
+        height: state.position.height,
+      };
+    });
+    // Navigation and further edits on an already dirty board do not change its tab.
+    if (
+      previousActive === activeId &&
+      previousTabs?.length === nextTabs.length &&
+      nextTabs.every((tab, index) => {
+        const previous = previousTabs![index]!;
+        return (
+          tab.id === previous.id &&
+          tab.title === previous.title &&
+          tab.dirty === previous.dirty &&
+          tab.width === previous.width &&
+          tab.height === previous.height
+        );
+      })
+    )
+      return;
+    previousTabs = nextTabs;
+    previousActive = activeId;
     const focused = document.activeElement as HTMLElement | null;
     const focusedId = focused?.closest<HTMLElement>('[data-board-id]')?.dataset.boardId;
     const focusedClose = focused?.hasAttribute('data-close-board');
     const fragment = document.createDocumentFragment();
-    for (const board of workspace.boards) {
-      const state = board.controller.getState();
-      const root = state.record.games[state.gameIndex]!;
-      const title =
-        root.properties.GN?.[0] ??
-        board.filename.replace(/\.sgf$/i, '').replace(/^board-(\d+)$/, 'Board $1');
+    for (const board of nextTabs) {
       const container = document.createElement('div');
       container.className = 'workspace-tab';
       container.dataset.boardId = String(board.id);
-      const selected = board === workspace.active;
+      const selected = board.id === activeId;
       const button = document.createElement('button');
       button.type = 'button';
       button.id = `board-tab-${board.id}`;
@@ -59,9 +90,9 @@ export function mountWorkspaceTabs(
       button.setAttribute('aria-selected', String(selected));
       button.setAttribute('aria-controls', 'board');
       button.tabIndex = selected ? 0 : -1;
-      button.textContent = root.properties.GN?.[0] ? title : translateUi(title);
-      button.title = `${button.textContent} · ${state.position.width} × ${state.position.height}`;
-      if (state.dirty) {
+      button.textContent = board.title;
+      button.title = `${button.textContent} · ${board.width} × ${board.height}`;
+      if (board.dirty) {
         const marker = document.createElement('span');
         marker.className = 'tab-dirty';
         marker.textContent = ' ·';
@@ -185,6 +216,7 @@ export function mountWorkspaceTabs(
     { signal },
   );
   const disposeLanguage = subscribeUiLanguage(() => {
+    previousTabs = undefined;
     caption.textContent = translateUi('Board size');
     render();
   });
