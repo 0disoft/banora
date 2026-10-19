@@ -60,6 +60,55 @@ async (rootPage, studioControl) => {
       (await current.locator('.banora-comment-indicator').count()) === 1,
       'Tail comment indicator missing',
     );
+    const commentWork = await page.evaluate(() => {
+      const tree = document.querySelector('#tree');
+      const rows = [...tree.children];
+      const observer = new MutationObserver(() => {});
+      observer.observe(tree, { childList: true });
+      const comment = document.querySelector('#comment');
+      comment.focus();
+      const samplesMs = [];
+      for (const text of ['tail edited', 'tail edited again']) {
+        comment.value = text;
+        const start = performance.now();
+        comment.dispatchEvent(new Event('input', { bubbles: true }));
+        samplesMs.push(performance.now() - start);
+      }
+      comment.blur();
+      const removed = observer
+        .takeRecords()
+        .reduce((sum, entry) => sum + entry.removedNodes.length, 0);
+      observer.disconnect();
+      return {
+        retained: rows.filter((row) => row.parentElement === tree).length,
+        total: rows.length,
+        removed,
+        samplesMs,
+      };
+    });
+    const measurement = page.waitForEvent('download');
+    await page.evaluate((value) => {
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(value)], { type: 'application/json' }),
+      );
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'tree-comment-work.json';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, commentWork);
+    await (await measurement).saveAs('output/playwright/tree-comment-work.json');
+    check(
+      commentWork.retained === commentWork.total && commentWork.removed === 0,
+      `Comment edit rebuilt unchanged tree rows: ${JSON.stringify(commentWork)}`,
+    );
+    await page.locator('#undo').click();
+    check(
+      (await page.locator('#comment').inputValue()) === 'tail original',
+      'Retained tree rows changed grouped comment Undo',
+    );
     await page.locator('#comment').fill(' ');
     await page.locator('#comment').blur();
     check(

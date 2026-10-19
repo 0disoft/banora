@@ -14,6 +14,14 @@ In particular, migration-check is now configured as documented below.
 
 ## Standard Validation Names
 
+After `bun run build:examples`, `bun scripts/browser-smoke.ts --tree-only` checks
+the bounded Studio outline and selected tail, keyboard focus, nested fork alignment,
+comment indicators and grouped Undo, game/record/language changes and actual SGF
+download/reopen. The comment-edit regression observes 501 displayed rows while
+editing an existing nonblank tail comment twice: row removals fall from 1,002 in
+the original implementation to zero, with all 501 elements retained. Raw input-handler
+timings are diagnostic only; no cross-device latency target is asserted.
+
 The [consolidated menu deployment](docs/engineering/33-studio-menu-deployment.md)
 records local root checks (272 tests), final focused Chrome menu/preferences/share
 checks, the corrected sharing-fixture assumption, successful affected hosted CI,

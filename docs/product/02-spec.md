@@ -39,6 +39,12 @@ existing tree rows when only the selected position changes within the
 same immutable record/game. The first 500 rows and at most one selected tail row
 remain bounded. Record/game/language changes rebuild labels and metadata; tail
 replacement retains keyboard focus and final page disposal releases cached rows.
+Within a record generation, edits that leave the visible row presentation unchanged
+also retain the outline elements. Updating a nonblank comment without changing its
+presence indicator does not rebuild hundreds of rows per keystroke. One display
+model defines both row output and cache invalidation, including the selected tail
+row, move assessments, setup captions and branch disclosure state. Record replacement,
+game and language changes invalidate the presentation cache.
 Studio variation rows offer a right-click menu (also Shift+F10 / Context Menu)
 to delete the targeted node and its descendants after confirmation. Root nodes
 cannot be deleted. Sibling paths remain intact; selection stays on its existing

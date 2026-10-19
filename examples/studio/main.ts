@@ -1,9 +1,4 @@
-import {
-  createUiMessages,
-  createBoardLabels,
-  formatUiMessage,
-  formatUiFailure,
-} from '@0disoft/banora/locale';
+import { createUiMessages, createBoardLabels, formatUiFailure } from '@0disoft/banora/locale';
 import type { BanoraLocale } from '@0disoft/banora/locale';
 import {
   getUiLocale,
@@ -20,8 +15,6 @@ import {
   mountPlaybackControls,
   parseSgf,
   parseRecordCheckpoint,
-  getVariationRows,
-  variationPathKey,
   variationCandidates,
   getMoveAssessment,
   pointToSgf,
@@ -63,7 +56,8 @@ import { mountBoardSizing } from './board-sizing.js';
 import { mountFullscreen } from './fullscreen.js';
 import { mountStatusNotice } from './status-notice.js';
 import { mountVariationMenu } from './variation-menu.js';
-import { applySetupPoint, coordinateTitle, setupNodeTitle } from './setup-editing.js';
+import { applySetupPoint } from './setup-editing.js';
+import { createVariationTree } from './variation-tree.js';
 import './atelier.css';
 import './icons.css';
 import './board-menu.css';
@@ -122,11 +116,9 @@ const games = find<HTMLSelectElement>('games');
 let opening = false;
 let disposed = false;
 let fileReadSequence = 0;
-let lastTreeState:
-  | { record: ControllerState['record']; gameIndex: number; id: string; branches: string }
-  | undefined;
-const treeButtons = new Map<string, HTMLButtonElement>();
-let selectedTreeRow: HTMLDivElement | undefined;
+const variationTree = createVariationTree(find('tree'), find('tree-note'), (id) =>
+  report(controller.goTo(id), 'navigate'),
+);
 let connectionStart: { point: Point; node: string } | undefined;
 let comparison: ComparisonView | undefined;
 let stoneTextures: StoneTextures | null = createStudioTextures();
@@ -259,119 +251,6 @@ const placementSound = mountPlacementSound(
 );
 find('playback').querySelector('.banora-record-playback')!.append(find('sound'));
 
-function nodeTitle(node: SgfNode, depth: number, width: number, height: number): string {
-  const value = node.properties.B?.[0] ?? node.properties.W?.[0];
-  const color = node.properties.B ? ui.black : ui.white;
-  if (value === undefined) {
-    if (depth === 0) return ui.start;
-    if (node.properties.N) return node.properties.N[0]!;
-    return setupNodeTitle(node, height) ?? ui.annotation;
-  }
-  if (!value || (value === 'tt' && width <= 19 && height <= 19))
-    return formatUiMessage(ui.colorPass, { color });
-  return `${color} ${coordinateTitle(value, height)}`;
-}
-function revealTreeSelection(id: string): void {
-  const tree = find('tree'),
-    button = treeButtons.get(id);
-  if (!button) return;
-  const bounds = tree.getBoundingClientRect(),
-    selected = button.getBoundingClientRect();
-  if (selected.top < bounds.top) tree.scrollTop += selected.top - bounds.top;
-  else if (selected.bottom > bounds.bottom) tree.scrollTop += selected.bottom - bounds.bottom;
-}
-function renderTree(state: ControllerState): void {
-  const previous = lastTreeState;
-  const branches = variationPathKey(state);
-  const reuse =
-    previous?.record === state.record &&
-    previous.gameIndex === state.gameIndex &&
-    previous.branches === branches;
-  if (reuse && previous.id === state.node.id) return;
-  lastTreeState = { record: state.record, gameIndex: state.gameIndex, id: state.node.id, branches };
-  const fragment = document.createDocumentFragment();
-  const row = (
-    node: SgfNode,
-    depth: number,
-    indent: number,
-    moveNumber: number,
-    branch = false,
-    collapsed = false,
-  ) => {
-    const wrapper = document.createElement('div');
-    wrapper.setAttribute('role', 'listitem');
-    const button = document.createElement('button');
-    button.dataset.node = node.id;
-    if (depth > 0) button.setAttribute('aria-haspopup', 'menu');
-    button.setAttribute('aria-current', String(node.id === state.node.id));
-    button.style.paddingLeft = `${10 + Math.min(indent, 8) * 13}px`;
-    if (branch && node.children.length) button.setAttribute('aria-expanded', String(!collapsed));
-    const disclosure = document.createElement('span');
-    disclosure.className = 'variation-disclosure';
-    disclosure.setAttribute('aria-hidden', 'true');
-    button.append(disclosure);
-    const dot = document.createElement('span');
-    dot.className = `tree-dot ${node.properties.W ? 'white' : node.properties.B ? '' : 'root'}`;
-    const text = document.createElement('span');
-    text.textContent = `${moveNumber} · ${nodeTitle(node, depth, state.position.width, state.position.height)}`;
-    button.append(dot, text);
-    const assessment = getMoveAssessment(node);
-    const descriptions: string[] = [];
-    if (assessment) {
-      const indicator = document.createElement('span');
-      indicator.className = `banora-move-assessment ${assessment}`;
-      indicator.title = assessment === 'good' ? ui.goodMove : ui.badMove;
-      indicator.setAttribute('aria-hidden', 'true');
-      descriptions.push(indicator.title);
-      button.append(indicator);
-    }
-    if (node.properties.C?.[0]?.trim()) {
-      const indicator = document.createElement('span');
-      indicator.className = 'banora-comment-indicator';
-      indicator.title = ui.hasComment;
-      indicator.setAttribute('aria-hidden', 'true');
-      descriptions.push(ui.hasComment);
-      button.append(indicator);
-    }
-    if (descriptions.length) button.setAttribute('aria-description', descriptions.join(' · '));
-    button.addEventListener('click', () => report(controller.goTo(node.id), 'navigate'));
-    wrapper.append(button);
-    fragment.append(wrapper);
-    treeButtons.set(node.id, button);
-    return wrapper;
-  };
-  if (reuse) {
-    const restoreFocus = selectedTreeRow?.contains(document.activeElement) ?? false;
-    treeButtons.get(previous.id)?.setAttribute('aria-current', 'false');
-    if (selectedTreeRow) {
-      selectedTreeRow.remove();
-      treeButtons.delete(previous.id);
-      selectedTreeRow = undefined;
-    }
-    const current = treeButtons.get(state.node.id);
-    if (current) current.setAttribute('aria-current', 'true');
-    else {
-      selectedTreeRow = row(state.node, state.path.length - 1, 0, state.position.moveNumber);
-      find('tree').append(fragment);
-    }
-    if (restoreFocus) treeButtons.get(state.node.id)?.focus({ preventScroll: true });
-    revealTreeSelection(state.node.id);
-    return;
-  }
-  treeButtons.clear();
-  selectedTreeRow = undefined;
-  const outline = getVariationRows(state, true);
-  for (const entry of outline.rows)
-    row(entry.node, entry.depth, entry.indent, entry.moveNumber, entry.branch, entry.collapsed);
-  if (!treeButtons.has(state.node.id))
-    selectedTreeRow = row(state.node, state.path.length - 1, 0, state.position.moveNumber);
-  find('tree').replaceChildren(fragment);
-  revealTreeSelection(state.node.id);
-  setUiText(
-    find('tree-note'),
-    outline.truncated ? 'First 500 nodes shown. Move controls can navigate the whole record.' : '',
-  );
-}
 const renderState = (state: ControllerState) => {
   if (connectionStart?.node !== state.node.id) connectionStart = undefined;
   const root = state.record.games[state.gameIndex]!;
@@ -439,7 +318,7 @@ const renderState = (state: ControllerState) => {
       .join('|');
   }
   games.value = String(state.gameIndex);
-  renderTree(state);
+  variationTree.render(state, ui);
 };
 const unsubscribe = controller.subscribe(renderState);
 
@@ -722,7 +601,7 @@ function requestRemoval(id: string): void {
   const target = controller.inspectNode(id);
   if (!target || target.path.length <= 1 || removal.open) return;
   removalTarget = { id, state: controller.getState() };
-  find('remove-target').textContent = treeButtons.get(id)?.textContent ?? '';
+  find('remove-target').textContent = variationTree.buttons.get(id)?.textContent ?? '';
   removal.returnValue = 'cancel';
   removal.showModal();
 }
@@ -740,7 +619,7 @@ removal.addEventListener('close', () => {
   )
     report(controller.removeBranch(removalTarget.id));
   removalTarget = undefined;
-  treeButtons.get(controller.getState().node.id)?.focus({ preventScroll: true });
+  variationTree.buttons.get(controller.getState().node.id)?.focus({ preventScroll: true });
 });
 comment.addEventListener('focus', () => controller.beginEditGroup());
 comment.addEventListener('input', () => report(controller.setComment(comment.value)));
@@ -917,9 +796,7 @@ window.addEventListener('pagehide', (event) => {
     disposeWorkspaceTabs();
     disposeWorkspaceSwitch();
     disposeVariationMenu();
-    treeButtons.clear();
-    selectedTreeRow = undefined;
-    lastTreeState = undefined;
+    variationTree.reset();
     disposeRecovery();
     disposeSupport();
     diagnostics.dispose();
@@ -1018,7 +895,7 @@ const disposeLanguage = subscribeUiLanguage(() => {
   document.documentElement.lang = locale;
   document.title = localizedTitles[locale];
   ui = createUiMessages({ locale });
-  lastTreeState = undefined;
+  variationTree.reset();
   games.dataset.record = '';
   view.update({ labels: createBoardLabels({ locale }) });
   playbackControls.update({ locale });
