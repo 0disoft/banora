@@ -191,3 +191,69 @@ test('import and checkpoint replacement cannot reuse proof from a different reco
     controller.dispose();
   }
 });
+
+test('byte accounting matches full exports through cross-game additions, removals and raw restoration', () => {
+  const sgf = '(;SZ[9]C[a\\\nb]XX[keep](;B[aa]C[])(;B[bb]))(;SZ[9]C[한🙂\\]\\\\])';
+  const parsed = parseSgf(sgf);
+  if (!parsed.ok) throw Error('Invalid byte fixture');
+  const maxBytes = new TextEncoder().encode(serializeSgf(parsed.record)).length;
+  const controller = new RecordController({ sgf, limits: { maxBytes } });
+  try {
+    expect(controller.setComment('warm').ok).toBe(true);
+    const root = controller.getState().record.games[0]!;
+    const other = controller.getState().record.games[1]!;
+    const child = root.children[0]!;
+    // An addition comes before a deletion; only the completed batch must fit.
+    const plans = [
+      [
+        { nodeId: root.id, text: '한🙂]\\' },
+        { nodeId: other.id, text: '' },
+      ],
+      [
+        { nodeId: root.id, text: '' },
+        { nodeId: child.id, text: '한🙂]\\' },
+      ],
+      [
+        { nodeId: root.id, text: 'ab' },
+        { nodeId: child.id, text: '' },
+      ],
+      [
+        { nodeId: root.id, text: '\ud800' },
+        { nodeId: other.id, text: 'e\u0301' },
+      ],
+      [
+        { nodeId: root.id, text: 'ab' },
+        { nodeId: other.id, text: '\\'.repeat(100) },
+      ],
+      [
+        { nodeId: root.id, text: '' },
+        { nodeId: other.id, text: '한🙂' },
+      ],
+    ];
+    const additionOnly = buildCommentBatch(controller.getState().record, [plans[0]![0]!]);
+    expect(parseSgf(serializeSgf(additionOnly.record), { maxBytes }).ok).toBe(false);
+    const balanced = buildCommentBatch(controller.getState().record, plans[0]!);
+    expect(parseSgf(serializeSgf(balanced.record), { maxBytes }).ok).toBe(true);
+    for (let round = 0; round < 3; round++) {
+      for (const changes of plans) {
+        const before = controller.getState();
+        const preview = buildCommentBatch(before.record, changes);
+        const text = serializeSgf(preview.record);
+        const full = parseSgf(text, { maxBytes });
+        const result = controller.setComments(changes);
+        expect(result.ok).toBe(full.ok);
+        if (full.ok) {
+          expect(serializeSgf(controller.getState().record)).toBe(text);
+          if (preview.edits.length) {
+            expect(controller.undo().ok).toBe(true);
+            expect(controller.getState().record).toBe(before.record);
+            expect(controller.redo().ok).toBe(true);
+            expect(serializeSgf(controller.getState().record)).toBe(text);
+          }
+        } else expect(controller.getState()).toBe(before);
+      }
+    }
+  } finally {
+    controller.dispose();
+  }
+});

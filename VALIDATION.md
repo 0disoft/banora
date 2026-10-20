@@ -12,6 +12,41 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Incremental Comment Export Byte Evidence
+
+Controller-owned C-only validation now keeps the exact canonical UTF-8 byte count
+in a weak record proof. Old/new one-node C exports have identical canonical root
+headers, so their exact byte deltas account for the whole candidate without full
+record serialization. Original raw escapes and missing/empty C values are retained.
+Every changed value still passes the existing parser with fixed limits; final
+batch bytes are checked before returning value diagnostics. Unproven sources and
+all other edits retain full export validation. Only successful candidates receive
+proofs, and preview freshness/ownership and edit/history authority are unchanged.
+
+`packages/sdk/test/comment-validation.test.ts` compares these decisions with full
+candidate serialization/parsing. Added coverage repeatedly adds/removes comments
+across games and branches, restores original continued-line escaping, exercises
+Unicode/combining characters/unpaired surrogates, and checks Undo/Redo and refusal
+atomicity. It specifically verifies an addition that exceeds the byte limit on
+its own succeeds when combined with a deletion elsewhere.
+
+Local Node 24 diagnostics alternated the HEAD and changed controllers in one
+process, with one warm-up and five samples of ten tail-comment edits. Medians:
+300 moves 7.73 -> 5.94 ms; pass-heavy 5,000 moves 101.37 -> 82.41 ms (about 19%
+lower). Dirty checkpoint restoration followed by the same session measured
+179.80 -> 140.75 ms at 5,000 moves. Grouped Undo and the initial dirty state were
+checked. Samples vary with local load; these are authored stress results, not
+browser frame latency or peak-memory measurements. No public API, DB/schema,
+dependency, repository hygiene or runner changes are introduced.
+
+The public built-artifact performance runner completed all 27 correctness-checked
+cases. Final `check` passed 287 tests / 7,964 assertions, quality/boundary gates,
+builds, root/Svelte types, documentation, packed SDK consumers and 298 installed
+CLI checks. After `build:examples`, the full production Chrome 155 suite passed,
+including comment/search batch editing, SGF download/reopen, dirty guards,
+playback, recovery and framework lifecycles. Other engines, physical devices and
+hosted CI were not executed in this bounded local run.
+
 ## Immutable Dirty-State Comparison Evidence
 
 `packages/sdk/test/record-content.test.ts` compares the new exact tree comparison

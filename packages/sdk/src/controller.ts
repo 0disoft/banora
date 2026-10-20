@@ -143,7 +143,7 @@ export class RecordController {
   #tickets = new Map<number, { record: SgfRecord }>();
   #commentPreviews = new WeakSet<CommentBatchPreview>();
   /** Canonical exports checked with this controller's immutable limits. */
-  #validatedExports = new WeakSet<SgfRecord>();
+  #validatedExports = new WeakMap<SgfRecord, number>();
 
   constructor(options: ControllerOptions = {}) {
     this.#rules = options.rules ? Object.freeze({ ...options.rules }) : undefined;
@@ -320,40 +320,54 @@ export class RecordController {
     candidate: SgfRecord,
     comments?: readonly { nodeId: string; after: string }[],
   ): readonly SgfDiagnostic[] | undefined {
-    const text = serializeSgf(candidate);
-    if (comments && this.#validatedExports.has(this.#record)) {
-      // C-only edits retain the checked shape and all non-C properties. Still
-      // check the entire UTF-8 export and parse each changed value with the same
-      // serializer/parser, including any preserved original C escaping.
-      if (
-        new TextEncoder().encode(text).length >
-        (this.#limits.maxBytes ?? DEFAULT_SGF_LIMITS.maxBytes)
-      )
-        return Object.freeze([
-          Object.freeze({ code: 'limit', message: 'SGF input exceeds byte limit' }),
-        ]);
+    let bytes = this.#validatedExports.get(this.#record);
+    const encoder = new TextEncoder();
+    let diagnostics: readonly SgfDiagnostic[] | undefined;
+    if (comments && bytes !== undefined) {
+      // Only C changes. Canonical one-node exports have identical headers and
+      // delimiters, so their exact byte deltas also apply to the full collection.
+      // Retain original raw C values: restoring decoded text may reuse its escapes.
       for (const { nodeId, after } of comments) {
-        const raw = this.#index.nodes.get(nodeId)!.rawProperties.C;
+        const node = this.#index.nodes.get(nodeId)!;
+        const raw = node.rawProperties.C;
+        const rawProperties: SgfNode['rawProperties'] = raw ? { C: raw } : {};
+        const before = createSgfNode(
+          'comment-validation',
+          node.properties.C ? { C: node.properties.C } : {},
+          [],
+          rawProperties,
+        );
         const probe = createSgfNode(
           'comment-validation',
           after ? { C: [after] } : {},
           [],
-          raw ? { C: raw } : {},
+          rawProperties,
         );
-        const validation = parseSgf(serializeSgf({ games: [probe] }), this.#limits);
-        if (!validation.ok)
+        const text = serializeSgf({ games: [probe] });
+        const validation = parseSgf(text, this.#limits);
+        if (!validation.ok && !diagnostics)
           // Probe offsets do not locate values in the full exported collection.
-          return Object.freeze(
+          diagnostics = Object.freeze(
             validation.diagnostics.map(({ code, message }) => Object.freeze({ code, message })),
           );
+        bytes +=
+          encoder.encode(text).length - encoder.encode(serializeSgf({ games: [before] })).length;
       }
+      // Check the final batch, allowing deletions to offset additions elsewhere.
+      if (bytes > (this.#limits.maxBytes ?? DEFAULT_SGF_LIMITS.maxBytes))
+        return Object.freeze([
+          Object.freeze({ code: 'limit', message: 'SGF input exceeds byte limit' }),
+        ]);
+      if (diagnostics) return diagnostics;
     } else {
       // Imports/checkpoints have only validated input, whose canonical headers
       // may exceed stricter value limits. Establish export validity first.
+      const text = serializeSgf(candidate);
       const validation = parseSgf(text, this.#limits);
       if (!validation.ok) return validation.diagnostics;
+      bytes = encoder.encode(text).length;
     }
-    this.#validatedExports.add(candidate);
+    this.#validatedExports.set(candidate, bytes);
   }
   #edit(
     replacement: SgfNode,

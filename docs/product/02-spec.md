@@ -363,9 +363,12 @@ original escaping data. Rebuilt child arrays remain frozen; changing a node's ow
 properties still creates a defensive immutable copy.
 Comment-only edits may reuse a controller-local weak proof that the exact immutable
 source's canonical export passed its fixed SGF limits. They still check the entire
-candidate's UTF-8 bytes and validate each changed C value, including preserved raw
-escaping, through the existing serializer/parser. The first unproven export and all
-non-comment edits retain full validation; unchanged node/depth/property limits are
+candidate's UTF-8 bytes using the proven source byte count plus exact old/new
+C-only export deltas, and validate each changed C value, including preserved raw
+escaping, through the existing serializer/parser. Delta probes use identical root
+headers; only the final batch size is checked so removals can offset additions.
+The first unproven export and all non-comment edits retain full validation; unchanged
+node/depth/property limits are
 inherited only for internal C-only builders. Preview validation remains atomic.
 
 Dirty state compares semantic record content with its export baseline, excluding
