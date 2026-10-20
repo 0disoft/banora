@@ -16,6 +16,7 @@ import {
   applyRecordNode,
   indexRecord,
   initialRecordPosition,
+  refreshCommentIndex,
   replaceRecordChildren,
   sameRecordContent,
   sgfColor,
@@ -287,8 +288,11 @@ export class RecordController {
     }
   }
   #reindex(commentOnly = false): void {
-    this.#index = indexRecord(this.#record);
-    if (!commentOnly) this.#positionCache.clear();
+    if (commentOnly) refreshCommentIndex(this.#index, this.#record);
+    else {
+      this.#index = indexRecord(this.#record);
+      this.#positionCache.clear();
+    }
   }
   #refreshDirty(): void {
     this.#dirty = !sameRecordContent(this.#record, this.#baselineRecord, this.#baselineContent);

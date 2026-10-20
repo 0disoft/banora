@@ -74,6 +74,20 @@ export function indexRecord(record: SgfRecord): RecordIndex {
   return index;
 }
 
+/** Refresh only node references after a validated, topology-preserving C-only edit.
+ * This mutates the controller-private index; parent/game maps remain unchanged.
+ * Immutable node identity lets unchanged subtrees be skipped in their entirety.
+ */
+export function refreshCommentIndex(index: RecordIndex, record: SgfRecord): void {
+  const pending = [...record.games];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (index.nodes.get(node.id) === node) continue;
+    index.nodes.set(node.id, node);
+    for (const child of node.children) pending.push(child);
+  }
+}
+
 const pointLists = new Set([
   'AB',
   'AW',

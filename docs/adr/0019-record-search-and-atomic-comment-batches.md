@@ -56,8 +56,12 @@ failed probes issue no proof. Probe diagnostics omit offsets that would
 misidentify a full-record location.
 
 Application is one notification and one Undo entry, keeps the current selection,
-rules and record generation, and never acknowledges SGF export. No-op batches
-preserve active groups/Redo. Refused batches preserve all controller state.
+rules and record generation, and never acknowledges SGF export. Validated C-only
+commits refresh changed immutable node/ancestor references in the private index,
+skipping shared subtrees and retaining its unchanged parent/game maps. This path
+is restricted to internal topology-preserving comment builders; other edits,
+Undo/Redo and record/checkpoint replacement retain full index reconstruction.
+No-op batches preserve active groups/Redo. Refused batches preserve all controller state.
 `stale-preview` is an additive command failure. Preview data contains authored
 content and must not be copied into diagnostic logs or implicit telemetry.
 

@@ -12,6 +12,40 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Comment Index Refresh Evidence
+
+Validated internal C-only commits now update changed node/ancestor references in
+the controller-private index, skip identical immutable subtrees and retain the
+unchanged parent/game maps. They preserve immutable published snapshots and the
+existing position cache. Other edits, Undo/Redo and record/checkpoint replacement
+retain complete indexing and position invalidation. Candidate validation, byte
+and value limits, preview authority and notification/history behavior are unchanged.
+
+`packages/sdk/test/comment-index.test.ts` compares every indexed node reference,
+parent and game with complete indexing after repeated cross-game/nested-branch
+comment changes. Controller coverage checks unchanged selected nodes, updated
+ancestors/siblings, immutable previews/snapshots, previous/variation navigation,
+game membership, single comments, Undo/Redo and subsequent structural edits.
+
+Local Node 24 diagnostics measured ten complete 5,000-move index rebuilds at a
+16.43 ms median. Alternating initial HEAD/current controllers in one process, with
+one warm-up and five samples of ten grouped tail-comment edits, measured medians
+72.85 -> 61.18 ms at 5,000 moves (about 16% lower). The 300-move medians were
+5.17 -> 5.21 ms, with no established small-record gain. Dirty checkpoint restoration
+followed by the same session measured 150.13 -> 135.75 ms at 5,000 moves.
+Undo/initial dirty state was checked. These are authored local stress measurements,
+not browser frame latency
+or peak-memory claims. No public API, DB/schema, dependency, repository hygiene
+or runner changes are introduced.
+
+The public built-artifact performance runner passed all 27 correctness-checked
+cases. Final `check` passed 289 tests / 8,060 assertions, quality/boundary gates,
+builds, root/Svelte types, documentation, packed SDK consumers and 298 installed
+CLI checks. After `build:examples`, the full production Chrome 155 suite passed,
+including SGF download/reopen, single/batch comment editing, branches/history,
+dirty guards, playback/recovery and framework lifecycles. Other engines, physical
+devices and hosted CI were not executed in this bounded local run.
+
 ## Incremental Comment Export Byte Evidence
 
 Controller-owned C-only validation now keeps the exact canonical UTF-8 byte count

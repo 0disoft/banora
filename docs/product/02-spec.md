@@ -356,8 +356,11 @@ comment changes and marker changes are undoable; a comment editing session is on
 undo unit. Navigation creates no edit entry and restores the selected path's rule
 history. Edit history must not substitute for repetition history.
 Comment-only single and batch edits retain the bounded position cache: they change
-no moves, setup, move numbers or rule history. Other edits, Undo/Redo and record
-or checkpoint replacement continue to invalidate replayed positions.
+no moves, setup, move numbers or rule history. Their controller-private index
+refreshes changed node/ancestor references, skips identical immutable subtrees,
+and retains unchanged parent/game maps. Only trusted topology-preserving C-only
+builders use this path. Other edits, Undo/Redo and record or checkpoint replacement
+continue full indexing and invalidate replayed positions.
 Immutable path edits and comment batches share unchanged ancestor properties and
 original escaping data. Rebuilt child arrays remain frozen; changing a node's own
 properties still creates a defensive immutable copy.
