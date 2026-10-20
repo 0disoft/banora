@@ -390,6 +390,9 @@ Initially target SGF FF4 for Go: moves/pass, setup stones, branches, comments,
 player/game metadata, labels and shape markers. Preserve branch order and unknown property values
 through supported read/edit/write workflows. Preserve decoded property semantics,
 not byte-for-byte whitespace, property order, or original text formatting.
+The parser freezes its private property arrays in place and avoids rebuilding plain
+values without escapes or line endings. Public node construction still copies caller
+input; normalization, raw escaping preservation and all SGF limit checks remain.
 
 Decode file bytes according to declared encoding; string input is already decoded.
 Export UTF-8. Implemented encoding/default/limit policies are documented in

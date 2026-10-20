@@ -158,20 +158,24 @@ export function createSgfNode(
 }
 
 function decodeValue(raw: string, key: string): string {
-  let decoded = '';
-  for (let i = 0; i < raw.length; i++) {
-    let character = raw[i]!;
-    if (character === '\\') {
-      character = raw[++i] ?? '';
-      if (character === '\r' || character === '\n') {
+  // Most values have no escapes or line endings; retain their existing string.
+  let decoded = raw;
+  if (/[\\\r\n]/.test(raw)) {
+    decoded = '';
+    for (let i = 0; i < raw.length; i++) {
+      let character = raw[i]!;
+      if (character === '\\') {
+        character = raw[++i] ?? '';
+        if (character === '\r' || character === '\n') {
+          if ((raw[i + 1] === '\r' || raw[i + 1] === '\n') && raw[i + 1] !== character) i++;
+          continue;
+        }
+      } else if (character === '\r' || character === '\n') {
         if ((raw[i + 1] === '\r' || raw[i + 1] === '\n') && raw[i + 1] !== character) i++;
-        continue;
+        character = '\n';
       }
-    } else if (character === '\r' || character === '\n') {
-      if ((raw[i + 1] === '\r' || raw[i + 1] === '\n') && raw[i + 1] !== character) i++;
-      character = '\n';
+      decoded += character;
     }
-    decoded += character;
   }
   if (key === 'C' || key === 'GC') return decoded.replace(/[\t\v\f]/g, ' ');
   if (simpleText.has(key)) return decoded.replace(/[\n\t\v\f]/g, ' ');
@@ -375,11 +379,13 @@ function parse(text: string, limits: SgfLimits): SgfRecord {
   if (stack.length || !roots.length) fail('syntax', 'Incomplete or empty SGF collection', offset);
   for (let i = nodes.length - 1; i >= 0; i--) {
     const node = nodes[i]!;
-    Object.assign(node, {
-      properties: valuesObject(node.properties),
-      rawProperties: valuesObject(node.rawProperties),
-      children: Object.freeze(node.children),
-    });
+    // These maps and arrays belong exclusively to the parser. Freeze them in
+    // place; createSgfNode still defensively copies caller-owned input.
+    for (const values of Object.values(node.properties)) Object.freeze(values);
+    for (const values of Object.values(node.rawProperties)) Object.freeze(values);
+    Object.freeze(node.properties);
+    Object.freeze(node.rawProperties);
+    Object.freeze(node.children);
     Object.freeze(node);
   }
   const record: SgfRecord = Object.freeze({ games: Object.freeze(roots) });

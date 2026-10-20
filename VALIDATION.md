@@ -12,6 +12,32 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## SGF Parser Allocation Evidence
+
+`packages/sdk/test/sgf.test.ts` checks parser-owned maps, value arrays, children
+and multi-game branches remain deeply frozen, while `createSgfNode` still copies
+unfrozen caller input. Plain Unicode, empty values, text/simple-text whitespace,
+escaped delimiters and continued lines retain decoded semantics and raw unknown
+values through export/reopen. Existing malformed-input, encoding and byte/node/
+depth/value-limit checks remain active; controller edits still fully reparse their
+serialized candidate before committing it.
+
+Local Node 24 diagnostics alternated old/new parsers in the same process, with
+one warm-up and five samples of ten parses per authored workload. Median 300-move
+parse time was 31.06 -> 27.69 ms; pass-heavy 5,000-move time was 361.85 -> 313.18 ms
+(about 13% lower). The public artifact performance runner also completed all 27
+correctness-checked cases before/after. Separate whole-edit measurements were
+variable and do not establish a corresponding user-visible latency reduction.
+These are local synthetic stress results, not browser/device or peak-memory claims.
+No public API, DB/schema, dependency, hygiene or runner change is introduced.
+
+`check` passed 276 tests / 6,266 assertions, quality/boundary gates, builds,
+root/Svelte types, documentation, packed SDK consumers and 298 installed CLI
+checks. After `build:examples`, the full production Chrome 155 suite passed,
+including SGF editing/export/reopen, branches/Undo, search, playback, dirty guards,
+encoding failures and framework lifecycles. Other engines, physical devices and
+hosted CI were not executed in this bounded local run.
+
 ## Standard Validation Names
 
 After `bun run build:examples`, `bun scripts/browser-smoke.ts --tree-only` checks

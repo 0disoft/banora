@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { decodeSgf, parseSgf, serializeSgf } from '../src/sgf.js';
+import { createSgfNode, decodeSgf, parseSgf, serializeSgf } from '../src/sgf.js';
 import type { SgfRecord, SgfResult } from '../src/sgf.js';
 import { semanticRecord } from '../src/record-runtime.js';
 
@@ -21,6 +21,60 @@ describe('SGF FF4 preservation', () => {
     expect(output).toContain('XX[one\\:two][bracket\\] and slash\\\\]');
     expect(semanticRecord(after)).toBe(semanticRecord(before));
     expect(Object.isFrozen(after.games[0]!.properties.XX)).toBe(true);
+  });
+  test('normalizes plain and escaped values without changing raw preservation', () => {
+    for (const [raw, text, simple, unknown] of [
+      ['한글 日本語 中文 🙂', '한글 日本語 中文 🙂', '한글 日本語 中文 🙂', '한글 日本語 中文 🙂'],
+      ['', '', '', ''],
+      ['a\tb\vc\fd', 'a b c d', 'a b c d', 'a\tb\vc\fd'],
+      ['a\r\nb\n\rc\rd\ne', 'a\nb\nc\nd\ne', 'a b c d e', 'a\nb\nc\nd\ne'],
+      ['a\\]b\\\\c\\:d', 'a]b\\c:d', 'a]b\\c:d', 'a]b\\c:d'],
+      ['a\\\r\nb\\\n\rc', 'abc', 'abc', 'abc'],
+    ]) {
+      const record = parsed(parseSgf(`(;C[${raw}]N[${raw}]XX[${raw}]LB[aa:${raw}])`));
+      const root = record.games[0]!;
+      expect(root.properties.C).toEqual([text!]);
+      expect(root.properties.N).toEqual([simple!]);
+      expect(root.properties.XX).toEqual([unknown!]);
+      expect(root.properties.LB).toEqual([`aa:${simple}`]);
+      expect(root.rawProperties.XX).toEqual([raw!]);
+      const output = serializeSgf(record);
+      expect(output).toContain(`XX[${raw}]`);
+      expect(semanticRecord(parsed(parseSgf(output)))).toBe(semanticRecord(record));
+    }
+  });
+  test('freezes parser-owned values deeply while retaining defensive public construction', () => {
+    const record = parsed(parseSgf('(;XX[first][second](;B[aa])(;W[bb]))(;C[other game])'));
+    expect(Object.isFrozen(record)).toBe(true);
+    expect(Object.isFrozen(record.games)).toBe(true);
+    const pending = [...record.games];
+    while (pending.length) {
+      const node = pending.pop()!;
+      for (const object of [node, node.children, node.properties, node.rawProperties])
+        expect(Object.isFrozen(object)).toBe(true);
+      for (const map of [node.properties, node.rawProperties]) {
+        expect(Object.getPrototypeOf(map)).toBe(null);
+        for (const values of Object.values(map)) {
+          expect(Object.isFrozen(values)).toBe(true);
+          expect(Reflect.set(values, 0, 'changed')).toBe(false);
+        }
+      }
+      pending.push(...node.children);
+    }
+    const values = ['caller'],
+      raw = ['caller'];
+    const properties = { XX: values },
+      rawProperties = { XX: raw };
+    const node = createSgfNode('external', properties, [], rawProperties);
+    values[0] = 'changed';
+    raw[0] = 'changed';
+    expect(Object.isFrozen(properties)).toBe(false);
+    expect(Object.isFrozen(values)).toBe(false);
+    expect(Object.isFrozen(rawProperties)).toBe(false);
+    expect(Object.isFrozen(raw)).toBe(false);
+    expect(node.properties.XX).toEqual(['caller']);
+    expect(node.rawProperties.XX).toEqual(['caller']);
+    expect(record.games[0]!.properties.XX).toEqual(['first', 'second']);
   });
   test('decodes declared UTF-8, falls back to true Latin-1, and ignores fake CA in comments', () => {
     const utf8 = parsed(decodeSgf(new TextEncoder().encode('(;CA[UTF-8]C[한글])')));
