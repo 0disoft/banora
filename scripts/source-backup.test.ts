@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test';
+import { beforeEach, describe, expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -50,77 +50,88 @@ async function fixture() {
   git('commit', '-m', 'Authored next fixture');
   return { root, git };
 }
-test('real Git backup restores exact history/refs and clean source without inheriting the original remote/config', async () => {
-  const { root, git } = await fixture();
-  git('remote', 'add', 'origin', 'https://example.invalid/unused-source-fixture');
-  git('config', 'credential.helper', 'unused-authored-helper');
-  const originalConfig = await readFile(resolve(root, '.git/config'));
-  const backup = await sourceBackup(root);
-  const request = {
-    backup: resolve(root, backup.backup),
-    manifestSha256: backup.manifestSha256,
-    sourceCommit: backup.source.commit,
-  };
-  const bytes = await readFile(resolve(request.backup, 'source.bundle'));
-  const restored = await sourceRecovery(root, request);
-  expect(restored.ok).toBe(true);
-  expect(restored.refs).toEqual(backup.refs);
-  expect(restored.source).toEqual(backup.source);
-  expect(restored.trackedFiles).toBe(3);
-  expect(restored.completed).toHaveLength(6);
-  expect(await readFile(resolve(root, restored.restored, 'README.md'), 'utf8')).toBe(
-    'Authored next source recovery fixture.\n',
-  );
-  expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(bytes);
-  expect(await readFile(resolve(root, '.git/config'))).toEqual(originalConfig);
-  expect(JSON.stringify(restored)).not.toContain('example.invalid');
-  expect(git('status', '--porcelain')).toBe('');
-  const mirrorConfig = await readFile(
-    resolve(root, restored.restored, '../mirror.git/config'),
-    'utf8',
-  );
-  expect(mirrorConfig).not.toContain('unused-authored-helper');
-  expect(mirrorConfig).not.toContain('https://');
+describe('isolated authored Git source', () => {
+  let source: Awaited<ReturnType<typeof fixture>>;
+
+  // Preparation and the real backup/recovery each retain their own default deadline.
+  // Every test gets fresh history and refs; mutation tests never share a repository.
+  beforeEach(async () => {
+    source = await fixture();
+  });
+
+  test('real Git backup restores exact history/refs and clean source without inheriting the original remote/config', async () => {
+    const { root, git } = source;
+    git('remote', 'add', 'origin', 'https://example.invalid/unused-source-fixture');
+    git('config', 'credential.helper', 'unused-authored-helper');
+    const originalConfig = await readFile(resolve(root, '.git/config'));
+    const backup = await sourceBackup(root);
+    const request = {
+      backup: resolve(root, backup.backup),
+      manifestSha256: backup.manifestSha256,
+      sourceCommit: backup.source.commit,
+    };
+    const bytes = await readFile(resolve(request.backup, 'source.bundle'));
+    const restored = await sourceRecovery(root, request);
+    expect(restored.ok).toBe(true);
+    expect(restored.refs).toEqual(backup.refs);
+    expect(restored.source).toEqual(backup.source);
+    expect(restored.trackedFiles).toBe(3);
+    expect(restored.completed).toHaveLength(6);
+    expect(await readFile(resolve(root, restored.restored, 'README.md'), 'utf8')).toBe(
+      'Authored next source recovery fixture.\n',
+    );
+    expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(bytes);
+    expect(await readFile(resolve(root, '.git/config'))).toEqual(originalConfig);
+    expect(JSON.stringify(restored)).not.toContain('example.invalid');
+    expect(git('status', '--porcelain')).toBe('');
+    const mirrorConfig = await readFile(
+      resolve(root, restored.restored, '../mirror.git/config'),
+      'utf8',
+    );
+    expect(mirrorConfig).not.toContain('unused-authored-helper');
+    expect(mirrorConfig).not.toContain('https://');
+  });
+  test('dirty sources and modified, extra-file or wrongly reviewed backups are rejected without replacement', async () => {
+    const { root } = source;
+    const backup = await sourceBackup(root);
+    const request = {
+      backup: resolve(root, backup.backup),
+      manifestSha256: backup.manifestSha256,
+      sourceCommit: backup.source.commit,
+    };
+    await expect(
+      sourceRecovery(root, { ...request, manifestSha256: '0'.repeat(64) }),
+    ).rejects.toMatchObject({ code: 'integrity' });
+    await expect(
+      sourceRecovery(root, { ...request, sourceCommit: '0'.repeat(40) }),
+    ).rejects.toMatchObject({ code: 'manifest' });
+    await writeFile(resolve(request.backup, 'extra.txt'), 'Authored extra file');
+    await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'manifest' });
+    const fresh = await sourceBackup(root);
+    const bundle = resolve(root, fresh.backup, 'source.bundle');
+    const bytes = await readFile(bundle);
+    await writeFile(bundle, Buffer.concat([bytes, Buffer.from('Authored corruption')]));
+    await expect(
+      sourceRecovery(root, {
+        backup: resolve(root, fresh.backup),
+        manifestSha256: fresh.manifestSha256,
+        sourceCommit: fresh.source.commit,
+      }),
+    ).rejects.toMatchObject({ code: 'integrity' });
+    expect(await readFile(bundle)).toEqual(
+      Buffer.concat([bytes, Buffer.from('Authored corruption')]),
+    );
+    await writeFile(resolve(root, 'README.md'), 'Authored uncommitted work.\n');
+    await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
+    expect(await readFile(resolve(root, 'README.md'), 'utf8')).toBe('Authored uncommitted work.\n');
+    await writeFile(
+      resolve(root, 'package.json'),
+      JSON.stringify({ name: 'other-workspace', private: true }),
+    );
+    await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'source' });
+  });
 });
-test('dirty sources and modified, extra-file or wrongly reviewed backups are rejected without replacement', async () => {
-  const { root } = await fixture();
-  const backup = await sourceBackup(root);
-  const request = {
-    backup: resolve(root, backup.backup),
-    manifestSha256: backup.manifestSha256,
-    sourceCommit: backup.source.commit,
-  };
-  await expect(
-    sourceRecovery(root, { ...request, manifestSha256: '0'.repeat(64) }),
-  ).rejects.toMatchObject({ code: 'integrity' });
-  await expect(
-    sourceRecovery(root, { ...request, sourceCommit: '0'.repeat(40) }),
-  ).rejects.toMatchObject({ code: 'manifest' });
-  await writeFile(resolve(request.backup, 'extra.txt'), 'Authored extra file');
-  await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'manifest' });
-  const fresh = await sourceBackup(root);
-  const bundle = resolve(root, fresh.backup, 'source.bundle');
-  const bytes = await readFile(bundle);
-  await writeFile(bundle, Buffer.concat([bytes, Buffer.from('Authored corruption')]));
-  await expect(
-    sourceRecovery(root, {
-      backup: resolve(root, fresh.backup),
-      manifestSha256: fresh.manifestSha256,
-      sourceCommit: fresh.source.commit,
-    }),
-  ).rejects.toMatchObject({ code: 'integrity' });
-  expect(await readFile(bundle)).toEqual(
-    Buffer.concat([bytes, Buffer.from('Authored corruption')]),
-  );
-  await writeFile(resolve(root, 'README.md'), 'Authored uncommitted work.\n');
-  await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
-  expect(await readFile(resolve(root, 'README.md'), 'utf8')).toBe('Authored uncommitted work.\n');
-  await writeFile(
-    resolve(root, 'package.json'),
-    JSON.stringify({ name: 'other-workspace', private: true }),
-  );
-  await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'source' });
-});
+
 test('source recovery has strict discoverable arguments and fixed errors before Git or provider access', () => {
   const options = [
     '--backup',

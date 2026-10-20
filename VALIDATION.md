@@ -12,6 +12,42 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Git Source Recovery Test Budget Evidence
+
+The real-Git backup/recovery test previously charged six fixture Git processes,
+remote/config setup, nine backup commands, nine recovery commands and final
+assertions against one default 5-second deadline. A local instrumented Windows
+Bun 1.4.3 sample measured fixture preparation at 795.84ms, backup at 972.26ms and
+recovery at 1275.62ms (3343.54ms for the complete test). Individual Git commands
+in that successful restore took about 90-299ms. The original intermittent OS or
+process-startup stall was not captured; no specific external cause is asserted.
+
+The two real-Git tests now prepare fresh authored repositories in a scoped
+`beforeEach`. Setup and each test retain their separate default 5-second deadlines;
+no repository is shared between tests, and the argument/CLI test remains outside
+the hook. All original 3 tests / 34 assertions remain. Production backup/recovery,
+strict object/bundle checks, exact refs/tree/history, clean checkout, remote/config
+isolation, original-byte preservation and every rejection case are unchanged.
+This isolates the preparation budget; it does not claim faster Git execution.
+
+Ignored diagnostic copies added only a 2500ms preparation delay. The original
+restore test timed out at 5002.87ms, killed a dangling Git process and emitted a
+follow-on `Release: check` rejection at the recovery worktree command, matching
+the previously observed failure shape. With identical delay, the scoped-hook
+version passed all 12 restore assertions (6156.70ms including preparation). This
+reproduces cumulative deadline exhaustion without proving the historical external
+stall. No delay, retry, concurrent execution or timeout increase is committed.
+The normal focused file passed all 3 tests / 34 assertions in 6.05s.
+The full `bun run check` passed 303 tests / 8,357 assertions, installed CLI 298
+checks, lint/format/boundaries, SDK/adapter builds, root/Svelte types, docs (145
+documents / 738 links) and packed SDK/classic/declarations. No retry was needed.
+
+Only `scripts/source-backup.test.ts` and this validation source of truth change.
+Public API, database/schema, production Git commands, dependencies, repository
+hygiene and runner/CI policy remain unchanged. Browser/device and provider/account
+recovery checks are outside this test-only change; all Git fixtures are authored,
+local and isolated, with no actual remote access.
+
 ## Channel Plan Test Budget Evidence
 
 The previously timed-out rejection test put 12 independent filesystem fixtures and
