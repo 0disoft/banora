@@ -6,6 +6,23 @@ async (page, studioControl) => {
   const check = (condition, message) => {
     if (!condition) throw Error(message);
   };
+  const waitFor = async (step, predicate, argument) => {
+    try {
+      await page.waitForFunction(predicate, argument);
+    } catch (error) {
+      const observed = await page
+        .evaluate(() => ({
+          move: document.querySelector('#move')?.dataset.uiText ?? null,
+          dirty: document.querySelector('#dirty')?.dataset.uiText ?? null,
+          commentLength: document.querySelector('#comment')?.value.length ?? null,
+          focused: document.activeElement?.id ?? null,
+          modal: document.querySelector('dialog:modal')?.id ?? null,
+          visibility: document.visibilityState,
+        }))
+        .catch(() => ({ unavailable: true }));
+      throw Error(`Playback step "${step}" failed (${error.name}): ${JSON.stringify(observed)}`);
+    }
+  };
   // Original fixture with long recorded pass sequence and analysis-like comments; no downloaded game is committed.
   const sgf =
     '(;FF[4]GM[1]CA[UTF-8]SZ[19]GN[Long replay fixture]PB[Engine Black]PW[Engine White]XX[retain];B[dd]C[0.47 0.53 -0.5 v=1015];W[pp]' +
@@ -56,7 +73,10 @@ async (page, studioControl) => {
   check((await interval.locator('option').count()) === 10, 'Missing 0.5–5 second intervals');
   await interval.selectOption('500');
   await page.getByRole('button', { name: 'Play record', exact: true }).click();
-  await page.waitForFunction(() => document.querySelector('#move').textContent !== 'Move 0');
+  await waitFor(
+    'Studio starts replay',
+    () => document.querySelector('#move').textContent !== 'Move 0',
+  );
   await page.getByRole('button', { name: 'Pause playback', exact: true }).click();
   const paused = await move();
   await page.waitForTimeout(600);
@@ -87,7 +107,10 @@ async (page, studioControl) => {
   await interval.selectOption('5000');
   await page.getByRole('button', { name: 'Play record', exact: true }).click();
   await interval.selectOption('500');
-  await page.waitForFunction(() => document.querySelector('#move').textContent === 'Move 1');
+  await waitFor(
+    'interval change reaches first move',
+    () => document.querySelector('#move').textContent === 'Move 1',
+  );
   await page.getByRole('button', { name: 'Next move', exact: true }).click();
   check(
     (await move()) === 'Move 2' &&
@@ -112,7 +135,10 @@ async (page, studioControl) => {
   );
   await page.getByRole('button', { name: 'Previous move', exact: true }).click();
   await page.getByRole('button', { name: 'Play record', exact: true }).click();
-  await page.waitForFunction(() => document.querySelector('#move').textContent === 'Move 162');
+  await waitFor(
+    'replay reaches leaf',
+    () => document.querySelector('#move').textContent === 'Move 162',
+  );
   check(
     await page.getByRole('button', { name: 'Play record', exact: true }).isDisabled(),
     'Timed end did not pause',
@@ -151,9 +177,40 @@ async (page, studioControl) => {
     await page.getByRole('button', { name: 'Play record', exact: true }).isVisible(),
     'Cancelling a modal resumed playback',
   );
-  await page.locator('#comment').fill('');
+  // Deliver native close after the next editing target acquired focus.
+  await studioControl(page, '#sample', 'record', async () => {
+    await page.getByRole('button', { name: 'Example game', exact: true }).focus();
+    await page.keyboard.press('Enter');
+  });
+  await page.locator('#unsaved[open]').waitFor();
+  const focusAfterClose = await page.evaluate(async () => {
+    const dialog = document.querySelector('#unsaved');
+    const comment = document.querySelector('#comment');
+    const closed = new Promise((resolve) =>
+      dialog.addEventListener(
+        'close',
+        () => {
+          requestAnimationFrame(() => resolve(document.activeElement === comment));
+        },
+        { once: true },
+      ),
+    );
+    dialog.close('cancel');
+    comment.focus();
+    comment.select();
+    return closed;
+  });
+  check(focusAfterClose, 'Confirmation close stole focus from the next comment edit');
+  await page.keyboard.press('Backspace');
+  check(
+    (await page.locator('#comment').inputValue()) === '',
+    'Comment deletion missed its editing target',
+  );
   await page.locator('#comment').blur();
-  await page.waitForFunction(() => document.querySelector('#dirty').textContent === 'No changes');
+  await waitFor(
+    'clearing comment restores clean state',
+    () => document.querySelector('#dirty').textContent === 'No changes',
+  );
   await page.screenshot({ path: 'output/playwright/studio-playback.png', fullPage: true });
 
   for (const name of ['viewer', 'react', 'vue', 'svelte', 'browser']) {
@@ -168,7 +225,8 @@ async (page, studioControl) => {
       .getByRole('combobox', { name: 'Playback interval', exact: true })
       .selectOption('500');
     await host.getByRole('button', { name: 'Play record', exact: true }).click();
-    await page.waitForFunction(
+    await waitFor(
+      `${name} starts replay`,
       ({ selector, before }) =>
         document.querySelector(`${selector} nav > span`).textContent !== before,
       { selector: name === 'viewer' || name === 'browser' ? '#viewer' : '#viewer-host', before },

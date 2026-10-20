@@ -373,7 +373,16 @@ async function mayReplace(signal?: AbortSignal): Promise<SgfRecord | null> {
     };
     const closed = () => {
       signal?.removeEventListener('abort', cancel);
-      if (!disposed && invokingControl)
+      const focused = document.activeElement;
+      // Native close is queued: a user may already have focused their next control.
+      if (
+        !disposed &&
+        invokingControl &&
+        (!focused ||
+          focused === document.body ||
+          dialog.contains(focused) ||
+          !focused.checkVisibility())
+      )
         (invokingControl.checkVisibility() ? invokingControl : find('app-menu')).focus({
           preventScroll: true,
         });

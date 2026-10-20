@@ -583,7 +583,15 @@ keyboard-opened modal pauses and host modals outside the Viewer scope, long SGF
 preservation, record replacement, public updates and disposal/remount. The
 scenario also checks Studio/Viewer variation numbers across branches, passes,
 annotation/setup nodes, SGF `MN`, accessible labels and a selected node beyond the
-500-node tree display limit. The exact
+500-node tree display limit. A native dialog-close race focuses/selects the next
+comment editor before delivery of the queued close event, then uses Backspace to
+clear the comment and verifies clean state. It reproduced focus returning to the
+menu with 21 comment characters retained before the fix. Named playback waits
+report bounded UI state (move/dirty codes, focus/modal IDs, comment length and
+visibility), without comment text or longer timeouts. The original historical
+30-second timeout had no predicate/state evidence, so its exact cause remains
+unconfirmed; the matching focus/deletion failure is independently reproduced.
+The exact
 completion Result and downloaded 162-move SGF are required. This fixture is also
 part of the complete production-browser suite. Browser scenarios restore the
 expected Studio route before the legacy editor scenario; native wrapper coverage

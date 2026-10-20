@@ -370,6 +370,9 @@ the prior baseline intact. A browser download cannot establish actual disk persi
 Before Studio replaces or closes a dirty record, offer Export / Discard / Cancel.
 Only successful export or explicit discard allows the pending operation; cancellation
 retains the current record. Hosts own this UI; the SDK supplies state and operations.
+A queued confirmation-close event preserves focus if the user has already moved
+to another visible control. Only abandoned, hidden or dialog-owned focus returns
+to the invoking control or its visible menu fallback.
 Studio ignores late file reads and read errors after a newer file selection,
 record replacement or page exit, so earlier input cannot overwrite the current record.
 Portable SDK/terminal checkpoints preserve the working record, export baseline,
