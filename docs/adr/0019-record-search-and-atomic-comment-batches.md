@@ -51,7 +51,12 @@ property checks from a controller-local weak proof of the exact source record's
 canonical export under that controller's fixed limits. Check the entire candidate's
 UTF-8 byte count using the proven source byte count plus exact old/new C-only
 export deltas, and parse each changed C value with the same limits, serializer
-and raw-value preservation. Without a source proof, fully parse the candidate
+and raw-value preservation. Within a single call, consecutive identical serialized
+probes can reuse the previous parse result and byte count. Compare full serialized
+strings, including raw escapes, and retain only one temporary entry. Do not reuse
+by decoded comment text or retain this entry across calls. All final aggregate
+byte checks and diagnostic precedence remain unchanged.
+Without a source proof, fully parse the candidate
 export before issuing it; all non-comment edits continue full validation. Proofs
 never come from callers or raw import validation. Weak ownership adds no retained
 record lifetime, and rejected probes change no source/history/preview authority.

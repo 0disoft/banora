@@ -257,3 +257,56 @@ test('byte accounting matches full exports through cross-game additions, removal
     controller.dispose();
   }
 });
+
+test('repeated batch probes use exact raw exports and preserve final byte and value diagnostics', () => {
+  const sgf = '(;SZ[9]C[a\\\nb];B[aa]C[ab];W[bb]C[\\a\\b];B[cc]C[\\a\\b];W[dd]C[ab])';
+  const original = parseSgf(sgf);
+  if (!original.ok) throw Error('Invalid fixture');
+  const limits = {
+    maxBytes: new TextEncoder().encode(serializeSgf(original.record)).length,
+    maxValueLength: 5,
+  };
+  const controller = new RecordController({ sgf, limits });
+  try {
+    const nodes = [];
+    let node = controller.getState().node;
+    while (node) {
+      nodes.push(node);
+      node = node.children[0]!;
+    }
+    expect(controller.setComments(nodes.map(({ id }) => ({ nodeId: id, text: 'w' }))).ok).toBe(
+      true,
+    );
+    const before = controller.getState();
+    for (const text of ['ab', 'q', ']'.repeat(3), '\\'.repeat(3), '한🙂', '']) {
+      const changes = nodes.map(({ id }) => ({ nodeId: id, text }));
+      const candidate = buildCommentBatch(before.record, changes);
+      const full = parseSgf(serializeSgf(candidate.record), limits);
+      const result = controller.previewComments(changes);
+      expect(result.ok).toBe(full.ok);
+      expect(controller.getState()).toBe(before);
+      if (result.ok)
+        expect(serializeSgf(result.preview.record)).toBe(serializeSgf(candidate.record));
+      else if (!full.ok) {
+        expect(result).toMatchObject({ ok: false, reason: 'limit' });
+        expect(result.diagnostics?.map(({ code, message }) => ({ code, message }))).toEqual(
+          full.diagnostics.map(({ code, message }) => ({ code, message })),
+        );
+      }
+    }
+    const restored = controller.previewComments(
+      nodes.map(({ id }) => ({ nodeId: id, text: 'ab' })),
+    );
+    if (!restored.ok) throw Error('Raw restoration refused');
+    expect(controller.applyComments(restored.preview).ok).toBe(true);
+    expect(serializeSgf(controller.getState().record)).toBe(serializeSgf(original.record));
+    expect(controller.getState().dirty).toBe(false);
+    expect(controller.undo().ok).toBe(true);
+    expect(controller.getState().record).toBe(before.record);
+    expect(controller.getState().dirty).toBe(true);
+    expect(controller.redo().ok).toBe(true);
+    expect(controller.getState().dirty).toBe(false);
+  } finally {
+    controller.dispose();
+  }
+});

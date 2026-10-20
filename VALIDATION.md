@@ -12,6 +12,47 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Repeated Batch Comment Probe Evidence
+
+Within one C-only validation call, the controller now retains only the previous
+serialized one-node probe, its parser result and UTF-8 byte count. Consecutive
+exactly identical exports reuse that result. The key includes original raw
+escaping, not only decoded text. This temporary entry never survives the call.
+Old-value byte deltas, final aggregate size checks, diagnostic precedence and
+successful-candidate proof issuance remain unchanged. Initial/unproven sources
+and non-comment candidates still receive full validation.
+
+The added regression in `packages/sdk/test/comment-validation.test.ts` compares
+repeated comments with whole-candidate parsing at exact byte/value boundaries,
+including adjacent identical probes and the same decoded text with different
+raw exports. It checks invalid escaped values, Unicode byte overflow, exact raw
+restoration, clean/dirty transitions and one-step Undo/Redo after rejected probes.
+
+Local Node 24 profiling separated multi-target candidate construction from whole
+preview cost at 2/25/256 targets. Ten 5,000-move 256-target previews measured
+118.66 ms versus 37.02 ms for candidate construction in separate diagnostic runs,
+identifying repeated value parsing as a larger target than traversal in this case.
+A final same-process alternating HEAD/current comparison used one warm-up and
+five samples of ten previews on an already export-validated source. At 5,000 moves,
+25-target medians were 38.82 -> 32.62 ms and 256-target medians 127.74 -> 64.40 ms
+(about 50% lower). At 300 moves, 256-target medians were 98.99 -> 35.89 ms.
+The 5,000-move two-target case was 29.56 -> 29.91 ms, with no established gain.
+A distinct-text 256-target control measured 124.76 -> 128.29 ms; no speedup is
+claimed for that workload, which cannot reuse identical probes.
+Each preview session retained the exact live snapshot. These authored Node stress
+measurements exclude initial validation and do not establish browser frame-time
+or peak memory. No public API, DB/schema, dependency, repository hygiene or runner
+changes are introduced.
+
+The final public built-artifact performance runner passed all 27 correctness-checked
+cases. Final `check` passed 292 tests / 8,345 assertions, quality/boundary gates,
+builds, root/Svelte types, documentation, packed SDK consumers and 298 installed
+CLI checks. After rebuilding examples from the final source, the full production
+Chrome 155 suite passed, including search/comment preview/apply, actual SGF
+download/reopen, branches/history, dirty guards, playback/recovery and framework
+lifecycles. Other engines, physical devices and hosted CI were not executed in
+this bounded local run.
+
 ## Indexed Single Comment Preview Evidence
 
 Empty/single-target previews can now use the controller-private exact-source

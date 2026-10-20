@@ -331,6 +331,11 @@ export class RecordController {
       // Only C changes. Canonical one-node exports have identical headers and
       // delimiters, so their exact byte deltas also apply to the full collection.
       // Retain original raw C values: restoring decoded text may reuse its escapes.
+      // A common batch comment often produces identical adjacent probes. Keep
+      // only the last exact export for this call, including original raw escapes.
+      let lastProbeText: string | undefined;
+      let lastProbeValidation: ReturnType<typeof parseSgf> | undefined;
+      let lastProbeBytes = 0;
       for (const { nodeId, after } of comments) {
         const node = this.#index.nodes.get(nodeId)!;
         const raw = node.rawProperties.C;
@@ -348,14 +353,18 @@ export class RecordController {
           rawProperties,
         );
         const text = serializeSgf({ games: [probe] });
-        const validation = parseSgf(text, this.#limits);
+        if (lastProbeText !== text || !lastProbeValidation) {
+          lastProbeText = text;
+          lastProbeValidation = parseSgf(text, this.#limits);
+          lastProbeBytes = encoder.encode(text).length;
+        }
+        const validation = lastProbeValidation;
         if (!validation.ok && !diagnostics)
           // Probe offsets do not locate values in the full exported collection.
           diagnostics = Object.freeze(
             validation.diagnostics.map(({ code, message }) => Object.freeze({ code, message })),
           );
-        bytes +=
-          encoder.encode(text).length - encoder.encode(serializeSgf({ games: [before] })).length;
+        bytes += lastProbeBytes - encoder.encode(serializeSgf({ games: [before] })).length;
       }
       // Check the final batch, allowing deletions to offset additions elsewhere.
       if (bytes > (this.#limits.maxBytes ?? DEFAULT_SGF_LIMITS.maxBytes))
