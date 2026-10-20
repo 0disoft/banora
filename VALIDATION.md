@@ -12,6 +12,35 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Comment-Only Validation Reuse Evidence
+
+`packages/sdk/test/comment-validation.test.ts` compares single/cross-game batch
+comment decisions and resulting semantics with full serialize/parse validation
+under tight UTF-8 byte, node, depth and escaped-value limits. It covers canonical
+headers exceeding raw-input value limits, exact multibyte byte boundaries, retained
+raw C escaping, immutable previews, grouped Undo/Redo, export-ticket retention,
+failed-edit notifications, structural edits and import/checkpoint replacement.
+The first unproven candidate export still fully parses. Only controller-owned
+C-only builders can inherit unchanged constraints from an exact immutable source;
+every changed C value still uses the existing serializer/parser with fixed limits.
+
+An alternating same-process Node 24 diagnostic used one warm-up and five samples
+of ten tail-comment edits, including first-edit full validation and grouped Undo
+correctness checks. Median 300-move time was 45.06 -> 13.63 ms; pass-heavy 5,000-move
+time was 551.46 -> 275.80 ms (about 50% lower). Public built-artifact performance
+runs also completed 27 correctness-checked cases before/after; their 5,000-move
+comment-session medians were 648.66 -> 220.47 ms. Timing is local authored stress
+work, not browser frame latency or peak memory. No isolated first-batch speedup
+is claimed because an unproven source still needs full validation.
+No public API, DB/schema, dependency, hygiene or runner change is introduced.
+
+`check` passed 282 tests / 6,514 assertions, quality/boundary gates, builds,
+root/Svelte types, documentation, packed SDK consumers and 298 installed CLI
+checks. After `build:examples`, the full production Chrome 155 suite passed,
+including comment/search batch edits, playback, SGF export/reopen, dirty guards,
+structural Undo and framework lifecycles. Other engines, physical devices and
+hosted CI were not executed in this bounded local run.
+
 ## SGF Parser Allocation Evidence
 
 `packages/sdk/test/sgf.test.ts` checks parser-owned maps, value arrays, children
@@ -19,8 +48,8 @@ and multi-game branches remain deeply frozen, while `createSgfNode` still copies
 unfrozen caller input. Plain Unicode, empty values, text/simple-text whitespace,
 escaped delimiters and continued lines retain decoded semantics and raw unknown
 values through export/reopen. Existing malformed-input, encoding and byte/node/
-depth/value-limit checks remain active; controller edits still fully reparse their
-serialized candidate before committing it.
+depth/value-limit checks remain active. At that parser-only stage, controller edits
+still fully reparsed their serialized candidate before committing it.
 
 Local Node 24 diagnostics alternated old/new parsers in the same process, with
 one warm-up and five samples of ten parses per authored workload. Median 300-move

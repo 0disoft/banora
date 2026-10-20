@@ -40,6 +40,16 @@ intervening edits/imports do. An Undo returning to the exact source makes that
 content preview applicable again. Revalidate neither unchanged immutable candidates
 nor board positions during commit.
 
+For internal C-only candidates, validation may inherit unchanged structural and
+property checks from a controller-local weak proof of the exact source record's
+canonical export under that controller's fixed limits. Check the entire candidate's
+UTF-8 byte count and parse each changed C value with the same limits, serializer
+and raw-value preservation. Without a source proof, fully parse the candidate
+export before issuing it; all non-comment edits continue full validation. Proofs
+never come from callers or raw import validation. Weak ownership adds no retained
+record lifetime, and rejected probes change no source/history/preview authority.
+Probe diagnostics omit offsets that would misidentify a full-record location.
+
 Application is one notification and one Undo entry, keeps the current selection,
 rules and record generation, and never acknowledges SGF export. No-op batches
 preserve active groups/Redo. Refused batches preserve all controller state.

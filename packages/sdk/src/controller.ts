@@ -2,6 +2,7 @@ import { isOnBoard, pass, play, setup } from './core.js';
 import type { Color, MoveFailure, Point, Position, RulePolicy, SetupStone } from './core.js';
 import {
   createSgfNode,
+  DEFAULT_SGF_LIMITS,
   decodeSgf,
   expandSgfPoints,
   parseSgf,
@@ -141,6 +142,8 @@ export class RecordController {
   #lastAcknowledged = 0;
   #tickets = new Map<number, { signature: string; record: SgfRecord }>();
   #commentPreviews = new WeakSet<CommentBatchPreview>();
+  /** Canonical exports checked with this controller's immutable limits. */
+  #validatedExports = new WeakSet<SgfRecord>();
 
   constructor(options: ControllerOptions = {}) {
     this.#rules = options.rules ? Object.freeze({ ...options.rules }) : undefined;
@@ -313,6 +316,46 @@ export class RecordController {
     } while (this.#index.nodes.has(id));
     return id;
   }
+  /** Only internal C-only builders may supply comments; all other edits fully reparse. */
+  #validateCandidate(
+    candidate: SgfRecord,
+    comments?: readonly { nodeId: string; after: string }[],
+  ): readonly SgfDiagnostic[] | undefined {
+    const text = serializeSgf(candidate);
+    if (comments && this.#validatedExports.has(this.#record)) {
+      // C-only edits retain the checked shape and all non-C properties. Still
+      // check the entire UTF-8 export and parse each changed value with the same
+      // serializer/parser, including any preserved original C escaping.
+      if (
+        new TextEncoder().encode(text).length >
+        (this.#limits.maxBytes ?? DEFAULT_SGF_LIMITS.maxBytes)
+      )
+        return Object.freeze([
+          Object.freeze({ code: 'limit', message: 'SGF input exceeds byte limit' }),
+        ]);
+      for (const { nodeId, after } of comments) {
+        const raw = this.#index.nodes.get(nodeId)!.rawProperties.C;
+        const probe = createSgfNode(
+          'comment-validation',
+          after ? { C: [after] } : {},
+          [],
+          raw ? { C: raw } : {},
+        );
+        const validation = parseSgf(serializeSgf({ games: [probe] }), this.#limits);
+        if (!validation.ok)
+          // Probe offsets do not locate values in the full exported collection.
+          return Object.freeze(
+            validation.diagnostics.map(({ code, message }) => Object.freeze({ code, message })),
+          );
+      }
+    } else {
+      // Imports/checkpoints have only validated input, whose canonical headers
+      // may exceed stricter value limits. Establish export validity first.
+      const validation = parseSgf(text, this.#limits);
+      if (!validation.ok) return validation.diagnostics;
+    }
+    this.#validatedExports.add(candidate);
+  }
   #edit(
     replacement: SgfNode,
     selected = this.#selected,
@@ -334,8 +377,13 @@ export class RecordController {
         this.#record.games.map((root, index) => (index === game ? updated : root)),
       ),
     });
-    const validation = parseSgf(serializeSgf(candidate), this.#limits);
-    if (!validation.ok) return { ok: false, reason: 'limit', diagnostics: validation.diagnostics };
+    const diagnostics = this.#validateCandidate(
+      candidate,
+      options.commentOnly
+        ? [{ nodeId: target, after: replacement.properties.C?.[0] ?? '' }]
+        : undefined,
+    );
+    if (diagnostics) return { ok: false, reason: 'limit', diagnostics };
     return this.#commit(candidate, selected, options);
   }
   /** Commit only a candidate already validated by this controller. */
@@ -448,9 +496,8 @@ export class RecordController {
     try {
       const preview = buildCommentBatch(this.#record, changes);
       if (preview.edits.length) {
-        const validation = parseSgf(serializeSgf(preview.record), this.#limits);
-        if (!validation.ok)
-          return { ok: false, reason: 'limit', diagnostics: validation.diagnostics };
+        const diagnostics = this.#validateCandidate(preview.record, preview.edits);
+        if (diagnostics) return { ok: false, reason: 'limit', diagnostics };
       }
       this.#commentPreviews.add(preview);
       return Object.freeze({ ok: true, preview });
