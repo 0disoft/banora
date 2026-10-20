@@ -406,6 +406,8 @@ selected location and explicit rules. Hosts own persistence; Studio implements
 bounded local autosave, guarded restore, selected/current portable backups and
 explicit revision-checked deletion. Sessions/tabs keep distinct drafts, storage
 failure retains editing/SGF export, and no unsaved work is silently evicted.
+Closing recovery cancels pending restore/backup reads; late results cannot alter
+newer feedback, and cancelled backup reads skip JSON/checkpoint parsing.
 Exit durability is best-effort; Undo/presentation are not stored in backups.
 See [recovery](../sdk/recovery.md) and the
 [API contract](../sdk/public-api.md).

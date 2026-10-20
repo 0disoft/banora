@@ -310,6 +310,73 @@ async (rootPage, studioControl) => {
     .setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{bad') });
   await expect(page.locator('#draft-message')).toHaveText('Invalid backup. Current record kept.');
   await expect(page.locator('#comment')).toHaveValue('unfinished 한국어 <tag>');
+  // A closed recovery operation must not parse late input or change a reopened dialog.
+  await page.evaluate(() => {
+    const read = File.prototype.text,
+      parse = JSON.parse;
+    window.backupParseCount = 0;
+    window.restoreBackupRead = () => {
+      File.prototype.text = read;
+      JSON.parse = parse;
+    };
+    let pendingText;
+    JSON.parse = function (text, ...args) {
+      if (text === pendingText) window.backupParseCount++;
+      return parse.call(this, text, ...args);
+    };
+    File.prototype.text = function () {
+      if (!this.name.startsWith('delayed-')) return read.call(this);
+      return new Promise((resolve, reject) => {
+        window.finishBackupRead = async () => {
+          if (this.name === 'delayed-error.json') reject(Error('Stale backup read error'));
+          else {
+            pendingText = await read.call(this);
+            resolve(pendingText);
+          }
+          await new Promise(requestAnimationFrame);
+        };
+      });
+    };
+  });
+  try {
+    for (const name of ['delayed-backup.json', 'delayed-error.json']) {
+      await page.locator('#backup-file').setInputFiles({
+        name,
+        mimeType: 'application/json',
+        buffer: Buffer.from('{"staleBackup":true}'),
+      });
+      await expect(page.locator('#backup-open')).toBeDisabled();
+      await page.locator('#draft-close').click();
+      await openDrafts(page);
+      await expect(page.locator('#draft-message')).toHaveText('');
+      if (name === 'delayed-error.json') {
+        await page.locator('#backup-file').setInputFiles({
+          name: 'newer-invalid.json',
+          mimeType: 'application/json',
+          buffer: Buffer.from('{bad'),
+        });
+        await expect(page.locator('#draft-message')).toHaveText(
+          'Invalid backup. Current record kept.',
+        );
+      }
+      await page.evaluate(() => window.finishBackupRead());
+      await expect(page.locator('#draft-message')).toHaveText(
+        name === 'delayed-error.json' ? 'Invalid backup. Current record kept.' : '',
+      );
+      await expect(page.locator('#backup-open')).not.toBeDisabled();
+      await expect(page.locator('#comment')).toHaveValue('unfinished 한국어 <tag>');
+      await expect(page.locator('#unsaved')).not.toBeVisible();
+    }
+    if ((await page.evaluate(() => window.backupParseCount)) !== 0)
+      throw Error('Cancelled backup read still parsed its JSON payload');
+  } finally {
+    await page.evaluate(() => {
+      window.restoreBackupRead();
+      delete window.restoreBackupRead;
+      delete window.finishBackupRead;
+      delete window.backupParseCount;
+    });
+  }
   for (const [locale, label] of [
     ['ko', '로컬 초안'],
     ['zh', '本地草稿'],

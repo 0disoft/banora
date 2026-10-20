@@ -12,6 +12,34 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Recovery Cancellation Evidence
+
+A delayed backup file read reproduced an old operation publishing "Record changed.
+Try again." after closing/reopening Local drafts. Recovery now rejects cancelled
+operation sequences before publishing restore feedback and before parsing a late
+backup JSON payload. Active operations still validate their wrapper/checkpoint,
+working-state freshness and replacement approval; input bounds are unchanged.
+Underlying File reads are not aborted by the browser API.
+
+The production recovery scenario delays real File reads, closes/reopens the dialog,
+and checks late success and rejection. An exact-payload JSON parser probe records
+zero parses for cancelled input. The checks retain newer invalid-backup feedback,
+editable comment content and enabled controls without opening replacement approval.
+The original build failed the new scenario with the stale message; the corrected
+build passed the focused Chrome 155 recovery suite, including actual IndexedDB,
+reload/two tabs, quota/cap rollback/retry, backup downloads/reopen, dirty guards,
+revision-checked deletion and locale/mobile controls.
+
+`bun run check` passed 292 tests / 8,345 assertions, installed CLI 298 checks,
+quality/boundary gates, SDK/adapter builds, root/Svelte types, packed SDK/classic
+consumers and docs (145 documents / 738 relative links). `bun run build:examples`,
+`bun scripts/browser-smoke.ts --recovery-only`, final docs and whitespace checks
+passed. Only Studio recovery code, its existing browser scenario and owning docs
+changed; no public API, database/schema, dependencies or runner policy changed.
+Other browser scenarios/engines, physical-device and hosted CI runs were skipped
+because this bounded fix affects only recovery cancellation and feedback. No
+browser file-I/O cancellation, frame-time or abrupt-exit durability claim is made.
+
 ## Repeated Batch Comment Probe Evidence
 
 Within one C-only validation call, the controller now retains only the previous

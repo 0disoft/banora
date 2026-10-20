@@ -27,7 +27,11 @@ Provide visible local-draft autosave control/status, explicit selection and guar
 restore, portable backup import/download and revision-checked deletion. Validate
 stored checkpoints on restoration. Debounce writes, serialize a session's saves,
 gate feedback by document revision and release pending UI work on disposal. Do
-not promise completion of writes at abrupt browser/process termination.
+not promise completion of writes at abrupt browser/process termination. Closing
+recovery cancels its pending restore/backup read: late completions do not parse
+backup JSON, replace records or publish messages into a later dialog operation.
+A still-current restore whose working state changed retains its explicit stale-record
+message. Underlying browser file reads may finish; cancellation gates their results.
 
 Backups include baseline content and must be treated as private documents. Browser
 data may be cleared externally and is not a substitute for a user-chosen file copy.

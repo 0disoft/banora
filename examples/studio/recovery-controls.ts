@@ -151,15 +151,14 @@ export function mountRecoveryControls(
       if (!disposed && sequence === listSequence) failure(error);
     }
   }
-  const unchanged = (state: ReturnType<RecordController['getState']>, sequence: number) =>
-    !disposed && sequence === requestSequence && controller.getState() === state;
   async function restore(
     value: unknown,
     state: ReturnType<RecordController['getState']>,
     sequence: number,
   ): Promise<void> {
-    if (!unchanged(state, sequence)) {
-      if (!disposed) setUiText(message, 'Record changed. Try again.');
+    if (disposed || sequence !== requestSequence) return;
+    if (controller.getState() !== state) {
+      setUiText(message, 'Record changed. Try again.');
       return;
     }
     if (
@@ -371,7 +370,9 @@ export function mountRecoveryControls(
         if (file.size > DRAFT_BACKUP_BYTES) throw new DraftError('invalid');
         let value: unknown;
         try {
-          value = JSON.parse(await file.text());
+          const text = await file.text();
+          if (disposed || sequence !== requestSequence) return;
+          value = JSON.parse(text);
         } catch {
           throw new DraftError('invalid');
         }
