@@ -12,6 +12,39 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Indexed Single Comment Preview Evidence
+
+Empty/single-target previews can now use the controller-private exact-source
+index to preserve a no-op record or rebuild only the changed node's parent path.
+The shortcut requires at most 50,000 indexed nodes. Oversized records and
+multi-target batches retain the original bounded full traversal and refusal
+ordering. All change-input limits, fixed SGF validation, raw escaping, immutable
+snapshot/preview ownership, history and export behavior remain unchanged.
+
+`packages/sdk/test/comment-preview.test.ts` compares indexed and complete traversal
+results for every root/branch in a multi-game fixture: normalization, deletion,
+no-ops, expected text, missing/stale targets, exact exports and shared references.
+A controller imported with a larger custom node allowance still refuses empty,
+single and missing-target previews over the 50,000-node work limit, while retaining
+early stale-target precedence and the original clean snapshot/history.
+
+Local Node 24 diagnostics alternated initial HEAD/current controllers with one
+warm-up and five samples of ten single-target previews after establishing canonical
+source validation. At 5,000 moves, root medians were 12.76 -> 0.60 ms and tail
+medians 30.42 -> 23.47 ms (about 23% lower). At 300 moves the tail medians were
+2.15 -> 1.79 ms. Previewing retained the exact live snapshot. These authored local
+stress measurements exclude first-export validation and do not establish browser
+frame latency, general multi-target speedups or peak memory. No public API,
+DB/schema, dependency, repository hygiene or runner changes are introduced.
+
+The public built-artifact performance runner passed all 27 correctness-checked
+cases. Final `check` passed 291 tests / 8,315 assertions, quality/boundary gates,
+builds, root/Svelte types, documentation, packed SDK consumers and 298 installed
+CLI checks. After `build:examples`, the full production Chrome 155 suite passed,
+including search/comment previews and application, actual SGF download/reopen,
+branches/history, dirty guards, playback/recovery and framework lifecycles. Other
+engines, physical devices and hosted CI were not executed in this bounded run.
+
 ## Comment Index Refresh Evidence
 
 Validated internal C-only commits now update changed node/ancestor references in

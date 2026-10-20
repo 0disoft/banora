@@ -29,8 +29,14 @@ each normalized comment and expected text is at most 65,536 units. Normalize new
 comments exactly as ordinary `setComment` does. Optional `expectedText` guards
 checked external edits. Reject duplicate/missing targets and unknown fields.
 
-Build an immutable candidate iteratively, sharing unchanged subtrees. Validate it
-against the controller's SGF limits before issuing a preview. Previewing changes
+Build an immutable candidate iteratively, sharing unchanged subtrees. For zero or
+one target, a controller-owned index for the exact source can resolve the target
+and rebuild only its parent path. No-op/empty previews retain the source identity.
+Use this shortcut only when the indexed record has at most 50,000 nodes; larger
+records and multi-target batches retain the bounded full traversal, including
+its refusal ordering. The index stays internal and grants no preview authority.
+Validate the immutable candidate against the controller's SGF limits before
+issuing a preview. Previewing changes
 no state, history, groups, dirty baseline or export ticket. Previews are issued
 only by their controller and retain the exact source record identity. A weak
 ownership set prevents fabricated/foreign preview candidates; host-held previews

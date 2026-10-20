@@ -1,5 +1,6 @@
 import { createSgfNode } from './sgf.js';
 import { replaceRecordChildren } from './record-runtime.js';
+import type { RecordIndex } from './record-runtime.js';
 import type { SgfNode, SgfRecord } from './sgf.js';
 
 export interface CommentChange {
@@ -23,10 +24,18 @@ export class CommentBatchError extends Error {
     this.name = 'CommentBatchError';
   }
 }
+function replaceComment(node: SgfNode, text: string, children = node.children): SgfNode {
+  const properties = { ...node.properties };
+  if (text) properties.C = [text];
+  else delete properties.C;
+  return createSgfNode(node.id, properties, children, node.rawProperties);
+}
+
 /** Internal candidate builder; the controller alone validates limits and issues previews. */
 export function buildCommentBatch(
   record: SgfRecord,
   changes: readonly CommentChange[],
+  index?: RecordIndex,
 ): CommentBatchPreview {
   if (!Array.isArray(changes)) throw new CommentBatchError('invalid-edit');
   if (changes.length > 256) throw new CommentBatchError('limit');
@@ -51,6 +60,40 @@ export function buildCommentBatch(
     if (text.length > 65_536 || (change.expectedText?.length ?? 0) > 65_536 || length > 1_048_576)
       throw new CommentBatchError('limit');
     requested.set(change.nodeId, { ...change, text });
+  }
+  // The controller supplies the index for this exact source. Preserve the full
+  // traversal/work guard for oversized records and multi-target batches.
+  if (index && index.nodes.size <= 50_000 && requested.size <= 1) {
+    const change = requested.values().next().value;
+    const edits: CommentBatchEdit[] = [];
+    let candidate = record;
+    if (change) {
+      const node = index.nodes.get(change.nodeId);
+      if (!node) throw new CommentBatchError('node-not-found');
+      const before = node.properties.C?.[0] ?? '';
+      if (change.expectedText !== undefined && before !== change.expectedText)
+        throw new CommentBatchError('stale-preview');
+      if (change.text !== before) {
+        edits.push(Object.freeze({ nodeId: node.id, before, after: change.text }));
+        let updated = replaceComment(node, change.text);
+        let parentId = index.parents.get(node.id);
+        while (parentId != null) {
+          const parent = index.nodes.get(parentId)!;
+          const childId = updated.id;
+          updated = replaceRecordChildren(
+            parent,
+            parent.children.map((child) => (child.id === childId ? updated : child)),
+          );
+          parentId = index.parents.get(parentId);
+        }
+        candidate = Object.freeze({
+          games: Object.freeze(
+            record.games.map((root) => (root.id === updated.id ? updated : root)),
+          ),
+        });
+      }
+    }
+    return Object.freeze({ source: record, record: candidate, edits: Object.freeze(edits) });
   }
   const edits: CommentBatchEdit[] = [];
   const seen = new Set<string>();
@@ -86,10 +129,7 @@ export function buildCommentBatch(
       replacements.set(node, replaceRecordChildren(node, children));
       continue;
     }
-    const properties = { ...node.properties };
-    if (change.text) properties.C = [change.text];
-    else delete properties.C;
-    replacements.set(node, createSgfNode(node.id, properties, children, node.rawProperties));
+    replacements.set(node, replaceComment(node, change.text, children));
   }
   if (seen.size !== requested.size) throw new CommentBatchError('node-not-found');
   const candidate = edits.length

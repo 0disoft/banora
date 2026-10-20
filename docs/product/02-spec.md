@@ -373,6 +373,11 @@ headers; only the final batch size is checked so removals can offset additions.
 The first unproven export and all non-comment edits retain full validation; unchanged
 node/depth/property limits are
 inherited only for internal C-only builders. Preview validation remains atomic.
+Empty or single-target comment previews may use the controller's exact-source
+index to retain the unchanged record or rebuild only the target's parent path.
+This shortcut requires at most 50,000 indexed nodes; oversized/multi-target records
+retain the full bounded builder and existing failure ordering. Preview ownership,
+fixed SGF limits and content freshness remain unchanged.
 
 Dirty state compares semantic record content with its export baseline, excluding
 navigation and presentation. Imported records start clean. Successful export advances

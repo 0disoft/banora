@@ -511,7 +511,7 @@ export class RecordController {
     | Extract<CommandResult, { ok: false }> {
     this.#assertLive();
     try {
-      const preview = buildCommentBatch(this.#record, changes);
+      const preview = buildCommentBatch(this.#record, changes, this.#index);
       if (preview.edits.length) {
         const diagnostics = this.#validateCandidate(preview.record, preview.edits);
         if (diagnostics) return { ok: false, reason: 'limit', diagnostics };
