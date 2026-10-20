@@ -12,6 +12,41 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Immutable Dirty-State Comparison Evidence
+
+`packages/sdk/test/record-content.test.ts` compares the new exact tree comparison
+with normalized full-record signatures across collections/branches, changed IDs,
+compressed point lists, reversed lines/directed arrows, label ordering, unknown
+value ordering, root headers, empty values and rectangular sizes. It covers ink
+normalization/content changes, 5,000-move copied paths returning clean, recreated
+branches and export acknowledgment/Undo/Redo/checkpoint baselines. The controller
+skips shared immutable subtrees/property maps, normalizes changed properties with
+the existing rules and no longer retains duplicate full signature strings for its
+baseline and export tickets. A weak baseline-only token cache, cleared on baseline
+replacement/disposal, avoids doubling normalization work for dirty restored records.
+SGF validation/serialization is unchanged.
+
+Local Node 24 diagnostics alternated old/new controllers and their respective
+record runtimes, with one warm-up and five samples of ten tail-comment edits.
+Final median 300-move time was 24.52 -> 13.72 ms; pass-heavy 5,000-move time was
+241.50 -> 102.75 ms (about 57% lower), with grouped Undo/clean-state checks.
+A first tree-only prototype regressed editing after dirty checkpoint restoration;
+the baseline-side cache corrected this. The final dirty-restored 5,000-move case
+was 220.80 -> 171.91 ms (about 22% lower), with Undo retaining the initial dirty
+state. Samples vary with local load; these are authored Node stress results,
+not browser frame latency or peak-memory claims.
+
+Public built-artifact performance completed all 27 correctness-checked cases
+before/after the initial tree-comparison implementation, before the baseline-cache
+refinement; its 5,000-move comment-session medians were 284.45 -> 113.58 ms.
+Final `check` passed 286 tests / 7,865 assertions, quality/boundary gates, builds,
+root/Svelte types, documentation, packed SDK consumers and 298 installed CLI
+checks. No public API, DB/schema, dependency, hygiene or runner changes are added.
+After `build:examples`, the full production Chrome 155 suite passed, including
+SGF editing/export/reopen, dirty guards, playback, recovery, search batches and
+framework lifecycle flows. Other engines, physical devices and hosted CI were
+not executed in this bounded local run.
+
 ## Comment-Only Validation Reuse Evidence
 
 `packages/sdk/test/comment-validation.test.ts` compares single/cross-game batch

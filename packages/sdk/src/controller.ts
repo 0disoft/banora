@@ -17,10 +17,10 @@ import {
   indexRecord,
   initialRecordPosition,
   replaceRecordChildren,
-  semanticRecord,
+  sameRecordContent,
   sgfColor,
 } from './record-runtime.js';
-import type { RecordIndex } from './record-runtime.js';
+import type { RecordContentCache, RecordIndex } from './record-runtime.js';
 import { createStroke, decodeStrokes, encodeStroke, strokeLimits } from './annotations.js';
 import type { Stroke, StrokeStyle } from './annotations.js';
 export type { Stroke, StrokeStyle } from './annotations.js';
@@ -122,8 +122,8 @@ export class RecordController {
   #positionCache = new Map<string, Position>();
   #rules: Partial<RulePolicy> | undefined;
   #limits: Partial<SgfLimits>;
-  #baseline: string;
   #baselineRecord: SgfRecord;
+  #baselineContent: RecordContentCache = new WeakMap();
   #serialized = new Map<SgfRecord, string>();
   #dirty = false;
   #undo: EditEntry[] = [];
@@ -140,7 +140,7 @@ export class RecordController {
   #strokeSequence = 0;
   #ticketSequence = 0;
   #lastAcknowledged = 0;
-  #tickets = new Map<number, { signature: string; record: SgfRecord }>();
+  #tickets = new Map<number, { record: SgfRecord }>();
   #commentPreviews = new WeakSet<CommentBatchPreview>();
   /** Canonical exports checked with this controller's immutable limits. */
   #validatedExports = new WeakSet<SgfRecord>();
@@ -156,7 +156,6 @@ export class RecordController {
     this.#selected = parsed.record.games[0]!.id;
     this.#index = indexRecord(this.#record);
     this.#baselineRecord = this.#record;
-    this.#baseline = semanticRecord(this.#record);
     this.getState();
   }
 
@@ -292,7 +291,7 @@ export class RecordController {
     if (!commentOnly) this.#positionCache.clear();
   }
   #refreshDirty(): void {
-    this.#dirty = semanticRecord(this.#record) !== this.#baseline;
+    this.#dirty = !sameRecordContent(this.#record, this.#baselineRecord, this.#baselineContent);
   }
   beginEditGroup(): () => void {
     this.#assertLive();
@@ -779,8 +778,8 @@ export class RecordController {
     this.#undo = [];
     this.#redo = [];
     this.#tickets.clear();
-    this.#baseline = semanticRecord(this.#record);
     this.#baselineRecord = this.#record;
+    this.#baselineContent = new WeakMap();
     this.#serialized.clear();
     this.#dirty = false;
     this.#reindex();
@@ -829,7 +828,7 @@ export class RecordController {
     this.#selected = parsed.node.id;
     this.#rules = parsed.value.rules;
     this.#baselineRecord = parsed.baseline;
-    this.#baseline = semanticRecord(parsed.baseline);
+    this.#baselineContent = new WeakMap();
     this.#recordGeneration++;
     this.#undo = [];
     this.#redo = [];
@@ -843,7 +842,7 @@ export class RecordController {
   prepareExport(): ExportTicket {
     this.#assertLive();
     const id = ++this.#ticketSequence;
-    this.#tickets.set(id, { signature: semanticRecord(this.#record), record: this.#record });
+    this.#tickets.set(id, { record: this.#record });
     if (this.#tickets.size > 8) this.#tickets.delete(this.#tickets.keys().next().value!);
     return Object.freeze({ id, text: this.#serialize(this.#record) });
   }
@@ -852,8 +851,8 @@ export class RecordController {
     const baseline = this.#tickets.get(id);
     if (baseline === undefined || id <= this.#lastAcknowledged)
       return { ok: false, reason: 'invalid-export' };
-    this.#baseline = baseline.signature;
     this.#baselineRecord = baseline.record;
+    this.#baselineContent = new WeakMap();
     this.#lastAcknowledged = id;
     for (const key of this.#tickets.keys()) if (key <= id) this.#tickets.delete(key);
     this.#refreshDirty();
@@ -872,6 +871,7 @@ export class RecordController {
     this.#notifications = [];
     this.#tickets.clear();
     this.#positionCache.clear();
+    this.#baselineContent = new WeakMap();
     this.#serialized.clear();
   }
 }

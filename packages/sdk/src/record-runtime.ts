@@ -74,6 +74,54 @@ export function indexRecord(record: SgfRecord): RecordIndex {
   return index;
 }
 
+const pointLists = new Set([
+  'AB',
+  'AW',
+  'AE',
+  'CR',
+  'SQ',
+  'TR',
+  'MA',
+  'SL',
+  'DD',
+  'TB',
+  'TW',
+  'VW',
+]);
+
+function semanticProperties(
+  node: SgfNode,
+  root: boolean,
+  size: { width: number; height: number },
+): string {
+  const properties = root
+    ? { ...node.properties, FF: ['4'], GM: ['1'], CA: ['UTF-8'] }
+    : node.properties;
+  return JSON.stringify(
+    Object.keys(properties)
+      .sort()
+      .map((key) => {
+        const values = properties[key]!;
+        if (key === 'BPN') return [key, decodeStrokes(values, size).map(encodeStroke)];
+        if (pointLists.has(key))
+          return [
+            key,
+            values
+              .flatMap((value) =>
+                value === ''
+                  ? ['']
+                  : expandSgfPoints(value, size.width, size.height).map(pointToSgf),
+              )
+              .sort(),
+          ];
+        if (key === 'LN')
+          return [key, values.map((value) => value.split(':').sort().join(':')).sort()];
+        if (key === 'AR') return [key, [...values].sort()];
+        return [key, key === 'LB' ? [...values].sort() : values];
+      }),
+  );
+}
+
 /** Stable content comparison excludes identities, cursor and original formatting. */
 export function semanticRecord(record: SgfRecord): string {
   const tokens: string[] = [];
@@ -86,49 +134,7 @@ export function semanticRecord(record: SgfRecord): string {
       tokens.push(entry);
       continue;
     }
-    const properties = entry.root
-      ? { ...entry.node.properties, FF: ['4'], GM: ['1'], CA: ['UTF-8'] }
-      : entry.node.properties;
-    const pointLists = new Set([
-      'AB',
-      'AW',
-      'AE',
-      'CR',
-      'SQ',
-      'TR',
-      'MA',
-      'SL',
-      'DD',
-      'TB',
-      'TW',
-      'VW',
-    ]);
-    tokens.push(
-      '[',
-      JSON.stringify(
-        Object.keys(properties)
-          .sort()
-          .map((key) => {
-            const values = properties[key]!;
-            if (key === 'BPN') return [key, decodeStrokes(values, entry).map(encodeStroke)];
-            if (pointLists.has(key))
-              return [
-                key,
-                values
-                  .flatMap((value) =>
-                    value === ''
-                      ? ['']
-                      : expandSgfPoints(value, entry.width, entry.height).map(pointToSgf),
-                  )
-                  .sort(),
-              ];
-            if (key === 'LN')
-              return [key, values.map((value) => value.split(':').sort().join(':')).sort()];
-            if (key === 'AR') return [key, [...values].sort()];
-            return [key, key === 'LB' ? [...values].sort() : values];
-          }),
-      ),
-    );
+    tokens.push('[', semanticProperties(entry.node, entry.root, entry));
     pending.push(']');
     for (let i = entry.node.children.length - 1; i >= 0; i--)
       pending.push({
@@ -143,4 +149,69 @@ export function semanticRecord(record: SgfRecord): string {
 
 export function sgfColor(color: Color): 'B' | 'W' {
   return color === 'black' ? 'B' : 'W';
+}
+
+/** Internal cache for the immutable baseline side, reset when that baseline changes. */
+export type RecordContentCache = WeakMap<
+  SgfNode['properties'],
+  { root: boolean; width: number; height: number; content: string }
+>;
+
+/** Exact comparison of validated immutable SDK records; shared subtrees need no re-reading. */
+export function sameRecordContent(
+  left: SgfRecord,
+  right: SgfRecord,
+  baselineCache?: RecordContentCache,
+): boolean {
+  if (left === right) return true;
+  if (left.games.length !== right.games.length) return false;
+  const pending: {
+    left: SgfNode;
+    right: SgfNode;
+    root: boolean;
+    width: number;
+    height: number;
+  }[] = [];
+  for (let i = 0; i < left.games.length; i++) {
+    const a = left.games[i]!,
+      b = right.games[i]!;
+    const size = sgfBoardSize(a),
+      otherSize = sgfBoardSize(b);
+    if (size.width !== otherSize.width || size.height !== otherSize.height) return false;
+    pending.push({ left: a, right: b, root: true, ...size });
+  }
+  while (pending.length) {
+    const entry = pending.pop()!,
+      a = entry.left,
+      b = entry.right;
+    if (a === b) continue;
+    if (a.children.length !== b.children.length) return false;
+    if (a.properties !== b.properties) {
+      let baseline = baselineCache?.get(b.properties);
+      if (
+        !baseline ||
+        baseline.root !== entry.root ||
+        baseline.width !== entry.width ||
+        baseline.height !== entry.height
+      ) {
+        baseline = {
+          root: entry.root,
+          width: entry.width,
+          height: entry.height,
+          content: semanticProperties(b, entry.root, entry),
+        };
+        baselineCache?.set(b.properties, baseline);
+      }
+      if (semanticProperties(a, entry.root, entry) !== baseline.content) return false;
+    }
+    for (let i = 0; i < a.children.length; i++)
+      pending.push({
+        left: a.children[i]!,
+        right: b.children[i]!,
+        root: false,
+        width: entry.width,
+        height: entry.height,
+      });
+  }
+  return true;
 }

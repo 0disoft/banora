@@ -372,6 +372,13 @@ Dirty state compares semantic record content with its export baseline, excluding
 navigation and presentation. Imported records start clean. Successful export advances
 the baseline; Undo returning to it clears dirty state. Failed/cancelled export leaves
 the prior baseline intact. A browser download cannot establish actual disk persistence.
+The controller compares immutable record trees directly, skipping shared subtrees
+and shared property maps. Changed properties use the same exact per-node semantic
+normalization, including root headers, point lists and ink. IDs remain irrelevant;
+collection/branch order and tree shape remain significant. Export tickets retain
+their immutable record snapshot without another whole-record signature string.
+A weak per-property baseline token cache handles separately parsed checkpoint
+baselines and resets on import, restoration, acknowledgment and disposal.
 
 Before Studio replaces or closes a dirty record, offer Export / Discard / Cancel.
 Only successful export or explicit discard allows the pending operation; cancellation

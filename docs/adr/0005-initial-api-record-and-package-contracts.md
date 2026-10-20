@@ -38,6 +38,12 @@ runtime boundary before source implementation begins.
    Undo returning to that baseline clears it. Import initializes a clean baseline
    and successful export advances it. Navigation does not make a record dirty.
    Failed or cancelled exports retain the previous baseline and active record.
+   Compare immutable trees exactly, skipping identical subtrees/property maps and
+   reusing the existing per-node semantic normalization for changed properties.
+   Keep the immutable baseline/ticket record instead of a duplicate full signature;
+   IDs/formatting remain excluded while collection order, branch order and shape
+   remain significant. A weak baseline-only token cache avoids repeated normalization of separately
+   parsed checkpoint baselines and resets on baseline replacement. No hash is used.
    A download request cannot prove a file was saved to disk; host export acknowledgment
    uses explicit `prepareExport`/`acknowledgeExport` tickets. Autosave and recovery
    are deferred. Hosts own this
