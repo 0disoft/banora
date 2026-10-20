@@ -10,7 +10,6 @@ import {
   RELEASE_PACKAGES,
   RELEASE_PACKAGE_NAMES,
 } from './release-artifacts.js';
-import { publishRelease } from './publication.js';
 import { registryHealth, registryTargetHealth } from './registry-health.js';
 import type { RegistryHealthIO } from './registry-health.js';
 
@@ -58,19 +57,24 @@ async function fixture() {
     execute: false,
     expectedCurrentVersion: '0.1.0-dev.1',
   };
-  const preview = await publishRelease(root, request);
-  if (preview.operation !== 'preview') throw Error('Expected preview fixture');
   const calls: string[][] = [];
-  const entries = preview.packages.map((item) => ({
-    name: item.name,
-    version: item.version,
-    versions: ['0.0.0-stage', '0.1.0-dev.0', '0.1.0-dev.1'],
-    dist: {
-      integrity: item.registryIntegrity,
-      tarball: `https://registry.npmjs.org/${item.name}/-/${item.name.split('/')[1]}-${item.version}.tgz`,
-    },
-    'dist-tags': { dev: request.expectedCurrentVersion },
-  }));
+  // Registry fixture integrity comes from authored bytes, independently of the preflight.
+  const entries = await Promise.all(
+    manifest.packages.map(async (item) => ({
+      name: item.name,
+      version: item.version,
+      versions: ['0.0.0-stage', '0.1.0-dev.0', '0.1.0-dev.1'],
+      dist: {
+        integrity:
+          'sha512-' +
+          createHash('sha512')
+            .update(await readFile(resolve(bundle, item.archive)))
+            .digest('base64'),
+        tarball: `https://registry.npmjs.org/${item.name}/-/${item.name.split('/')[1]}-${item.version}.tgz`,
+      },
+      'dist-tags': { dev: request.expectedCurrentVersion },
+    })),
+  );
   const run = (argv: readonly string[]) => {
     calls.push([...argv]);
     const entry = entries.find((item) => `${item.name}@${item.version}` === argv[2]);
@@ -108,21 +112,22 @@ test('whole-family channel preflight binds bytes, checks twice and distinguishes
   expect(noop.olderCommonVersions).toEqual([]);
 });
 
-test('mixed channels, changed integrity, provider errors and between-observation drift emit no usable plan', async () => {
-  for (const kind of [
-    'mixed',
-    'integrity',
-    'malformed',
-    'oversized',
-    'transport',
-    'changed',
-    'tamper',
-    'deprecated',
-    'url',
-    'identity',
-    'missing',
-    'status',
-  ] as const) {
+// Each independent failure case keeps its own bundle and Bun's default timeout.
+for (const [kind, code, reads] of [
+  ['mixed', 'channel-drift', 3],
+  ['integrity', 'channel-integrity', 3],
+  ['malformed', 'channel-metadata', 1],
+  ['oversized', 'channel-metadata', 1],
+  ['transport', 'channel-metadata', 1],
+  ['changed', 'channel-drift', 10],
+  ['tamper', 'integrity', 10],
+  ['deprecated', 'channel-target', 1],
+  ['url', 'channel-metadata', 1],
+  ['identity', 'channel-metadata', 1],
+  ['missing', 'channel-metadata', 1],
+  ['status', 'channel-metadata', 1],
+] as const) {
+  test(`channel plan rejects ${kind} without producing change commands`, async () => {
     const f = await fixture();
     const run = (argv: readonly string[], cwd: string) => {
       const result = f.run(argv);
@@ -161,10 +166,11 @@ test('mixed channels, changed integrity, provider errors and between-observation
       }
       return result;
     };
-    await expect(channelPlan(f.root, f.request, run)).rejects.toThrow();
+    await expect(channelPlan(f.root, f.request, run)).rejects.toMatchObject({ code });
+    expect(f.calls).toHaveLength(reads);
     expect(f.calls.every((argv) => argv[1] === 'view')).toBe(true);
-  }
-});
+  });
+}
 
 test('invalid versions, forward changes, placeholders and execute flags fail before provider reads', async () => {
   const f = await fixture();

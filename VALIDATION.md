@@ -12,6 +12,51 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Channel Plan Test Budget Evidence
+
+The previously timed-out rejection test put 12 independent filesystem fixtures and
+plan validations under one default 5-second test deadline. That loop performs no
+provider subprocesses or cleanup: registry reads are injected callbacks and fixture
+directories are retained under ignored `.tmp`. Stage profiling identified repeated
+fixture preflight, in addition to the actual plan's validation. The exact external
+stall during the historical timeout was not captured and remains unproven.
+
+Each rejection is now a separately named, sequential test with a fresh bundle and
+the unchanged default timeout. Fixture registry SHA512 values are calculated from
+actual authored archive bytes, independently of the function under test, instead
+of calling `publishRelease` merely to obtain expected metadata. Production planning
+is unchanged: two complete registry observations and final local-byte verification
+remain required. Every former rejection case remains, with added exact diagnostic
+and read-count assertions so fixture failures cannot masquerade as registry checks.
+
+Four alternating local before/after profiles of all 12 cases measured aggregate
+fixture medians of 563.67 -> 314.68ms (about 44% lower); fixture plus rejection work
+medians were 829.39 -> 571.17ms (about 31% lower). Raw combined samples were
+before [1026.11, 652.94, 843.09, 815.69] and after [588.48, 538.08, 642.77, 553.85]ms.
+These instrumented Bun 1.4.3 Windows samples exclude runner startup and are not
+production registry/network latency or a CI timing guarantee.
+
+A separate ignored diagnostic copy injected 450ms preparation delay per fixture:
+the original aggregate timed out at 5001ms, whereas all 12 separated cases passed
+with the same delay and default limits (6.09s total, 36 assertions). This reproduces
+the cumulative-budget problem without asserting an OS/provider cause. No artificial
+delay, timing threshold, retry loop or timeout increase was committed. The normal
+focused file passed 17 tests / 163 assertions; former coverage was 6 / 151.
+
+The final full `bun run check` passed 303 tests / 8,357 assertions, installed CLI
+298 checks, lint/format/boundaries, SDK/adapter builds, root/Svelte types, docs and
+packed SDK/classic/declarations. Its first run passed all channel-plan cases but
+hit a separate default-timeout failure in the unchanged real-Git source-backup
+recovery test, including a killed child and follow-on rejection. That file passed
+in isolation (3 tests / 34 assertions), and the full retry passed. Its timing cause
+is a separate follow-up; no backup test or global timeout was modified. Final
+formatting, docs (145 documents / 738 links) and whitespace checks passed.
+
+Only the test and this validation contract change; public API, database/schema,
+production release logic, dependencies, repository hygiene and runner/CI policy are
+unchanged. Browser/device and remote publication checks are outside this local test
+change; no npm reads/writes or CI dispatch are used by these authored fixtures.
+
 ## Draft Refresh Confirmation Evidence
 
 The production recovery fixture reproduced a selected-entry/confirmation mismatch:
