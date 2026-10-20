@@ -229,9 +229,13 @@ export async function sourceRecovery(
   )
     throw new ReleaseError('integrity');
   git(mirror, ['worktree', 'add', '--detach', checkout, request.sourceCommit]);
+  // Porcelain v2 reports the checkout commit and changes in the same observation.
+  const status = git(checkout, ['status', '--porcelain=v2', '--branch']).split(/\r?\n/);
+  const heads = status.filter((line) => line.startsWith('# branch.oid '));
   if (
-    git(checkout, ['rev-parse', 'HEAD']) !== request.sourceCommit ||
-    git(checkout, ['status', '--porcelain'])
+    heads.length !== 1 ||
+    heads[0] !== `# branch.oid ${request.sourceCommit}` ||
+    status.some((line) => !line.startsWith('# '))
   )
     throw new ReleaseError('integrity');
   const trackedFiles = git(checkout, ['ls-files', '-z']).split('\0').filter(Boolean).length;

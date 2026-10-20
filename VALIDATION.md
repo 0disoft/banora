@@ -12,6 +12,54 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Source Recovery Checkout Query Evidence
+
+A real-Git stage profile found nine recovery commands, with separate checkout
+`rev-parse HEAD` and `status --porcelain` calls taking 253.85 and 204.43ms in one
+1878.01ms recovery. The checkout check now uses one
+[`status --porcelain=v2 --branch`](https://git-scm.com/docs/git-status#_porcelain_format_version_2)
+observation. Exactly one `branch.oid` header must match the independently reviewed
+commit, and any non-header line rejects the checkout as dirty. Other headers are
+ignored as specified by Git; LF and CRLF are accepted. This preserves current
+checkout identity and staged/worktree/untracked-change checks without deriving
+checkout state from earlier mirror metadata. Recovery now uses eight Git commands.
+
+Strict full object checking, bundle verification, exact mirror refs/tree, detached
+checkout creation, tracked-file counting and final original-byte/schema verification
+remain separate and unchanged. Config/hook isolation, file-only protocols, disabled
+lazy-fetch/replacements, bounded output, subprocess deadlines and shell avoidance
+are unchanged. No cache, retry, parallel Git work or test injection API is added.
+
+Four alternating before/after pairs recovered the same authored two-commit/tag
+bundle using real Git 2.55.0.windows.5 and Bun 1.4.3. Complete recovery medians were
+1388.94 -> 1242.15ms (about 11% lower); raw before samples were
+[1196.82, 1731.02, 1456.00, 1321.88] and after
+[1246.79, 1341.07, 1237.51, 1168.89]ms. Checkout-query medians were
+229.49 -> 110.19ms. All eight receipts agreed on source/tree, refs, bundle identity,
+manifest hash, tracked count and all six completed stages; recovered README bytes
+and original bundle bytes also matched. One complete pair was slower after the
+change. These instrumented local fixture samples exclude runner startup and do
+not establish large-history, other-OS or CI timing guarantees. No timing threshold
+or instrumentation is committed.
+
+Regressions mutate the actual recovered checkout immediately after real worktree
+creation: tracked content, an untracked file, or a different commit with the same
+tree. Every case rejects with `integrity`, preserves the change and original bundle,
+and writes no success receipt. The existing successful restore additionally observes
+eight actual commands, strict object/bundle checks and all calls' environment,
+protocol, shell, time and output bounds. Spies are restored in `finally`; original
+restore/config/content/corruption/argument checks remain. Focused coverage passed
+11 tests / 73 assertions, previously 8 / 53.
+The full `bun run check` passed on its first attempt: 311 tests / 8,396 assertions,
+installed CLI 298 checks, lint/format/boundaries, SDK/adapter builds, root/Svelte
+types, docs (145 documents / 738 links) and packed SDK/classic/declarations.
+
+Changed files are the private recovery implementation, its tests and this validation
+source of truth. The operational contract in `docs/ops/maintainer-recovery.md`
+remains in force. Public API/CLI/schema, DB, dependencies, repository hygiene and
+runner/CI policy are unchanged. Browser/device/provider-account and off-device
+recovery checks are outside this local Git optimization.
+
 ## Source Backup Metadata Query Evidence
 
 The initial source observation formerly launched three separate Git processes for

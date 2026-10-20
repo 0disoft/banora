@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, spyOn, test } from 'bun:test';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
 import * as childProcess from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { sourceBackup, sourceRecovery, sourceRecoveryOptions } from './source-backup.js';
@@ -143,6 +143,60 @@ describe('isolated authored Git source', () => {
     },
   );
 
+  test.each(['dirty', 'untracked', 'head'] as const)(
+    'recovery rejects a %s checkout without writing a success receipt',
+    async (kind) => {
+      const { root, git } = source;
+      let value = 'Authored concurrent checkout work.\n';
+      if (kind === 'head') {
+        // Include a same-tree alternative, so only checkout identity changes.
+        value =
+          git('commit-tree', 'HEAD^{tree}', '-p', 'HEAD', '-m', 'Authored alternative') + '\n';
+        git('tag', 'same-tree-alternative', value.trim());
+      }
+      const backup = await sourceBackup(root);
+      const request = {
+        backup: resolve(root, backup.backup),
+        manifestSha256: backup.manifestSha256,
+        sourceCommit: backup.source.commit,
+      };
+      const original = await readFile(resolve(request.backup, 'source.bundle'));
+      let changed = '',
+        directory = '';
+      const execute = childProcess.spawnSync;
+      const intercept = ((...args: Parameters<typeof execute>) => {
+        const result = execute(...args);
+        const command = Array.isArray(args[1]) ? args[1].slice(8) : [];
+        if (result.status === 0 && command[0] === 'worktree' && command[1] === 'add') {
+          const checkout = command[3]!;
+          directory = resolve(checkout, '..');
+          changed =
+            kind === 'head'
+              ? resolve(
+                  checkout,
+                  readFileSync(resolve(checkout, '.git'), 'utf8').trim().slice(8),
+                  'HEAD',
+                )
+              : resolve(checkout, kind === 'dirty' ? 'README.md' : 'unexpected.txt');
+          writeFileSync(changed, value);
+        }
+        return result;
+      }) as typeof execute;
+      const observed = spyOn(childProcess, 'spawnSync').mockImplementation(intercept);
+      try {
+        await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'integrity' });
+      } finally {
+        observed.mockRestore();
+      }
+      expect(changed).not.toBe('');
+      expect(await readFile(changed, 'utf8')).toBe(value);
+      expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(original);
+      await expect(readFile(resolve(directory, 'source-recovery.json'))).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
+    },
+  );
+
   test('real Git backup restores exact history/refs and clean source without inheriting the original remote/config', async () => {
     const { root, git } = source;
     git('remote', 'add', 'origin', 'https://example.invalid/unused-source-fixture');
@@ -155,7 +209,59 @@ describe('isolated authored Git source', () => {
       sourceCommit: backup.source.commit,
     };
     const bytes = await readFile(resolve(request.backup, 'source.bundle'));
-    const restored = await sourceRecovery(root, request);
+    let restored: Awaited<ReturnType<typeof sourceRecovery>>;
+    const observed = spyOn(childProcess, 'spawnSync');
+    try {
+      restored = await sourceRecovery(root, request);
+      const commands = observed.mock.calls.map(([, args]) => {
+        if (!Array.isArray(args)) throw Error('Expected authored Git arguments.');
+        return args.slice(8);
+      });
+      expect(commands.map((args) => args[0])).toEqual([
+        'clone',
+        'fsck',
+        'bundle',
+        'rev-parse',
+        'show-ref',
+        'worktree',
+        'status',
+        'ls-files',
+      ]);
+      expect(commands[1]).toEqual(['fsck', '--full', '--strict']);
+      expect(commands[2]?.slice(0, 2)).toEqual(['bundle', 'verify']);
+      expect(commands[6]).toEqual(['status', '--porcelain=v2', '--branch']);
+      expect(
+        observed.mock.calls.every((call) => {
+          const settings = call[2] as SpawnSyncOptions;
+          return (
+            settings.shell === false &&
+            settings.timeout === 60_000 &&
+            settings.maxBuffer === 8 * 1024 * 1024 &&
+            settings.env?.GIT_ALLOW_PROTOCOL === 'file' &&
+            settings.env.GIT_CONFIG_NOSYSTEM === '1' &&
+            settings.env.GIT_NO_LAZY_FETCH === '1' &&
+            settings.env.GIT_NO_REPLACE_OBJECTS === '1' &&
+            Object.keys(settings.env).every((key) =>
+              [
+                'path',
+                'systemroot',
+                'windir',
+                'temp',
+                'tmp',
+                'pathext',
+                'git_allow_protocol',
+                'git_config_nosystem',
+                'git_config_global',
+                'git_no_lazy_fetch',
+                'git_no_replace_objects',
+              ].includes(key.toLowerCase()),
+            )
+          );
+        }),
+      ).toBe(true);
+    } finally {
+      observed.mockRestore();
+    }
     expect(restored.ok).toBe(true);
     expect(restored.refs).toEqual(backup.refs);
     expect(restored.source).toEqual(backup.source);
