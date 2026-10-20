@@ -120,12 +120,18 @@ export function mountRecoveryControls(
     find('draft-delete-cancel').hidden = !deletion;
     setUiText(find('draft-delete'), deletion ? 'Confirm delete' : 'Delete draft');
   }
-  async function refresh(): Promise<void> {
+  function resetDeletion(): void {
+    if (deletion) setUiText(message, '');
     deletion = undefined;
+  }
+  async function refresh(): Promise<void> {
+    resetDeletion();
+    controls();
     const sequence = ++listSequence;
     try {
       const result = await store.list();
       if (disposed || sequence !== listSequence) return;
+      resetDeletion();
       const selected = list.value;
       entries = new Map(result.entries.map((item) => [item.id, item.entry]));
       list.replaceChildren();
@@ -304,7 +310,7 @@ export function mountRecoveryControls(
   list.addEventListener(
     'change',
     () => {
-      deletion = undefined;
+      resetDeletion();
       controls();
     },
     { signal },

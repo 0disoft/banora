@@ -12,6 +12,40 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Draft Refresh Confirmation Evidence
+
+The production recovery fixture reproduced a selected-entry/confirmation mismatch:
+while a refresh waited behind another IndexedDB writer, the user armed deletion
+again for A. That writer removed A; the refreshed list then selected B but kept the
+confirmation pinned to A. The original build failed with B selected and "Confirm
+delete" still displayed. A later click could report deletion of already-missing A
+while leaving the visibly selected B intact.
+
+Recovery now resets the pending deletion and its prompt when selection changes,
+when refresh starts and when the latest accepted listing is applied. Controls update
+immediately at refresh start. A newly selected entry/revision requires confirmation
+again; actions need not wait for a new loading mode. Existing latest-list sequencing,
+revision checks and atomic metadata/payload removal are retained.
+
+The isolated Chrome 155 regression writes A/B to real IndexedDB, holds a bounded
+write transaction that removes A, starts refresh, arms confirmation during the wait
+and releases storage. The corrected build clears the confirmation/prompt, preserves
+B after the first click, and removes B only after its new confirmation. It also
+checks immediate prompt/button reset on refresh start and explicit selection change.
+The full focused recovery scenario passed its earlier lifecycle, backup cancellation,
+quota/cap, revision conflict, file downloads, locale/mobile and restore checks.
+
+The initial `bun run check` hit a 5-second timeout in the unrelated mixed-channel
+release-plan test (291 passed). Its unchanged file then passed in isolation (6 tests /
+151 assertions), and the full check retry passed 292 tests / 8,345 assertions,
+installed CLI 298 checks, quality/boundary gates, builds/types, packed consumers and
+docs. No timeout setting or release code was changed; the transient cause remains
+unproven. `bun run build:examples`, focused production Chrome recovery smoke, final
+docs (145 documents / 738 links), formatting and whitespace checks passed. Other
+browser scenarios/engines, physical devices and hosted CI were skipped for this
+bounded Studio-only fix. No public API, DB/schema, dependency, repository hygiene
+or runner policy changed; no cross-browser or abrupt-exit durability claim is made.
+
 ## Pending Draft Deletion Cancellation Evidence
 
 A production-browser regression reproduced a confirmed current-draft deletion

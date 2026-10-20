@@ -55,7 +55,11 @@ the original draft. Undo/presentation settings are not stored in draft payloads.
 including autosave consent and safe legacy migration. Routine save status is
 quiet for assistive technology; failures use a polite live announcement.
 
-Delete requires confirm/cancel. Deleting the active draft turns autosave off;
+Delete requires confirm/cancel. Selection changes and both starting/applying a
+list refresh reset the pending deletion and its prompt. A refreshed entry or
+revision requires a new confirmation, including when another tab removed the
+previous selection while listing was pending.
+Deleting the active draft turns autosave off;
 a deletion waiting for autosave completion is cancelled if recovery closes or is
 disposed before removal is submitted. Autosave remains off until explicitly enabled.
 Already-submitted storage transactions may still commit; closing is not a rollback.

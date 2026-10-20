@@ -515,6 +515,81 @@ async (rootPage, studioControl) => {
     await expect(lifecycle.locator('#draft-message')).toHaveText('Draft deleted.');
     if ((await records(lifecycle)).entries.some((entry) => entry.id === saved.id))
       throw Error('An active confirmed deletion did not remove the saved draft');
+
+    // Another tab removes the selected entry while a refresh is waiting on storage.
+    await lifecycle.evaluate(async (draft) => {
+      const request = indexedDB.open('banora.studio.drafts', 1);
+      await new Promise((resolve, reject) => {
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+      const db = request.result;
+      const seed = db.transaction(['entries', 'drafts'], 'readwrite');
+      for (const id of ['refresh-a', 'refresh-b']) {
+        const value = { ...draft, id, filename: `${id}.sgf` };
+        const { checkpoint: _checkpoint, ...entry } = value;
+        seed.objectStore('entries').put(entry);
+        seed.objectStore('drafts').put(value);
+      }
+      await new Promise((resolve, reject) => {
+        seed.oncomplete = resolve;
+        seed.onabort = reject;
+      });
+      db.close();
+    }, saved);
+    await choose(lifecycle, 'refresh-a');
+    await lifecycle.locator('#draft-delete').click();
+    await lifecycle.locator('#draft-list').selectOption('refresh-b');
+    await expect(lifecycle.locator('#draft-delete')).toHaveText('Delete draft');
+    await expect(lifecycle.locator('#draft-message')).toHaveText('');
+    await lifecycle.locator('#draft-list').selectOption('refresh-a');
+    await lifecycle.locator('#draft-delete').click();
+    await lifecycle.evaluate(async () => {
+      const request = indexedDB.open('banora.studio.drafts', 1);
+      await new Promise((resolve, reject) => {
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+      const db = request.result;
+      const tx = db.transaction(['entries', 'drafts'], 'readwrite');
+      for (const name of ['entries', 'drafts']) tx.objectStore(name).delete('refresh-a');
+      let held = true;
+      const deadline = setTimeout(() => {
+        held = false;
+      }, 7000);
+      const keepAlive = () => {
+        if (held) tx.objectStore('entries').get('refresh-lock').onsuccess = keepAlive;
+      };
+      keepAlive();
+      const finished = new Promise((resolve, reject) => {
+        tx.oncomplete = resolve;
+        tx.onabort = reject;
+      });
+      window.finishDraftRefresh = async () => {
+        held = false;
+        clearTimeout(deadline);
+        await finished;
+        db.close();
+      };
+    });
+    await lifecycle.locator('#draft-refresh').click();
+    await expect(lifecycle.locator('#draft-delete')).toHaveText('Delete draft');
+    await expect(lifecycle.locator('#draft-delete-cancel')).not.toBeVisible();
+    await expect(lifecycle.locator('#draft-message')).toHaveText('');
+    await lifecycle.locator('#draft-delete').click();
+    await lifecycle.evaluate(() => window.finishDraftRefresh());
+    await expect(lifecycle.locator('#draft-list')).toHaveValue('refresh-b');
+    await expect(lifecycle.locator('#draft-delete')).toHaveText('Delete draft');
+    await expect(lifecycle.locator('#draft-message')).toHaveText('');
+    await expect(lifecycle.locator('#draft-delete-cancel')).not.toBeVisible();
+    await lifecycle.locator('#draft-delete').click();
+    await expect(lifecycle.locator('#draft-delete')).toHaveText('Confirm delete');
+    if (!(await records(lifecycle)).entries.some((entry) => entry.id === 'refresh-b'))
+      throw Error('Refreshed selection was deleted without a new confirmation');
+    await lifecycle.locator('#draft-delete').click();
+    await expect(lifecycle.locator('#draft-message')).toHaveText('Draft deleted.');
+    if ((await records(lifecycle)).entries.some((entry) => entry.id === 'refresh-b'))
+      throw Error('Confirmed deletion did not target the refreshed selection');
   } finally {
     await lifecycleContext.close();
   }
