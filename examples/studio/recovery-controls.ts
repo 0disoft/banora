@@ -345,6 +345,7 @@ export function mountRecoveryControls(
           toggle.dispatchEvent(new Event('change'));
           await autosave.idle();
         }
+        if (disposed || sequence !== requestSequence) return;
         await store.remove(id, revision);
         if (disposed || sequence !== requestSequence) return;
         await refresh();

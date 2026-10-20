@@ -56,7 +56,10 @@ including autosave consent and safe legacy migration. Routine save status is
 quiet for assistive technology; failures use a polite live announcement.
 
 Delete requires confirm/cancel. Deleting the active draft turns autosave off;
-pending commits can require refreshing its revision. Current/selected drafts can
+a deletion waiting for autosave completion is cancelled if recovery closes or is
+disposed before removal is submitted. Autosave remains off until explicitly enabled.
+Already-submitted storage transactions may still commit; closing is not a rollback.
+Pending commits can require refreshing the draft revision. Current/selected drafts can
 be backed up without changing the export baseline. Unknown versions can be saved
 raw for preservation, but cannot replace the working record. Local storage is
 origin-specific, unencrypted and provides no cross-device service.

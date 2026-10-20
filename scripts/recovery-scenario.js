@@ -418,6 +418,107 @@ async (rootPage, studioControl) => {
   );
   await page.locator('#draft-close').click();
 
+  // Isolate lifecycle races from the capacity fixtures and real saved drafts above.
+  const lifecycleContext = await rootPage.context().browser().newContext({ locale: 'en-US' });
+  const lifecycle = await lifecycleContext.newPage();
+  lifecycle.on('pageerror', (error) => errors.push(error.message));
+  try {
+    await lifecycle.goto(`${address}/studio/`);
+    await lifecycle.locator('#comment').fill('lifecycle saved');
+    await lifecycle.locator('#comment').blur();
+    await expect(lifecycle.locator('#draft-status')).toHaveText('Draft saved');
+    const saved = (await records(lifecycle)).drafts[0];
+    await openDrafts(lifecycle);
+    await choose(lifecycle, saved.id);
+    await lifecycle.locator('#draft-close').click();
+    // Hold a real write transaction so autosave is pending when deletion waits for it.
+    await lifecycle.evaluate(async () => {
+      const request = indexedDB.open('banora.studio.drafts', 1);
+      await new Promise((resolve, reject) => {
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+      const db = request.result;
+      const blocker = db.transaction(['entries', 'drafts'], 'readwrite');
+      let held = true;
+      const deadline = setTimeout(() => {
+        held = false;
+      }, 7000);
+      const finished = new Promise((resolve, reject) => {
+        blocker.oncomplete = resolve;
+        blocker.onabort = reject;
+      });
+      const keepAlive = () => {
+        if (held) blocker.objectStore('entries').get('lifecycle-lock').onsuccess = keepAlive;
+      };
+      keepAlive();
+      const transaction = IDBDatabase.prototype.transaction;
+      const put = IDBObjectStore.prototype.put;
+      window.lifecycleWriteStarted = false;
+      let failed;
+      const saveFailed = new Promise((resolve) => {
+        failed = resolve;
+      });
+      IDBDatabase.prototype.transaction = function (...args) {
+        const tx = transaction.apply(this, args);
+        if (args[1] === 'readwrite' && !window.lifecycleWriteStarted) {
+          window.lifecycleWriteStarted = true;
+          tx.addEventListener('abort', failed, { once: true });
+        }
+        return tx;
+      };
+      IDBObjectStore.prototype.put = function (...args) {
+        if (this.name === 'drafts')
+          throw new DOMException('Fixture quota denial', 'QuotaExceededError');
+        return put.apply(this, args);
+      };
+      window.releaseLifecycleWrite = async () => {
+        held = false;
+        clearTimeout(deadline);
+        await finished;
+        db.close();
+        await saveFailed;
+        await new Promise(requestAnimationFrame);
+        IDBDatabase.prototype.transaction = transaction;
+        IDBObjectStore.prototype.put = put;
+      };
+    });
+    await openDrafts(lifecycle);
+    await lifecycle.locator('#draft-restore').click();
+    await expect(lifecycle.locator('#draft-restore')).toBeDisabled();
+    await lifecycle.locator('#draft-close').click();
+    await lifecycle.locator('#comment').fill('lifecycle pending');
+    await lifecycle.locator('#comment').blur();
+    await lifecycle.waitForFunction(() => window.lifecycleWriteStarted);
+    await openDrafts(lifecycle);
+    await lifecycle.locator('#draft-delete').click();
+    await lifecycle.locator('#draft-delete').click();
+    await expect(lifecycle.locator('#draft-autosave')).not.toBeChecked();
+    await expect(lifecycle.locator('#draft-delete')).toBeDisabled();
+    await lifecycle.locator('#draft-close').click();
+    await lifecycle.evaluate(() => window.releaseLifecycleWrite());
+    await openDrafts(lifecycle);
+    await expect(lifecycle.locator('#draft-message')).toHaveText('');
+    const retained = await records(lifecycle);
+    if (
+      !retained.entries.some((entry) => entry.id === saved.id) ||
+      !retained.drafts.some(
+        (draft) => draft.id === saved.id && draft.checkpoint.sgf === saved.checkpoint.sgf,
+      )
+    )
+      throw Error('Closing recovery while autosave failed still deleted the saved draft');
+    await expect(lifecycle.locator('#comment')).toHaveValue('lifecycle pending');
+    await expect(lifecycle.locator('#dirty')).toHaveText('Unsaved changes');
+    await choose(lifecycle, saved.id);
+    await lifecycle.locator('#draft-delete').click();
+    await lifecycle.locator('#draft-delete').click();
+    await expect(lifecycle.locator('#draft-message')).toHaveText('Draft deleted.');
+    if ((await records(lifecycle)).entries.some((entry) => entry.id === saved.id))
+      throw Error('An active confirmed deletion did not remove the saved draft');
+  } finally {
+    await lifecycleContext.close();
+  }
+
   const denied = await page.context().newPage();
   denied.on('dialog', (dialog) => dialog.accept());
   await denied.addInitScript(() => {

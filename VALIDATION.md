@@ -12,6 +12,37 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Pending Draft Deletion Cancellation Evidence
+
+A production-browser regression reproduced a confirmed current-draft deletion
+continuing after Local drafts closed: an in-flight autosave failed with quota,
+leaving the stored revision unchanged, and the waiting operation then removed the
+previously saved checkpoint. Recovery now checks its operation sequence/disposal
+again after awaiting autosave and before submitting removal. Turning autosave off
+is retained; users explicitly re-enable it. Closing does not roll back an already-
+submitted storage transaction.
+
+The isolated Chrome 155 fixture holds a real IndexedDB read/write transaction with
+bounded keepalive requests, queues autosave, injects a quota failure on payload put,
+confirms deletion and closes recovery before releasing storage. The original code
+failed because the saved entry/payload disappeared. The corrected build retained
+both exact saved SGF and current dirty edits, kept a reopened dialog's feedback
+clear, and still completed a subsequent active confirmed deletion. The same fixture
+also queues stored-draft restoration before closing recovery and changing the
+working state; its late result cannot replace the newer edits. Context teardown
+owns fixture cleanup; no existing browser profile or remote storage is touched.
+
+`bun run check` passed 292 tests / 8,345 assertions, installed CLI 298 checks,
+quality/boundary gates, SDK/adapter builds, root/Svelte types and packed SDK/classic
+consumers. `bun run build:examples` and the focused production recovery smoke passed,
+including earlier backup cancellation, real IndexedDB, reload/two tabs, quota/cap,
+backup/SGF downloads, dirty guards, revision conflicts and locale/mobile controls.
+Final docs (145 documents / 738 relative links), formatting and whitespace checks
+passed. Other browser scenarios/engines, physical devices and hosted CI were not
+rerun for this bounded Studio recovery fix. No public API, database/schema,
+dependency, repository hygiene or runner policy changed; no abrupt-exit durability
+or rollback of submitted transactions is claimed.
+
 ## Recovery Cancellation Evidence
 
 A delayed backup file read reproduced an old operation publishing "Record changed.
