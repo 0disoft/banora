@@ -172,15 +172,15 @@ export async function sourceBackup(root: string) {
   await mkdir(resolve(root, '.tmp'), { recursive: true });
   const scratch = await mkdtemp(resolve(root, '.tmp/source-backup-'));
   const git = await gitRunner(scratch);
-  if (
-    git(root, ['status', '--porcelain']) ||
-    git(root, ['rev-parse', '--is-shallow-repository']) !== 'false'
-  )
+  if (git(root, ['status', '--porcelain'])) throw new ReleaseError('source');
+  // Batch only the initial observation; capture still ends with fresh guards below.
+  const identity = git(root, ['rev-parse', '--is-shallow-repository', 'HEAD', 'HEAD^{tree}']).split(
+    /\r?\n/,
+  );
+  const [shallow, commit, tree] = identity;
+  if (identity.length !== 3 || shallow !== 'false' || !objectId(commit) || !objectId(tree))
     throw new ReleaseError('source');
-  const source = {
-    commit: git(root, ['rev-parse', 'HEAD']),
-    tree: git(root, ['rev-parse', 'HEAD^{tree}']),
-  };
+  const source = { commit, tree };
   const originalRefs = refs(git(root, ['show-ref']));
   const directory = await mkdtemp(resolve(await artifactParent(root, 'releases'), 'source-'));
   const path = resolve(directory, 'source.bundle');

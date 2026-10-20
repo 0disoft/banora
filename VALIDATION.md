@@ -12,6 +12,46 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Source Backup Metadata Query Evidence
+
+The initial source observation formerly launched three separate Git processes for
+shallow status, HEAD and its tree. It now uses one `rev-parse` call for those three
+values, rejects any unexpected field count, shallow result or invalid 40/64-digit
+object IDs, and preserves the initial dirty-worktree and exact ref checks.
+Successful capture launches seven Git processes instead of nine. The final dirty
+worktree, HEAD and exact refs observations remain separate fresh commands after
+bundle creation; no initial result is cached across that boundary. Bundle hashing,
+exclusive manifest creation, isolated config/hooks, file-only protocols, process
+bounds and all recovery checks are unchanged.
+
+Four alternating before/after pairs on the same authored two-commit/tag repository
+used real Git with Bun 1.4.3 on Windows. Instrumented complete-backup medians were
+1268.62 -> 902.55ms (about 29% lower); raw before samples were
+[1375.72, 1372.41, 1064.97, 1164.83] and after
+[1001.39, 970.36, 785.88, 834.75]ms. Combined revision-query medians, including the
+unchanged final HEAD query, were 507.84 -> 230.10ms. All eight captures retained
+identical source/tree, refs and bundle byte hashes. These local fixture samples
+exclude runner startup and do not establish large-history or CI latency guarantees;
+no timing threshold, benchmark instrumentation or retry is committed.
+
+Regressions observe actual Git calls and independently resolve the expected source,
+verify shallow rejection before output creation, and mutate each of worktree, HEAD
+and refs immediately after successful real bundle creation. A same-tree commit
+isolates the HEAD check from dirty-worktree rejection. Every mutation is rejected
+without reverting the concurrent change or writing a success manifest. Spies are
+restored in `finally`; production code receives no test callback or injection API.
+The original restore and corruption/argument tests remain intact. Focused coverage
+is now 8 tests / 53 assertions, previously 3 / 34.
+The full `bun run check` passed on its first attempt: 308 tests / 8,376 assertions,
+installed CLI 298 checks, lint/format/boundaries, SDK/adapter builds, root/Svelte
+types, docs (145 documents / 738 links) and packed SDK/classic/declarations.
+
+Only the private operations implementation, its tests and this validation source
+of truth change. Public API/CLI/schema, database, dependencies, repository hygiene
+and runner/CI policy are unchanged. The operational recovery contract in
+`docs/ops/maintainer-recovery.md` remains in force. Browser/device/provider-account
+and off-device durability checks are outside this local Git optimization.
+
 ## Git Source Recovery Test Budget Evidence
 
 The real-Git backup/recovery test previously charged six fixture Git processes,

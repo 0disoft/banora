@@ -1,6 +1,8 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
+import { beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import * as childProcess from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { sourceBackup, sourceRecovery, sourceRecoveryOptions } from './source-backup.js';
 
@@ -58,6 +60,88 @@ describe('isolated authored Git source', () => {
   beforeEach(async () => {
     source = await fixture();
   });
+
+  test('initial identity is batched while final source and ref checks stay fresh', async () => {
+    const { root, git } = source;
+    const expected = { commit: git('rev-parse', 'HEAD'), tree: git('rev-parse', 'HEAD^{tree}') };
+    const observed = spyOn(childProcess, 'spawnSync');
+    try {
+      const backup = await sourceBackup(root);
+      expect(backup.source).toEqual(expected);
+      const commands = observed.mock.calls.map(([, args]) => {
+        if (!Array.isArray(args)) throw Error('Expected authored Git arguments.');
+        return args.slice(8);
+      });
+      expect(commands).toHaveLength(7);
+      expect(commands.filter((args) => args[0] === 'rev-parse')).toEqual([
+        ['rev-parse', '--is-shallow-repository', 'HEAD', 'HEAD^{tree}'],
+        ['rev-parse', 'HEAD'],
+      ]);
+      expect(commands.filter((args) => args[0] === 'status')).toEqual([
+        ['status', '--porcelain'],
+        ['status', '--porcelain'],
+      ]);
+      expect(commands.filter((args) => args[0] === 'show-ref')).toEqual([
+        ['show-ref'],
+        ['show-ref'],
+      ]);
+    } finally {
+      observed.mockRestore();
+    }
+  });
+
+  test('a shallow source is rejected by the batched initial observation before capture', async () => {
+    const { root, git } = source;
+    await writeFile(resolve(root, '.git/shallow'), git('rev-parse', 'HEAD') + '\n');
+    await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
+    await expect(readdir(resolve(root, '.artifacts/releases'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  test.each(['dirty', 'head', 'refs'] as const)(
+    'capture rejects %s changes after the bundle is written',
+    async (kind) => {
+      const { root, git } = source;
+      const head = git('rev-parse', 'HEAD');
+      // A same-tree commit makes the worktree stay clean, so the HEAD guard must catch it.
+      const value =
+        kind === 'head'
+          ? git('commit-tree', 'HEAD^{tree}', '-p', head, '-m', 'Authored concurrent commit') + '\n'
+          : kind === 'refs'
+            ? head + '\n'
+            : 'Authored concurrent work.\n';
+      const target =
+        kind === 'dirty'
+          ? resolve(root, 'README.md')
+          : resolve(root, '.git/refs', kind === 'head' ? 'heads/main' : 'tags/concurrent');
+      const execute = childProcess.spawnSync;
+      const intercept = ((...args: Parameters<typeof execute>) => {
+        const result = execute(...args);
+        if (
+          Array.isArray(args[1]) &&
+          args[1].includes('bundle') &&
+          args[1].includes('create') &&
+          result.status === 0
+        )
+          writeFileSync(target, value);
+        return result;
+      }) as typeof execute;
+      const observed = spyOn(childProcess, 'spawnSync').mockImplementation(intercept);
+      try {
+        await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
+      } finally {
+        observed.mockRestore();
+      }
+      expect(await readFile(target, 'utf8')).toBe(value);
+      const releases = resolve(root, '.artifacts/releases');
+      const directories = await readdir(releases);
+      expect(directories).toHaveLength(1);
+      await expect(
+        readFile(resolve(releases, directories[0]!, 'manifest.json')),
+      ).rejects.toMatchObject({ code: 'ENOENT' });
+    },
+  );
 
   test('real Git backup restores exact history/refs and clean source without inheriting the original remote/config', async () => {
     const { root, git } = source;
