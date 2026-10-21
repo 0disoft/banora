@@ -326,7 +326,8 @@ explicitly different FF/GM values are rejected. Root-only property misuse, confl
 setup, malformed points and duplicate property keys are diagnosed.
 
 Default limits are 5 MiB for input and normalized UTF-8 export, 50,000 nodes,
-128 nested game trees and 65,536 raw characters per property value. Callers can
+128 nested game trees, 65,536 raw characters per property value and 1,000,000 total
+expanded point-list points across the collection (`maxExpandedPoints`). Callers can
 configure positive limits. Dimensions are 2 through 52, including rectangles.
 `C`/`GC` text and known SimpleText fields normalize SGF whitespace; unknown values
 retain their unedited escaping on export. Edits are revalidated before commit so

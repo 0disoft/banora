@@ -173,6 +173,31 @@ describe('SGF FF4 preservation', () => {
     const record = parsed(parseSgf(`(;SZ[9]${';B[];W[]'.repeat(3000)})`));
     expect(parsed(parseSgf(serializeSgf(record))).games.length).toBe(1);
   });
+  test('bounds expanded point area across nodes and games for text and byte imports', () => {
+    const source = '(;SZ[52]TR[aa:ZZ])(;SZ[52]AB[aa:ZZ])';
+    for (const input of [source, new TextEncoder().encode(source)]) {
+      // Both representations use the same collection-wide area budget.
+      const run = (limit: number) =>
+        typeof input === 'string'
+          ? parseSgf(input, { maxExpandedPoints: limit })
+          : decodeSgf(input, { maxExpandedPoints: limit });
+      expect(run(5408).ok).toBe(true);
+      const rejected = run(5407);
+      expect(rejected.ok).toBe(false);
+      if (!rejected.ok) expect(rejected.diagnostics[0]?.code).toBe('limit');
+    }
+    expect(parseSgf(`(;SZ[52]${';TR[aa:ZZ]'.repeat(400)})`).ok).toBe(false);
+    expect(parseSgf('(;SZ[9]DD[]VW[]TB[]TW[])', { maxExpandedPoints: 1 }).ok).toBe(true);
+    expect(() => parseSgf('(;)', { maxExpandedPoints: 0 })).toThrow(RangeError);
+  });
+  test('rectangle masks preserve overlap checks across the 32-bit and board boundaries', () => {
+    expect(parseSgf('(;SZ[52]TR[aa:Fa][Ga:Za][ab:Zb])', { maxExpandedPoints: 104 }).ok).toBe(true);
+    for (const points of ['[aa:Za][Fa]', '[Fa:Ga][Ga]', '[ZZ][ZZ]', '[aa:bb][bb:cc]'])
+      expect(parseSgf(`(;SZ[52]TR${points})`).ok).toBe(false);
+    expect(parseSgf('(;SZ[52]AB[aa:Ga]AW[Fa:Za])').ok).toBe(false);
+    expect(parseSgf('(;SZ[52]AB[aa:Fa]AW[Ga:Za])').ok).toBe(true);
+    expect(parseSgf('(;SZ[52]TR[bb:aa])').ok).toBe(false);
+  });
   test('compressed point lists compare semantically to expanded lists', () => {
     expect(semanticRecord(parsed(parseSgf('(;SZ[9]TR[aa:bb])')))).toBe(
       semanticRecord(parsed(parseSgf('(;SZ[9]TR[aa][ba][ab][bb])'))),

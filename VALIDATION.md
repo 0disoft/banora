@@ -3,6 +3,23 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## SGF Expanded Point Budget
+
+Compressed point lists now validate with row bitsets, retaining duplicate/setup
+conflict detection across both 32-bit words of a 52-line board. The optional
+`maxExpandedPoints` limit defaults to 1,000,000 points, shared across all nodes,
+properties and games; permitted empty lists cost zero. Text/byte imports and
+controller full validation use the same guard. C-only validation retains its
+existing proof because comments do not change point-list area.
+
+Focused SGF/controller/comment-limit tests passed 37 cases, and strict typecheck
+passed. Tests cover exact budget boundaries, collections, compressed overlap,
+setup conflicts and default refusal. A local Bun 1.4.3 diagnostic compared the
+previous parser with this parser on the same accepted 200-node 52-line compressed
+marker record: one warmup/five samples, median 267.953ms versus 8.702ms. This is
+synchronous local parsing evidence, not a browser/device latency guarantee.
+Complete repository validation follows the remaining sequential improvements.
+
 ## Validation Source of Truth
 
 This document owns stable validation names for this scaffold.

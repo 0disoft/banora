@@ -315,6 +315,9 @@ The setup/playback choices and profile boundaries are recorded in
 readonly array of zero-based child indices from that game's root; `recordNodeAt`
 returns the matching node or null. This differs from snapshot `path`, which holds
 record-local string IDs. Parsing returns a structured success/diagnostic result.
+Limits include optional `maxExpandedPoints`, defaulting to 1,000,000: the sum of
+point-list areas across every property, node and game. Compressed rectangles count
+their full area; permitted empty lists count zero. Exceeding it returns `limit`.
 See [compatibility](compatibility.md#record-compatibility) for the supported subset.
 
 `@0disoft/banora/controller` exports `RecordController` and related state/command types.

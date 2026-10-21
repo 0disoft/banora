@@ -425,6 +425,10 @@ not byte-for-byte whitespace, property order, or original text formatting.
 The parser freezes its private property arrays in place and avoids rebuilding plain
 values without escapes or line endings. Public node construction still copies caller
 input; normalization, raw escaping preservation and all SGF limit checks remain.
+Point-list validation uses row bitsets for compressed rectangles and enforces a
+collection-wide expanded area budget (one million points by default, configurable
+with `maxExpandedPoints`). Empty permitted lists cost zero. Setup conflicts and
+within-property duplicates remain errors, including across 32-bit word boundaries.
 
 Decode file bytes according to declared encoding; string input is already decoded.
 Export UTF-8. Implemented encoding/default/limit policies are documented in

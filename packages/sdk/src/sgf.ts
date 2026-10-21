@@ -39,12 +39,15 @@ export interface SgfLimits {
   readonly maxNodes: number;
   readonly maxDepth: number;
   readonly maxValueLength: number;
+  /** Total point-list area across all games; defaults to one million. */
+  readonly maxExpandedPoints?: number;
 }
-export const DEFAULT_SGF_LIMITS: SgfLimits = Object.freeze({
+export const DEFAULT_SGF_LIMITS: Required<SgfLimits> = Object.freeze({
   maxBytes: 5 * 1024 * 1024,
   maxNodes: 50_000,
   maxDepth: 128,
   maxValueLength: 65_536,
+  maxExpandedPoints: 1_000_000,
 });
 export interface SgfDiagnostic {
   readonly code: 'syntax' | 'limit' | 'encoding' | 'unsupported' | 'property';
@@ -131,7 +134,7 @@ class SgfError extends Error {
 function fail(code: SgfDiagnostic['code'], message: string, offset?: number): never {
   throw new SgfError(Object.freeze({ code, message, ...(offset === undefined ? {} : { offset }) }));
 }
-function limitsFor(options: Partial<SgfLimits>): SgfLimits {
+function limitsFor(options: Partial<SgfLimits>): Required<SgfLimits> {
   const limits = { ...DEFAULT_SGF_LIMITS, ...options };
   if (Object.values(limits).some((value) => !Number.isSafeInteger(value) || value < 1)) {
     throw new RangeError('SGF limits must be positive safe integers');
@@ -216,7 +219,33 @@ export function sgfBoardSize(root: SgfNode): { width: number; height: number } {
   return { width: width!, height };
 }
 
-function validateGame(root: SgfNode): void {
+/** Validate rectangles with row masks instead of allocating every covered point. */
+function claimPoints(
+  value: string,
+  width: number,
+  height: number,
+  seen: Uint32Array,
+  message: string,
+): number {
+  const parts = value.split(':');
+  if (parts.length > 2) fail('property', `Invalid point rectangle: ${value}`);
+  const from = pointFromSgf(parts[0]!, width, height);
+  const to = parts.length === 2 ? pointFromSgf(parts[1]!, width, height) : from;
+  if (from.x > to.x || from.y > to.y) fail('property', `Reversed point rectangle: ${value}`);
+  for (let y = from.y; y <= to.y; y++) {
+    for (let word = from.x >>> 5; word <= to.x >>> 5; word++) {
+      const first = Math.max(from.x - word * 32, 0);
+      const last = Math.min(to.x - word * 32, 31);
+      const mask = (0xffffffff << first) & (0xffffffff >>> (31 - last));
+      const index = y * 2 + word;
+      if ((seen[index]! & mask) !== 0) fail('property', message);
+      seen[index] = seen[index]! | mask;
+    }
+  }
+  return (to.x - from.x + 1) * (to.y - from.y + 1);
+}
+
+function validateGame(root: SgfNode, budget: { remaining: number }): void {
   if (root.properties.FF && root.properties.FF[0] !== '4')
     fail('unsupported', 'Only SGF FF4 is supported');
   if (root.properties.GM && root.properties.GM[0] !== '1')
@@ -239,14 +268,11 @@ function validateGame(root: SgfNode): void {
       if (rootOnly.has(key) && node !== root)
         fail('property', `${key} is only valid on a game root`);
       if (pointLists.has(key)) {
-        const seen = new Set<string>();
+        const seen = new Uint32Array(height * 2);
         for (const value of values) {
           if (value === '' && ['DD', 'VW', 'TB', 'TW'].includes(key)) continue;
-          for (const point of expandSgfPoints(value, width, height)) {
-            const name = pointToSgf(point);
-            if (seen.has(name)) fail('property', `Duplicate ${key} point: ${name}`);
-            seen.add(name);
-          }
+          budget.remaining -= claimPoints(value, width, height, seen, `Duplicate ${key} point`);
+          if (budget.remaining < 0) fail('limit', 'SGF expanded point budget exceeded');
         }
       }
       if (key === 'LB')
@@ -281,14 +307,10 @@ function validateGame(root: SgfNode): void {
     if (move !== undefined && move !== '' && !(move === 'tt' && width <= 19 && height <= 19)) {
       pointFromSgf(move, width, height);
     }
-    const occupied = new Set<string>();
+    const occupied = new Uint32Array(height * 2);
     for (const key of ['AB', 'AW', 'AE'])
       for (const value of props[key] ?? []) {
-        for (const point of expandSgfPoints(value, width, height)) {
-          const name = pointToSgf(point);
-          if (occupied.has(name)) fail('property', 'Setup properties contain conflicting points');
-          occupied.add(name);
-        }
+        claimPoints(value, width, height, occupied, 'Setup properties contain conflicting points');
       }
     for (const child of node.children) pending.push(child);
   }
@@ -389,7 +411,8 @@ function parse(text: string, limits: SgfLimits): SgfRecord {
     Object.freeze(node);
   }
   const record: SgfRecord = Object.freeze({ games: Object.freeze(roots) });
-  for (const root of record.games) validateGame(root);
+  const budget = { remaining: limits.maxExpandedPoints ?? DEFAULT_SGF_LIMITS.maxExpandedPoints };
+  for (const root of record.games) validateGame(root, budget);
   if (new TextEncoder().encode(serializeSgf(record)).length > limits.maxBytes) {
     fail('limit', 'Normalized UTF-8 export exceeds byte limit');
   }
