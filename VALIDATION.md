@@ -12,6 +12,54 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Source Backup Refusal Test Budget Evidence
+
+One refusal test accumulated two successful backups, three input rejections,
+a corrupt-bundle rejection/preservation check, a dirty-source rejection/content
+check and invalid-workspace rejection under one default five-second body. A local
+Bun 1.4.3 Windows profile measured backups at 805.84/787.07ms, reviewed-input checks
+at 4.94ms, corruption checks at 3.45ms, dirty-source work at 105.44ms and workspace
+work at 1.32ms (2431.05ms reported including fixture setup). Earlier runs reported
+3192.52 and 4759.84ms; no external OS/startup stall is claimed as captured.
+
+Three scoped tests now cover reviewed-input/workspace precedence, corrupt-bundle
+preservation and dirty-source preservation. All eight original assertions retain
+their tokens and string contents, ignoring whitespace and optional trailing commas.
+Workspace refusal still sees the extra input file and dirty README, preserving its
+precedence over invalid reviewed input. Other tests are byte-identical. The same
+two successful backups and one refused backup attempt remain: body Git-call counts
+change from 15 together to 7/7/1. Metadata-only checks stay grouped to avoid extra
+backups. Each case gets a fresh repository from the existing `beforeEach`; this
+adds two repository fixtures (12 fixture Git calls), trading some aggregate setup
+cost for independent deadlines and isolation. It does not claim faster Git or
+lower total runtime. No shared fixture, retry, concurrency or timeout increase.
+
+Ignored original/new diagnostic copies inserted identical 2000ms delays before
+each backup attempt. The original exceeded five seconds during its second backup,
+killed its pending Git child and emitted follow-on `check` at `backup-source`
+(5801.14ms reported). All three split cases passed the same delays and all eight
+assertions (3556.47/3594.11/2978.59ms reported). Reported times include hooks. No delay
+or timing threshold is committed. This proves resilience to cumulative work,
+not the source of an actual external stall; any individual case can still time out.
+
+Strict root typecheck passed. The normal focused file passed 24 tests / 142
+assertions in 40.06s (previously 22 tests / 142 assertions); the three refusal cases
+reported 1454.53/1601.57/826.86ms. These local samples are not a cross-machine
+latency guarantee or a controlled aggregate-runtime comparison.
+
+The full `bun run check` passed without retries: 324 tests / unchanged 8,465
+assertions across 57 files (69.79s tests), lint/format/boundaries, SDK/adapter builds,
+root/Svelte types, docs (145 documents / 739 links), packed SDK/classic/declarations
+and installed CLI 298 checks. No test/source changed after that pass; final
+documentation evidence received format/docs/whitespace checks.
+
+Changed files are `scripts/source-backup.test.ts` and this validation source of
+truth, using `test-hardening` and `ops-change`. Production backup/recovery validation,
+seven/eight success-call budgets and isolation remain unchanged. No API, DB/storage
+schema, dependency/version, repository hygiene or CI/runner policy changes.
+The contract in `docs/ops/maintainer-recovery.md` remains in force; browser/device,
+provider/account and remote publication checks are outside this test-only change.
+
 ## Source Recovery Success Test Budget Evidence
 
 The fixture already had a separate default deadline, but the success test still

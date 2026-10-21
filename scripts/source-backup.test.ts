@@ -451,44 +451,59 @@ describe('isolated authored Git source', () => {
     });
   });
 
-  test('dirty sources and modified, extra-file or wrongly reviewed backups are rejected without replacement', async () => {
-    const { root } = source;
-    const backup = await sourceBackup(root);
-    const request = {
-      backup: resolve(root, backup.backup),
-      manifestSha256: backup.manifestSha256,
-      sourceCommit: backup.source.commit,
-    };
-    await expect(
-      sourceRecovery(root, { ...request, manifestSha256: '0'.repeat(64) }),
-    ).rejects.toMatchObject({ code: 'integrity' });
-    await expect(
-      sourceRecovery(root, { ...request, sourceCommit: '0'.repeat(40) }),
-    ).rejects.toMatchObject({ code: 'manifest' });
-    await writeFile(resolve(request.backup, 'extra.txt'), 'Authored extra file');
-    await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'manifest' });
-    const fresh = await sourceBackup(root);
-    const bundle = resolve(root, fresh.backup, 'source.bundle');
-    const bytes = await readFile(bundle);
-    await writeFile(bundle, Buffer.concat([bytes, Buffer.from('Authored corruption')]));
-    await expect(
-      sourceRecovery(root, {
-        backup: resolve(root, fresh.backup),
-        manifestSha256: fresh.manifestSha256,
-        sourceCommit: fresh.source.commit,
-      }),
-    ).rejects.toMatchObject({ code: 'integrity' });
-    expect(await readFile(bundle)).toEqual(
-      Buffer.concat([bytes, Buffer.from('Authored corruption')]),
-    );
-    await writeFile(resolve(root, 'README.md'), 'Authored uncommitted work.\n');
-    await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
-    expect(await readFile(resolve(root, 'README.md'), 'utf8')).toBe('Authored uncommitted work.\n');
-    await writeFile(
-      resolve(root, 'package.json'),
-      JSON.stringify({ name: 'other-workspace', private: true }),
-    );
-    await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'source' });
+  describe('backup refusal boundaries', () => {
+    // Keep fresh repositories and the same two successful backups overall;
+    // independent refusal groups must not share one cumulative test deadline.
+    test('wrong reviewed identities, extra files and an invalid workspace are rejected', async () => {
+      const { root } = source;
+      const backup = await sourceBackup(root);
+      const request = {
+        backup: resolve(root, backup.backup),
+        manifestSha256: backup.manifestSha256,
+        sourceCommit: backup.source.commit,
+      };
+      await expect(
+        sourceRecovery(root, { ...request, manifestSha256: '0'.repeat(64) }),
+      ).rejects.toMatchObject({ code: 'integrity' });
+      await expect(
+        sourceRecovery(root, { ...request, sourceCommit: '0'.repeat(40) }),
+      ).rejects.toMatchObject({ code: 'manifest' });
+      await writeFile(resolve(request.backup, 'extra.txt'), 'Authored extra file');
+      await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'manifest' });
+      await writeFile(resolve(root, 'README.md'), 'Authored uncommitted work.\n');
+      await writeFile(
+        resolve(root, 'package.json'),
+        JSON.stringify({ name: 'other-workspace', private: true }),
+      );
+      await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'source' });
+    });
+
+    test('a corrupt backup is rejected without replacing its original bytes', async () => {
+      const { root } = source;
+      const fresh = await sourceBackup(root);
+      const bundle = resolve(root, fresh.backup, 'source.bundle');
+      const bytes = await readFile(bundle);
+      await writeFile(bundle, Buffer.concat([bytes, Buffer.from('Authored corruption')]));
+      await expect(
+        sourceRecovery(root, {
+          backup: resolve(root, fresh.backup),
+          manifestSha256: fresh.manifestSha256,
+          sourceCommit: fresh.source.commit,
+        }),
+      ).rejects.toMatchObject({ code: 'integrity' });
+      expect(await readFile(bundle)).toEqual(
+        Buffer.concat([bytes, Buffer.from('Authored corruption')]),
+      );
+    });
+
+    test('a dirty source is rejected without replacing uncommitted work', async () => {
+      const { root } = source;
+      await writeFile(resolve(root, 'README.md'), 'Authored uncommitted work.\n');
+      await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
+      expect(await readFile(resolve(root, 'README.md'), 'utf8')).toBe(
+        'Authored uncommitted work.\n',
+      );
+    });
   });
 });
 
