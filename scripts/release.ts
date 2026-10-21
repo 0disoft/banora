@@ -254,7 +254,9 @@ if (import.meta.main) {
             error instanceof ConsumerRecoveryError
               ? error.code
               : 'io',
-          ...(error instanceof SourceOperationError ? { stage: error.stage } : {}),
+          ...(error instanceof SourceOperationError
+            ? { stage: error.stage, ...(error.reason ? { reason: error.reason } : {}) }
+            : {}),
           ...(error instanceof ConsumerRecoveryError ? { completed: error.completed } : {}),
           ...(error instanceof RegistryHealthError
             ? {

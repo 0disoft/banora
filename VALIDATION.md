@@ -12,6 +12,50 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Source Git Failure Reason Evidence
+
+Source operation failures previously identified the active phase but reported all
+Git launch errors, timeouts and nonzero exits as `check`. The private release CLI
+now optionally adds a fixed `reason` alongside that unchanged code and stage.
+`ENOENT` maps to `unavailable`, `ETIMEDOUT` to `timeout`, positive exit status without
+a spawn error to `exit`, and other errors/signals/missing status to `failed`.
+Error classification uses only exact allowlisted codes and process status; no raw
+message, path, arguments, stdout/stderr, signal name or exit number is retained.
+Unknown errno text is never reflected. Non-Git errors omit `reason`.
+
+A local Bun subprocess probe observed `ENOENT` with missing Git in PATH,
+`ETIMEDOUT` with a bounded authored child process, and status 3 without a spawn
+error for an explicit child exit. These are observed categories, not guaranteed
+root causes; `ENOENT` can also indicate a missing working directory.
+Six focused result cases cover these categories, output-buffer failure, an unknown
+private errno and signal termination. Each asserts exact safe error fields, no
+cause, unchanged source and no backup publication. Existing real-Git recovery
+failure/preservation tests remain. An actual private release CLI subprocess checks
+unavailable Git JSON, empty stderr and absence of supplied paths; missing-input and
+argument errors still omit the reason. No 60-second timeout is added to tests.
+
+Success validation and isolation are unchanged: seven backup and eight recovery
+Git calls, independent final source/input checks, strict object/bundle/ref/tree and
+clean-checkout validation, file-only protocols, isolated config/hooks, disabled
+lazy fetch/replacements, shell avoidance, 60-second deadline and 8MiB output bound.
+SDK/public CLI, DB/storage schema, dependencies, versions, hygiene and CI/runner
+policy are unchanged. Source-of-truth documents are this file and the maintainer
+recovery guide. Browser/device/provider and remote publication checks are outside
+this local private-process diagnostic change.
+
+Validation: `bun run typecheck` passed after narrowing the runtime error's
+optional `code` field. The first focused run passed 21 cases but the existing
+combined backup/recovery success case exceeded its unchanged five-second budget
+(6010ms; the runner killed its pending child). Its isolated rerun passed in 3346ms.
+The final complete `bun run check` passed without retries: 322 tests / 8,465
+assertions across 57 files, installed CLI 298 checks, lint/format/boundaries,
+SDK/adapter builds, root/Svelte types, docs (145 documents / 739 links) and packed
+SDK/classic/declarations. Existing test deadlines and CI policy were not changed;
+the intermittent success-test budget remains a follow-up. Both operation bodies
+before their catch clauses were byte-identical to the previous revision, confirming
+that success work and validation statements were retained. No source changed after
+that full pass; final documentation evidence received format/docs/whitespace checks.
+
 ## Source Backup and Recovery Failure Diagnostics
 
 All source Git subprocess failures previously became the same `check` error;
@@ -27,7 +71,8 @@ exceptions still map to `io`. SDK and installed public CLI APIs are unchanged.
 
 Stage values are implementation literals, never interpolated input. Wrappers
 discard underlying exceptions rather than retaining messages, causes, paths,
-command arguments or Git stdout/stderr. The CLI serializes only code and stage.
+command arguments or Git stdout/stderr. The CLI serializes code and stage, plus
+the optional fixed Git reason documented above.
 No partial-success claim or new failure receipt/log is introduced; abrupt process
 termination cannot guarantee a JSON response. Success manifests/receipts and all
 validation, byte-preservation, Git-call budgets and isolation settings are unchanged.

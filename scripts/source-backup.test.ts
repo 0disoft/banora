@@ -254,11 +254,59 @@ describe('isolated authored Git source', () => {
         observed.mockRestore();
       }
       expect(failure).toBeInstanceOf(SourceOperationError);
-      expect(JSON.parse(JSON.stringify(failure))).toEqual({ code: 'check', stage });
+      expect(JSON.parse(JSON.stringify(failure))).toEqual({
+        code: 'check',
+        stage,
+        reason: 'failed',
+      });
       expect((failure as Error).message).toBe('Release: check.');
       expect((failure as Error).cause).toBeUndefined();
       expect(git('status', '--porcelain')).toBe('');
       if (request) expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(bytes!);
+    },
+  );
+
+  test.each([
+    ['ENOENT', null, null, 'unavailable'],
+    ['ETIMEDOUT', null, 'SIGTERM', 'timeout'],
+    [undefined, 128, null, 'exit'],
+    ['ENOBUFS', null, null, 'failed'],
+    ['Authored private errno', 1, null, 'failed'],
+    [undefined, null, 'SIGTERM', 'failed'],
+  ] as const)(
+    'Git result %s/%s/%s exposes only fixed reason %s',
+    async (code, status, signal, reason) => {
+      const { root, git } = source;
+      const detail = 'Authored private diagnostic detail';
+      const execute = childProcess.spawnSync;
+      const intercept = ((..._args: Parameters<typeof execute>) => ({
+        status,
+        signal,
+        stdout: Buffer.from(detail),
+        stderr: Buffer.from(detail),
+        ...(code ? { error: Object.assign(Error(detail), { code, path: root }) } : {}),
+      })) as typeof execute;
+      const observed = spyOn(childProcess, 'spawnSync').mockImplementation(intercept);
+      let failure: unknown;
+      try {
+        await sourceBackup(root);
+      } catch (error) {
+        failure = error;
+      } finally {
+        observed.mockRestore();
+      }
+      expect(failure).toBeInstanceOf(SourceOperationError);
+      expect(JSON.parse(JSON.stringify(failure))).toEqual({
+        code: 'check',
+        stage: 'backup-source',
+        reason,
+      });
+      expect((failure as Error).message).toBe('Release: check.');
+      expect((failure as Error).cause).toBeUndefined();
+      expect(git('status', '--porcelain')).toBe('');
+      await expect(readdir(resolve(root, '.artifacts/releases'))).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
     },
   );
 
@@ -294,7 +342,7 @@ describe('isolated authored Git source', () => {
       expect(JSON.parse(result.stdout.toString())).toEqual({
         schemaVersion: 'banora.release-command/v1',
         ok: false,
-        error: { code, stage },
+        error: { code, stage, ...(code === 'check' ? { reason: 'unavailable' } : {}) },
       });
       expect(result.stdout.toString()).not.toContain(root);
       expect(result.stdout.toString()).not.toContain('absent-authored');

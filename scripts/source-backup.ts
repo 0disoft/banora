@@ -40,10 +40,19 @@ type SourceStage =
   | 'recovery-original'
   | 'recovery-receipt';
 
+type GitFailureReason = 'unavailable' | 'timeout' | 'exit' | 'failed';
+
+class GitExecutionError extends ReleaseError {
+  constructor(readonly reason: GitFailureReason) {
+    super('check');
+  }
+}
+
 export class SourceOperationError extends ReleaseError {
   constructor(
     code: ReleaseError['code'],
     readonly stage: SourceStage,
+    readonly reason?: GitFailureReason,
   ) {
     super(code);
   }
@@ -107,7 +116,19 @@ async function gitRunner(directory: string) {
         shell: false,
       },
     );
-    if (result.error || result.status !== 0) throw new ReleaseError('check');
+    if (result.error || result.status !== 0) {
+      const code = result.error && 'code' in result.error ? result.error.code : undefined;
+      const reason: GitFailureReason = result.error
+        ? code === 'ENOENT'
+          ? 'unavailable'
+          : code === 'ETIMEDOUT'
+            ? 'timeout'
+            : 'failed'
+        : typeof result.status === 'number' && result.status > 0
+          ? 'exit'
+          : 'failed';
+      throw new GitExecutionError(reason);
+    }
     return result.stdout.trim();
   };
 }
@@ -245,7 +266,11 @@ export async function sourceBackup(root: string) {
         'Tracked source/history/refs only. Independently retain this backup and prepared release artifacts; capture is not a successful restore or provider account recovery.',
     };
   } catch (error) {
-    throw new SourceOperationError(error instanceof ReleaseError ? error.code : 'io', stage);
+    throw new SourceOperationError(
+      error instanceof ReleaseError ? error.code : 'io',
+      stage,
+      error instanceof GitExecutionError ? error.reason : undefined,
+    );
   }
 }
 
@@ -321,6 +346,10 @@ export async function sourceRecovery(
     );
     return receipt;
   } catch (error) {
-    throw new SourceOperationError(error instanceof ReleaseError ? error.code : 'io', stage);
+    throw new SourceOperationError(
+      error instanceof ReleaseError ? error.code : 'io',
+      stage,
+      error instanceof GitExecutionError ? error.reason : undefined,
+    );
   }
 }

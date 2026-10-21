@@ -100,6 +100,24 @@ partial output. Abrupt process termination cannot guarantee a JSON response.
 | `recovery-original`              | Verify original input bytes and schema again                   |
 | `recovery-receipt`               | Exclusively write the success receipt                          |
 
+Git subprocess failures additionally include a fixed `reason`, retaining `check`
+and the active stage:
+
+| Reason        | Meaning                                                           |
+| ------------- | ----------------------------------------------------------------- |
+| `unavailable` | The operating system returned `ENOENT` when starting Git          |
+| `timeout`     | The subprocess returned `ETIMEDOUT`                               |
+| `exit`        | Git returned a positive nonzero exit status without a spawn error |
+| `failed`      | Any other subprocess error, signal termination or missing status  |
+
+For example, unavailable Git returns
+`{"code":"check","stage":"backup-source","reason":"unavailable"}`.
+These categories describe observed process results, not a complete root-cause
+diagnosis: `ENOENT` can also mean a missing working directory. Unknown error codes
+are never echoed. Filesystem, input-validation and argument errors omit `reason`.
+No duration, exit number, signal name or operating-system error text is exposed.
+The existing 60-second per-Git deadline and output limit remain unchanged.
+
 Stages come only from these fixed implementation labels. JSON errors exclude
 source/backup paths, command arguments, remote URLs, Git stdout/stderr, underlying
 exception messages, causes and stack traces. Unknown filesystem/runtime exceptions
