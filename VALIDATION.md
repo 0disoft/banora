@@ -20,6 +20,22 @@ marker record: one warmup/five samples, median 267.953ms versus 8.702ms. This is
 synchronous local parsing evidence, not a browser/device latency guarantee.
 Complete repository validation follows the remaining sequential improvements.
 
+## Analysis Session Replay Proofs
+
+Session-local SDK-controller proofs avoid replay for comment/export-only state
+notifications, and extend already verified paths by one recorded/legal transition.
+Cold/public extraction still validates the full history. Proofs retain at most 128
+entries and 100,000 combined path/move steps and clear on record/game/generation/
+settings changes. Setup resets legal epochs; disposal drops the reader and cache.
+
+Focused analysis/KataGo/rules tests passed 32 cases / 406 assertions, and strict
+typecheck passed. A 100-move session regression observes zero recorded replay calls
+for comment/export updates, then two for each next step (controller plus context),
+and compares the resulting context with independent full extraction. Additional
+checks compare setup/MN, markers, Undo/Redo, illegal archived history, recovery by
+setup and imports against full extraction. Existing cancellation/reentrancy/late
+result checks remain. Browser/provider checks await the final combined validation.
+
 ## Validation Source of Truth
 
 This document owns stable validation names for this scaffold.

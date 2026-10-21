@@ -16,8 +16,87 @@ import type {
   AnalysisState,
 } from '../src/analysis.js';
 import { RecordController } from '../src/controller.js';
+import * as core from '../src/core.js';
 import { getRuleProfile } from '../src/rules.js';
 const settings: AnalysisSettings = { profile: 'japanese-territory' };
+
+test('session proofs skip comment/export replay and incrementally validate recorded navigation', () => {
+  const controller = new RecordController({ sgf: `(;SZ[9]${';B[];W[]'.repeat(50)};B[aa];W[bb])` });
+  for (let i = 0; i < 100; i++) controller.next();
+  const session = new AnalysisSession(controller, controlled().provider, settings);
+  const replay = spyOn(core, 'replayMove');
+  try {
+    const prior = session.getState().context;
+    controller.setComment('text without a position change');
+    controller.acknowledgeExport(controller.prepareExport().id);
+    expect(replay).toHaveBeenCalledTimes(0);
+    expect(session.getState().context).toBe(prior);
+    controller.next();
+    // One recorded transition in the controller and one in the incremental context.
+    expect(replay).toHaveBeenCalledTimes(2);
+    expect(
+      sameAnalysisContext(
+        session.getState().context,
+        context(createAnalysisContext(controller.getState(), settings)),
+      ),
+    ).toBe(true);
+    replay.mockClear();
+    controller.next();
+    expect(replay).toHaveBeenCalledTimes(2);
+    expect(
+      sameAnalysisContext(
+        session.getState().context,
+        context(createAnalysisContext(controller.getState(), settings)),
+      ),
+    ).toBe(true);
+  } finally {
+    replay.mockRestore();
+    session.dispose();
+    controller.dispose();
+  }
+});
+
+test('session proof invalidation matches full extraction across setup, MN, edits, Undo and imports', () => {
+  const controller = new RecordController({
+    sgf: '(;SZ[5]KM[0];B[aa];W[bb];AE[aa]PL[W]MN[17];W[cc];B[dd])',
+  });
+  const session = new AnalysisSession(controller, controlled().provider, settings);
+  try {
+    const compare = () => {
+      const full = createAnalysisContext(controller.getState(), settings);
+      const cached = session.getState();
+      expect(cached.error?.reason ?? null).toBe(full.ok ? null : full.reason);
+      if (full.ok) expect(sameAnalysisContext(cached.context, full.value)).toBe(true);
+    };
+    compare();
+    for (let i = 0; i < 5; i++) {
+      controller.next();
+      compare();
+    }
+    controller.previous();
+    compare();
+    controller.previous();
+    compare();
+    controller.setComment('setup note');
+    compare();
+    controller.setMarker({ x: 0, y: 0 }, 'circle');
+    compare();
+    controller.undo();
+    compare();
+    controller.redo();
+    compare();
+    expect(
+      controller.loadSgf('(;SZ[5];B[aa];W[aa];AE[aa];B[bb])', { discardChanges: true }).ok,
+    ).toBe(true);
+    for (let i = 0; i < 4; i++) {
+      controller.next();
+      compare();
+    }
+  } finally {
+    session.dispose();
+    controller.dispose();
+  }
+});
 const context = (result: AnalysisContextResult) => {
   if (!result.ok) throw Error(result.message);
   return result.value;

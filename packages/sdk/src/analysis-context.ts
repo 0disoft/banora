@@ -72,6 +72,81 @@ export function createAnalysisContext(
   state: ControllerState,
   settings: AnalysisSettings,
 ): AnalysisContextResult {
+  return capture(state, settings);
+}
+
+interface ContextProof {
+  state: ControllerState;
+  value: AnalysisContext;
+  legal: Position;
+}
+
+/** Session-local bounded proofs; the public context builder always validates afresh. */
+export function cachedAnalysisContext() {
+  let settings: AnalysisSettings | undefined;
+  let last: ContextProof | undefined;
+  const proofs = new Map<string, ContextProof>();
+  let retainedSteps = 0;
+  const cost = (proof: ContextProof) => proof.state.path.length + proof.value.moves.length;
+  const clear = () => {
+    proofs.clear();
+    retainedSteps = 0;
+  };
+  const keep = (proof: ContextProof) => {
+    const before = proofs.get(proof.state.node.id);
+    if (before) retainedSteps -= cost(before);
+    proofs.set(proof.state.node.id, proof);
+    retainedSteps += cost(proof);
+    while (proofs.size > 1 && (proofs.size > 128 || retainedSteps > 100_000)) {
+      const [id, removed] = proofs.entries().next().value!;
+      retainedSteps -= cost(removed);
+      proofs.delete(id);
+    }
+  };
+  return (state: ControllerState, nextSettings: AnalysisSettings): AnalysisContextResult => {
+    const sameSource =
+      last &&
+      settings === nextSettings &&
+      last.state.recordGeneration === state.recordGeneration &&
+      last.state.gameIndex === state.gameIndex;
+    if (
+      last &&
+      sameSource &&
+      last.state.node.id === state.node.id &&
+      last.state.position === state.position &&
+      last.state.path.length === state.path.length &&
+      last.state.path.every((id, i) => id === state.path[i]) &&
+      last.state.record.games[state.gameIndex]?.properties.KM?.[0] ===
+        state.record.games[state.gameIndex]?.properties.KM?.[0] &&
+      last.state.record.games[state.gameIndex]?.properties.HA?.[0] ===
+        state.record.games[state.gameIndex]?.properties.HA?.[0]
+    ) {
+      if (last.state.record !== state.record) clear();
+      last = { ...last, state };
+      keep(last);
+      return { ok: true, value: last.value };
+    }
+    if (!sameSource || last?.state.record !== state.record) clear();
+    settings = nextSettings;
+    const known = proofs.get(state.node.id);
+    if (known && known.state.position === state.position) {
+      last = known;
+      return { ok: true, value: known.value };
+    }
+    const parent = proofs.get(state.path.at(-2) ?? '');
+    return capture(state, nextSettings, parent, (proof) => {
+      last = proof;
+      keep(proof);
+    });
+  };
+}
+
+function capture(
+  state: ControllerState,
+  settings: AnalysisSettings,
+  previous?: ContextProof,
+  remember?: (proof: ContextProof) => void,
+): AnalysisContextResult {
   try {
     if (
       !settings ||
@@ -114,11 +189,22 @@ export function createAnalysisContext(
       fail('Handicap must be an integer within board area.');
     if (!Number.isSafeInteger(state.recordGeneration) || state.recordGeneration < 0)
       fail('Invalid source generation.');
-    let node = root,
-      position = initialRecordPosition(root, rules),
-      initial = position,
-      moves: AnalysisMove[] = [];
-    for (let index = 0; index < state.path.length; index++) {
+    const extendsPrevious =
+      previous &&
+      previous.state.record === state.record &&
+      previous.state.path.length + 1 === state.path.length &&
+      previous.state.path.every((id, i) => state.path[i] === id);
+    let node = extendsPrevious ? previous.state.node : root,
+      position = extendsPrevious ? previous.value.position : initialRecordPosition(root, rules),
+      initial = extendsPrevious ? previous.value.initial : position,
+      moves: AnalysisMove[] = extendsPrevious ? [...previous.value.moves] : [];
+    let legalBase = extendsPrevious ? previous.legal : initial;
+    let legalStart = moves.length;
+    for (
+      let index = extendsPrevious ? state.path.length - 1 : 0;
+      index < state.path.length;
+      index++
+    ) {
       if (index > 0) {
         const next = node.children.find((child) => child.id === state.path[index]);
         if (!next) fail('Selected record path is unavailable.');
@@ -131,6 +217,8 @@ export function createAnalysisContext(
         position = applyRecordNode(position, createSgfNode(node.id, setup));
         initial = position;
         moves = [];
+        legalBase = initial;
+        legalStart = 0;
       }
       for (const [key, color] of [
         ['B', 'black'],
@@ -151,8 +239,8 @@ export function createAnalysisContext(
     }
     if (JSON.stringify(positionData(position)) !== JSON.stringify(positionData(state.position)))
       fail('Record snapshot and selected position do not match.');
-    let legal = initial;
-    for (const move of moves) {
+    let legal = legalBase;
+    for (const move of moves.slice(legalStart)) {
       const result =
         move.move === null ? pass(legal, move.color) : play(legal, move.move, move.color);
       if (!result.ok)
@@ -193,6 +281,7 @@ export function createAnalysisContext(
         handicap,
       }),
     );
+    remember?.({ state, value, legal });
     return { ok: true, value };
   } catch (error) {
     return error instanceof AnalysisError

@@ -1,4 +1,4 @@
-import type { RecordController } from './controller.js';
+import { RecordController } from './controller.js';
 import { AnalysisError } from './analysis-types.js';
 import type {
   AnalysisActionResult,
@@ -11,7 +11,12 @@ import type {
   AnalysisSettings,
   AnalysisState,
 } from './analysis-types.js';
-import { analysisFailure, createAnalysisContext, sameAnalysisContext } from './analysis-context.js';
+import {
+  analysisFailure,
+  createAnalysisContext,
+  sameAnalysisContext,
+  cachedAnalysisContext,
+} from './analysis-context.js';
 import { normalizeAnalysisResult } from './analysis-result.js';
 import { AnalysisToken } from './analysis-cancellation.js';
 import { analysisRequestLimits } from './analysis-request.js';
@@ -56,6 +61,7 @@ export class AnalysisSession {
   #version = 0;
   #sequence = 0;
   #sessionId: number;
+  #readContext: typeof createAnalysisContext;
   constructor(
     controller: RecordController,
     provider: AnalysisProvider,
@@ -70,6 +76,8 @@ export class AnalysisSession {
     if (sessions >= Number.MAX_SAFE_INTEGER)
       throw RangeError('Analysis session identity limit reached');
     this.#sessionId = ++sessions;
+    this.#readContext =
+      controller instanceof RecordController ? cachedAnalysisContext() : createAnalysisContext;
     this.#controller = controller;
     this.#provider = providerSnapshot(provider);
     this.#settings = settingsSnapshot(settings);
@@ -78,7 +86,7 @@ export class AnalysisSession {
   }
   #capture(): AnalysisContextResult {
     try {
-      return createAnalysisContext(this.#controller!.getState(), this.#settings);
+      return this.#readContext(this.#controller!.getState(), this.#settings);
     } catch {
       return analysisFailure('invalid-context', 'The source record is unavailable.');
     }
@@ -187,7 +195,7 @@ export class AnalysisSession {
     let proposed: AnalysisSettings, captured: AnalysisContextResult;
     try {
       proposed = settingsSnapshot(settings);
-      captured = createAnalysisContext(this.#controller!.getState(), proposed);
+      captured = this.#readContext(this.#controller!.getState(), proposed);
     } catch {
       return analysisFailure('invalid-context', 'Invalid analysis settings or unavailable record.');
     }
@@ -351,5 +359,6 @@ export class AnalysisSession {
     this.#provider = undefined;
     this.#settings = {};
     this.#state = undefined;
+    this.#readContext = createAnalysisContext;
   }
 }

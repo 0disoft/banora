@@ -89,6 +89,13 @@ or `unavailable`), provider ID, context, request ID, result and structured error
 commands during notification/cancellation return `busy`; source edits remain usable
 and can invalidate a loading request before provider submission. Listener exceptions
 are isolated. The session rechecks its live source before publishing any result.
+SDK-controller sessions reuse proven contexts for comment/export-only notifications
+and validate only the added node when extending a proven path in the same immutable
+record. The session retains at most 128 proofs and 100,000 combined path/move steps.
+Record generations, game/settings changes and structural edits invalidate proofs;
+setup epochs reset incremental legal history. Unknown controller implementations
+and the public `createAnalysisContext` builder retain full validation. Disposal
+releases the session cache. Context signatures and stale-result checks remain exact.
 `setSettings` rejects invalid changes atomically and preserves semantically identical
 results. `setProvider` invalidates old work even for a reused provider ID. `cancel`
 clears pending/display state; `dispose` releases subscriptions, pending leases and
