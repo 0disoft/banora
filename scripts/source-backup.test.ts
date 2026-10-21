@@ -349,90 +349,108 @@ describe('isolated authored Git source', () => {
     }
   });
 
-  test('real Git backup restores exact history/refs and clean source without inheriting the original remote/config', async () => {
-    const { root, git } = source;
-    git('remote', 'add', 'origin', 'https://example.invalid/unused-source-fixture');
-    git('config', 'credential.helper', 'unused-authored-helper');
-    const originalConfig = await readFile(resolve(root, '.git/config'));
-    const backup = await sourceBackup(root);
-    const request = {
-      backup: resolve(root, backup.backup),
-      manifestSha256: backup.manifestSha256,
-      sourceCommit: backup.source.commit,
+  describe('reviewed backup recovery', () => {
+    let prepared: {
+      backup: Awaited<ReturnType<typeof sourceBackup>>;
+      request: ReturnType<typeof sourceRecoveryOptions>;
+      bytes: Buffer<ArrayBuffer>;
+      originalConfig: Buffer<ArrayBuffer>;
     };
-    const bytes = await readFile(resolve(request.backup, 'source.bundle'));
-    let restored: Awaited<ReturnType<typeof sourceRecovery>>;
-    const observed = spyOn(childProcess, 'spawnSync');
-    try {
-      restored = await sourceRecovery(root, request);
-      const commands = observed.mock.calls.map(([, args]) => {
-        if (!Array.isArray(args)) throw Error('Expected authored Git arguments.');
-        return args.slice(8);
-      });
-      expect(commands.map((args) => args[0])).toEqual([
-        'clone',
-        'fsck',
-        'bundle',
-        'rev-parse',
-        'show-ref',
-        'worktree',
-        'status',
-        'ls-files',
-      ]);
-      expect(commands[1]).toEqual(['fsck', '--full', '--strict']);
-      expect(commands[2]?.slice(0, 2)).toEqual(['bundle', 'verify']);
-      expect(commands[6]).toEqual(['status', '--porcelain=v2', '--branch']);
-      expect(
-        observed.mock.calls.every((call) => {
-          const settings = call[2] as SpawnSyncOptions;
-          return (
-            settings.shell === false &&
-            settings.timeout === 60_000 &&
-            settings.maxBuffer === 8 * 1024 * 1024 &&
-            settings.env?.GIT_ALLOW_PROTOCOL === 'file' &&
-            settings.env.GIT_CONFIG_NOSYSTEM === '1' &&
-            settings.env.GIT_NO_LAZY_FETCH === '1' &&
-            settings.env.GIT_NO_REPLACE_OBJECTS === '1' &&
-            Object.keys(settings.env).every((key) =>
-              [
-                'path',
-                'systemroot',
-                'windir',
-                'temp',
-                'tmp',
-                'pathext',
-                'git_allow_protocol',
-                'git_config_nosystem',
-                'git_config_global',
-                'git_no_lazy_fetch',
-                'git_no_replace_objects',
-              ].includes(key.toLowerCase()),
-            )
-          );
-        }),
-      ).toBe(true);
-    } finally {
-      observed.mockRestore();
-    }
-    expect(restored.ok).toBe(true);
-    expect(restored.refs).toEqual(backup.refs);
-    expect(restored.source).toEqual(backup.source);
-    expect(restored.trackedFiles).toBe(3);
-    expect(restored.completed).toHaveLength(6);
-    expect(await readFile(resolve(root, restored.restored, 'README.md'), 'utf8')).toBe(
-      'Authored next source recovery fixture.\n',
-    );
-    expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(bytes);
-    expect(await readFile(resolve(root, '.git/config'))).toEqual(originalConfig);
-    expect(JSON.stringify(restored)).not.toContain('example.invalid');
-    expect(git('status', '--porcelain')).toBe('');
-    const mirrorConfig = await readFile(
-      resolve(root, restored.restored, '../mirror.git/config'),
-      'utf8',
-    );
-    expect(mirrorConfig).not.toContain('unused-authored-helper');
-    expect(mirrorConfig).not.toContain('https://');
+
+    // Prepare a fresh reviewed backup under its own default deadline. The test
+    // still performs the actual isolated recovery and every original assertion.
+    beforeEach(async () => {
+      const { root, git } = source;
+      git('remote', 'add', 'origin', 'https://example.invalid/unused-source-fixture');
+      git('config', 'credential.helper', 'unused-authored-helper');
+      const originalConfig = await readFile(resolve(root, '.git/config'));
+      const backup = await sourceBackup(root);
+      const request = {
+        backup: resolve(root, backup.backup),
+        manifestSha256: backup.manifestSha256,
+        sourceCommit: backup.source.commit,
+      };
+      const bytes = await readFile(resolve(request.backup, 'source.bundle'));
+      prepared = { backup, request, bytes, originalConfig };
+    });
+
+    test('real Git backup restores exact history/refs and clean source without inheriting the original remote/config', async () => {
+      const { root, git } = source;
+      const { backup, request, bytes, originalConfig } = prepared;
+      let restored: Awaited<ReturnType<typeof sourceRecovery>>;
+      const observed = spyOn(childProcess, 'spawnSync');
+      try {
+        restored = await sourceRecovery(root, request);
+        const commands = observed.mock.calls.map(([, args]) => {
+          if (!Array.isArray(args)) throw Error('Expected authored Git arguments.');
+          return args.slice(8);
+        });
+        expect(commands.map((args) => args[0])).toEqual([
+          'clone',
+          'fsck',
+          'bundle',
+          'rev-parse',
+          'show-ref',
+          'worktree',
+          'status',
+          'ls-files',
+        ]);
+        expect(commands[1]).toEqual(['fsck', '--full', '--strict']);
+        expect(commands[2]?.slice(0, 2)).toEqual(['bundle', 'verify']);
+        expect(commands[6]).toEqual(['status', '--porcelain=v2', '--branch']);
+        expect(
+          observed.mock.calls.every((call) => {
+            const settings = call[2] as SpawnSyncOptions;
+            return (
+              settings.shell === false &&
+              settings.timeout === 60_000 &&
+              settings.maxBuffer === 8 * 1024 * 1024 &&
+              settings.env?.GIT_ALLOW_PROTOCOL === 'file' &&
+              settings.env.GIT_CONFIG_NOSYSTEM === '1' &&
+              settings.env.GIT_NO_LAZY_FETCH === '1' &&
+              settings.env.GIT_NO_REPLACE_OBJECTS === '1' &&
+              Object.keys(settings.env).every((key) =>
+                [
+                  'path',
+                  'systemroot',
+                  'windir',
+                  'temp',
+                  'tmp',
+                  'pathext',
+                  'git_allow_protocol',
+                  'git_config_nosystem',
+                  'git_config_global',
+                  'git_no_lazy_fetch',
+                  'git_no_replace_objects',
+                ].includes(key.toLowerCase()),
+              )
+            );
+          }),
+        ).toBe(true);
+      } finally {
+        observed.mockRestore();
+      }
+      expect(restored.ok).toBe(true);
+      expect(restored.refs).toEqual(backup.refs);
+      expect(restored.source).toEqual(backup.source);
+      expect(restored.trackedFiles).toBe(3);
+      expect(restored.completed).toHaveLength(6);
+      expect(await readFile(resolve(root, restored.restored, 'README.md'), 'utf8')).toBe(
+        'Authored next source recovery fixture.\n',
+      );
+      expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(bytes);
+      expect(await readFile(resolve(root, '.git/config'))).toEqual(originalConfig);
+      expect(JSON.stringify(restored)).not.toContain('example.invalid');
+      expect(git('status', '--porcelain')).toBe('');
+      const mirrorConfig = await readFile(
+        resolve(root, restored.restored, '../mirror.git/config'),
+        'utf8',
+      );
+      expect(mirrorConfig).not.toContain('unused-authored-helper');
+      expect(mirrorConfig).not.toContain('https://');
+    });
   });
+
   test('dirty sources and modified, extra-file or wrongly reviewed backups are rejected without replacement', async () => {
     const { root } = source;
     const backup = await sourceBackup(root);

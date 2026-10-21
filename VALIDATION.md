@@ -12,6 +12,66 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Source Recovery Success Test Budget Evidence
+
+The fixture already had a separate default deadline, but the success test still
+charged two remote/config Git calls, seven backup calls, eight recovery calls and
+final preservation assertions to one default five-second body. A local Windows
+Bun 1.4.3 profile measured remote/config preparation at 335.30ms, backup at
+1207.10ms, input preparation at 0.54ms, actual recovery at 2090.59ms and assertions
+at 170.15ms. The complete reported test took 5003.99ms, including its fixture hook.
+Previous uninstrumented runs both exceeded the body deadline and passed; no exact
+external OS/process-startup cause for that intermittent variation is established.
+
+The success case now has a nested scoped `beforeEach` that configures its fresh
+source and creates the reviewed backup before the actual recovery test starts.
+The outer repository fixture, inner backup preparation and test body retain their
+separate default five-second deadlines. Preparation remains real, local and fresh;
+there is no `beforeAll`, shared backup across tests, retry, concurrency, increased
+timeout or mocked successful recovery. Other tests' preparation is unchanged.
+
+Every recovery statement and all 17 original assertions are retained verbatim
+apart from indentation. The test still observes exactly eight actual Git calls,
+full strict object checking, bundle verification, refs/tree/content restoration,
+clean source/checkout, original config/bundle bytes, environment/config/hooks and
+file-only isolation, output/deadline bounds, and all six receipt completion stages.
+Spies still start after backup preparation and restore in `finally`. All other
+backup mutation, recovery rejection, diagnostic and argument cases remain intact.
+Production operations, their seven/eight command budgets and validation are unchanged.
+
+Ignored diagnostic copies inserted identical preparation delays before remote
+configuration. At 2500ms the original passed; at 3300ms it exceeded the body budget,
+killed a pending Git child and emitted a follow-on `check` at `recovery-identity`
+(5767.13ms reported). With the same 3300ms delay, the scoped-hook version passed
+all 17 assertions (6500.25ms reported). Reported total elapsed time includes hooks;
+passing above five seconds does not increase any individual deadline. This
+controlled reproduction demonstrates budget coupling, not the external source
+of the historical stall or faster Git execution. No delay or timing assertion
+is committed. An initial diagnostic path needed explicit `./.tmp/` for Bun to
+select the ignored copy; it did not run a test until corrected.
+
+The normal focused file passed all 22 tests / 142 assertions in 39.54s; the
+success case reported 3274.99ms. Strict root typecheck passed after matching the
+prepared filesystem buffers to their non-shared `Buffer<ArrayBuffer>` type.
+
+The complete `bun run check` passed without retries: unchanged 322 tests / 8,465
+assertions across 57 files (58.63s for tests), lint/format/boundaries, SDK/adapter
+builds, root/Svelte types, docs (145 documents / 739 links), packed SDK/classic/
+declarations and installed CLI 298 checks. The target source/test changes were
+final before that pass. Only documentation evidence was updated afterward and
+received final format/docs/whitespace checks. A source comparison also confirmed
+all tests outside this scoped success case were byte-identical to the previous
+revision. The adjacent combined rejection case has previously approached the
+same budget; it remains a separate assessment rather than expanding this change.
+
+Changed files are `scripts/source-backup.test.ts` and this validation source of
+truth. Applied skills are `test-hardening` and `ops-change`. No public/private
+API, DB/storage schema, production code, dependency/version, repository hygiene or
+CI/runner policy change is introduced. The operational recovery contract in
+`docs/ops/maintainer-recovery.md` remains unchanged. Browser/device/provider-account
+and remote publication checks are outside this test-only change. A single recovery
+operation or hook can still time out under a sufficiently long external stall.
+
 ## Source Git Failure Reason Evidence
 
 Source operation failures previously identified the active phase but reported all
