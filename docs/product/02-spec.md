@@ -428,8 +428,10 @@ through supported read/edit/write workflows. Preserve decoded property semantics
 not byte-for-byte whitespace, property order, or original text formatting.
 The parser freezes its private property arrays in place and retains raw value
 slices instead of concatenating characters while scanning. Escaped delimiters and
-raw UTF-16 value limits are still checked at the same offsets. It avoids rebuilding
-decoded plain values without escapes or line endings. Public node construction still copies caller
+raw UTF-16 value limits are still checked at the same offsets.
+Plain values use a combined backslash/closing-bracket boundary search; values with
+escapes or missing boundaries retain the character scanner and its diagnostics.
+It avoids rebuilding decoded plain values without escapes or line endings. Public node construction still copies caller
 input; normalization, raw escaping preservation and all SGF limit checks remain.
 Point-list validation uses row bitsets for compressed rectangles and enforces a
 collection-wide expanded area budget (one million points by default, configurable

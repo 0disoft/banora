@@ -9,6 +9,21 @@ function parsed(result: SgfResult): SgfRecord {
 }
 
 describe('SGF FF4 preservation', () => {
+  test('plain boundary scans reset across values and games and retain UTF-16 limit offsets', () => {
+    const plain = '한🙂'.repeat(1024);
+    const input = `(;XX[][${plain}][a\\]b][tail])(;C[other]XX[last])`;
+    const record = parsed(parseSgf(input, { maxValueLength: plain.length }));
+    expect(record.games[0]!.properties.XX).toEqual(['', plain, 'a]b', 'tail']);
+    expect(record.games[0]!.rawProperties.XX).toEqual(['', plain, 'a\\]b', 'tail']);
+    expect(record.games[1]!.properties.XX).toEqual(['last']);
+    expect(parseSgf(`(;XX[${plain}])`, { maxValueLength: plain.length - 1 })).toEqual({
+      ok: false,
+      diagnostics: [
+        { code: 'limit', message: 'SGF property value limit exceeded', offset: 5 + plain.length },
+      ],
+    });
+  });
+
   test('raw value scanning retains long slices, escape boundaries and exact failure offsets', () => {
     const raw = '한🙂'.repeat(1400) + '\\]end\\\\';
     const input = `(;XX[${raw}][second]C[${raw}])`;

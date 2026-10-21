@@ -3,6 +3,61 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Parser Subphase Profile and Plain Value Boundaries
+
+A private instrumented parser copy separated value decoding, semantic validation,
+normalized UTF-8 export, freezing and the remaining syntax/input work. It used a
+4,032,050-character ASCII / 8,001-node record, two warmups and twelve samples.
+Normalization includes its raw-value decoding so it is not counted twice.
+
+| Instrumented phase median | Milliseconds |
+| ------------------------- | ------------ |
+| Value decoding            | 6.153        |
+| Semantic validation       | 26.438       |
+| Normalized UTF-8 export   | 11.877       |
+| Freezing                  | 31.207       |
+| Remaining syntax/input    | 82.668       |
+| Total                     | 160.320      |
+
+The requested three phases did not cover the dominant remaining work, so syntax/
+input and freezing are reported separately. Per-value timers and copied code affect
+JIT/GC behavior; these are diagnostic-copy timings, not production latency. Phase
+medians are not additive. The largest remaining syntax/input category motivated
+removing the per-character boundary loop for plain values. A combined global
+backslash/closing-bracket search resets for every value; escaped or unterminated
+values retain the existing scanner. Plain over-limit input reports the same first
+excess UTF-16 offset. All existing decoding, semantic, normalized-export and
+byte/node/depth/value/expanded-area checks still run.
+
+A separate comparison with no internal timers alternated old/new parsers in one
+process, two warmups and twelve measured parses each per fixture (8,001 nodes).
+Local Bun 1.4.3 medians in the completed run were:
+
+| Fixture      | ASCII bytes | Before ms | After ms |
+| ------------ | ----------- | --------- | -------- |
+| Long plain   | 4,032,020   | 151.137   | 90.695   |
+| Short plain  | 40,020      | 63.673    | 62.225   |
+| Escaped text | 3,232,020   | 340.065   | 317.285  |
+
+Runtime/load variance was substantial; these local measurements do not establish
+browser/device latency or a fixed improvement for every input. Private diagnostics
+do not add production timers, exported API or retained global caches.
+
+Focused SGF/comment-limit/checkpoint tests passed 33 cases / 865 assertions. New
+checks cover boundary-search reset across values/games and exact Unicode UTF-16
+limit offsets; existing escaped/truncated diagnostics and all limit guards remain.
+An isolated differential check against the unchanged `fe92996` parser matched
+complete results/diagnostics for 18,724 generated escape/delimiter/newline/Unicode/
+value-limit combinations.
+
+The complete local `bun run check` passed: 344 tests / 8,691 assertions across
+59 files, lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types,
+145 documents / 739 links, packed SDK/classic/declarations and 298 installed CLI
+checks. No public API, storage schema, dependency/version, runner or repository
+hygiene change was needed. Browser scenarios were not rerun for this parser
+boundary-search change; browser/device performance remains unverified.
+Skills: SDK and refactor.
+
 ## Large-Record Edit Phase Profile and Raw Value Slices
 
 A local Bun 1.4.3 phase diagnostic used the same 4,032,020-character ASCII /

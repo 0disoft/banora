@@ -329,6 +329,7 @@ function parse(text: string, limits: SgfLimits): SgfRecord {
   const nodes: MutableNode[] = [];
   const roots: MutableNode[] = [];
   const stack: { last: MutableNode | null; branched: boolean }[] = [];
+  const valueBoundary = /[\\\]]/g;
   const whitespace = () => {
     while (/\s/.test(text[offset] ?? '') && offset < text.length) offset++;
   };
@@ -373,7 +374,20 @@ function parse(text: string, limits: SgfLimits): SgfRecord {
           offset++;
           const valueStart = offset;
           let closed = false;
-          while (offset < text.length) {
+          valueBoundary.lastIndex = offset;
+          const boundary = valueBoundary.exec(text);
+          if (boundary?.[0] === ']') {
+            // Plain values need no character-by-character escape handling.
+            if (boundary.index - valueStart > limits.maxValueLength)
+              fail(
+                'limit',
+                'SGF property value limit exceeded',
+                valueStart + limits.maxValueLength + 1,
+              );
+            offset = boundary.index + 1;
+            closed = true;
+          }
+          while (!closed && offset < text.length) {
             const next = text[offset++]!;
             if (next === ']') {
               closed = true;
