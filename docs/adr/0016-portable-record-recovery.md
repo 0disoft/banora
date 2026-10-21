@@ -42,5 +42,8 @@ bounded to 8 MiB, so near-limit documents may require host SDK storage instead.
 
 The controller retains one immutable baseline reference and up to eight existing
 export-ticket references. A two-record serialization cache avoids rewriting SGF
-on repeated navigation without caching every Undo version. This introduces no
+on repeated navigation without caching every Undo version. Cache hits refresh
+recency so checkpoints keep the frequently read baseline while edits replace the
+working record; the cache still retains at most two records and their strings.
+Import, checkpoint replacement and disposal clear it. This introduces no
 database, cloud service or runtime dependency.

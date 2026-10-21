@@ -44,6 +44,11 @@ It also adopts the checkpoint's explicit rules, unlike ordinary SGF import which
 retains the existing controller policy. Navigation rebuilds rule history from the
 selected path; superko is not reduced to a stone-only snapshot.
 
+Checkpoint/export serialization reuses at most two recently accessed immutable
+records. Repeated checkpoints keep the acknowledged baseline hot as edits rotate
+the working record. This avoids repeatedly serializing unchanged baseline data;
+schema checks and all restore validation remain in place.
+
 Dirty is recomputed against the last acknowledged SGF export, not against the last
 autosave. Cancelling an export or saving a newer draft never marks it clean. Undo
 after recovery applies to new edits only. A browser download still cannot establish

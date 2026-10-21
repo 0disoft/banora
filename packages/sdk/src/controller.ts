@@ -845,7 +845,12 @@ export class RecordController {
   }
   #serialize(record: SgfRecord): string {
     const cached = this.#serialized.get(record);
-    if (cached !== undefined) return cached;
+    if (cached !== undefined) {
+      // Keep the frequently reused export baseline while edited records rotate.
+      this.#serialized.delete(record);
+      this.#serialized.set(record, cached);
+      return cached;
+    }
     const text = serializeSgf(record);
     this.#serialized.set(record, text);
     if (this.#serialized.size > 2) this.#serialized.delete(this.#serialized.keys().next().value!);

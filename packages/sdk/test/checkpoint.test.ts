@@ -1,7 +1,53 @@
-import { expect, test } from 'bun:test';
+import { expect, spyOn, test } from 'bun:test';
 import { RecordController } from '../src/controller.js';
 import { CHECKPOINT_SCHEMA, parseRecordCheckpoint } from '../src/checkpoint.js';
 import { executeAutomation } from '../src/automation.js';
+import * as sgf from '../src/sgf.js';
+
+test('checkpoint serialization keeps the active baseline hot across edits and respects baseline replacement', () => {
+  const source = new RecordController({ sgf: '(;SZ[5]C[baseline]XX[keep];B[])' });
+  const baseline = source.getState().record;
+  const serializer = spyOn(sgf, 'serializeSgf');
+  try {
+    const original = source.createCheckpoint();
+    for (let index = 0; index < 6; index++) {
+      expect(source.setComment(`edit ${index}`).ok).toBe(true);
+      const checkpoint = source.createCheckpoint();
+      expect(checkpoint.baselineSgf).toBe(original.sgf);
+      expect(checkpoint.sgf).toContain(`C[edit ${index}]`);
+      expect(parseRecordCheckpoint(checkpoint).ok).toBe(true);
+    }
+    expect(serializer.mock.calls.filter(([record]) => record === baseline)).toHaveLength(1);
+    const serialized = serializer.mock.calls.length;
+    expect(source.next().ok).toBe(true);
+    expect(source.createCheckpoint().selection.path).toEqual([0]);
+    expect(source.previous().ok).toBe(true);
+    source.createCheckpoint();
+    expect(serializer.mock.calls).toHaveLength(serialized);
+
+    const ticket = source.prepareExport();
+    expect(source.setComment('later').ok).toBe(true);
+    expect(source.acknowledgeExport(ticket.id).ok).toBe(true);
+    const changedBaseline = source.createCheckpoint();
+    expect(changedBaseline.baselineSgf).toBe(ticket.text);
+    expect(changedBaseline.sgf).toContain('C[later]');
+    expect(source.undo().ok).toBe(true);
+    const undone = source.createCheckpoint();
+    expect(undone.sgf).toBe(undone.baselineSgf);
+    expect(source.redo().ok).toBe(true);
+    expect(source.createCheckpoint()).toEqual(changedBaseline);
+    expect(source.loadSgf('(;SZ[9]C[import])', { discardChanges: true }).ok).toBe(true);
+    const imported = source.createCheckpoint();
+    expect(imported.sgf).toContain('C[import]');
+    expect(imported.baselineSgf).toBe(imported.sgf);
+    expect(source.loadCheckpoint(changedBaseline, { discardChanges: true }).ok).toBe(true);
+    expect(source.createCheckpoint()).toEqual(changedBaseline);
+  } finally {
+    serializer.mockRestore();
+    source.dispose();
+  }
+  expect(() => source.createCheckpoint()).toThrow('disposed');
+});
 
 test('checkpoint resumes a collection branch, annotations, unknown data, rules and export baseline', () => {
   const source = new RecordController({

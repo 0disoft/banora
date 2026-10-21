@@ -3,6 +3,36 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Large-Record Checkpoint Serialization
+
+Checkpoint creation already reused serialized SGF without reparsing. The two-entry
+cache previously evicted by insertion order, however, so repeated edit/checkpoint
+cycles serialized the unchanged export baseline again on alternate edits. Reads
+now refresh recency while retaining the same two-record/string bound. Import,
+checkpoint replacement and disposal still clear the cache; schema and restore
+validation are unchanged.
+
+A new regression first failed with four baseline serializations instead of one.
+After the fix, focused checkpoint/controller/import tests passed 25 cases / 421
+assertions, including navigation reuse, acknowledged older export baselines,
+Undo/Redo, import, checkpoint replacement, disposal and the oversized-envelope guard.
+
+A local Bun 1.4.3 diagnostic used the same 4,032,020-character ASCII / 8,001-node
+record before and after: initial checkpoint, two edit/checkpoint warmups and twelve
+timed checkpoints, excluding edit time. Baseline serializations across initialization
+and all fourteen edits fell from eight to one. Checkpoint median was 10.726ms before
+and 7.156ms after; the twelve samples totaled 132.240ms and 88.726ms respectively.
+These synchronous local measurements do not establish browser/device end-to-end
+latency or storage/exit durability.
+
+The complete local `bun run check` passed: 340 tests / 8,626 assertions across
+59 files, lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types,
+145 documents / 739 links, packed SDK/classic/declarations and 298 installed CLI
+checks. No public API, storage schema, dependency/version, runner or repository
+hygiene change was needed. Browser scenarios were not rerun for this private
+serialization-cache change; browser/device latency and abrupt-exit durability remain
+outside this run's evidence. Skills: SDK and refactor.
+
 ## Autosave Completion Handoff
 
 Two deterministic regressions reproduced a queued checkpoint being stranded between
