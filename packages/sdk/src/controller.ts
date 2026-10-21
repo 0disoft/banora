@@ -98,6 +98,14 @@ export interface ExportTicket {
   readonly id: number;
   readonly text: string;
 }
+/** Immutable review data; only the issuing live controller can apply it. */
+export interface RecordImportPreview {
+  readonly record: SgfRecord;
+  readonly node: SgfNode;
+}
+export type ImportPreparation =
+  | { readonly ok: true; readonly preview: RecordImportPreview }
+  | Extract<CommandResult, { readonly ok: false }>;
 interface EditOptions {
   grouped?: boolean;
   /** Only validated comment edits may retain rule-relevant positions. */
@@ -143,6 +151,7 @@ export class RecordController {
   #lastAcknowledged = 0;
   #tickets = new Map<number, { record: SgfRecord }>();
   #commentPreviews = new WeakSet<CommentBatchPreview>();
+  #importPreviews = new WeakMap<RecordImportPreview, number>();
   /** Canonical exports checked with this controller's immutable limits. */
   #validatedExports = new WeakMap<SgfRecord, number>();
 
@@ -788,6 +797,14 @@ export class RecordController {
     input: string | Uint8Array,
     options: { discardChanges?: boolean; locator?: RecordLocator } = {},
   ): CommandResult {
+    const prepared = this.prepareImport(input, options);
+    return prepared.ok ? this.applyImport(prepared.preview, options) : prepared;
+  }
+  /** Validate once under this controller's limits before asking the host for replacement approval. */
+  prepareImport(
+    input: string | Uint8Array,
+    options: { locator?: RecordLocator } = {},
+  ): ImportPreparation {
     this.#assertLive();
     const result =
       typeof input === 'string' ? parseSgf(input, this.#limits) : decodeSgf(input, this.#limits);
@@ -797,11 +814,24 @@ export class RecordController {
         ? result.record.games[0]!
         : recordNodeAt(result.record, options.locator);
     if (!target) return { ok: false, reason: 'node-not-found' };
+    const preview = Object.freeze({ record: result.record, node: target });
+    this.#importPreviews.set(preview, this.#recordGeneration);
+    return { ok: true, preview };
+  }
+  /** Apply an issued immutable preview without parsing again. Imports invalidate every older preview. */
+  applyImport(
+    preview: RecordImportPreview,
+    options: { discardChanges?: boolean } = {},
+  ): CommandResult {
+    this.#assertLive();
+    if (this.#importPreviews.get(preview) !== this.#recordGeneration)
+      return { ok: false, reason: 'stale-preview' };
     if (this.#dirty && !options.discardChanges) return { ok: false, reason: 'unsaved-changes' };
     this.endEditGroup();
-    this.#record = result.record;
+    this.#record = preview.record;
     this.#recordGeneration++;
-    this.#selected = target.id;
+    this.#selected = preview.node.id;
+    this.#importPreviews = new WeakMap();
     this.#undo = [];
     this.#redo = [];
     this.#tickets.clear();
@@ -853,6 +883,7 @@ export class RecordController {
     this.endEditGroup();
     this.#record = parsed.record;
     this.#selected = parsed.node.id;
+    this.#importPreviews = new WeakMap();
     this.#rules = parsed.value.rules;
     this.#baselineRecord = parsed.baseline;
     this.#baselineContent = new WeakMap();
@@ -897,6 +928,7 @@ export class RecordController {
     this.#listeners.clear();
     this.#notifications = [];
     this.#tickets.clear();
+    this.#importPreviews = new WeakMap();
     this.#positionCache.clear();
     this.#baselineContent = new WeakMap();
     this.#serialized.clear();

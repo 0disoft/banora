@@ -36,6 +36,22 @@ checks compare setup/MN, markers, Undo/Redo, illegal archived history, recovery 
 setup and imports against full extraction. Existing cancellation/reentrancy/late
 result checks remain. Browser/provider checks await the final combined validation.
 
+## Prepared Studio Imports
+
+Studio now prepares an immutable controller-owned import before host approval
+and applies that exact parsed record without decoding the original input again.
+The public prepare/apply methods retain fixed custom limits, locator validation,
+dirty guards, generation/owner identity and atomic replacement semantics. Unused
+previews are weakly retained; imports/checkpoint replacement invalidate older ones.
+
+Focused import/controller/checkpoint tests passed 24 cases / 378 assertions; SDK
+build and strict root typecheck passed. New regressions check one byte-decoder
+invocation, exact parsed-record identity after application, independently owned
+input bytes, dirty/foreign/forged/reused/superseded refusal, locator and custom
+point/node limits, checkpoint invalidation and disposed access. Existing tests
+retain baseline, Undo and export-ticket behavior. Production browser import and
+approval workflows will be checked in the final combined browser run.
+
 ## Validation Source of Truth
 
 This document owns stable validation names for this scaffold.

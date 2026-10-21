@@ -318,8 +318,12 @@ Large display-size preference. New board adds and activates an internal tab
 without replacing another record or requesting its discard. Each tab retains
 its actual SDK controller, selected node, comments, Undo/Redo and export baseline.
 Opening an SGF, example or backup replaces only the active tab through the existing
-dirty-record guard; SGF collection selection remains within that tab. Tab titles
-use authored game names or localized defaults, with an unsaved indicator.
+dirty-record guard; SGF collection selection remains within that tab.
+Studio prepares a controller-owned immutable import before replacement approval
+and applies that exact preview afterward without decoding/parsing the input again.
+Approval freshness, issuing-controller/generation checks and custom SGF limits
+remain enforced. Cancelled preparation does not replace or mark the record saved.
+Tab titles use authored game names or localized defaults, with an unsaved indicator.
 An empty authored game name falls back to the filename, matching the main heading.
 Move navigation and comment edits reuse existing tab elements when titles, dirty
 indicators, dimensions and selection are unchanged; language changes still refresh

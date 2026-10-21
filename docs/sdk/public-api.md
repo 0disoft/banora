@@ -322,6 +322,17 @@ See [compatibility](compatibility.md#record-compatibility) for the supported sub
 
 `@0disoft/banora/controller` exports `RecordController` and related state/command types.
 Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
+`prepareImport(input, {locator?})` validates under that controller's fixed limits
+and returns `{ok:true, preview}` or the usual structured failure. Its frozen
+`RecordImportPreview` exposes the immutable parsed `record` and selected `node`.
+Preparation leaves the active record, history and export baseline unchanged.
+After host approval, `applyImport(preview, {discardChanges?})` applies without
+reparsing. Dirty replacement still requires explicit discard; foreign, fabricated,
+already-used or prior-generation previews return `stale-preview`. SGF/checkpoint
+replacement invalidates prepared imports. The controller retains previews weakly;
+dropping an unused preview releases it without cancellation. `loadSgf` uses the
+same prepare/apply path. `ImportPreparation` and `RecordImportPreview` are exported
+from root/controller. These objects contain authored data, unsuitable for logs.
 `createCheckpoint()` returns portable working/baseline SGF, selection and rules
 without marking an export complete. `loadCheckpoint(unknown, {discardChanges?})`
 validates before replacing; success starts a new generation/session with the exact

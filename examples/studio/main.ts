@@ -9,11 +9,9 @@ import {
   translateUi,
 } from '../ui-language.js';
 import {
-  decodeSgf,
   mountBoard,
   mountComparison,
   mountPlaybackControls,
-  parseSgf,
   parseRecordCheckpoint,
   variationCandidates,
   getMoveAssessment,
@@ -423,17 +421,18 @@ async function openRecord(
   let finished = false;
   opening = true;
   try {
-    const parsed = typeof input === 'string' ? parseSgf(input) : decodeSgf(input);
-    if (!parsed.ok) {
+    const prepared = controller.prepareImport(input, { locator });
+    if (!prepared.ok) {
       complete({
         status: 'failure',
-        failure: describeDiagnosticFailure('sgf', parsed.diagnostics[0]?.code),
+        failure: describeDiagnosticFailure('sgf', prepared.diagnostics?.[0]?.code),
       });
       finished = true;
-      showStatus(() =>
-        parsed.diagnostics
-          .map((item) => formatUiFailure(`sgf-${item.code}`, { locale: getUiLocale() }))
-          .join('; '),
+      showStatus(
+        () =>
+          prepared.diagnostics
+            ?.map((item) => formatUiFailure(`sgf-${item.code}`, { locale: getUiLocale() }))
+            .join('; ') || formatUiFailure(prepared.reason, { locale: getUiLocale() }),
       );
       return false;
     }
@@ -450,7 +449,7 @@ async function openRecord(
     }
     const previousName = workspace.active.filename;
     workspace.rename(safeDraftFilename(name));
-    const result = controller.loadSgf(input, { discardChanges: true, locator });
+    const result = controller.applyImport(prepared.preview, { discardChanges: true });
     if (!result.ok) {
       complete({
         status: 'failure',
