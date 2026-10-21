@@ -78,6 +78,11 @@ Restore retains the original and creates a new session copy, so two tabs never
 take over each other's writing key. Dirty replacement offers Export / Discard /
 Cancel, and recovered edits remain dirty until SGF export.
 
+Draft writes run serially. A checkpoint queued during a save's completion handoff
+is drained before existing flush/close waiters complete, including explicit retry
+after a storage failure. This does not add automatic retries or strengthen abrupt
+exit durability.
+
 **Download backup** saves current work as `.banora.json`; **Back up draft** exports
 the selected draft without replacing current work, including raw unknown versions
 for preservation. **Open backup** validates the wrapper/checkpoint before asking

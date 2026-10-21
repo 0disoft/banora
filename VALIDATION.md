@@ -3,6 +3,24 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Autosave Completion Handoff
+
+Two deterministic regressions reproduced a queued checkpoint being stranded between
+the write loop's completion and its promise cleanup: saving new work while closing,
+and explicitly retrying a quota failure. The drain now continues queued checkpoints
+and keeps existing flush/close promises pending until those writes finish. Revisions,
+separate session owners, serial writes and explicit-only retries are unchanged.
+
+Focused draft session/storage tests passed 8 cases / 58 assertions. The regressions
+hold the second write open to verify completion waiters, checkpoint contents and
+the correct successful/failed predecessor revision. The complete local `bun run check`
+also passed: 339 tests / 8,583 assertions across 59 files, lint/format/boundaries,
+SDK/adapter/CLI builds, root/Svelte types, 145 documents / 739 links, installed
+SDK/classic/declarations and 298 installed CLI checks. No version, dependency,
+public API, storage schema, runner or repository hygiene change was needed.
+Browser tests were not rerun for this promise-queue-only change; actual IndexedDB
+and abrupt process-exit durability are not established by the storage doubles.
+
 ## SGF Expanded Point Budget
 
 Compressed point lists now validate with row bitsets, retaining duplicate/setup

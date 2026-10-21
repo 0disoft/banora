@@ -117,10 +117,15 @@ export class DraftAutosave {
       this.#publish('invalid');
       return Promise.resolve();
     }
-    if (!this.#running)
-      this.#running = this.#drain().finally(() => {
-        this.#running = undefined;
-      });
+    return this.#running ?? this.#startDrain();
+  }
+  #startDrain(): Promise<void> {
+    this.#running = this.#drain().finally(() => {
+      this.#running = undefined;
+      // A completion callback may queue a checkpoint after the loop has ended.
+      // Keep existing flush/close waiters attached until that work finishes too.
+      if (this.#queued.size) return this.#startDrain();
+    });
     return this.#running;
   }
   async #drain(): Promise<void> {

@@ -5,6 +5,66 @@ import { DraftError } from '../examples/studio/draft-store.js';
 import type { StudioDraft } from '../examples/studio/draft-store.js';
 import { StudioWorkspace } from '../examples/studio/workspace.js';
 
+for (const firstStatus of ['saved', 'quota'] as const)
+  test(`autosave drains checkpoints queued after ${firstStatus} before completing close or retry`, async () => {
+    const controller = new RecordController({ size: 5 });
+    const calls: { draft: StudioDraft; expected: number }[] = [];
+    let closing: Promise<void> | undefined;
+    let release = () => {};
+    const autosave = new DraftAutosave(
+      controller,
+      () => 'draft.sgf',
+      {
+        save(draft, expected) {
+          calls.push({ draft, expected });
+          if (calls.length === 2)
+            return new Promise<void>((resolve) => {
+              release = resolve;
+            });
+          return calls.length === 1 && firstStatus === 'quota'
+            ? Promise.reject(new DraftError('quota'))
+            : Promise.resolve();
+        },
+      },
+      true,
+      (status) => {
+        if (status !== firstStatus || calls.length !== 1) return;
+        queueMicrotask(() => {
+          if (firstStatus === 'saved') {
+            controller.setComment('latest before closing');
+            closing = autosave.close();
+          } else autosave.retry();
+        });
+      },
+    );
+    try {
+      controller.setComment('first');
+      let finished = false;
+      const running = autosave.flush().then(() => {
+        finished = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(calls).toHaveLength(2);
+      expect(finished).toBe(false);
+      release();
+      await running;
+      await closing;
+      await autosave.idle();
+      expect(calls).toHaveLength(2);
+      expect(calls[1]!.expected).toBe(firstStatus === 'saved' ? 1 : 0);
+      expect(calls[1]!.draft.revision).toBe(firstStatus === 'saved' ? 2 : 1);
+      expect(calls[1]!.draft.id).toBe(calls[0]!.draft.id);
+      expect(calls[1]!.draft.checkpoint.sgf).toContain(
+        firstStatus === 'saved' ? 'latest before closing' : 'C[first]',
+      );
+      expect(autosave.getStatus()).toBe('saved');
+    } finally {
+      release();
+      await autosave.close();
+      controller.dispose();
+    }
+  });
+
 test('rapid board switches preserve every queued draft and reuse each board revision', async () => {
   const workspace = new StudioWorkspace();
   const calls: { draft: StudioDraft; expected: number; resolve(): void }[] = [];
