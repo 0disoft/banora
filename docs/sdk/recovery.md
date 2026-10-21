@@ -48,6 +48,10 @@ Checkpoint/export serialization reuses at most two recently accessed immutable
 records. Repeated checkpoints keep the acknowledged baseline hot as edits rotate
 the working record. This avoids repeatedly serializing unchanged baseline data;
 schema checks and all restore validation remain in place.
+Full edit validation also retains its successfully checked SGF string in this
+same bounded cache for the next checkpoint/export. Failed candidates do not alter
+the cache. Comment delta validation retains lazy serialization; cache hits never
+bypass the existing edit limits or restore parser/replay checks.
 
 Dirty is recomputed against the last acknowledged SGF export, not against the last
 autosave. Cancelling an export or saving a newer draft never marks it clean. Undo

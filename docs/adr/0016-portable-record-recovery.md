@@ -45,5 +45,9 @@ export-ticket references. A two-record serialization cache avoids rewriting SGF
 on repeated navigation without caching every Undo version. Cache hits refresh
 recency so checkpoints keep the frequently read baseline while edits replace the
 working record; the cache still retains at most two records and their strings.
+Successful full edit validation places its exact canonical SGF in that same cache,
+so a subsequent checkpoint/export can reuse it. Failed validation leaves the cache
+untouched. Delta-only comment validation does not have a whole-record string to
+reuse and retains lazy serialization. Cache eviction never skips edit validation.
 Import, checkpoint replacement and disposal clear it. This introduces no
 database, cloud service or runtime dependency.

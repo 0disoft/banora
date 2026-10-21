@@ -3,6 +3,39 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Reusing Fully Validated Edit SGF
+
+Full edit validation previously serialized a candidate and discarded that text
+after parsing it. Successful validation now places that exact string in the
+existing two-entry serialization cache for checkpoint/export reuse. Parsing and
+UTF-8 accounting remain before insertion; failed candidates cannot evict either
+active checkpoint entry. Comment delta validation still serializes lazily because
+its probes are not whole-record exports. Import/recovery/disposal clearing and
+checkpoint schema/restore validation are unchanged.
+
+Focused checkpoint/comment-limit/controller tests passed 32 cases / 819 assertions.
+New regressions require one full candidate serialization per edit, a fresh full
+parser call per marker edit, exact validated/export/checkpoint text equality across
+Unicode/escaped labels and collections, unchanged dirty/state snapshots and no
+cache eviction after expanded-point-limit refusals. Existing canonical-header,
+UTF-8/value/node/depth, raw-escape, Undo/Redo and recovery checks remain.
+
+A local Bun 1.4.3 before/after diagnostic used the same 4,032,020-character ASCII /
+8,001-node record, fourteen changing label edits, two warmup cycles and twelve
+timed edit/checkpoint cycles. Working-record serializations fell from 28 to 14.
+Checkpoint median fell from 7.120ms to 0.0685ms (sample totals 92.634ms to 0.882ms).
+Full edit-plus-checkpoint median was 202.530ms before and 189.692ms after; the
+edit path remains the dominant cost. These synchronous local timings do not
+establish browser/device latency, every edit path's cost or storage/exit durability.
+
+The complete local `bun run check` passed: 342 tests / 8,677 assertions across
+59 files, lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types,
+145 documents / 739 links, packed SDK/classic/declarations and 298 installed CLI
+checks. No public API, storage schema, dependency/version, runner or repository
+hygiene change was needed. Browser scenarios were not rerun for this private
+cache change; browser/device latency and abrupt-exit durability remain outside
+this run's evidence. Skills: SDK and refactor.
+
 ## Large-Record Checkpoint Serialization
 
 Checkpoint creation already reused serialized SGF without reparsing. The two-entry

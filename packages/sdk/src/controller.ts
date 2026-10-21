@@ -388,6 +388,9 @@ export class RecordController {
       const validation = parseSgf(text, this.#limits);
       if (!validation.ok) return validation.diagnostics;
       bytes = encoder.encode(text).length;
+      // Reuse this exact successful export for checkpoints and downloads.
+      // Rejected candidates must not evict the active record or its baseline.
+      this.#rememberSerialized(candidate, text);
     }
     this.#validatedExports.set(candidate, bytes);
   }
@@ -843,17 +846,20 @@ export class RecordController {
     this.#notify();
     return { ok: true };
   }
+  #rememberSerialized(record: SgfRecord, text: string): void {
+    this.#serialized.delete(record);
+    this.#serialized.set(record, text);
+    if (this.#serialized.size > 2) this.#serialized.delete(this.#serialized.keys().next().value!);
+  }
   #serialize(record: SgfRecord): string {
     const cached = this.#serialized.get(record);
     if (cached !== undefined) {
       // Keep the frequently reused export baseline while edited records rotate.
-      this.#serialized.delete(record);
-      this.#serialized.set(record, cached);
+      this.#rememberSerialized(record, cached);
       return cached;
     }
     const text = serializeSgf(record);
-    this.#serialized.set(record, text);
-    if (this.#serialized.size > 2) this.#serialized.delete(this.#serialized.keys().next().value!);
+    this.#rememberSerialized(record, text);
     return text;
   }
   /** Portable recovery data; creating a checkpoint never acknowledges an SGF export. */

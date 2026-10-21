@@ -4,6 +4,72 @@ import { CHECKPOINT_SCHEMA, parseRecordCheckpoint } from '../src/checkpoint.js';
 import { executeAutomation } from '../src/automation.js';
 import * as sgf from '../src/sgf.js';
 
+test('validated edit SGF is reused for checkpoint and export without skipping full validation', () => {
+  const source = new RecordController({ sgf: '(;SZ[9]XX[keep])(;SZ[5];B[])' });
+  const original = source.createCheckpoint();
+  const serializer = spyOn(sgf, 'serializeSgf');
+  const parser = spyOn(sgf, 'parseSgf');
+  try {
+    for (let index = 0; index < 4; index++) {
+      expect(source.setMarker({ x: index, y: 0 }, 'label', `한글 ] ${index}`).ok).toBe(true);
+      const current = source.getState().record;
+      expect(parser).toHaveBeenCalledTimes(index + 1);
+      const validatedText = parser.mock.calls[index]![0];
+      const state = source.getState();
+      const checkpoint = source.createCheckpoint();
+      expect(checkpoint.sgf).toBe(validatedText);
+      expect(checkpoint.baselineSgf).toBe(original.sgf);
+      const ticket = source.prepareExport();
+      expect(ticket.text).toBe(validatedText);
+      source.cancelExport(ticket.id);
+      expect(source.getState()).toBe(state);
+      expect(source.getState().dirty).toBe(true);
+      // The bounded cache may evict an older baseline after export changes recency;
+      // this exact working record must still be serialized only during validation.
+      expect(serializer.mock.calls.filter(([record]) => record === current)).toHaveLength(1);
+      expect(parser).toHaveBeenCalledTimes(index + 1);
+    }
+  } finally {
+    parser.mockRestore();
+    serializer.mockRestore();
+    source.dispose();
+  }
+});
+
+test('rejected edit validation preserves active checkpoint and export cache entries', () => {
+  const source = new RecordController({ size: 5, limits: { maxExpandedPoints: 1 } });
+  source.createCheckpoint();
+  expect(source.setMarker({ x: 0, y: 0 }, 'triangle').ok).toBe(true);
+  const before = source.getState();
+  const checkpoint = source.createCheckpoint();
+  const ticket = source.prepareExport();
+  const serializer = spyOn(sgf, 'serializeSgf');
+  const parser = spyOn(sgf, 'parseSgf');
+  try {
+    for (const x of [1, 2]) {
+      const calls = parser.mock.calls.length;
+      expect(source.setMarker({ x, y: 0 }, 'triangle')).toMatchObject({
+        ok: false,
+        reason: 'limit',
+      });
+      expect(parser).toHaveBeenCalledTimes(calls + 1);
+      expect(source.getState()).toBe(before);
+      const serialized = serializer.mock.calls.length;
+      expect(source.createCheckpoint()).toEqual(checkpoint);
+      const pending = source.prepareExport();
+      expect(pending.text).toBe(ticket.text);
+      source.cancelExport(pending.id);
+      expect(serializer.mock.calls).toHaveLength(serialized);
+    }
+    expect(source.acknowledgeExport(ticket.id).ok).toBe(true);
+    expect(source.getState().dirty).toBe(false);
+  } finally {
+    parser.mockRestore();
+    serializer.mockRestore();
+    source.dispose();
+  }
+});
+
 test('checkpoint serialization keeps the active baseline hot across edits and respects baseline replacement', () => {
   const source = new RecordController({ sgf: '(;SZ[5]C[baseline]XX[keep];B[])' });
   const baseline = source.getState().record;
