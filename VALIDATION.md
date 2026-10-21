@@ -12,6 +12,56 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Source Failure Diagnostic Preparation Budget Evidence
+
+The three recovery-failure diagnostics prepared a fresh real backup inside the
+same default five-second body as the failure execution and preservation checks.
+A local Windows Bun 1.4.3 profile measured clone/object/checkout preparation at
+990.02/1048.17/1035.50ms, operation execution at 313.93/541.89/980.40ms and assertions
+at 116.02/98.69/90.78ms. The backup-failure case required no prepared backup;
+its operation/assertions measured 616.78/92.47ms. All four passed 23 assertions
+in 9.71s. Earlier complete runs reported checkout-failure totals near the default
+budget; no external OS/process-startup cause is claimed as captured.
+
+Each table row now registers its own scope and `beforeEach`. Recovery rows create
+a fresh backup and retain reviewed request/original bytes there; the backup row
+still prepares no backup. Fixture, preparation and diagnostic retain their separate
+default five-second deadlines. The same three successful backups and four fresh
+repositories remain, with no added Git calls, shared backup, `beforeAll`, caching,
+retry, concurrency or increased timeout. Aggregate work is unchanged; this isolates
+preparation cost rather than promising faster Git execution.
+
+All four tuples, the entire actual-Git/failure/assertion body and unrelated tests
+are byte-identical to the previous revision. The intercept still executes the real
+command before injecting failed status/stdout/stderr/error; real preceding recovery
+work is retained. Fixed code/stage/reason, raw-message/path/cause exclusion, source
+cleanliness and original bundle preservation checks remain. Spies are installed
+after preparation and restored in `finally`; no production test hook is introduced.
+
+Ignored original/new diagnostic copies inserted the same 3300ms delay before
+recovery backup preparation. The original checkout-failure case exceeded its body
+deadline (5883.19ms reported, five assertions completed, a pending child killed).
+The scoped version passed all six assertions (7396.36ms reported). Totals include
+hooks; each individual deadline is unchanged. No delay or timing assertion is
+committed. This controlled budget test does not identify a historical external
+stall; any individual hook or operation can still exceed its deadline.
+
+Strict root typecheck passed. The normal focused file passed the same 24 tests /
+142 assertions in 40.52s. All four diagnostic cases retain their 23 assertions.
+
+The full `bun run check` passed without retries: unchanged 324 tests / 8,465
+assertions across 57 files (52.20s tests), lint/format/boundaries, SDK/adapter builds,
+root/Svelte types, docs (145 documents / 739 links), packed SDK/classic/declarations
+and installed CLI 298 checks. No test/source changed after that pass; only final
+documentation evidence received format/docs/whitespace checks afterward.
+
+Only `scripts/source-backup.test.ts` and this validation source of truth change.
+Applied skills: `test-hardening` and `ops-change`. Production backup/recovery guards,
+command counts, process limits and isolation remain unchanged, as does the contract
+in `docs/ops/maintainer-recovery.md`. No API, DB/storage schema, dependency/version,
+repository hygiene or CI/runner policy changes. Browser/device/provider/account
+and remote publication checks are outside this test-only change.
+
 ## Source Backup Refusal Test Budget Evidence
 
 One refusal test accumulated two successful backups, three input rejections,

@@ -211,24 +211,32 @@ describe('isolated authored Git source', () => {
     },
   );
 
-  test.each([
+  describe.each([
     ['backup bundle', 'backup', 'bundle', 'backup-bundle'],
     ['recovery clone', 'recovery', 'clone', 'recovery-mirror'],
     ['recovery objects', 'recovery', 'fsck', 'recovery-objects'],
     ['recovery checkout', 'recovery', 'worktree', 'recovery-checkout'],
-  ] as const)(
-    '%s failure reports a fixed stage without raw Git details',
-    async (_, operation, command, stage) => {
-      const { root, git } = source;
+  ] as const)('%s failure', (_, operation, command, stage) => {
+    let request: ReturnType<typeof sourceRecoveryOptions> | undefined;
+    let bytes: Buffer<ArrayBuffer> | undefined;
+
+    // Keep each real backup fresh and outside the failure diagnostic's budget.
+    // The actual Git prefix, injected failure and preservation checks stay in the test.
+    beforeEach(async () => {
+      const { root } = source;
       const backup = operation === 'recovery' ? await sourceBackup(root) : undefined;
-      const request = backup
+      request = backup
         ? {
             backup: resolve(root, backup.backup),
             manifestSha256: backup.manifestSha256,
             sourceCommit: backup.source.commit,
           }
         : undefined;
-      const bytes = request ? await readFile(resolve(request.backup, 'source.bundle')) : undefined;
+      bytes = request ? await readFile(resolve(request.backup, 'source.bundle')) : undefined;
+    });
+
+    test('reports a fixed stage without raw Git details', async () => {
+      const { root, git } = source;
       const detail = 'Authored private diagnostic detail';
       const execute = childProcess.spawnSync;
       const intercept = ((...args: Parameters<typeof execute>) => {
@@ -263,8 +271,8 @@ describe('isolated authored Git source', () => {
       expect((failure as Error).cause).toBeUndefined();
       expect(git('status', '--porcelain')).toBe('');
       if (request) expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(bytes!);
-    },
-  );
+    });
+  });
 
   test.each([
     ['ENOENT', null, null, 'unavailable'],
