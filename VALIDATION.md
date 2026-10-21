@@ -52,6 +52,23 @@ point/node limits, checkpoint invalidation and disposed access. Existing tests
 retain baseline, Undo and export-ticket behavior. Production browser import and
 approval workflows will be checked in the final combined browser run.
 
+## Bounded Local Engine Shutdown
+
+The example host retains graceful EOF after queued writes and a five-second
+grace deadline, then sends SIGKILL, destroys inherited output pipes and bounds exit
+confirmation to one additional second. Missing confirmation and kill failure
+reject with a fixed diagnostic and release the child reference; stop remains
+idempotent in the host. A late write completion cannot reopen a completed stop.
+
+Five focused shutdown tests passed, covering normal exit, queued-write EOF,
+blocked writes, forced exit, inherited pipe cleanup, missing confirmation and
+redacted kill failure. Strict root typecheck passed. The tests use short internal
+helper deadlines and deterministic process doubles. The actual retained local
+KataGo binary/model passed all 35 Node 24 host integration cases: three reporting
+perspectives, contexts, cancellation/stale/dispose/host stop and process failures.
+No new model/binary download or external provider was used. Unix signal-resistant
+process behavior is covered by the helper doubles, not claimed as a real Unix run.
+
 ## Validation Source of Truth
 
 This document owns stable validation names for this scaffold.

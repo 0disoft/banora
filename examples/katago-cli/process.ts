@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { StringDecoder } from 'node:string_decoder';
 import { KataGoProvider } from '@0disoft/banora/katago';
 import type { KataGoPerspective } from '@0disoft/banora/katago';
+import { stopEngineProcess } from './shutdown.js';
 
 export interface LocalKataGoOptions {
   readonly binary: string;
@@ -129,23 +130,9 @@ export function startLocalKataGo(options: LocalKataGoOptions) {
       if (stopPromise) return stopPromise;
       // Send scoped termination before closing the writer; flush queued writes.
       provider.dispose();
-      stopPromise = (async () => {
-        const timer = setTimeout(() => {
-          closing = true;
-          child.stdin.destroy();
-          child.kill();
-        }, 5_000);
-        // The deadline also covers blocked writes to an unresponsive process.
-        void writeQueue.then(() => {
-          closing = true;
-          child.stdin.end();
-        });
-        try {
-          await exited;
-        } finally {
-          clearTimeout(timer);
-        }
-      })();
+      stopPromise = stopEngineProcess(child, exited, writeQueue, () => {
+        closing = true;
+      });
       return stopPromise;
     },
   });

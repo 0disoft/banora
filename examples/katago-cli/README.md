@@ -32,7 +32,10 @@ It is not a GPU configuration or a playing-strength recommendation.
 
 The host imposes a 30-second example deadline. Ctrl+C/termination cancels analysis;
 final cleanup closes stdin and waits for engine exit, with a five-second forced-stop
-fallback including blocked writes. Working files/caches stay under
+fallback including blocked writes. The fallback uses `SIGKILL`, closes output
+pipes and waits at most one additional second for exit confirmation. Failure to
+confirm exit rejects with a fixed diagnostic and releases the process reference;
+it does not claim a successful stop. Working files/caches stay under
 `.tmp/katago-example`. No network connection, automatic download or retry is made.
 
 ## Ownership and failure handling
