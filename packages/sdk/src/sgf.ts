@@ -371,7 +371,7 @@ function parse(text: string, limits: SgfLimits): SgfRecord {
         whitespace();
         while (text[offset] === '[') {
           offset++;
-          let raw = '';
+          const valueStart = offset;
           let closed = false;
           while (offset < text.length) {
             const next = text[offset++]!;
@@ -379,15 +379,16 @@ function parse(text: string, limits: SgfLimits): SgfRecord {
               closed = true;
               break;
             }
-            raw += next;
             if (next === '\\') {
               if (offset >= text.length) fail('syntax', 'Dangling value escape', offset);
-              raw += text[offset++];
+              offset++;
             }
-            if (raw.length > limits.maxValueLength)
+            if (offset - valueStart > limits.maxValueLength)
               fail('limit', 'SGF property value limit exceeded', offset);
           }
           if (!closed) fail('syntax', 'Unclosed property value', offset);
+          // Retain the exact original escapes without allocating per character.
+          const raw = text.slice(valueStart, offset - 1);
           rawValues.push(raw);
           values.push(decodeValue(raw, key));
           whitespace();

@@ -9,6 +9,34 @@ function parsed(result: SgfResult): SgfRecord {
 }
 
 describe('SGF FF4 preservation', () => {
+  test('raw value scanning retains long slices, escape boundaries and exact failure offsets', () => {
+    const raw = '한🙂'.repeat(1400) + '\\]end\\\\';
+    const input = `(;XX[${raw}][second]C[${raw}])`;
+    const record = parsed(parseSgf(input, { maxValueLength: raw.length }));
+    expect(record.games[0]!.rawProperties.XX).toEqual([raw, 'second']);
+    expect(record.games[0]!.rawProperties.C).toEqual([raw]);
+    expect(record.games[0]!.properties.XX).toEqual(['한🙂'.repeat(1400) + ']end\\', 'second']);
+    expect(serializeSgf(record)).toContain(`XX[${raw}][second]`);
+    expect(parseSgf(input, { maxValueLength: raw.length - 1 })).toMatchObject({
+      ok: false,
+      diagnostics: [
+        { code: 'limit', message: 'SGF property value limit exceeded', offset: 5 + raw.length },
+      ],
+    });
+    for (const [text, limit, code, message, offset] of [
+      ['(;XX[abcd])', 3, 'limit', 'SGF property value limit exceeded', 9],
+      ['(;XX[ab\\]cd])', 3, 'limit', 'SGF property value limit exceeded', 9],
+      ['(;XX[abc\\', 9, 'syntax', 'Dangling value escape', 9],
+      ['(;XX[abc', 9, 'syntax', 'Unclosed property value', 8],
+      ['(;XX[abc\\]', 9, 'syntax', 'Unclosed property value', 10],
+    ] as const) {
+      expect(parseSgf(text, { maxValueLength: limit })).toEqual({
+        ok: false,
+        diagnostics: [{ code, message, offset }],
+      });
+    }
+  });
+
   test('round-trips a multi-game collection, branches and escaped unknown properties', () => {
     const input =
       '(;FF[4]GM[1]SZ[9]PB[A]XX[one\\:two][bracket\\] and slash\\\\]C[hello\\\nworld](;B[aa]LB[bb:a\\:b])(;B[cc];W[]))(;SZ[13]PW[B])';

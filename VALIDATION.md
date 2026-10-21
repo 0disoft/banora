@@ -3,6 +3,47 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Large-Record Edit Phase Profile and Raw Value Slices
+
+A local Bun 1.4.3 phase diagnostic used the same 4,032,020-character ASCII /
+8,001-node record, fourteen changing root-label edits, two warmup cycles and twelve
+timed edit/checkpoint cycles. Parser timing includes normalized export validation;
+the separate serialization timing excludes serializer calls nested inside parsing,
+so phases do not double count. Instrumentation is private diagnostic code, not a
+new public profiling API or production timer.
+
+| Median milliseconds | Before  | After  |
+| ------------------- | ------- | ------ |
+| Parsing             | 194.263 | 71.619 |
+| Index rebuild       | 7.670   | 4.001  |
+| Dirty comparison    | 0.409   | 0.364  |
+| Outer serialization | 7.319   | 5.651  |
+| Other work          | 1.876   | 1.725  |
+| Whole workflow      | 211.271 | 85.133 |
+
+Parsing was the dominant measured phase. The parser now scans exactly as before
+but retains the raw input slice instead of concatenating one character at a time.
+Value length is still checked after consuming the same code units/escape pairs;
+all syntax, decoding, semantics, byte/node/depth/expanded-area limits, freezing and
+normalized-export checks remain. No index or dirty-comparison implementation was
+changed; their timing differences include ordinary runtime/GC variation. Per-phase
+medians need not sum to the total median. These synchronous local measurements do
+not establish browser/device latency or performance for all record/edit shapes.
+
+Focused SGF/comment-limit/checkpoint tests passed 32 cases / 861 assertions. The
+new regression checks long Unicode raw values, repeated values, escaped closing
+delimiters/backslashes, exact limit boundaries and exact truncated/over-limit error
+offsets. An isolated differential diagnostic compared the committed previous parser
+with this parser for 18,724 generated combinations of escape/delimiter/newline/
+Unicode text and value limits; all complete results and diagnostics matched.
+
+The complete local `bun run check` passed: 343 tests / 8,687 assertions across
+59 files, lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types,
+145 documents / 739 links, packed SDK/classic/declarations and 298 installed CLI
+checks. No public API, storage schema, dependency/version, runner or repository
+hygiene change was needed. Browser scenarios were not rerun for this parser
+allocation change; browser/device timing remains unverified. Skills: SDK and refactor.
+
 ## Reusing Fully Validated Edit SGF
 
 Full edit validation previously serialized a candidate and discarded that text
