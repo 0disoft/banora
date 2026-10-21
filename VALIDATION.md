@@ -18,7 +18,7 @@ setup conflicts and default refusal. A local Bun 1.4.3 diagnostic compared the
 previous parser with this parser on the same accepted 200-node 52-line compressed
 marker record: one warmup/five samples, median 267.953ms versus 8.702ms. This is
 synchronous local parsing evidence, not a browser/device latency guarantee.
-Complete repository validation follows the remaining sequential improvements.
+Complete repository/browser/consumer validation passed in the combined run below.
 
 ## Analysis Session Replay Proofs
 
@@ -34,7 +34,8 @@ for comment/export updates, then two for each next step (controller plus context
 and compares the resulting context with independent full extraction. Additional
 checks compare setup/MN, markers, Undo/Redo, illegal archived history, recovery by
 setup and imports against full extraction. Existing cancellation/reentrancy/late
-result checks remain. Browser/provider checks await the final combined validation.
+result checks remain. The combined production browser and actual local engine
+checks below also passed.
 
 ## Prepared Studio Imports
 
@@ -49,8 +50,8 @@ build and strict root typecheck passed. New regressions check one byte-decoder
 invocation, exact parsed-record identity after application, independently owned
 input bytes, dirty/foreign/forged/reused/superseded refusal, locator and custom
 point/node limits, checkpoint invalidation and disposed access. Existing tests
-retain baseline, Undo and export-ticket behavior. Production browser import and
-approval workflows will be checked in the final combined browser run.
+retain baseline, Undo and export-ticket behavior. The combined production browser
+run passed actual import/edit/export/reopen and Export/Discard/Cancel guards.
 
 ## Bounded Local Engine Shutdown
 
@@ -68,6 +69,37 @@ KataGo binary/model passed all 35 Node 24 host integration cases: three reportin
 perspectives, contexts, cancellation/stale/dispose/host stop and process failures.
 No new model/binary download or external provider was used. Unix signal-resistant
 process behavior is covered by the helper doubles, not claimed as a real Unix run.
+
+## Single-Build CI and Combined Improvement Validation
+
+The complete code plan now builds SDK/adapter/CLI artifacts once in `check`, then
+reuses them for installed adapters, production examples/browser and the standalone
+installed starter. Ordinary standalone commands still rebuild prerequisites. The
+CI regression expands command composition, counts exactly one SDK build and
+retains every installed/browser/security gate. No cross-job artifact cache, fewer
+scenarios, retries or higher workflow timeout were introduced.
+
+The actual local complete plan passed without retries:
+`bun run ci:run --base 0000000000000000000000000000000000000000 --head HEAD`.
+Its log contains one SDK build pipeline, 337 tests / 8,567 assertions across 59
+files, root/Svelte types, lint/format/boundaries, docs (145 documents / 739 links),
+packed SDK/classic/declarations, 298 installed CLI checks, React/Vue/Svelte installed
+types/SSR consumers, complete Chrome 155 production browser scenarios and the
+independently installed starter production browser workflow. File/permission
+signals passed and the live dependency audit reported no vulnerabilities among
+174 packages. No dependency declaration/lockfile change was needed.
+
+The separate retained KataGo/Node host run passed all 35 real integration cases.
+This validates the local Windows tools/artifacts and selected engine/model only;
+hosted Linux CI, other browsers/physical devices and a real Unix signal-resistant
+process were not executed. No hosted CI, publication, push or deployment occurred.
+Source-of-truth changes are the product spec, SDK/API/compatibility/analysis docs,
+example engine lifecycle docs, CI operations doc and this validation record.
+Public additions are the optional expanded-area limit and controller import
+preparation types/methods. DB/storage schemas, dependencies, selected release
+version and repository hygiene rules are unchanged. Skills: SDK, bugfix, refactor,
+ops-change and Playwright. The package-specific release contract retains explicit
+version selection without automatic bumps.
 
 ## Validation Source of Truth
 

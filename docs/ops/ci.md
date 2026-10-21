@@ -56,6 +56,14 @@ Run parity against the matching clean worktree. The planner prints its paths,
 decision and real commands; the runner executes them serially and stops on the
 first failed command, preserving its nonzero status.
 
+Code plans build fresh SDK/adapter/CLI artifacts once inside `check`. Subsequent
+installed-adapter and starter probes reuse those artifacts; production examples
+use `build:examples:prepared` before browser checks. No build output is cached
+between jobs and every consumer/browser/security gate remains selected as before.
+Standalone `build:examples`, `smoke:adapters` and `smoke:starter` still build their
+own prerequisites. The prepared examples route requires a successful current-source
+`check` or `build:adapters` first; it is not a standalone freshness guarantee.
+
 | Change                                                                                            | Evidence                                                                                |
 | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | Only Markdown/Mermaid                                                                             | Format, docs and file/permission security signals; no builds/browser.                   |

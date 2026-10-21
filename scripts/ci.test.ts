@@ -4,6 +4,42 @@ import { planChecks, commandsFor, changedPaths } from './ci.js';
 import { secretSignals, workflowSignals } from './security.js';
 import metadata from '../package.json';
 
+test('complete CI builds SDK artifacts once while retaining every installed/browser gate', () => {
+  const commands = commandsFor(planChecks(null));
+  const scripts = metadata.scripts as Record<string, string>;
+  const expand = (name: string): string[] =>
+    scripts[name]!.split('&&').flatMap((step) => {
+      const command = step.trim();
+      const nested = /^bun run ([\w:-]+)$/.exec(command);
+      return nested ? expand(nested[1]!) : [command];
+    });
+  const stages = commands.flatMap((command) =>
+    command[0] === 'run' ? expand(command[1]!) : [`bun ${command.join(' ')}`],
+  );
+  expect(
+    stages.filter((stage) => stage === 'vite build --config packages/sdk/vite.config.ts'),
+  ).toHaveLength(1);
+  for (const stage of [
+    'bun scripts/packed-consumer.ts',
+    'bun scripts/packed-cli.ts',
+    'bun scripts/packed-adapters.ts',
+    'vite build --config examples/vite.config.ts',
+    'bun scripts/browser-smoke.ts',
+    'bun scripts/packed-starter.ts --browser',
+    'bun scripts/security.ts',
+    'bun audit --audit-level=high',
+  ])
+    expect(stages).toContain(stage);
+  expect(commands[0]).toEqual(['run', 'check']);
+  expect(
+    commands.indexOf(commands.find((command) => command.includes('build:examples:prepared'))!),
+  ).toBeLessThan(
+    commands.indexOf(commands.find((command) => command.includes('scripts/browser-smoke.ts'))!),
+  );
+  for (const name of ['build:examples', 'smoke:adapters', 'smoke:starter'])
+    expect(expand(name)).toContain('vite build --config packages/sdk/vite.config.ts');
+});
+
 test('CI routes documentation cheaply, combines focused changes and falls back safely for unknown or missing diffs', () => {
   expect(planChecks(['README.md', 'docs/sdk/public-api.md']).mode).toBe('docs');
   expect(commandsFor(planChecks(['README.md'])).some((command) => command.includes('check'))).toBe(

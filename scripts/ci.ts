@@ -153,13 +153,14 @@ export function commandsFor(plan: CheckPlan): string[][] {
           ['run', 'security:files'],
         ];
   if (plan.audit) commands.push(['run', 'security:deps']);
-  if (plan.adapters) commands.push(['run', 'smoke:adapters']);
+  // check already produced fresh SDK, adapter and CLI artifacts in this job.
+  if (plan.adapters) commands.push(['scripts/packed-adapters.ts']);
   if (plan.browser.length) {
-    commands.push(['run', 'build:examples']);
+    commands.push(['run', 'build:examples:prepared']);
     for (const scope of plan.browser)
       commands.push(['scripts/browser-smoke.ts', ...(scope === 'all' ? [] : [scope])]);
   }
-  if (plan.starter) commands.push(['run', 'smoke:starter']);
+  if (plan.starter) commands.push(['scripts/packed-starter.ts', '--browser']);
   return commands;
 }
 if (import.meta.main) {
