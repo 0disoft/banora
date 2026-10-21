@@ -12,6 +12,50 @@ Their prior command availability or remaining-work notes are historical; current
 commands and coverage limits belong to Runner Policy and the active readiness review.
 In particular, migration-check is now configured as documented below.
 
+## Source Backup and Recovery Failure Diagnostics
+
+All source Git subprocess failures previously became the same `check` error;
+private release CLI JSON contained no operation phase. A source-operation error
+now extends the existing release error with a fixed stage label. Workspace,
+setup, initial/final source checks, bundle/manifest work and each recovery phase
+are labeled as documented in
+[maintainer recovery](docs/ops/maintainer-recovery.md#privacy-safe-failure-stages).
+The private `banora.release-command/v1` error object adds optional `stage` only
+for failures caught after source operations start. Existing error codes, exit
+status 1 and stage-free argument rejection remain; unknown runtime/filesystem
+exceptions still map to `io`. SDK and installed public CLI APIs are unchanged.
+
+Stage values are implementation literals, never interpolated input. Wrappers
+discard underlying exceptions rather than retaining messages, causes, paths,
+command arguments or Git stdout/stderr. The CLI serializes only code and stage.
+No partial-success claim or new failure receipt/log is introduced; abrupt process
+termination cannot guarantee a JSON response. Success manifests/receipts and all
+validation, byte-preservation, Git-call budgets and isolation settings are unchanged.
+A lexical comparison of both operation bodies retained the original operation
+tokens and string contents, excluding stage assignments, catch wrappers, whitespace
+and optional trailing commas introduced by formatting.
+
+Four regressions run real fixture Git work and inject failed results carrying an
+authored private detail in stdout, stderr and an underlying error with a path.
+Bundle, clone, object-check and checkout failures retain `check`, expose the correct
+fixed stage, omit raw details/causes and preserve the clean source and original
+bundle. Existing shallow, final-source-race and changed-checkout cases additionally
+assert their distinct stages. Actual release CLI subprocesses with Git unavailable
+or a missing reviewed input return exact safe JSON, exit 1 and empty stderr, with
+no supplied path reflected. Invalid-argument JSON remains exactly stage-free.
+Focused coverage passed 16 tests / 106 assertions, previously 11 / 73.
+The full `bun run check` passed on its first attempt: 316 tests / 8,429 assertions,
+installed CLI 298 checks, lint/format/boundaries, SDK/adapter builds, root/Svelte
+types, docs and packed SDK/classic/declarations. Final documentation-only evidence
+updates were checked separately with formatting, documentation and whitespace checks.
+
+Changed source-of-truth documents are this validation contract and
+`docs/ops/maintainer-recovery.md`; implementation changes are confined to private
+source operations and release-command serialization plus their tests. No SDK/storage
+schema, dependency, repository hygiene or runner/CI policy changes are introduced.
+Browser/device, provider/account and remote publication checks are outside this
+local diagnostic change. No actual credentials or private provider data are used.
+
 ## Source Recovery Checkout Query Evidence
 
 A real-Git stage profile found nine recovery commands, with separate checkout

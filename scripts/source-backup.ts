@@ -21,6 +21,34 @@ interface SourceBackup {
   refs: { count: number; sha256: string };
   bundle: { bytes: number; sha256: string };
 }
+type SourceStage =
+  | 'backup-workspace'
+  | 'backup-setup'
+  | 'backup-source'
+  | 'backup-bundle'
+  | 'backup-final-source'
+  | 'backup-manifest'
+  | 'recovery-workspace'
+  | 'recovery-input'
+  | 'recovery-setup'
+  | 'recovery-mirror'
+  | 'recovery-objects'
+  | 'recovery-bundle'
+  | 'recovery-identity'
+  | 'recovery-checkout'
+  | 'recovery-checkout-verification'
+  | 'recovery-original'
+  | 'recovery-receipt';
+
+export class SourceOperationError extends ReleaseError {
+  constructor(
+    code: ReleaseError['code'],
+    readonly stage: SourceStage,
+  ) {
+    super(code);
+  }
+}
+
 const bundleLimit = 64 * 1024 * 1024;
 async function workspace(root: string) {
   let metadata;
@@ -168,44 +196,57 @@ async function reviewed(request: ReturnType<typeof sourceRecoveryOptions>) {
 
 /** Preserve tracked history/refs only; no credentials, untracked work, dependencies or remote writes. */
 export async function sourceBackup(root: string) {
-  await workspace(root);
-  await mkdir(resolve(root, '.tmp'), { recursive: true });
-  const scratch = await mkdtemp(resolve(root, '.tmp/source-backup-'));
-  const git = await gitRunner(scratch);
-  if (git(root, ['status', '--porcelain'])) throw new ReleaseError('source');
-  // Batch only the initial observation; capture still ends with fresh guards below.
-  const identity = git(root, ['rev-parse', '--is-shallow-repository', 'HEAD', 'HEAD^{tree}']).split(
-    /\r?\n/,
-  );
-  const [shallow, commit, tree] = identity;
-  if (identity.length !== 3 || shallow !== 'false' || !objectId(commit) || !objectId(tree))
-    throw new ReleaseError('source');
-  const source = { commit, tree };
-  const originalRefs = refs(git(root, ['show-ref']));
-  const directory = await mkdtemp(resolve(await artifactParent(root, 'releases'), 'source-'));
-  const path = resolve(directory, 'source.bundle');
-  git(root, ['bundle', 'create', path, '--all', 'HEAD']);
-  const manifest: SourceBackup = {
-    schemaVersion: 'banora.source-backup/v1',
-    source,
-    refs: originalRefs,
-    bundle: await bundleBytes(path),
-  };
-  if (
-    git(root, ['status', '--porcelain']) ||
-    source.commit !== git(root, ['rev-parse', 'HEAD']) ||
-    JSON.stringify(refs(git(root, ['show-ref']))) !== JSON.stringify(originalRefs)
-  )
-    throw new ReleaseError('source');
-  const bytes = JSON.stringify(manifest, null, 2) + '\n';
-  await writeFile(resolve(directory, 'manifest.json'), bytes, { flag: 'wx' });
-  return {
-    backup: relative(root, directory).replaceAll('\\', '/'),
-    manifestSha256: sha(bytes),
-    ...manifest,
-    scope:
-      'Tracked source/history/refs only. Independently retain this backup and prepared release artifacts; capture is not a successful restore or provider account recovery.',
-  };
+  let stage: SourceStage = 'backup-workspace';
+  try {
+    await workspace(root);
+    stage = 'backup-setup';
+    await mkdir(resolve(root, '.tmp'), { recursive: true });
+    const scratch = await mkdtemp(resolve(root, '.tmp/source-backup-'));
+    const git = await gitRunner(scratch);
+    stage = 'backup-source';
+    if (git(root, ['status', '--porcelain'])) throw new ReleaseError('source');
+    // Batch only the initial observation; capture still ends with fresh guards below.
+    const identity = git(root, [
+      'rev-parse',
+      '--is-shallow-repository',
+      'HEAD',
+      'HEAD^{tree}',
+    ]).split(/\r?\n/);
+    const [shallow, commit, tree] = identity;
+    if (identity.length !== 3 || shallow !== 'false' || !objectId(commit) || !objectId(tree))
+      throw new ReleaseError('source');
+    const source = { commit, tree };
+    const originalRefs = refs(git(root, ['show-ref']));
+    stage = 'backup-bundle';
+    const directory = await mkdtemp(resolve(await artifactParent(root, 'releases'), 'source-'));
+    const path = resolve(directory, 'source.bundle');
+    git(root, ['bundle', 'create', path, '--all', 'HEAD']);
+    const manifest: SourceBackup = {
+      schemaVersion: 'banora.source-backup/v1',
+      source,
+      refs: originalRefs,
+      bundle: await bundleBytes(path),
+    };
+    stage = 'backup-final-source';
+    if (
+      git(root, ['status', '--porcelain']) ||
+      source.commit !== git(root, ['rev-parse', 'HEAD']) ||
+      JSON.stringify(refs(git(root, ['show-ref']))) !== JSON.stringify(originalRefs)
+    )
+      throw new ReleaseError('source');
+    stage = 'backup-manifest';
+    const bytes = JSON.stringify(manifest, null, 2) + '\n';
+    await writeFile(resolve(directory, 'manifest.json'), bytes, { flag: 'wx' });
+    return {
+      backup: relative(root, directory).replaceAll('\\', '/'),
+      manifestSha256: sha(bytes),
+      ...manifest,
+      scope:
+        'Tracked source/history/refs only. Independently retain this backup and prepared release artifacts; capture is not a successful restore or provider account recovery.',
+    };
+  } catch (error) {
+    throw new SourceOperationError(error instanceof ReleaseError ? error.code : 'io', stage);
+  }
 }
 
 /** Mirror and materialize a reviewed backup using local Git only; never change the active checkout. */
@@ -213,58 +254,73 @@ export async function sourceRecovery(
   root: string,
   request: ReturnType<typeof sourceRecoveryOptions>,
 ) {
-  await workspace(root);
-  const original = await reviewed(request);
-  const directory = await mkdtemp(resolve(await artifactParent(root, 'restores'), 'source-'));
-  const git = await gitRunner(directory);
-  const mirror = resolve(directory, 'mirror.git'),
-    checkout = resolve(directory, 'checkout');
-  git(root, ['clone', '--mirror', '--', resolve(original.directory, 'source.bundle'), mirror]);
-  git(mirror, ['fsck', '--full', '--strict']);
-  git(mirror, ['bundle', 'verify', resolve(original.directory, 'source.bundle')]);
-  if (
-    git(mirror, ['rev-parse', `${request.sourceCommit}^{tree}`]) !==
-      original.manifest.source.tree ||
-    JSON.stringify(refs(git(mirror, ['show-ref']))) !== JSON.stringify(original.manifest.refs)
-  )
-    throw new ReleaseError('integrity');
-  git(mirror, ['worktree', 'add', '--detach', checkout, request.sourceCommit]);
-  // Porcelain v2 reports the checkout commit and changes in the same observation.
-  const status = git(checkout, ['status', '--porcelain=v2', '--branch']).split(/\r?\n/);
-  const heads = status.filter((line) => line.startsWith('# branch.oid '));
-  if (
-    heads.length !== 1 ||
-    heads[0] !== `# branch.oid ${request.sourceCommit}` ||
-    status.some((line) => !line.startsWith('# '))
-  )
-    throw new ReleaseError('integrity');
-  const trackedFiles = git(checkout, ['ls-files', '-z']).split('\0').filter(Boolean).length;
-  await reviewed(request);
-  const receipt = {
-    schemaVersion: 'banora.source-recovery/v1',
-    ok: true,
-    createdAt: new Date().toISOString(),
-    source: original.manifest.source,
-    refs: original.manifest.refs,
-    bundle: original.manifest.bundle,
-    manifestSha256: request.manifestSha256,
-    restored: relative(root, checkout).replaceAll('\\', '/'),
-    trackedFiles,
-    completed: [
-      'offline-mirror',
-      'complete-object-check',
-      'bundle-verification',
-      'exact-refs-and-tree',
-      'clean-source-checkout',
-      'original-preservation',
-    ],
-    scope:
-      'Local file-only Git protocols and isolated config/hooks. No GitHub/npm access, dependency installation, build, release/channel mutation, credential recovery or user storage migration.',
-  };
-  await writeFile(
-    resolve(directory, 'source-recovery.json'),
-    JSON.stringify(receipt, null, 2) + '\n',
-    { flag: 'wx' },
-  );
-  return receipt;
+  let stage: SourceStage = 'recovery-workspace';
+  try {
+    await workspace(root);
+    stage = 'recovery-input';
+    const original = await reviewed(request);
+    stage = 'recovery-setup';
+    const directory = await mkdtemp(resolve(await artifactParent(root, 'restores'), 'source-'));
+    const git = await gitRunner(directory);
+    const mirror = resolve(directory, 'mirror.git'),
+      checkout = resolve(directory, 'checkout');
+    stage = 'recovery-mirror';
+    git(root, ['clone', '--mirror', '--', resolve(original.directory, 'source.bundle'), mirror]);
+    stage = 'recovery-objects';
+    git(mirror, ['fsck', '--full', '--strict']);
+    stage = 'recovery-bundle';
+    git(mirror, ['bundle', 'verify', resolve(original.directory, 'source.bundle')]);
+    stage = 'recovery-identity';
+    if (
+      git(mirror, ['rev-parse', `${request.sourceCommit}^{tree}`]) !==
+        original.manifest.source.tree ||
+      JSON.stringify(refs(git(mirror, ['show-ref']))) !== JSON.stringify(original.manifest.refs)
+    )
+      throw new ReleaseError('integrity');
+    stage = 'recovery-checkout';
+    git(mirror, ['worktree', 'add', '--detach', checkout, request.sourceCommit]);
+    stage = 'recovery-checkout-verification';
+    // Porcelain v2 reports the checkout commit and changes in the same observation.
+    const status = git(checkout, ['status', '--porcelain=v2', '--branch']).split(/\r?\n/);
+    const heads = status.filter((line) => line.startsWith('# branch.oid '));
+    if (
+      heads.length !== 1 ||
+      heads[0] !== `# branch.oid ${request.sourceCommit}` ||
+      status.some((line) => !line.startsWith('# '))
+    )
+      throw new ReleaseError('integrity');
+    const trackedFiles = git(checkout, ['ls-files', '-z']).split('\0').filter(Boolean).length;
+    stage = 'recovery-original';
+    await reviewed(request);
+    stage = 'recovery-receipt';
+    const receipt = {
+      schemaVersion: 'banora.source-recovery/v1',
+      ok: true,
+      createdAt: new Date().toISOString(),
+      source: original.manifest.source,
+      refs: original.manifest.refs,
+      bundle: original.manifest.bundle,
+      manifestSha256: request.manifestSha256,
+      restored: relative(root, checkout).replaceAll('\\', '/'),
+      trackedFiles,
+      completed: [
+        'offline-mirror',
+        'complete-object-check',
+        'bundle-verification',
+        'exact-refs-and-tree',
+        'clean-source-checkout',
+        'original-preservation',
+      ],
+      scope:
+        'Local file-only Git protocols and isolated config/hooks. No GitHub/npm access, dependency installation, build, release/channel mutation, credential recovery or user storage migration.',
+    };
+    await writeFile(
+      resolve(directory, 'source-recovery.json'),
+      JSON.stringify(receipt, null, 2) + '\n',
+      { flag: 'wx' },
+    );
+    return receipt;
+  } catch (error) {
+    throw new SourceOperationError(error instanceof ReleaseError ? error.code : 'io', stage);
+  }
 }

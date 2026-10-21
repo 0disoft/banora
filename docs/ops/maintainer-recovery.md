@@ -66,6 +66,47 @@ to owner-controlled independent storage. Verify copied bytes and rehearse from
 that directory. The repository does not provision the owner's off-device storage
 or inspect secret stores.
 
+## Privacy-Safe Failure Stages
+
+After a source backup/recovery operation starts, the private release command's
+existing `banora.release-command/v1` error object additionally includes `stage`:
+
+```json
+{"schemaVersion":"banora.release-command/v1","ok":false,"error":{"code":"check","stage":"recovery-objects"}}
+```
+
+Existing error codes and exit status 1 remain unchanged. Invalid arguments still
+return `usage` without a stage because no operation has started. The fixed stage
+identifies the active phase, not successful completion or a promise of recoverable
+partial output. Abrupt process termination cannot guarantee a JSON response.
+
+| Stage                            | Active work                                                    |
+| -------------------------------- | -------------------------------------------------------------- |
+| `backup-workspace`               | Check workspace identity                                       |
+| `backup-setup`                   | Create exclusive scratch and isolated Git configuration        |
+| `backup-source`                  | Check initial cleanliness, complete history, identity and refs |
+| `backup-bundle`                  | Create and hash the source bundle                              |
+| `backup-final-source`            | Recheck cleanliness, HEAD and refs after capture               |
+| `backup-manifest`                | Exclusively write the success manifest                         |
+| `recovery-workspace`             | Check workspace identity                                       |
+| `recovery-input`                 | Verify the independently reviewed input files and identity     |
+| `recovery-setup`                 | Create exclusive restore staging and isolated configuration    |
+| `recovery-mirror`                | Clone the bundle into the offline mirror                       |
+| `recovery-objects`               | Run full strict object checking                                |
+| `recovery-bundle`                | Verify the bundle against the mirror                           |
+| `recovery-identity`              | Match exact mirror refs and tree                               |
+| `recovery-checkout`              | Materialize the reviewed detached checkout                     |
+| `recovery-checkout-verification` | Check checkout identity, cleanliness and tracked count         |
+| `recovery-original`              | Verify original input bytes and schema again                   |
+| `recovery-receipt`               | Exclusively write the success receipt                          |
+
+Stages come only from these fixed implementation labels. JSON errors exclude
+source/backup paths, command arguments, remote URLs, Git stdout/stderr, underlying
+exception messages, causes and stack traces. Unknown filesystem/runtime exceptions
+map to the existing `io` code; known release errors retain their codes. Originals,
+partial staging and receipts follow the same preservation rules as before. No
+extra Git command, log file, retry, cleanup or remote request is introduced.
+
 ## Lost Authentication or Compromised Access
 
 Source/artifact recovery is separate from reclaiming a provider account. Stop

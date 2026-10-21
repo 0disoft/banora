@@ -21,7 +21,12 @@ import { parsePublicationRequest, publishRelease, PublicationError } from './pub
 import { registryHealth, registryTargetHealth, RegistryHealthError } from './registry-health.js';
 import { channelOptions, channelPlan, ChannelPlanError } from './channel-plan.js';
 import { consumerRecovery, recoveryOptions, ConsumerRecoveryError } from './consumer-recovery.js';
-import { sourceBackup, sourceRecovery, sourceRecoveryOptions } from './source-backup.js';
+import {
+  sourceBackup,
+  sourceRecovery,
+  sourceRecoveryOptions,
+  SourceOperationError,
+} from './source-backup.js';
 
 function git(root: string, args: string[]) {
   const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 5000 });
@@ -249,6 +254,7 @@ if (import.meta.main) {
             error instanceof ConsumerRecoveryError
               ? error.code
               : 'io',
+          ...(error instanceof SourceOperationError ? { stage: error.stage } : {}),
           ...(error instanceof ConsumerRecoveryError ? { completed: error.completed } : {}),
           ...(error instanceof RegistryHealthError
             ? {

@@ -4,7 +4,12 @@ import * as childProcess from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { sourceBackup, sourceRecovery, sourceRecoveryOptions } from './source-backup.js';
+import {
+  sourceBackup,
+  sourceRecovery,
+  sourceRecoveryOptions,
+  SourceOperationError,
+} from './source-backup.js';
 
 async function fixture() {
   await mkdir('.tmp', { recursive: true });
@@ -93,7 +98,10 @@ describe('isolated authored Git source', () => {
   test('a shallow source is rejected by the batched initial observation before capture', async () => {
     const { root, git } = source;
     await writeFile(resolve(root, '.git/shallow'), git('rev-parse', 'HEAD') + '\n');
-    await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
+    await expect(sourceBackup(root)).rejects.toMatchObject({
+      code: 'source',
+      stage: 'backup-source',
+    });
     await expect(readdir(resolve(root, '.artifacts/releases'))).rejects.toMatchObject({
       code: 'ENOENT',
     });
@@ -129,7 +137,10 @@ describe('isolated authored Git source', () => {
       }) as typeof execute;
       const observed = spyOn(childProcess, 'spawnSync').mockImplementation(intercept);
       try {
-        await expect(sourceBackup(root)).rejects.toMatchObject({ code: 'source' });
+        await expect(sourceBackup(root)).rejects.toMatchObject({
+          code: 'source',
+          stage: 'backup-final-source',
+        });
       } finally {
         observed.mockRestore();
       }
@@ -184,7 +195,10 @@ describe('isolated authored Git source', () => {
       }) as typeof execute;
       const observed = spyOn(childProcess, 'spawnSync').mockImplementation(intercept);
       try {
-        await expect(sourceRecovery(root, request)).rejects.toMatchObject({ code: 'integrity' });
+        await expect(sourceRecovery(root, request)).rejects.toMatchObject({
+          code: 'integrity',
+          stage: 'recovery-checkout-verification',
+        });
       } finally {
         observed.mockRestore();
       }
@@ -196,6 +210,96 @@ describe('isolated authored Git source', () => {
       });
     },
   );
+
+  test.each([
+    ['backup bundle', 'backup', 'bundle', 'backup-bundle'],
+    ['recovery clone', 'recovery', 'clone', 'recovery-mirror'],
+    ['recovery objects', 'recovery', 'fsck', 'recovery-objects'],
+    ['recovery checkout', 'recovery', 'worktree', 'recovery-checkout'],
+  ] as const)(
+    '%s failure reports a fixed stage without raw Git details',
+    async (_, operation, command, stage) => {
+      const { root, git } = source;
+      const backup = operation === 'recovery' ? await sourceBackup(root) : undefined;
+      const request = backup
+        ? {
+            backup: resolve(root, backup.backup),
+            manifestSha256: backup.manifestSha256,
+            sourceCommit: backup.source.commit,
+          }
+        : undefined;
+      const bytes = request ? await readFile(resolve(request.backup, 'source.bundle')) : undefined;
+      const detail = 'Authored private diagnostic detail';
+      const execute = childProcess.spawnSync;
+      const intercept = ((...args: Parameters<typeof execute>) => {
+        const result = execute(...args);
+        if (Array.isArray(args[1]) && args[1][8] === command)
+          return {
+            ...result,
+            status: 1,
+            stdout: Buffer.from(detail),
+            stderr: Buffer.from(detail),
+            error: Object.assign(Error(detail), { path: root }),
+          };
+        return result;
+      }) as typeof execute;
+      const observed = spyOn(childProcess, 'spawnSync').mockImplementation(intercept);
+      let failure: unknown;
+      try {
+        if (request) await sourceRecovery(root, request);
+        else await sourceBackup(root);
+      } catch (error) {
+        failure = error;
+      } finally {
+        observed.mockRestore();
+      }
+      expect(failure).toBeInstanceOf(SourceOperationError);
+      expect(JSON.parse(JSON.stringify(failure))).toEqual({ code: 'check', stage });
+      expect((failure as Error).message).toBe('Release: check.');
+      expect((failure as Error).cause).toBeUndefined();
+      expect(git('status', '--porcelain')).toBe('');
+      if (request) expect(await readFile(resolve(request.backup, 'source.bundle'))).toEqual(bytes!);
+    },
+  );
+
+  test('actual release CLI reports safe source stages and keeps raw errors off both streams', () => {
+    const { root } = source;
+    const script = resolve('scripts/release.ts');
+    const absent = resolve(root, '.tmp/absent-authored-backup');
+    const noGit = resolve(root, '.tmp/absent-authored-tools');
+    for (const [args, code, stage] of [
+      [['source-backup'], 'check', 'backup-source'],
+      [
+        [
+          'source-recovery-check',
+          '--backup',
+          absent,
+          '--manifest-sha256',
+          'a'.repeat(64),
+          '--source-commit',
+          'b'.repeat(40),
+        ],
+        'io',
+        'recovery-input',
+      ],
+    ] as const) {
+      const result = Bun.spawnSync([process.execPath, script, ...args], {
+        cwd: root,
+        env: { ...process.env, PATH: noGit, Path: noGit },
+        stdout: 'pipe',
+        stderr: 'pipe',
+      });
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr.toString()).toBe('');
+      expect(JSON.parse(result.stdout.toString())).toEqual({
+        schemaVersion: 'banora.release-command/v1',
+        ok: false,
+        error: { code, stage },
+      });
+      expect(result.stdout.toString()).not.toContain(root);
+      expect(result.stdout.toString()).not.toContain('absent-authored');
+    }
+  });
 
   test('real Git backup restores exact history/refs and clean source without inheriting the original remote/config', async () => {
     const { root, git } = source;
