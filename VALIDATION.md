@@ -3,6 +3,24 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Browser Review Comparison Runner
+
+`bun scripts/review-browser-benchmark.ts` compares committed `6ecd86c` and
+`165ce03` Studio/SDK source snapshots without changing main or creating Git
+worktrees. Both use the same production Vite configuration, installed dependencies
+and isolated SDK-source aliases. `--quick` runs a reduced pilot. The local runner
+is deliberately not added to CI; device budgets remain UNDECIDED.
+
+The pilot passed on Chrome 155: actual first/later-tab close with GC/WeakRefs,
+eight move-number conditions (including numbers off), and three backup conditions.
+It checks rendered numbers, selected move, baseline/dirty, comments, reset history,
+no page errors and no external requests. Timing and GC diagnostics use separate
+browser contexts; the memory-only weak close probe is absent from timing contexts.
+Root/Svelte runtime code and public APIs are unchanged. Harness lint and root
+types passed. Full repeat counts, source/fixture hashes and results are recorded
+by the runner in `output/playwright/review-browser-comparison.json`; the pilot
+uses a separate output. Skills: refactor, ops-change and Playwright.
+
 ## Review Fixes: Restore Handoff and Combined Verification
 
 Studio's restore input boundary validates before approval and passes the owned
