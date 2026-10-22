@@ -64,6 +64,7 @@ function App() {
   const [mounted, setMounted] = useState(true);
   const [readOnly, setReadOnly] = useState(false);
   const [flat, setFlat] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [rotation, setRotation] = useState<BoardRotation>(0);
   const [flipX, setFlipX] = useState(false);
   const [ink, setInk] = useState(false);
@@ -148,6 +149,7 @@ function App() {
       button('toggle', mounted ? 'Unmount widgets' : 'Mount widgets', () =>
         setMounted((value) => !value),
       ),
+      button('focus-variations', 'Toggle focused variations', () => setFocused((value) => !value)),
       button('readonly', readOnly ? 'Enable placement' : 'Read only', () =>
         setReadOnly((value) => !value),
       ),
@@ -234,6 +236,7 @@ function App() {
             { id: 'board-host' },
             h(Board, {
               controller,
+              variationHints: focused,
               readOnly,
               transform,
               drawing,
@@ -250,6 +253,7 @@ function App() {
             { id: 'viewer-host' },
             h(Viewer, {
               controller,
+              variationMode: focused ? 'focused' : 'all',
               editable: !readOnly,
               onView: setViewerView,
               board: {

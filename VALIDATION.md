@@ -3,6 +3,20 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Framework Variation Option Forwarding
+
+React, Vue and Svelte forward `Board.variationHints` and `Viewer.variationMode`
+on mount and reactive updates. Vue's nested viewer-board watch also includes
+`variationHints`. All three examples expose the focused-mode toggle. The existing
+framework scenario now verifies hints and collapsed continuations after option
+updates, remount and controller replacement, plus restored all-variation rows and
+unchanged clean state. `bun scripts/browser-smoke.ts --framework-only` passed on
+Chrome 155, retaining the prior lifecycle, editing/Undo and callback checks.
+`build:examples`, root/Svelte type checks and focused lint passed. The new narrow
+runner flag reuses the existing scenario and cleanup; full smoke still runs it.
+Public options are unchanged; this fixes their adapter behavior. Skills: bugfix,
+SDK and Playwright. Combined full local checks follow the remaining review fixes.
+
 ## Closed Initial Studio Tab Ownership
 
 The workspace facade now targets a state-free object with the SDK prototype,

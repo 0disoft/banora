@@ -568,6 +568,9 @@ try {
   } else if (process.argv.includes('--touch-only')) {
     await scenario('touch', 'banora-touch-complete');
     console.log('Focused touch smoke passed.');
+  } else if (process.argv.includes('--framework-only')) {
+    await scenario('framework', 'banora-frameworks-complete');
+    console.log('Focused framework lifecycle and variation options smoke passed.');
   } else if (process.argv.includes('--comparison-only')) {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');

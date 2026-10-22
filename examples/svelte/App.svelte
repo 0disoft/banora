@@ -25,6 +25,7 @@
   let mounted = $state(true);
   let readOnly = $state(false);
   let flat = $state(false);
+  let focused = $state(false);
   let callbackB = $state(false);
   let events = $state(0);
   let last = $state('');
@@ -100,6 +101,9 @@
     <button id="toggle" onclick={() => (mounted = !mounted)}
       >{mounted ? 'Unmount widgets' : 'Mount widgets'}</button
     >
+    <button id="focus-variations" onclick={() => (focused = !focused)}
+      >Toggle focused variations</button
+    >
     <button id="readonly" onclick={() => (readOnly = !readOnly)}
       >{readOnly ? 'Enable placement' : 'Read only'}</button
     >
@@ -168,6 +172,7 @@
       <section id="board-host"
         ><Board
           {controller}
+          variationHints={focused}
           {readOnly}
           {transform}
           {drawing}
@@ -182,6 +187,7 @@
       <section id="viewer-host"
         ><Viewer
           {controller}
+          variationMode={focused ? 'focused' : 'all'}
           editable={!readOnly}
           onView={bindViewer}
           board={{

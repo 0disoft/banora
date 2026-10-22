@@ -917,7 +917,10 @@ plain mount's initial `sgf` option. All other rendering/editability options are 
 | Svelte  | `createRecordStore(controller)` returning a readable snapshot store                    | `class`, CSS text `style`, `ariaLabel`, `onStateChange(state)`, `onView(viewOrNull)`  |
 
 Configuration updates preserve record state. Replacing the controller remounts the
-view; unmounting removes its listeners/subscriptions and retains a host controller.
+view with current options, including `Board.variationHints` and
+`Viewer.variationMode`. These options apply on mount and reactive updates in all
+three adapters; Vue also observes nested `board.variationHints` changes.
+Unmounting removes its listeners/subscriptions and retains a host controller.
 Without a controller each component owns a separate record, disposed on unmount.
 Subscriptions immediately report the current snapshot, including on remount;
 React development Strict Mode may mount/clean up/mount effects before normal use.

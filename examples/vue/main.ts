@@ -85,6 +85,7 @@ const App = defineComponent({
     const mounted = ref(true);
     const readOnly = ref(false);
     const flat = ref(false);
+    const focused = ref(false);
     const callbackB = ref(false);
     const events = ref(0);
     const last = ref('');
@@ -173,6 +174,9 @@ const App = defineComponent({
           button('advance', 'Advance controller', () => toRaw(controller.value).next()),
           button('toggle', mounted.value ? 'Unmount widgets' : 'Mount widgets', () => {
             mounted.value = !mounted.value;
+          }),
+          button('focus-variations', 'Toggle focused variations', () => {
+            focused.value = !focused.value;
           }),
           button('readonly', readOnly.value ? 'Enable placement' : 'Read only', () => {
             readOnly.value = !readOnly.value;
@@ -278,6 +282,7 @@ const App = defineComponent({
                 { id: 'board-host' },
                 h(Board, {
                   controller: controller.value,
+                  variationHints: focused.value,
                   readOnly: readOnly.value,
                   transform: transform(),
                   drawing: drawing(),
@@ -294,6 +299,7 @@ const App = defineComponent({
                 { id: 'viewer-host' },
                 h(Viewer, {
                   controller: controller.value,
+                  variationMode: focused.value ? 'focused' : 'all',
                   editable: !readOnly.value,
                   onView: bindViewer,
                   board: {

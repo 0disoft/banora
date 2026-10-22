@@ -8,6 +8,7 @@
     editable,
     comments,
     variations,
+    variationMode,
     playback,
     board,
     onStateChange,
@@ -21,7 +22,7 @@
 <Mount
   kind="viewer"
   {controller}
-  options={{ locale, messages, editable, comments, variations, playback, board }}
+  options={{ locale, messages, editable, comments, variations, variationMode, playback, board }}
   {onStateChange}
   {onView}
   class={className}

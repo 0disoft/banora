@@ -138,6 +138,49 @@ async (page) => {
     await page.waitForFunction(() =>
       document.querySelector('#state').textContent.includes('clean'),
     );
+    await page.locator('#advance').click();
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('Move 4'),
+    );
+    const allRows = await viewer.locator('[data-node]').count();
+    const assertFocused = async () => {
+      await page.waitForFunction(
+        () =>
+          document.querySelectorAll('#board-host [data-variation-hint]').length === 2 &&
+          document.querySelectorAll('#viewer-host [data-variation-hint]').length === 2,
+      );
+      verify(
+        (await viewer.locator('[data-node]').count()) < allRows,
+        `${framework}: focused mode did not collapse continuations`,
+      );
+      verify(
+        (await page.locator('#state').innerText()).includes('clean'),
+        `${framework}: variation options edited the record`,
+      );
+    };
+    await page.locator('#focus-variations').click();
+    await assertFocused();
+    await page.locator('#toggle').click();
+    await page.locator('#toggle').click();
+    await assertFocused();
+    await page.locator('#swap').click();
+    await page.waitForFunction(() =>
+      document.querySelector('#state').textContent.includes('13 × 13'),
+    );
+    verify(
+      (await page.locator('#board-host [data-variation-hint]').count()) === 0,
+      `${framework}: old variation hints survived controller swap`,
+    );
+    await page.locator('#swap').click();
+    await assertFocused();
+    await page.locator('#focus-variations').click();
+    await page.waitForFunction(
+      () => document.querySelectorAll('[data-variation-hint]').length === 0,
+    );
+    verify(
+      (await viewer.locator('[data-node]').count()) === allRows,
+      `${framework}: all-variation mode did not restore rows`,
+    );
     await page.screenshot({ path: `output/playwright/${framework}-adapter.png`, fullPage: true });
   }
   verify(errors.length === 0, `Framework browser errors: ${errors.join('; ')}`);
