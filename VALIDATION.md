@@ -3,6 +3,34 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Measured Browser Review Results
+
+The full Chrome 155 comparison completed on 2026-10-22 with two warmups/eight
+samples per timing condition and three independent memory contexts per version.
+All 6 memory lifecycles, 128 navigation samples and 48 restore samples passed
+correctness checks. Source/harness/fixture provenance and complete raw samples
+are in `output/playwright/review-browser-comparison.json`.
+
+- After first-tab close and forced GC, median extra JS heap fell from 6.439 MiB
+  to 0.179 MiB. The closed first controller/record stayed alive in all three old
+  runs and were collected in all three fixed runs. Later-tab controls were
+  collected in both versions. This is not natural-GC scheduling/total-process RAM.
+- For the 5,000-move, 5,080,904-byte backup, clean-start restore through two browser
+  frames fell from median 412.05 to 310.20 ms (24.7%). Guarded restore excluding
+  approval wait fell from 452.25 to 355.75 ms (21.3%). Final SDK validation remains.
+- Move-number large/end handler burst averages were essentially unchanged:
+  11.820 to 11.743 ms/action. Early/collection changes overlap noise/control gains;
+  single-click two-frame timing also changes in both directions. This run does
+  not demonstrate improved user-visible move-number navigation latency.
+
+The [complete comparison](docs/engineering/34-browser-review-comparison.md)
+records inputs, all conditions, ranges, counter-results, method and limits.
+Harness lint/types/format, actual pilot/full browser runs and docs checks passed.
+The product's 351-test/full package suite was not repeated for measurement-only
+scripts/docs. Product APIs, persistence schemas, dependencies/version and CI jobs
+are unchanged; no push or release was performed. Skills: refactor, ops-change and
+Playwright.
+
 ## Browser Review Comparison Runner
 
 `bun scripts/review-browser-benchmark.ts` compares committed `6ecd86c` and

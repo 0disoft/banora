@@ -112,6 +112,9 @@ and offline Git restoration, distinct from private provider authentication.
 [Consolidated Studio menu deployment](engineering/33-studio-menu-deployment.md)
 records the compact menu, grouped settings, affected CI, public byte health and
 actual public-browser verification without a new npm release.
+[Browser review comparison](engineering/34-browser-review-comparison.md) records
+measured before/after closed-tab collection, move-number navigation and backup
+restoration, including unchanged/noisy navigation outcomes and local-only limits.
 [Demo deployment](ops/demo-deployment.md) records the public source, GitHub private
 reporting and manually deployed Pages site. npm authority remains separate; these procedures
 do not establish hosted-service infrastructure or publication.
