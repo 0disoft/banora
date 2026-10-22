@@ -3,6 +3,19 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Move-Number Selected-Path Projection
+
+Board frames calculate numbers by walking the selected game/path instead of
+building a temporary whole-collection node map. Per-frame lazy reuse remains;
+no persistent index/cache was added. Focused board-record/replay/variation suites
+passed 8 tests / 168 assertions, covering root/intermediate setup, annotations,
+passes, MN overrides, branches, multiple games, pinned inspection, edit/Undo/Redo,
+held frames and no reads of unrelated subtree children.
+An old/new operation-count diagnostic over five fresh navigation states matched
+number results: string-keyed index insertions fell from 1,505 to zero at 301 nodes
+and from 25,005 to zero at 5,001 nodes. This verifies removed indexing work, not a
+browser latency percentage. Skills: SDK and refactor. Public API is unchanged.
+
 ## Successful Legacy Byte-Probe Recovery
 
 The bounded strict-decoder recovery also handles a syntactically successful byte

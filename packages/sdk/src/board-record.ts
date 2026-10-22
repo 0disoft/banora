@@ -32,16 +32,12 @@ export function recordBoardBinding(controller: RecordController, owned: boolean)
       numbers() {
         if (numbers) return numbers;
         numbers = new Map();
-        const nodes = new Map<string, typeof state.node>(),
-          pending = [...state.record.games];
-        while (pending.length) {
-          const node = pending.pop()!;
-          nodes.set(node.id, node);
-          pending.push(...node.children);
-        }
-        let number = 0;
-        for (const id of state.path) {
-          const node = nodes.get(id)!;
+        let number = 0,
+          node = state.record.games[state.gameIndex]!;
+        // Only the selected path contributes numbers; other games and fork
+        // descendants need neither traversal nor a temporary collection index.
+        for (let index = 0; index < state.path.length; index++) {
+          if (index) node = node.children.find((child) => child.id === state.path[index])!;
           for (const key of ['AB', 'AW', 'AE'])
             for (const value of node.properties[key] ?? []) {
               for (const point of expandSgfPoints(value, width, height))

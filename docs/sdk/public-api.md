@@ -707,6 +707,9 @@ controller. `compareTo` references another node and highlights added (+), remove
 are visible-stone differences, not evaluation, scoring or complete state equivalence.
 Logical highlights follow crop/transforms and are included in SVG/PNG diagrams;
 annotations/comments and move numbers come from the pinned node's actual path.
+Move-number projection walks only that path in its selected game, including root,
+setup and annotation nodes; it does not rebuild an index of unrelated branches
+or games. Each immutable frame retains its lazily computed number map.
 Pinned boards never issue their own play/ink/touch-aim commands or Page Up/Down
 navigation; optional `onPoint` remains a host-owned inspection callback.
 
