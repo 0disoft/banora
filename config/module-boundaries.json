@@ -10,6 +10,8 @@
     "analysis-types",
     "annotations",
     "automation",
+    "automation-limits",
+    "automation-operations",
     "automation-schema",
     "board-layout",
     "board-state",

@@ -1,25 +1,19 @@
 import { RecordController } from './controller.js';
-import type {
-  CommandResult,
-  MarkerKind,
-  ConnectionKind,
-  ControllerState,
-  MoveAssessment,
-} from './controller.js';
+import type { MarkerKind, ConnectionKind, ControllerState, MoveAssessment } from './controller.js';
 import type { Point, SetupStone, Color } from './core.js';
-import { play } from './core.js';
 import { recordNodeAt, serializeSgf, pointFromSgf } from './sgf.js';
 import type { RecordLocator } from './sgf.js';
 import { createBoardSnapshot } from './board-state.js';
 import type { BoardSnapshot } from './board-state.js';
-import { scorePosition } from './scoring.js';
 import type { ScoreOptions } from './scoring.js';
 import { getRuleProfile } from './rules.js';
 import type { RuleProfileId } from './rules.js';
 import type { RecordCheckpoint } from './checkpoint.js';
 import { isAutomationRequest } from './automation-schema.js';
-import { searchRecord } from './record-search.js';
 import type { RecordSearchOptions } from './record-search.js';
+import { AUTOMATION_LIMITS } from './automation-limits.js';
+import { executeOperation } from './automation-operations.js';
+import type { OperationBudget } from './automation-operations.js';
 import { DiagnosticJournal, describeDiagnosticFailure } from './diagnostics.js';
 import type {
   DiagnosticEnvironment,
@@ -105,6 +99,32 @@ function snapshot(state: ControllerState, key: string) {
     connections: state.connections,
     strokes: state.strokes,
   });
+}
+function recordResponse(
+  state: ControllerState,
+  request: Extract<AutomationRequest, { kind: 'record' }>,
+  results: unknown[],
+) {
+  return {
+    schemaVersion: 'banora.automation/v1' as const,
+    ok: true as const,
+    kind: 'record' as const,
+    snapshot: snapshot(state, request.stateKey ?? 'local-record'),
+    selection: locate(state),
+    selected: { id: state.node.id, properties: state.node.properties },
+    children: state.node.children.map((node, index) => ({
+      index,
+      id: node.id,
+      properties: node.properties,
+    })),
+    rules: state.position.rules,
+    passPrisoners: state.position.passPrisoners,
+    consecutivePasses: state.position.consecutivePasses,
+    history: { dirty: state.dirty, canUndo: state.canUndo, canRedo: state.canRedo },
+    results,
+    sgf: serializeSgf(state.record),
+    ...(request.includeTree ? { games: state.record.games } : {}),
+  };
 }
 /** Execute a checked batch on an isolated record. Failure returns no partially edited document. */
 export function executeAutomation(input: unknown) {
@@ -228,209 +248,24 @@ function runAutomation(input: unknown, journal?: DiagnosticJournal) {
       succeeded();
     }
     const results: unknown[] = [];
-    let legalPointBudget = 8192;
-    let recordToolBudget = 8;
+    let budget: OperationBudget = {
+      legalPointCells: AUTOMATION_LIMITS.legalPointCells,
+      recordToolCalls: AUTOMATION_LIMITS.recordToolCalls,
+    };
     for (const [index, operation] of (request.operations ?? []).entries()) {
       operationIndex = index;
       phase = Object.hasOwn(diagnosticOperations, operation.op)
         ? diagnosticOperations[operation.op]
         : 'edit';
-      if ((operation.op === 'search' || operation.op === 'comment-batch') && --recordToolBudget < 0)
-        return reject({
-          code: 'command-failed',
-          message: 'Record tools exceed the per-request 8-call budget.',
-          operationIndex: index,
-          reason: 'limit',
-        });
-      let result: CommandResult;
-      switch (operation.op) {
-        case 'play':
-          result = controller.play(operation.point);
-          break;
-        case 'previous':
-          result = controller.previous();
-          break;
-        case 'next':
-          result = controller.next(operation.variation);
-          break;
-        case 'goto':
-          result = controller.goTo(targetId(operation.target));
-          break;
-        case 'comment':
-          result = controller.setComment(operation.text);
-          break;
-        case 'move-assessment':
-          result = controller.setMoveAssessment(
-            operation.value,
-            operation.target ? targetId(operation.target) : undefined,
-          );
-          break;
-        case 'search': {
-          const { op: _op, ...options } = operation;
-          try {
-            results.push({
-              operationIndex: index,
-              op: operation.op,
-              value: searchRecord(controller.getState().record, options),
-            });
-            result = { ok: true };
-          } catch (error) {
-            if (!(error instanceof TypeError) && !(error instanceof RangeError)) throw error;
-            return reject({
-              code: 'command-failed',
-              message: 'Record search rejected its options or work/output bounds.',
-              operationIndex: index,
-              reason: error instanceof RangeError ? 'limit' : 'invalid-edit',
-            });
-          }
-          break;
-        }
-        case 'comment-batch': {
-          if (
-            operation.expectedSgf !== undefined &&
-            operation.expectedSgf !== serializeSgf(controller.getState().record)
-          ) {
-            result = { ok: false, reason: 'stale-preview' };
-            break;
-          }
-          const targets = new Map<string, RecordLocator>();
-          const changes = operation.changes.map(({ target, ...change }) => {
-            const nodeId = targetId(target);
-            targets.set(nodeId, target);
-            return { ...change, nodeId };
-          });
-          if (changes.some((change) => !change.nodeId)) {
-            result = { ok: false, reason: 'node-not-found' };
-            break;
-          }
-          const preview = controller.previewComments(changes);
-          if (!preview.ok) {
-            result = preview;
-            break;
-          }
-          result = operation.previewOnly ? { ok: true } : controller.applyComments(preview.preview);
-          if (result.ok)
-            results.push({
-              operationIndex: index,
-              op: operation.op,
-              value: {
-                applied: !operation.previewOnly,
-                edits: preview.preview.edits.map(({ nodeId, before, after }) => {
-                  const target = targets.get(nodeId)!;
-                  return {
-                    target: { gameIndex: target.gameIndex, path: [...target.path] },
-                    before,
-                    after,
-                  };
-                }),
-              },
-            });
-          break;
-        }
-        case 'marker':
-          result = controller.setMarker(operation.point, operation.kind, operation.label);
-          break;
-        case 'setup':
-          result = controller.setSetup(operation.stones, operation.toPlay);
-          break;
-        case 'connection':
-          result = controller.setConnection(
-            operation.from,
-            operation.to,
-            operation.kind,
-            operation.present,
-          );
-          break;
-        case 'stroke':
-          result = controller.addStroke(operation.points, operation);
-          break;
-        case 'remove-stroke':
-          result = controller.removeStroke(operation.id);
-          break;
-        case 'clear-strokes':
-          result = controller.clearStrokes();
-          break;
-        case 'remove-branch':
-          result = controller.removeBranch(
-            operation.target ? targetId(operation.target) : undefined,
-          );
-          break;
-        case 'reorder-branch':
-          result = controller.reorderBranch(targetId(operation.target), operation.index);
-          break;
-        case 'undo':
-          result = controller.undo();
-          break;
-        case 'redo':
-          result = controller.redo();
-          break;
-        case 'score': {
-          const score = scorePosition(controller.getState().position, operation);
-          if (!score.ok)
-            return reject(
-              {
-                code: 'command-failed',
-                message: score.message,
-                operationIndex: index,
-                reason: score.reason,
-              },
-              describeDiagnosticFailure('scoring', score.reason),
-            );
-          results.push({ operationIndex: index, op: operation.op, value: score.value });
-          result = { ok: true };
-          break;
-        }
-        case 'legal-points': {
-          const position = controller.getState().position,
-            points: Point[] = [];
-          legalPointBudget -= position.width * position.height;
-          if (legalPointBudget < 0)
-            return reject({
-              code: 'command-failed',
-              message: 'Legal-point queries exceed the per-request 8192-cell budget.',
-              operationIndex: index,
-              reason: 'limit',
-            });
-          for (let y = 0; y < position.height; y++)
-            for (let x = 0; x < position.width; x++)
-              if (play(position, { x, y }).ok) points.push({ x, y });
-          results.push({ operationIndex: index, op: operation.op, points, pass: true });
-          result = { ok: true };
-          break;
-        }
-      }
-      if (!result.ok)
-        return reject({
-          code: 'command-failed',
-          message: `Operation ${index} (${operation.op}) failed.`,
-          operationIndex: index,
-          reason: result.reason,
-        });
+      const execution = executeOperation(controller, operation, index, budget);
+      if (!execution.ok) return reject(execution.error, execution.descriptor);
+      budget = execution.budget;
+      if (execution.output !== undefined) results.push(execution.output);
       succeeded();
     }
     operationIndex = undefined;
     phase = 'export';
-    const state = controller.getState();
-    const response = {
-      schemaVersion: 'banora.automation/v1' as const,
-      ok: true as const,
-      kind: 'record' as const,
-      snapshot: snapshot(state, request.stateKey ?? 'local-record'),
-      selection: locate(state),
-      selected: { id: state.node.id, properties: state.node.properties },
-      children: state.node.children.map((node, index) => ({
-        index,
-        id: node.id,
-        properties: node.properties,
-      })),
-      rules: state.position.rules,
-      passPrisoners: state.position.passPrisoners,
-      consecutivePasses: state.position.consecutivePasses,
-      history: { dirty: state.dirty, canUndo: state.canUndo, canRedo: state.canRedo },
-      results,
-      sgf: serializeSgf(state.record),
-      ...(request.includeTree ? { games: state.record.games } : {}),
-    };
+    const response = recordResponse(controller.getState(), request, results);
     succeeded();
     let checkpoint: RecordCheckpoint | undefined;
     if (request.includeCheckpoint) {

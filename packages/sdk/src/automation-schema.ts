@@ -4,6 +4,7 @@ import { DEFAULT_SGF_LIMITS } from './sgf.js';
 import { freezeSchema, matches } from './json-schema.js';
 import type { Schema } from './json-schema.js';
 import { CHECKPOINT_SCHEMA } from './checkpoint.js';
+import { AUTOMATION_LIMITS } from './automation-limits.js';
 const text = (maxLength = 65_536): Schema => ({ type: 'string', maxLength });
 const integer = (minimum = 0, maximum = 52): Schema => ({ type: 'integer', minimum, maximum });
 const list = (items: Schema, maxItems: number): Schema => ({ type: 'array', items, maxItems });
@@ -173,7 +174,7 @@ export const AUTOMATION_SCHEMA = freezeSchema({
         profile,
         stateKey: text(512),
         selection: locator,
-        operations: list({ anyOf: operations }, 256),
+        operations: list({ anyOf: operations }, AUTOMATION_LIMITS.operations),
         includeTree: { type: 'boolean' },
       },
       ['schemaVersion', 'kind'],

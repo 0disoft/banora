@@ -185,3 +185,116 @@ test('snapshot diagnostics validate data while returning no display state', () =
   expect(sequence(report)).toEqual([['import', 'success']]);
   expect(JSON.stringify(report)).not.toMatch(/PRIVATE|stones|snapshot/);
 });
+
+test('schema validation precedes edits and tool limits precede stale or missing targets', () => {
+  const action = spyOn(RecordController.prototype, 'setComment');
+  try {
+    const malformed = executeAutomation({
+      ...base,
+      operations: [{ op: 'comment', text: 'never applied' }, { op: 'unknown' }],
+    });
+    expect(malformed.ok).toBe(false);
+    if (!malformed.ok) expect(malformed.error.code).toBe('invalid-request');
+    expect(action).not.toHaveBeenCalled();
+    const request = {
+      ...base,
+      operations: [
+        ...Array.from({ length: 8 }, () => ({ op: 'search', query: '' })),
+        {
+          op: 'comment-batch',
+          expectedSgf: '(;SZ[9])',
+          changes: [{ target: { gameIndex: 0, path: [999] }, text: 'missing' }],
+        },
+        { op: 'comment', text: 'never reached' },
+      ],
+    };
+    const limited = executeAutomation(request);
+    expect(limited.ok).toBe(false);
+    if (!limited.ok)
+      expect(limited.error).toEqual({
+        code: 'command-failed',
+        message: 'Record tools exceed the per-request 8-call budget.',
+        operationIndex: 8,
+        reason: 'limit',
+      });
+    const report = diagnoseAutomation(request);
+    expect(sequence(report)).toEqual([
+      ['import', 'success'],
+      ...Array.from({ length: 8 }, () => ['search' as const, 'success' as const]),
+      ['batch', 'failure'],
+    ]);
+    expect(action).not.toHaveBeenCalled();
+  } finally {
+    action.mockRestore();
+  }
+});
+
+test('comment batch reports stale input before missing targets and stops later edits', () => {
+  const action = spyOn(RecordController.prototype, 'setComment');
+  try {
+    for (const [expectedSgf, reason] of [
+      ['(;SZ[9])', 'stale-preview'],
+      [undefined, 'node-not-found'],
+    ] as const) {
+      const result = executeAutomation({
+        ...base,
+        operations: [
+          {
+            op: 'comment-batch',
+            ...(expectedSgf === undefined ? {} : { expectedSgf }),
+            changes: [{ target: { gameIndex: 0, path: [999] }, text: 'missing' }],
+          },
+          { op: 'comment', text: 'never reached' },
+        ],
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok)
+        expect(result.error).toEqual({
+          code: 'command-failed',
+          message: 'Operation 0 (comment-batch) failed.',
+          operationIndex: 0,
+          reason,
+        });
+    }
+    expect(action).not.toHaveBeenCalled();
+  } finally {
+    action.mockRestore();
+  }
+});
+
+test('checkpoint exceptions have no stale operation index and always dispose the controller', () => {
+  const checkpoint = spyOn(RecordController.prototype, 'createCheckpoint').mockImplementation(
+    () => {
+      throw Error('PRIVATE CHECKPOINT PATH');
+    },
+  );
+  const dispose = spyOn(RecordController.prototype, 'dispose');
+  try {
+    const request = {
+      ...base,
+      includeCheckpoint: true,
+      operations: [{ op: 'comment', text: 'PRIVATE' }],
+    };
+    const normal = executeAutomation(request);
+    expect(normal.ok).toBe(false);
+    if (!normal.ok) {
+      expect(normal.error.code).toBe('invalid-input');
+      expect(normal.error).not.toHaveProperty('operationIndex');
+    }
+    const report = diagnoseAutomation(request);
+    expect(report.ok).toBe(false);
+    expect(report).not.toHaveProperty('operationIndex');
+    expect(sequence(report)).toEqual([
+      ['import', 'success'],
+      ['edit', 'success'],
+      ['export', 'success'],
+      ['checkpoint', 'failure'],
+    ]);
+    expect(JSON.stringify(report)).not.toContain('PRIVATE');
+    expect(checkpoint).toHaveBeenCalledTimes(2);
+    expect(dispose).toHaveBeenCalledTimes(2);
+  } finally {
+    checkpoint.mockRestore();
+    dispose.mockRestore();
+  }
+});

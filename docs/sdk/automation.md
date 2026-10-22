@@ -26,6 +26,14 @@ query batches fail with reason `limit` instead of running unbounded repeated sca
 Whole-record `search` and `comment-batch` operations share eight calls per request;
 each obeys the [record tools bounds](public-api.md#whole-record-search-and-comment-batches).
 
+The private automation execution policy owns the operation, record-tool and
+legal-point budgets together. It is separate from diagnostic retention and
+record-tool result bounds. The entire request schema is checked before editing;
+each operation checks its budget before its semantic work and the first failure
+stops execution. Comment batches check the expected SGF before resolving targets.
+Splitting command handlers and response projection does not change these checks,
+error fields/messages, diagnostic stages or controller disposal.
+
 ```ts
 import {executeAutomation} from '@0disoft/banora/automation';
 const result = executeAutomation({

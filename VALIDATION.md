@@ -3,6 +3,37 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Automation Execution Ownership and Flow
+
+The automation coordinator delegates bounded search, comment batching, scoring
+and legal-point scans to private command handlers and projects its final record
+response separately. Its body decreased from 307 to 122 lines. Budgets are
+readonly values replaced by the coordinator; local result/point buffers retain
+linear push-based accumulation. A private policy groups only automation request
+limits (256 operations, eight record tools, 8,192 scanned cells); diagnostic
+retention and record-tool result limits remain separate policies. New modules are
+classified as headless in the existing boundary manifest.
+
+Focused automation/diagnostic tests passed 22 cases / 162 assertions. Added cases
+cover full schema validation before editing, tool-limit precedence over stale or
+missing targets, expected-SGF precedence, first-failure short circuit, checkpoint
+exceptions without a stale operation index, privacy and disposal. An independent
+local comparison against `d486ff7` matched the complete schema and responses plus
+diagnostics for 59 fixtures, including commands, branches, checkpoint output and
+budget boundaries. Temporary comparison modules were removed after the run.
+
+Combined `bun run check` passed without retries: 365 tests / 8,871 assertions
+across 62 files, lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types,
+146 documents / 741 links, packed SDK/classic/declarations and 298 installed CLI
+checks. The final documentation-only update was checked with `format` and `docs`.
+Browser checks, other operating systems, hosted CI and publication were skipped:
+this increment changes headless automation and does not establish new browser or
+cross-platform coverage. No performance speedup is claimed from this refactoring.
+
+Skills: bugfix, refactor and SDK. Source contracts changed: automation and this
+validation record. No public API signature/JSON schema, DB/storage schema,
+dependency/version, repository hygiene rule or CI/runner changes.
+
 ## Automation Comment Location Ownership
 
 Comment preview/apply responses copy the portable target and its path before
