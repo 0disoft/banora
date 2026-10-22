@@ -286,6 +286,13 @@ elapsed budget is checked between reads, so a single in-flight read can finish
 after it; the publishing job retains its 20-minute deadline. This replaces the
 ten-second window that stopped normal uploads during the documentation prerelease.
 Provider errors and byte/channel conflicts stop immediately. No upload is retried.
+Both handoff commands and the execution adapter force `--fetch-retries=0` for
+uploads; the adapter also sets the isolated npm configuration to zero. One npm
+process therefore cannot silently retry a registry PUT after a transient response
+failure. Read-only metadata confirmation keeps its separate bounded polling
+policy. A failed upload may still have reached the registry: inspect matching
+version, integrity and channel before an explicitly approved resume, never resend
+the upload automatically.
 Failures return `publication-uncertain`, with confirmed package progress
 and the attempted name/version. A failed npm process also supplies an allowlisted
 `npmCode` (or `unknown`), without provider messages, paths or raw logs.

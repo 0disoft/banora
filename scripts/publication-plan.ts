@@ -128,6 +128,7 @@ export async function publicationPlan(root: string, bundle: string, options: Pub
         '--registry',
         registry,
         '--provenance',
+        '--fetch-retries=0',
       ],
     })),
     prerequisites: [

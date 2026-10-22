@@ -9,7 +9,11 @@ import {
 } from 'node:fs';
 import { readFile, lstat } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import {
+  spawnSync,
+  type SpawnSyncOptionsWithStringEncoding,
+  type SpawnSyncReturns,
+} from 'node:child_process';
 import { publicationPlan } from './publication-plan.js';
 import { restoreRelease, verifyRelease, ReleaseError } from './release-artifacts.js';
 
@@ -141,7 +145,13 @@ export interface PublicationIO {
     cwd: string,
   ): { status: number | null; stdout: string; npmCode?: NpmFailureCode };
 }
-export function publicRegistryIO(root: string): PublicationIO {
+type NpmRunner = (
+  command: string,
+  args: readonly string[],
+  options: SpawnSyncOptionsWithStringEncoding,
+) => SpawnSyncReturns<string>;
+
+export function publicRegistryIO(root: string, run: NpmRunner = spawnSync): PublicationIO {
   let configDirectory: string | undefined;
   return {
     get context() {
@@ -175,12 +185,16 @@ export function publicRegistryIO(root: string): PublicationIO {
             !['npm_token', 'node_auth_token'].includes(key.toLowerCase()),
         ),
       );
+      const uploading = argv[1] === 'publish';
+      // Force the transport policy as well as command-level single execution.
+      // Last CLI value wins over inherited config or earlier command arguments.
+      const args = [...argv.slice(1), ...(uploading ? ['--fetch-retries=0'] : []), '--prefix', cwd];
       // npm otherwise searches ancestors for package.json/.npmrc, even inside an isolated bundle.
-      const result = spawnSync(argv[0]!, [...argv.slice(1), '--prefix', cwd], {
+      const result = run(argv[0]!, args, {
         cwd,
         encoding: 'utf8',
         shell: false,
-        timeout: argv[1] === 'publish' ? 180_000 : 30_000,
+        timeout: uploading ? 180_000 : 30_000,
         maxBuffer: 1024 * 1024,
         windowsHide: true,
         env: {
@@ -188,6 +202,7 @@ export function publicRegistryIO(root: string): PublicationIO {
           NPM_CONFIG_USERCONFIG: resolve(configDirectory, 'user.npmrc'),
           NPM_CONFIG_GLOBALCONFIG: resolve(configDirectory, 'global.npmrc'),
           NPM_CONFIG_LOGLEVEL: 'error',
+          ...(uploading ? { NPM_CONFIG_FETCH_RETRIES: '0' } : {}),
         },
       });
       return {

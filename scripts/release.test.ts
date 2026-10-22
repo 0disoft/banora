@@ -578,9 +578,44 @@ test('actual npm configuration cannot inherit ancestor project settings or use a
   const read = io.run(['npm', 'config', 'get', 'registry'], child);
   expect(read.status).toBe(0);
   expect(read.stdout.trim()).toBe('https://registry.npmjs.org/');
+  const retryRead = io.run(
+    ['npm', 'config', 'get', 'fetch-retries', '--fetch-retries=9', '--fetch-retries=0'],
+    child,
+  );
+  expect(retryRead.status).toBe(0);
+  expect(retryRead.stdout.trim()).toBe('0');
   await writeFile(resolve(child, '.npmrc'), 'registry=https://example.org/\n');
   expect(() => io.run(['npm', 'config', 'get', 'registry'], child)).toThrow('authority');
   expect(await readFile(resolve(root, '.npmrc'))).toEqual(before);
+});
+
+test('npm upload transport disables hidden retries while read configuration and uncertain failure handling remain separate', async () => {
+  await mkdir('.tmp', { recursive: true });
+  const root = await mkdtemp(resolve('.tmp/npm-write-once-'));
+  const calls: { args: readonly string[]; timeout?: number; retries?: string }[] = [];
+  const io = publicRegistryIO(root, (command, args, options) => {
+    expect(command).toBe('npm');
+    expect(options.shell).toBe(false);
+    calls.push({ args, timeout: options.timeout, retries: options.env?.NPM_CONFIG_FETCH_RETRIES });
+    return {
+      pid: 0,
+      output: [],
+      stdout: '',
+      stderr: 'npm error code ECONNRESET\n',
+      status: 1,
+      signal: null,
+    };
+  });
+  const failure = io.run(['npm', 'publish', './authored.tgz', '--fetch-retries=9'], root);
+  expect(failure).toEqual({ status: 1, stdout: '', npmCode: 'ECONNRESET' });
+  expect(calls).toHaveLength(1);
+  expect(calls[0]!.args.slice(-3)).toEqual(['--fetch-retries=0', '--prefix', root]);
+  expect(calls[0]).toMatchObject({ timeout: 180_000, retries: '0' });
+  io.run(['npm', 'view', '@0disoft/banora', '--json'], root);
+  expect(calls).toHaveLength(2);
+  expect(calls[1]).toMatchObject({ timeout: 30_000 });
+  expect(calls[1]!.retries).toBeUndefined();
+  expect(calls[1]!.args).not.toContain('--fetch-retries=0');
 });
 test('registry health binds all identities and downloaded bytes before isolated consumer checks and preserves original artifacts', async () => {
   const { root, bundle, request, io, calls, checks, downloads } = await registryFixture();
@@ -868,5 +903,8 @@ test('workflow presence is not publisher verification and stable/prerelease chan
       'Matching trusted publisher for each package, including direct-publish permission and optional environment.',
     );
     expect(plan.packages[0]!.publishArgv).toContain('--ignore-scripts');
+    expect(plan.packages.every((item) => item.publishArgv.includes('--fetch-retries=0'))).toBe(
+      true,
+    );
   }
 });

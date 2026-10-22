@@ -3,6 +3,27 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Attempt Publication Transport
+
+Publication handoff argv and the npm adapter explicitly disable npm HTTP retries
+for uploads, in addition to the existing single command attempt. The adapter's
+last CLI value overrides earlier retry arguments; isolated upload configuration
+also sets zero retries. Read-only metadata commands retain their existing timeout
+and propagation-poll policy. Uncertain uploads still stop subsequent packages and
+require registry identity/integrity/channel reconciliation before approved resume.
+
+Focused final release/check tests passed 28 cases / 264 assertions. A mocked npm
+transport verifies the forced argv/environment and one failed upload call; actual
+local `npm config get` verifies last-value precedence without network access.
+Existing uncertain-upload, fixed receipt, metadata polling, authority and integrity
+tests remain. Root types, lint, format, boundaries and docs passed. Full `check`
+for the preceding shutdown increment is recorded below; it was not repeated for
+this narrow transport-policy increment. Browser, hosted CI, other operating
+systems and actual registry publication were skipped; no live upload behavior is
+claimed. Skills: bugfix, ops-change and test-hardening. Source contracts changed:
+release operations and this record. No public SDK/receipt schema, DB/storage,
+dependency/version, hygiene or CI/runner policy changes.
+
 ## Release Check Stop Confirmation
 
 Release checks have an independent one-second exit-confirmation budget after a
