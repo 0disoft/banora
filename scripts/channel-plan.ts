@@ -143,8 +143,10 @@ export async function channelPlan(
   if (JSON.stringify(approved) !== JSON.stringify(confirmed))
     throw new ChannelPlanError('channel-integrity');
   const noop = version === request.expectedCurrentVersion;
+  const versionIndexes = first.map((item) => new Set(item.olderCommonCandidates));
+  // Filter the sorted first observation to retain its exact order and string matching.
   const olderCommonVersions = first[0]!.olderCommonCandidates.filter((v) =>
-    first.every((item) => item.olderCommonCandidates.includes(v)),
+    versionIndexes.every((versions) => versions.has(v)),
   );
   return {
     schemaVersion: 'banora.channel-plan/v1',

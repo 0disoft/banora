@@ -3,6 +3,25 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Indexed Common Rollback Versions
+
+Channel preflight builds per-package membership sets only after both observations
+and final byte verification. Filtering the first semantically sorted array keeps
+the original exact-string intersection and order. Duplicate/oversized metadata
+still fails, including the first observation; no registry read is skipped/cached.
+
+Focused channel tests passed 20 cases / 173 assertions, including mixed/shuffled
+inventories, semantic prerelease ordering, unchanged input, exactly 10,000 versions,
+10,001 refusal, duplicates and all existing drift/integrity/target/health checks.
+Root types and lint passed. An isolated source-expression comparison against
+`2d199fb`, two warmups/five timed runs, measured median 1,315.77 to 23.31 ms for
+five identical 10,000-version lists, including set construction; all outputs match.
+This removes quadratic membership work, not sorting/I/O, and does not establish
+an end-to-end release speedup. Browser/remote publication/hosted CI were skipped
+for this local operational change. Skills: bugfix, ops-change and test-hardening.
+Source contracts changed: release operations and this record. No SDK/receipt
+schema, DB/storage, dependency/version, hygiene or CI/runner policy changes.
+
 ## Single-Attempt Publication Transport
 
 Publication handoff argv and the npm adapter explicitly disable npm HTTP retries

@@ -352,6 +352,11 @@ a reviewed older bundle and explicit current version. It verifies source/hash,
 registry identity/integrity/tags twice and distinguishes `no-change` from a
 `rollback-plan`. It does not execute a tag command or weaken the publication gate;
 see [registry rollback boundaries](rollback.md#registry-and-data-boundaries).
+Older-common-version membership is indexed once per package, then filtered from
+the first sorted observation. Exact version strings, semantic output order,
+duplicate rejection and the 10,000-version metadata bound are retained. Both
+complete observations and the final retained-byte verification still run; the
+indexes live only for this preflight and never cache remote state across calls.
 
 ### Check a Registry Rollback Target Before Moving Tags
 

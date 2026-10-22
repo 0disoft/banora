@@ -112,6 +112,40 @@ test('whole-family channel preflight binds bytes, checks twice and distinguishes
   expect(noop.olderCommonVersions).toEqual([]);
 });
 
+test('common rollback versions retain semantic ordering, exact intersection and unmodified metadata', async () => {
+  const f = await fixture();
+  for (const [index, entry] of f.entries.entries()) {
+    entry.versions.push('0.1.0-alpha.10', '0.1.0-alpha.2', '0.0.10', '0.0.2', `0.0.${100 + index}`);
+    if (index === 4) entry.versions = entry.versions.filter((v) => v !== '0.0.10');
+    if (index % 2 === 0) entry.versions.reverse();
+  }
+  const before = JSON.stringify(f.entries);
+  const plan = await channelPlan(f.root, f.request, f.run);
+  expect(plan.olderCommonVersions).toEqual([
+    '0.0.2',
+    '0.1.0-alpha.2',
+    '0.1.0-alpha.10',
+    '0.1.0-dev.0',
+  ]);
+  expect(f.calls).toHaveLength(10);
+  expect(JSON.stringify(f.entries)).toBe(before);
+});
+
+test('channel intersection accepts the 10000-version ceiling and still rejects the next version', async () => {
+  const f = await fixture();
+  const common = Array.from({ length: 9997 }, (_, i) => `0.0.${i}`);
+  for (const entry of f.entries) entry.versions.push(...common);
+  const plan = await channelPlan(f.root, f.request, f.run);
+  expect(plan.olderCommonVersions).toEqual([...common, '0.1.0-dev.0']);
+  expect(f.calls).toHaveLength(10);
+  f.calls.length = 0;
+  f.entries[0]!.versions.push('0.0.9997');
+  await expect(channelPlan(f.root, f.request, f.run)).rejects.toMatchObject({
+    code: 'channel-metadata',
+  });
+  expect(f.calls).toHaveLength(1);
+});
+
 // Each independent failure case keeps its own bundle and Bun's default timeout.
 for (const [kind, code, reads] of [
   ['mixed', 'channel-drift', 3],
@@ -125,6 +159,7 @@ for (const [kind, code, reads] of [
   ['url', 'channel-metadata', 1],
   ['identity', 'channel-metadata', 1],
   ['missing', 'channel-metadata', 1],
+  ['duplicate', 'channel-metadata', 1],
   ['status', 'channel-metadata', 1],
 ] as const) {
   test(`channel plan rejects ${kind} without producing change commands`, async () => {
@@ -156,6 +191,11 @@ for (const [kind, code, reads] of [
           stdout: JSON.stringify({ ...JSON.parse(result.stdout), versions: ['0.1.0-dev.0'] }),
         };
       if (kind === 'transport') throw Error('Private provider body must never be reported');
+      if (kind === 'duplicate') {
+        const value = JSON.parse(result.stdout);
+        value.versions.push('0.1.0-dev.0');
+        return { status: 0, stdout: JSON.stringify(value) };
+      }
       if (kind === 'malformed') return { status: 0, stdout: 'Private provider body' };
       if (kind === 'oversized') return { status: 0, stdout: 'x'.repeat(1024 * 1024 + 1) };
       if (kind === 'mixed') f.entries[2]!['dist-tags'].dev = '0.1.0-dev.2';
