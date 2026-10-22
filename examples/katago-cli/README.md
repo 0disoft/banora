@@ -48,6 +48,22 @@ stdout into bounded complete UTF-8/CRLF lines. Stderr is separate diagnostics.
 EOF, spawn/write/pipe failures settle pending provider work. Oversized or malformed
 framing cannot build an unbounded host buffer. There is no automatic restart.
 
+The host writer admits at most 64 lines and 8 MiB of UTF-8 data including each LF
+and the in-flight write. Capacity refusal rejects that submission without adding
+work. Cancellation removes a queued, unsent query and suppresses its now-unneeded
+termination; an already-writing query still receives a scoped termination. Other
+callers retain FIFO order. This host limit is separate from the provider's pending
+query limit. It does not create a retry loop or an SDK transport policy.
+If a full queue cannot admit a necessary termination, the host shuts down instead
+of leaving that engine work running without a cancellation path.
+
+EOF, write/pipe/spawn failure and framing overflow automatically enter the same
+idempotent shutdown used by explicit `stop()`. The host rejects remaining writes,
+closes stdin, and retains the bounded forced-stop/exit-confirmation fallback above.
+Concurrent shutdown callers share one promise; failure logs a fixed message and
+remains observable through `stop()`. The optional second argument supplies spawn
+and shutdown deadlines for isolated host tests; the published SDK is unchanged.
+
 Always match the provider's declared perspective to the actual engine configuration.
 The host owns those settings; the SDK cannot infer them from the numbers. The CLI
 uses the supplied configuration's Black perspective. Rules and unsupported-context

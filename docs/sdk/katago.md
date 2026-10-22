@@ -68,6 +68,11 @@ transport or disposes a record. Dispose the analysis session first when its life
 ends. Failed termination writes are ignored because caller cancellation already
 settled; the host still owns deadlines, engine shutdown and resource recovery.
 
+The local process example additionally bounds its write FIFO by entries and UTF-8
+bytes, removes cancelled unsent queries and shuts down its owned process after a
+fatal stream failure. See its [host ownership contract](../../examples/katago-cli/README.md#ownership-and-failure-handling).
+These example policies do not close a transport borrowed by the SDK provider.
+
 ## Wire Conversion and Supported Contexts
 
 `createKataGoQuery(request,options)` returns a deeply immutable `KataGoQuery`,

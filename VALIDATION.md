@@ -3,6 +3,47 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## KataGo Host Cancellation and Failure Ownership
+
+The example host replaces its unbounded promise write chain with a FIFO limited
+to 64 entries and 8 MiB of UTF-8 data including LF and in-flight work. Scoped
+termination removes queued unsent queries, while an active query still receives
+its termination and other callers retain FIFO order. Cancellation of 100 queries
+behind a blocked writer now transmits two lines after resumption instead of the
+previously reproduced 200. Entry/byte capacity is released on removal/completion;
+closure settles remaining writers and idle waiters with fixed errors.
+
+EOF, spawn/write/pipe errors and framing overflow enter one shared shutdown
+promise. Failure closes admission, clears framing/writes, fails provider requests
+and reuses graceful EOF plus the existing forced-stop/exit-confirmation deadline.
+Explicit stop blocks new provider work synchronously; stream errors and other
+stop callers cannot start duplicate shutdowns. If a necessary termination cannot
+fit in the full queue, the host fails closed and shuts down the process. A fixed failure
+log excludes engine details; explicit `stop()` still exposes failed confirmation.
+Optional host spawn/deadline dependencies permit isolated failure tests without
+global module mocks or public SDK changes.
+
+Focused host/process and existing shutdown tests passed 18 cases / 155 assertions:
+100 cancellations, another caller's FIFO progress, exact UTF-8/entry capacity,
+termination admission failure, write errors, EOF/pipe/spawn failure, one shutdown
+lease, immediate stop rejection and the original forced-stop failure boundaries.
+Actual CPU KataGo smoke on Bun passed all 35 existing context/perspective and
+cancel/stale/dispose/stop/spawn/model checks using the retained local engine/model.
+The final host implementation also passed the same 35 actual engine checks on
+Node. Local evidence is in `.tmp/live-katago-D0Xe7x` (Bun) and
+`.tmp/live-katago-zo05hf` (Node); these ignored reports are execution evidence only.
+
+The final runtime `bun run check` passed: 378 tests / 9,019 assertions across 63
+files, lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types, 146
+documents / 742 links, packed SDK/classic/declarations and 298 installed CLI
+checks. The final documentation-only record update was checked with `format`
+and `docs`. Browser checks, other operating systems, hosted CI and publication
+were skipped because this increment changes the local host process bridge;
+no arbitrary remote transport, engine build/model or GPU support is claimed.
+Skills: bugfix, SDK, test-hardening and ops-change. Source contracts changed:
+KataGo host README, SDK KataGo guide and this validation record. No published API,
+DB/storage format, dependency/version, hygiene rule or CI/runner policy changes.
+
 ## Automation Execution Ownership and Flow
 
 The automation coordinator delegates bounded search, comment batching, scoring

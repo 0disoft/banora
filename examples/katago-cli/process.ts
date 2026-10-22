@@ -3,6 +3,7 @@ import { StringDecoder } from 'node:string_decoder';
 import { KataGoProvider } from '@0disoft/banora/katago';
 import type { KataGoPerspective } from '@0disoft/banora/katago';
 import { stopEngineProcess } from './shutdown.js';
+import { EngineWriter } from './writer.js';
 
 export interface LocalKataGoOptions {
   readonly binary: string;
@@ -16,7 +17,14 @@ export interface LocalKataGoOptions {
 }
 
 /** Example host bridge. Importing this file does not start an engine. */
-export function startLocalKataGo(options: LocalKataGoOptions) {
+export function startLocalKataGo(
+  options: LocalKataGoOptions,
+  runtime: {
+    spawn?: typeof spawn;
+    graceMs?: number;
+    confirmationMs?: number;
+  } = {},
+) {
   if (
     ![options.binary, options.model, options.config, options.cwd].every(
       (value) => typeof value === 'string' && value.length > 0,
@@ -25,7 +33,7 @@ export function startLocalKataGo(options: LocalKataGoOptions) {
   ) {
     throw TypeError('Supply engine/model/config/working paths and a reporting perspective');
   }
-  const child = spawn(
+  const child = (runtime.spawn ?? spawn)(
     options.binary,
     ['analysis', '-model', options.model, '-config', options.config],
     {
@@ -40,30 +48,25 @@ export function startLocalKataGo(options: LocalKataGoOptions) {
   let buffer = '';
   let unavailable = false;
   let closing = false;
-  let writeQueue = Promise.resolve();
   let stopPromise: Promise<void> | undefined;
+  let processClosed = false;
+  const writer = new EngineWriter(
+    (line) =>
+      new Promise<void>((resolve, reject) => {
+        if (unavailable || closing) {
+          reject(new Error('Engine is closed'));
+          return;
+        }
+        options.onStdinLine?.(line);
+        child.stdin.write(line + '\n', 'utf8', (error) => (error ? reject(error) : resolve()));
+      }),
+    disconnect,
+  );
   const provider = new KataGoProvider(
     {
       sendLine(line) {
         if (unavailable || closing) return Promise.reject(new Error('Engine is closed'));
-        const written = writeQueue.then(
-          () =>
-            new Promise<void>((resolve, reject) => {
-              if (unavailable || closing) {
-                reject(new Error('Engine is closed'));
-                return;
-              }
-              options.onStdinLine?.(line);
-              child.stdin.write(line + '\n', 'utf8', (error) =>
-                error ? reject(error) : resolve(),
-              );
-            }),
-        );
-        // Keep call order while allowing failed writes to settle every caller.
-        writeQueue = written.catch(() => {
-          disconnect();
-        });
-        return written;
+        return writer.sendLine(line);
       },
     },
     { perspective: options.perspective },
@@ -73,6 +76,12 @@ export function startLocalKataGo(options: LocalKataGoOptions) {
     if (unavailable) return;
     unavailable = true;
     provider.fail();
+    writer.close();
+    buffer = '';
+    if (!processClosed)
+      void stop().catch(() => {
+        console.error('KataGo engine shutdown could not be confirmed.');
+      });
   }
   function frame(text: string): void {
     buffer += text;
@@ -92,7 +101,6 @@ export function startLocalKataGo(options: LocalKataGoOptions) {
     } catch {
       buffer = '';
       disconnect();
-      child.kill();
     }
   });
   child.stdout.once('end', () => {
@@ -118,22 +126,39 @@ export function startLocalKataGo(options: LocalKataGoOptions) {
   child.stderr.once('error', disconnect);
   const exited = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) => {
     child.once('close', (code, signal) => {
+      processClosed = true;
       disconnect();
       resolve({ code, signal });
     });
   });
 
-  return Object.freeze({
-    provider,
-    exited,
-    stop(): Promise<void> {
-      if (stopPromise) return stopPromise;
-      // Send scoped termination before closing the writer; flush queued writes.
-      provider.dispose();
-      stopPromise = stopEngineProcess(child, exited, writeQueue, () => {
-        closing = true;
+  function stop(): Promise<void> {
+    if (!stopPromise) {
+      // Establish the single shutdown lease before disposal can call host code again.
+      stopPromise = Promise.resolve().then(async () => {
+        try {
+          await stopEngineProcess(
+            child,
+            exited,
+            writer.idle(),
+            () => {
+              closing = true;
+              writer.close();
+            },
+            runtime.graceMs,
+            runtime.confirmationMs,
+          );
+        } finally {
+          closing = true;
+          writer.close();
+          buffer = '';
+        }
       });
-      return stopPromise;
-    },
-  });
+      // Block new provider work synchronously, while keeping termination writes ordered.
+      provider.dispose();
+    }
+    return stopPromise;
+  }
+
+  return Object.freeze({ provider, exited, stop });
 }
