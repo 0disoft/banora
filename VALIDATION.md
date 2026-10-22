@@ -3,6 +3,32 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## CLI Temporary File Ownership
+
+Combined `bun run check` passed without retries: 360 tests / 8,834 assertions
+across 62 files, lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types,
+146 documents / 741 links, packed SDK/classic/declarations and 298 installed CLI
+checks. The prepared production example build and Chrome 155 `--playback-only`
+and `--recovery-only` smoke checks passed on the final runtime code. Playback
+covered six consumer lifecycles with real timers; recovery covered real IndexedDB,
+reload/two tabs, capacity/quota, backups, approval guards and deletion. Other browser
+engines, physical devices, hosted CI and publication were not run. Skills also
+include Playwright. Only documentation evidence changed after these checks.
+
+CLI output now exclusively opens a temporary file and records ownership before
+writing, closes it before publication and only cleans up an owned path. A refused
+creation no longer deletes a colliding existing file. Required save arguments,
+fixed output errors, input-alias protection and exclusive/force publication remain.
+Private optional filesystem/ID dependencies allow isolated failure injection.
+
+Six focused tests / 28 assertions passed using fresh real temporary directories:
+collision with and without force, partial write, close failure, exclusive-output
+refusal, normal/forced publication, cleanup and input preservation. Failed write
+and close cases still perform real file creation/write/close before injecting the
+error. Skills: bugfix, test-hardening, ops-change. Source contracts changed:
+automation and this validation record. No CLI flags/response schema, DB/storage
+schema, dependency/version, CI jobs or runner policy changes.
+
 ## Deterministic Playback and Autosave Failure Isolation
 
 Playback options add an optional asynchronous scheduler and AbortSignal without

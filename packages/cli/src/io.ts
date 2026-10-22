@@ -1,5 +1,6 @@
 import { createReadStream } from 'node:fs';
-import { link, realpath, rename, unlink, writeFile } from 'node:fs/promises';
+import { link, open, realpath, rename, unlink } from 'node:fs/promises';
+import type { FileHandle } from 'node:fs/promises';
 import { resolve, dirname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
@@ -42,34 +43,53 @@ export function json(bytes: Buffer): unknown {
     throw new CliError('input', 'Expected valid UTF-8 JSON.');
   }
 }
+interface OutputIO {
+  realpath(path: string): Promise<string>;
+  open(path: string, flags: 'wx'): Promise<Pick<FileHandle, 'writeFile' | 'close'>>;
+  link(source: string, destination: string): Promise<void>;
+  rename(source: string, destination: string): Promise<void>;
+  unlink(path: string): Promise<void>;
+  createId(): string;
+}
+const outputIO: OutputIO = { realpath, open, link, rename, unlink, createId: randomUUID };
+
 export async function saveOutput(
   path: string,
   text: string,
   inputs: readonly string[],
   force: boolean,
+  overrides: Partial<OutputIO> = {},
 ): Promise<string> {
+  const io = { ...outputIO, ...overrides };
   const output = resolve(path),
     fold = (value: string) => (process.platform === 'win32' ? value.toLowerCase() : value);
-  const canonicalOutput = await realpath(output).catch(() => output);
+  const canonicalOutput = await io.realpath(output).catch(() => output);
   for (const input of inputs.filter((item) => item !== '-')) {
     if (
       fold(output) === fold(resolve(input)) ||
-      fold(canonicalOutput) === fold(await realpath(input).catch(() => resolve(input)))
+      fold(canonicalOutput) === fold(await io.realpath(input).catch(() => resolve(input)))
     )
       throw new CliError('output', 'Output must not replace an input file, including aliases.');
   }
-  const temporary = join(dirname(output), `.banora-${randomUUID()}.tmp`);
+  const temporary = join(dirname(output), `.banora-${io.createId()}.tmp`);
+  let owned = false;
   try {
-    await writeFile(temporary, text, { flag: 'wx' });
-    if (force) await rename(temporary, output);
-    else await link(temporary, output); // Exclusive publication of an already complete file.
+    const file = await io.open(temporary, 'wx');
+    owned = true;
+    try {
+      await file.writeFile(text);
+    } finally {
+      await file.close();
+    }
+    if (force) await io.rename(temporary, output);
+    else await io.link(temporary, output); // Exclusive publication of an already complete file.
   } catch {
     throw new CliError(
       'output',
       'Output could not be saved; use a new path or --force for an existing output.',
     );
   } finally {
-    await unlink(temporary).catch(() => {});
+    if (owned) await io.unlink(temporary).catch(() => {});
   }
   return output;
 }

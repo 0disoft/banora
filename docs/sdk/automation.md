@@ -126,7 +126,10 @@ commands. Exact flags, exit codes and file preservation are discoverable through
 per process, including errors; package-manager banners are outside that contract.
 
 Output files are explicit and saved only after success. Complete temporary files
-are published exclusively by default; `--force` replaces existing output, while
+are exclusively created and closed before publication. Cleanup only removes a
+temporary file whose creation succeeded; a name collision preserves the existing
+file. Write/close/publication failures preserve the previous output.
+They are published exclusively by default; `--force` replaces existing output, while
 input paths/realpath aliases remain protected. Input reads are bounded to 8 MiB,
 with existing SGF byte/structure limits inside the SDK. No interactive prompts,
 browser launch, automatic transport or application adoption occurs.
