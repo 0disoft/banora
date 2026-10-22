@@ -1,6 +1,58 @@
 import { expect, test } from 'bun:test';
 import { executeAutomation, AUTOMATION_SCHEMA } from '../src/automation.js';
 
+test('comment preview and apply return independent locations without freezing caller input or response', () => {
+  for (const previewOnly of [true, false]) {
+    const target = { gameIndex: 0, path: [0] };
+    const request = {
+      schemaVersion: 'banora.automation/v1',
+      kind: 'record',
+      sgf: '(;SZ[9];B[aa]C[old])',
+      operations: [{ op: 'comment-batch', previewOnly, changes: [{ target, text: 'new' }] }],
+    };
+    const original = JSON.stringify(request);
+    const result = executeAutomation(request);
+    if (!result.ok || result.kind !== 'record') throw Error('Expected record response');
+    const entry = result.results[0] as {
+      value: { applied: boolean; edits: { target: { gameIndex: number; path: number[] } }[] };
+    };
+    const returned = entry.value.edits[0]!.target;
+    expect(entry.value.applied).toBe(!previewOnly);
+    expect(JSON.stringify(request)).toBe(original);
+    expect(returned).toEqual(target);
+    expect(returned).not.toBe(target);
+    expect(returned.path).not.toBe(target.path);
+    target.path[0] = 3;
+    target.gameIndex = 1;
+    expect(returned).toEqual({ gameIndex: 0, path: [0] });
+    returned.path.push(2);
+    returned.gameIndex = 2;
+    expect(target).toEqual({ gameIndex: 1, path: [3] });
+  }
+});
+
+test('comment responses also own locations supplied through frozen request data', () => {
+  const target = Object.freeze({ gameIndex: 0, path: Object.freeze([0]) });
+  const request = Object.freeze({
+    schemaVersion: 'banora.automation/v1',
+    kind: 'record',
+    sgf: '(;SZ[9];B[aa])',
+    operations: Object.freeze([
+      Object.freeze({
+        op: 'comment-batch',
+        previewOnly: true,
+        changes: Object.freeze([Object.freeze({ target, text: 'new' })]),
+      }),
+    ]),
+  });
+  const result = executeAutomation(request);
+  if (!result.ok || result.kind !== 'record') throw Error('Expected record response');
+  const entry = result.results[0] as { value: { edits: { target: { path: number[] } }[] } };
+  entry.value.edits[0]!.target.path.push(1);
+  expect(target.path).toEqual([0]);
+  expect(entry.value.edits[0]!.target.path).toEqual([0, 1]);
+});
+
 test('automation discovers whole-record search and portable comment previews without changing the document', () => {
   const sgf =
     '(;SZ[5]C[root]XX[keep];B[aa](;W[bb]C[first target])(;W[cc]C[second target]))(;SZ[9]C[another target])';

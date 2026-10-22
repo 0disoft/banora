@@ -3,6 +3,16 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Automation Comment Location Ownership
+
+Comment preview/apply responses copy the portable target and its path before
+returning. Response fields, mutability, validation order and errors are unchanged;
+responses no longer expose aliases into caller request data. Focused tests cover
+both preview/apply, mutation in both directions, unchanged input and frozen input
+with independently mutable returned paths. Skills: bugfix and SDK. Source contracts
+changed: automation and this validation record. No public signature, storage
+schema, version/dependency, repository hygiene or CI/runner changes.
+
 ## CLI Temporary File Ownership
 
 Combined `bun run check` passed without retries: 360 tests / 8,834 assertions

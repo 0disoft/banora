@@ -76,6 +76,9 @@ targets in `results[].value:{applied:false,edits}` without altering source/histo
 Default application is atomic, preserves the current selection and makes one Undo
 entry; its result has `applied:true`. Missing/duplicate targets, stale expected text,
 limits or malformed entries fail the whole isolated request.
+Returned comment-edit targets and their path arrays are independent copies of
+request locations. Changing either a request location or its returned counterpart
+cannot modify the other; caller input is not frozen as a side effect.
 
 For review across separate terminal calls, take the successful preview-only
 response's canonical `sgf` (with no later edits in that request) and pass it as

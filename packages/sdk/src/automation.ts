@@ -315,11 +315,14 @@ function runAutomation(input: unknown, journal?: DiagnosticJournal) {
               op: operation.op,
               value: {
                 applied: !operation.previewOnly,
-                edits: preview.preview.edits.map(({ nodeId, before, after }) => ({
-                  target: targets.get(nodeId)!,
-                  before,
-                  after,
-                })),
+                edits: preview.preview.edits.map(({ nodeId, before, after }) => {
+                  const target = targets.get(nodeId)!;
+                  return {
+                    target: { gameIndex: target.gameIndex, path: [...target.path] },
+                    before,
+                    after,
+                  };
+                }),
               },
             });
           break;
