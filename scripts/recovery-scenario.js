@@ -310,6 +310,30 @@ async (rootPage, studioControl) => {
     .setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{bad') });
   await expect(page.locator('#draft-message')).toHaveText('Invalid backup. Current record kept.');
   await expect(page.locator('#comment')).toHaveValue('unfinished 한국어 <tag>');
+  // A well-formed backup envelope with invalid SGF must fail before dirty approval.
+  await page.locator('#backup-file').setInputFiles({
+    name: 'bad-checkpoint.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(
+      JSON.stringify({
+        schemaVersion: 'banora.studio-draft/v1',
+        id: 'invalid-checkpoint',
+        filename: 'invalid.sgf',
+        updatedAt: 1,
+        revision: 1,
+        checkpoint: {
+          schemaVersion: 'banora.checkpoint/v1',
+          sgf: '(;SZ[9];B[invalid])',
+          baselineSgf: '(;SZ[9])',
+          selection: { gameIndex: 0, path: [] },
+          rules: { suicide: 'forbid', ko: 'simple', passStones: false },
+        },
+      }),
+    ),
+  });
+  await expect(page.locator('#draft-message')).toHaveText('Invalid backup. Current record kept.');
+  await expect(page.locator('#unsaved')).not.toBeVisible();
+  await expect(page.locator('#comment')).toHaveValue('unfinished 한국어 <tag>');
   // A closed recovery operation must not parse late input or change a reopened dialog.
   await page.evaluate(() => {
     const read = File.prototype.text,

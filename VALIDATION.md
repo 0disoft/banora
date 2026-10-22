@@ -3,6 +3,36 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Review Fixes: Restore Handoff and Combined Verification
+
+Studio's restore input boundary validates before approval and passes the owned
+immutable checkpoint to the typed replacement callback. The approval handler no
+longer discards/repeats that result. The SDK still independently validates its own
+limits: two checkpoint validations per restore instead of three (four SGF parses
+instead of six when working/baseline SGFs differ). No trusted public bypass or
+checkpoint schema change was added. Focused restore-input/draft-session/checkpoint
+tests passed 17 cases / 384 assertions, including one preparation parse, one final
+SDK validation, input ownership, strict limits, dirty guards and Undo.
+
+The combined `bun run check` passed: 351 tests / 8,769 assertions across 61 files;
+lint/format/boundaries; SDK, adapter and CLI builds; root/Svelte types; 145 documents
+/ 739 links; packed SDK/classic/declarations and 298 installed CLI checks.
+The existing build artifacts were reused for `build:examples:prepared`. Chrome 155
+focused `--recovery-only`, `--workspace-only` and `--framework-only` scenarios all
+passed on the final source. Recovery coverage includes real IndexedDB/reload/two
+tabs, cancel/export approval, malformed input, a valid JSON draft with invalid SGF
+rejected before dirty approval, stale/late operations and revision-checked deletion.
+Workspace coverage includes initial-tab close and independent histories. Framework
+coverage includes variation updates, remount and controller replacement.
+
+Full cross-browser smoke and browser heap/latency profiling were not rerun. The
+reference-release diagnostic and indexing counts above/below do not claim browser
+memory amounts or latency percentages. Public API, storage schema, dependencies,
+versions and CI workflow/job topology are unchanged. A local `--framework-only` runner flag
+was added for the existing framework scenario. Skills: bugfix, SDK, refactor and
+Playwright. Source contracts changed: public API explanation, encoding compatibility,
+recovery and product specification.
+
 ## Move-Number Selected-Path Projection
 
 Board frames calculate numbers by walking the selected game/path instead of
@@ -40,7 +70,7 @@ Chrome 155, retaining the prior lifecycle, editing/Undo and callback checks.
 `build:examples`, root/Svelte type checks and focused lint passed. The new narrow
 runner flag reuses the existing scenario and cleanup; full smoke still runs it.
 Public options are unchanged; this fixes their adapter behavior. Skills: bugfix,
-SDK and Playwright. Combined full local checks follow the remaining review fixes.
+SDK and Playwright. Combined full local checks are recorded above.
 
 ## Closed Initial Studio Tab Ownership
 
@@ -52,7 +82,7 @@ comparison against the prior implementation retained the old first controller
 and record, while collecting the old second tab and both fixed closed tabs.
 This confirms reference release in that diagnostic, not a browser heap-size or
 latency measurement. No SDK disposal semantics or public API changed.
-Skills: bugfix and SDK. Browser checks are deferred to the combined review fixes.
+Skills: bugfix and SDK. Combined browser workspace checks are recorded above.
 
 ## Parser Subphase Profile and Plain Value Boundaries
 

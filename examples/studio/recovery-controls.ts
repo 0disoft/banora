@@ -1,19 +1,14 @@
 import type { RecordController } from '@0disoft/banora/controller';
-import { parseRecordCheckpoint } from '@0disoft/banora/checkpoint';
+import type { RecordCheckpoint } from '@0disoft/banora/checkpoint';
 import { DraftAutosave } from './draft-session.js';
 import type { AutosaveStatus } from './draft-session.js';
-import {
-  DRAFT_BACKUP_BYTES,
-  DraftError,
-  DraftStore,
-  isDraftEntry,
-  safeDraftFilename,
-} from './draft-store.js';
+import { DRAFT_BACKUP_BYTES, DraftError, DraftStore, safeDraftFilename } from './draft-store.js';
 import type { DraftEntry, StudioDraft } from './draft-store.js';
 import { localizeUi, setUiText, getUiLocale } from '../ui-language.js';
 import type { StudioDiagnostics } from './diagnostics.js';
 import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
 import type { StudioWorkspace } from './workspace.js';
+import { prepareDraftRestore } from './restore-input.js';
 
 const statusText: Record<AutosaveStatus, string> = {
   idle: '',
@@ -35,7 +30,7 @@ export function mountRecoveryControls(
   options: {
     diagnostics?: StudioDiagnostics;
     filename(): string;
-    replace(checkpoint: unknown, filename: string, signal: AbortSignal): Promise<boolean>;
+    replace(checkpoint: RecordCheckpoint, filename: string, signal: AbortSignal): Promise<boolean>;
     autosave: boolean;
     workspace?: StudioWorkspace;
     onAutosaveChange(enabled: boolean): void;
@@ -167,15 +162,10 @@ export function mountRecoveryControls(
       setUiText(message, 'Record changed. Try again.');
       return;
     }
-    if (
-      !isDraftEntry(value) ||
-      !('checkpoint' in value) ||
-      !parseRecordCheckpoint(value.checkpoint).ok
-    )
-      throw new DraftError('invalid');
+    const prepared = prepareDraftRestore(value);
     const result = await options.replace(
-      value.checkpoint,
-      value.filename,
+      prepared.checkpoint,
+      prepared.filename,
       operationAbort?.signal ?? signal,
     );
     if (disposed || sequence !== requestSequence) return;

@@ -410,7 +410,9 @@ record replacement or page exit, so earlier input cannot overwrite the current r
 Portable SDK/terminal checkpoints preserve the working record, export baseline,
 selected location and explicit rules. Hosts own persistence; Studio implements
 bounded local autosave, guarded restore, selected/current portable backups and
-explicit revision-checked deletion. Selection changes and starting/applying a
+explicit revision-checked deletion. Recovery validates once before approval,
+passes the owned immutable checkpoint internally, and leaves final validation
+under the destination SDK controller's limits intact. Selection changes and starting/applying a
 refreshed draft list cancel prior deletion confirmation and its prompt; a new
 selection/revision requires confirmation again. Sessions/tabs keep distinct drafts, storage
 failure retains editing/SGF export, and no unsaved work is silently evicted.

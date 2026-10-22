@@ -12,7 +12,6 @@ import {
   mountBoard,
   mountComparison,
   mountPlaybackControls,
-  parseRecordCheckpoint,
   variationCandidates,
   getMoveAssessment,
   pointToSgf,
@@ -25,6 +24,7 @@ import type {
   MarkerKind,
   Point,
   RecordLocator,
+  RecordCheckpoint,
   SgfNode,
   SgfRecord,
   StoneTextures,
@@ -499,22 +499,17 @@ async function openFile(selected?: File): Promise<void> {
     if (current()) showStatus(() => formatUiFailure('io-read', { locale: getUiLocale() }));
   }
 }
-async function openCheckpoint(input: unknown, name: string, signal: AbortSignal): Promise<boolean> {
+/** Only recovery controls supply prevalidated, independently owned checkpoint data. */
+async function openCheckpoint(
+  input: RecordCheckpoint,
+  name: string,
+  signal: AbortSignal,
+): Promise<boolean> {
   if (opening || disposed || signal.aborted) return false;
   const complete = diagnostics.begin('restore');
   let finished = false;
   opening = true;
   try {
-    const parsed = parseRecordCheckpoint(input);
-    if (!parsed.ok) {
-      complete({
-        status: 'failure',
-        failure: describeDiagnosticFailure('controller', 'invalid-checkpoint'),
-      });
-      finished = true;
-      showStatus('Invalid backup. Current record kept.');
-      return false;
-    }
     const approved = await mayReplace(signal);
     if (!approved || disposed || signal.aborted) return false;
     if (controller.getState().record !== approved) {
@@ -528,7 +523,7 @@ async function openCheckpoint(input: unknown, name: string, signal: AbortSignal)
     }
     const previousName = workspace.active.filename;
     workspace.rename(safeDraftFilename(name));
-    const result = controller.loadCheckpoint(parsed.value, { discardChanges: true });
+    const result = controller.loadCheckpoint(input, { discardChanges: true });
     if (!result.ok) {
       complete({
         status: 'failure',
