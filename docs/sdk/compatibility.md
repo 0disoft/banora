@@ -319,6 +319,9 @@ Multibyte trail bytes are decoded before treating them as SGF escapes or
 delimiters; property character limits apply to decoded text. Recovery from an
 ambiguous byte probe requires a matching real root `CA` declaration (or UTF-8
 BOM); it does not guess an undeclared legacy encoding from comment content.
+This bounded strict-decoder recovery also applies when the byte probe parses
+successfully but reports mixed or unsupported root encodings. Delimiter-like
+trail bytes must not turn valid comment contents into fictional collection roots.
 String input is already decoded, so CA does not re-decode it. Only UTF-8/Latin-1
 have fixture evidence so far; other decoder paths need fixtures before broad
 encoding compatibility claims. Missing FF/GM are accepted under this FF4 Go subset;

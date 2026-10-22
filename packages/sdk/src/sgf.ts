@@ -487,9 +487,10 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
       };
     }
   };
-  if (!probe.ok) {
+  const recover = (failure: SgfResult): SgfResult => {
     // Multibyte trail bytes can resemble SGF escapes/delimiters, and the ASCII
-    // probe counts bytes rather than decoded characters. Accept recovery only
+    // probe can even succeed with fictional roots/CA labels inside a comment.
+    // It also counts bytes rather than decoded characters. Accept recovery only
     // when a real root CA (or UTF-8 BOM) agrees with the strict decoder.
     for (const encoding of ['utf-8', 'shift-jis', 'gb18030', 'euc-kr']) {
       const decoded = decode(encoding);
@@ -498,14 +499,15 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
         if (declared !== undefined && decoderLabel(declared) === encoding) return decoded;
       }
     }
-    return probe;
-  }
+    return failure;
+  };
+  if (!probe.ok) return recover(probe);
   const encoding = encodingOf(probe.record);
   if (encoding === undefined)
-    return {
+    return recover({
       ok: false,
       diagnostics: [{ code: 'encoding', message: 'Mixed-encoding collections are not supported' }],
-    };
+    });
   const supported = new Set([
     'utf-8',
     'utf8',
@@ -518,16 +520,16 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
     'euc-kr',
   ]);
   if (!supported.has(encoding))
-    return {
+    return recover({
       ok: false,
       diagnostics: [{ code: 'encoding', message: `Unsupported SGF encoding: ${encoding}` }],
-    };
+    });
   const decoded = decode(encoding);
   if (decoded.ok && encodingOf(decoded.record) !== encoding)
-    return {
+    return recover({
       ok: false,
       diagnostics: [{ code: 'encoding', message: 'Mixed-encoding collections are not supported' }],
-    };
+    });
   return decoded;
 }
 

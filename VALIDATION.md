@@ -3,6 +3,18 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Successful Legacy Byte-Probe Recovery
+
+The bounded strict-decoder recovery also handles a syntactically successful byte
+probe that mistakes Shift_JIS/GB18030 comment trail bytes for delimiters and root
+CA declarations. Recovery still requires every real root to agree with the fatal
+decoder and preserves configured limits. SGF/import/comment-validation suites
+passed 29 tests / 606 assertions. New cases cover the two reported byte fixtures,
+comment preservation, UTF-8 reopening, exact value limits, byte limits, actual
+mixed collections and failed controller imports retaining snapshots/export tickets.
+Existing fake-CA, malformed bytes and escape-trail cases remain covered. No API,
+dependency or encoding-support expansion was introduced. Skills: bugfix and SDK.
+
 ## Framework Variation Option Forwarding
 
 React, Vue and Svelte forward `Board.variationHints` and `Viewer.variationMode`

@@ -137,6 +137,42 @@ describe('SGF FF4 preservation', () => {
     expect(decodeSgf(broken).ok).toBe(false);
     expect(decodeSgf(new TextEncoder().encode('(;CA[UTF-8])(;CA[ISO-8859-1])')).ok).toBe(false);
   });
+  test('a successful byte probe cannot turn legacy comment text into mixed root declarations', () => {
+    for (const [encoding, character] of [
+      ['Shift_JIS', '‐'],
+      ['GB18030', '乚'],
+    ] as const) {
+      const input = new Uint8Array([
+        ...new TextEncoder().encode(`(;CA[${encoding}]C[`),
+        0x81,
+        0x5d,
+        ...new TextEncoder().encode(')(;CA[alien'),
+        0x81,
+        0x5d,
+        ...new TextEncoder().encode('C[tail])'),
+      ]);
+      const record = parsed(decodeSgf(input));
+      expect(record.games).toHaveLength(1);
+      const comment = `${character})(;CA[alien${character}C[tail`;
+      expect(record.games[0]!.properties.C).toEqual([comment]);
+      const output = serializeSgf(record);
+      const reopened = parsed(decodeSgf(new TextEncoder().encode(output)));
+      expect(semanticRecord(reopened)).toBe(semanticRecord(record));
+      expect(
+        parsed(
+          decodeSgf(input, {
+            maxNodes: 1,
+            maxDepth: 1,
+            maxValueLength: comment.length,
+          }),
+        ).games,
+      ).toHaveLength(1);
+      expect(decodeSgf(input, { maxValueLength: comment.length - 1 }).ok).toBe(false);
+      expect(decodeSgf(input, { maxBytes: input.length - 1 }).ok).toBe(false);
+      const mixed = new Uint8Array([...input, ...new TextEncoder().encode('(;CA[UTF-8])')]);
+      expect(decodeSgf(mixed).ok).toBe(false);
+    }
+  });
   test('decodes multibyte characters whose trailing byte resembles an SGF escape', () => {
     for (const [encoding, bytes, expected] of [
       ['Shift_JIS', [0x83, 0x5c, 0x95, 0x5c], 'ソ表'],

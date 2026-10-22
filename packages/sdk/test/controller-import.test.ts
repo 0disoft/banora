@@ -2,6 +2,44 @@ import { expect, spyOn, test } from 'bun:test';
 import { RecordController } from '../src/controller.js';
 import * as sgf from '../src/sgf.js';
 
+test('legacy comment recovery imports bytes and preserves state and tickets on strict refusal', () => {
+  for (const encoding of ['Shift_JIS', 'GB18030']) {
+    const input = new Uint8Array([
+      ...new TextEncoder().encode(`(;CA[${encoding}]C[`),
+      0x81,
+      0x5d,
+      ...new TextEncoder().encode(')(;CA[alien'),
+      0x81,
+      0x5d,
+      ...new TextEncoder().encode('C[tail])'),
+    ]);
+    const controller = new RecordController({ size: 9 });
+    const strict = new RecordController({ size: 9, limits: { maxValueLength: 10 } });
+    try {
+      expect(controller.loadSgf(input).ok).toBe(true);
+      expect(controller.getState().record.games).toHaveLength(1);
+      const exportText = controller.prepareExport().text;
+      expect(controller.loadSgf(new TextEncoder().encode(exportText)).ok).toBe(true);
+      const before = strict.getState(),
+        ticket = strict.prepareExport();
+      expect(strict.loadSgf(input).ok).toBe(false);
+      expect(strict.getState()).toBe(before);
+      expect(strict.acknowledgeExport(ticket.id).ok).toBe(true);
+      const restored = controller.getState(),
+        saved = controller.prepareExport();
+      expect(
+        controller.loadSgf(new Uint8Array([...input, ...new TextEncoder().encode('(;CA[UTF-8])')]))
+          .ok,
+      ).toBe(false);
+      expect(controller.getState()).toBe(restored);
+      expect(controller.acknowledgeExport(saved.id).ok).toBe(true);
+    } finally {
+      controller.dispose();
+      strict.dispose();
+    }
+  }
+});
+
 test('prepared byte imports apply their immutable parsed record without decoding again', () => {
   const controller = new RecordController({ size: 5 });
   const bytes = new TextEncoder().encode('(;CA[UTF-8]SZ[9]XX[keep];B[aa]C[한글])');
