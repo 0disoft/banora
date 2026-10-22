@@ -3,6 +3,25 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Deterministic Playback and Autosave Failure Isolation
+
+Playback options add an optional asynchronous scheduler and AbortSignal without
+changing required arguments or returned state. Initial subscription failures
+remove the listener and rethrow; later observer failures cannot prevent scheduling
+or remaining notifications. Abort pauses and prevents restart without disposing
+the borrowed controller. Studio autosave accepts optional clock/ID/scheduler
+dependencies; status-rendering failures cannot suppress debounce or relabel a
+successful write. Its close-flush and serial revision/owner semantics remain.
+
+Focused playback/autosave tests passed 13 cases / 99 assertions, including exact
+499/500ms debounce, interval reset at 4999/5000ms, pre-abort and running abort,
+observer exceptions, private-error exclusion, leaf termination, reentrant host
+navigation, revision ownership and final close flush. Playback unit tests now use
+an explicit scheduler instead of three real 600/650ms sleeps. Existing production
+browser checks retain real timer integration. Skills: bugfix, SDK, test-hardening.
+Source contracts changed: playback, recovery and this validation record. Storage
+schemas, versions, dependencies, CI jobs and runner policy are unchanged.
+
 ## Measured Browser Review Results
 
 The full Chrome 155 comparison completed on 2026-10-22 with two warmups/eight

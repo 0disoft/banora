@@ -1,9 +1,66 @@
-import { expect, test } from 'bun:test';
+import { expect, spyOn, test } from 'bun:test';
 import { RecordController } from '@0disoft/banora/controller';
 import { DraftAutosave } from '../examples/studio/draft-session.js';
 import { DraftError } from '../examples/studio/draft-store.js';
 import type { StudioDraft } from '../examples/studio/draft-store.js';
 import { StudioWorkspace } from '../examples/studio/workspace.js';
+import { TestScheduler } from './test-scheduler.js';
+
+test('debounce boundaries and status failures preserve actual saves and committed revisions', async () => {
+  const controller = new RecordController({ size: 9 });
+  const scheduler = new TestScheduler();
+  const logs = spyOn(console, 'error').mockImplementation(() => {});
+  const saved: StudioDraft[] = [];
+  const statuses: string[] = [];
+  const autosave = new DraftAutosave(
+    controller,
+    () => 'draft.sgf',
+    {
+      save: async (draft) => {
+        saved.push(draft);
+      },
+    },
+    true,
+    (status) => {
+      statuses.push(status);
+      throw Error('private UI exception');
+    },
+    undefined,
+    { now: () => 1234, createId: () => 'test-owner', scheduler },
+  );
+  try {
+    controller.setComment('first');
+    scheduler.advance(499);
+    expect(saved).toHaveLength(0);
+    controller.setComment('latest');
+    scheduler.advance(499);
+    expect(saved).toHaveLength(0);
+    scheduler.advance(1);
+    await autosave.idle();
+    expect(saved).toHaveLength(1);
+    expect(saved[0]).toMatchObject({ id: 'test-owner', updatedAt: 1234, revision: 1 });
+    expect(saved[0]!.checkpoint.sgf).toContain('latest');
+    expect(autosave.getStatus()).toBe('saved');
+    expect(statuses).toEqual(['saving', 'saved']);
+    controller.setComment('close flush');
+    await autosave.close();
+    expect(saved[1]!.revision).toBe(2);
+    expect(saved[1]!.checkpoint.sgf).toContain('close flush');
+    expect(scheduler.pending).toBe(0);
+    scheduler.advance(501);
+    expect(saved).toHaveLength(2);
+    expect(
+      logs.mock.calls.every(
+        (call) => call.length === 1 && call[0] === 'Banora autosave status listener failed',
+      ),
+    ).toBe(true);
+    expect(controller.getState().dirty).toBe(true);
+  } finally {
+    await autosave.close();
+    logs.mockRestore();
+    controller.dispose();
+  }
+});
 
 for (const firstStatus of ['saved', 'quota'] as const)
   test(`autosave drains checkpoints queued after ${firstStatus} before completing close or retry`, async () => {

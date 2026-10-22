@@ -1,7 +1,14 @@
 import type { RecordController, ControllerState } from './controller.js';
 
+export interface PlaybackScheduler {
+  /** Schedule once, asynchronously; return an idempotent cancellation function. */
+  after(delayMs: number, task: () => void): () => void;
+}
 export interface PlaybackOptions {
   readonly intervalMs?: number;
+  readonly scheduler?: PlaybackScheduler;
+  /** Aborting pauses playback and prevents further play; disposal remains explicit. */
+  readonly signal?: AbortSignal;
 }
 export interface PlaybackState {
   readonly playing: boolean;
@@ -31,19 +38,33 @@ export function createRecordPlayback(
     disposed = false;
   let selected = controller.getState();
   let expected: ControllerState['node'] | undefined;
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  let timer: (() => void) | undefined;
+  const { signal } = options;
+  const scheduler = options.scheduler ?? {
+    after(delayMs: number, task: () => void) {
+      const handle = setTimeout(task, delayMs);
+      return () => clearTimeout(handle);
+    },
+  };
   let snapshot: PlaybackState;
   const listeners = new Set<(state: PlaybackState) => void>();
   const active = () => {
     if (disposed) throw new Error('Record playback is disposed');
   };
   const cancel = () => {
-    if (timer !== undefined) clearTimeout(timer);
+    timer?.();
     timer = undefined;
   };
   const publish = () => {
     snapshot = Object.freeze({ playing, intervalMs, canPlay: selected.node.children.length > 0 });
-    for (const listener of [...listeners]) listener(snapshot);
+    for (const listener of [...listeners]) {
+      if (!listeners.has(listener)) continue;
+      try {
+        listener(snapshot);
+      } catch {
+        console.error('Banora playback listener failed');
+      }
+    }
   };
   const pause = () => {
     cancel();
@@ -54,8 +75,10 @@ export function createRecordPlayback(
   };
   const schedule = () => {
     cancel();
-    if (!playing || disposed) return;
-    timer = setTimeout(() => {
+    if (!playing || disposed || signal?.aborted) return;
+    let cancelled = false;
+    const stop = scheduler.after(intervalMs, () => {
+      if (cancelled || !playing || disposed || signal?.aborted) return;
       timer = undefined;
       expected = selected.node.children[0];
       try {
@@ -66,7 +89,11 @@ export function createRecordPlayback(
         expected = undefined;
       }
       schedule();
-    }, intervalMs);
+    });
+    timer = () => {
+      cancelled = true;
+      stop();
+    };
   };
   publish();
   const unsubscribe = controller.subscribe((state) => {
@@ -83,6 +110,7 @@ export function createRecordPlayback(
     if (playing && ((changed && !ownStep) || !state.node.children.length)) pause();
     else publish();
   });
+  signal?.addEventListener('abort', pause, { once: true });
   return Object.freeze({
     getState() {
       active();
@@ -91,14 +119,19 @@ export function createRecordPlayback(
     subscribe(listener: (state: PlaybackState) => void) {
       active();
       listeners.add(listener);
-      listener(snapshot);
+      try {
+        listener(snapshot);
+      } catch (error) {
+        listeners.delete(listener);
+        throw error;
+      }
       return () => {
         listeners.delete(listener);
       };
     },
     play() {
       active();
-      if (playing || !selected.node.children.length) return;
+      if (playing || signal?.aborted || !selected.node.children.length) return;
       playing = true;
       publish();
       schedule();
@@ -118,6 +151,7 @@ export function createRecordPlayback(
       disposed = true;
       playing = false;
       cancel();
+      signal?.removeEventListener('abort', pause);
       unsubscribe();
       listeners.clear();
     },

@@ -3,13 +3,24 @@
 - Status: Headless playback and shared Studio/Viewer controls implemented; six production consumers checked
 
 `@0disoft/banora/playback` and the root/global export provide
-`createRecordPlayback(controller,{intervalMs?})`, `normalizePlaybackInterval`,
-`RecordPlayback`, `PlaybackOptions` and `PlaybackState`. Importing and using the
-coordinator require no DOM; the runtime must provide standard timeout functions.
+`createRecordPlayback(controller,{intervalMs?,scheduler?,signal?})`,
+`normalizePlaybackInterval`, `RecordPlayback`, `PlaybackOptions`,
+`PlaybackScheduler` and `PlaybackState`. Importing and using the coordinator
+require no DOM. By default it uses standard timeout functions.
 The default interval is 1,000 ms; valid integer intervals are 500 through 5,000 ms.
+
+An optional scheduler implements `after(delayMs, task): () => void`: schedule the
+task once asynchronously and return an idempotent cancellation function. Hosts
+can supply a deterministic scheduler without replacing global timers. An optional
+`AbortSignal` pauses on abort and prevents later `play()` calls from starting;
+an already-aborted signal starts no work. Abort does not dispose the player or
+borrowed controller. Dispose still releases subscriptions and the abort listener.
 
 `getState()` returns an immutable snapshot of `playing`, `intervalMs` and `canPlay`.
 `subscribe(callback)` immediately supplies that snapshot and returns cleanup.
+If this initial notification throws, the subscription is removed and the exception
+returns to the caller. Later listener exceptions are isolated, logged with a fixed
+label without exception details, and cannot interrupt other listeners or playback.
 `play()` advances from the current node only after the selected interval.
 It follows each node's first child, matching the existing Next command. Select a
 variation first to replay its continuation. It never creates a move or changes
@@ -64,8 +75,9 @@ nodes each consume one interval just like ordinary Next navigation.
 Production Chrome checks Studio (including an original 162-move long record),
 common Viewer, React, Vue, Svelte and classic-script consumers for timing, end,
 speed changes, keyboard guards, imports and cleanup/remount. Exported SGF retains
-all recorded moves/comments/unknown properties. Headless unit tests exercise real
-timers, validation, cancellation and reentrant host navigation; installed types
+all recorded moves/comments/unknown properties. Headless unit tests exercise an
+injected scheduler, exact interval boundaries, cancellation, notification failures
+and reentrant host navigation; production browser checks retain real timers. Installed types
 check the DOM-free coordinator and SSR-safe browser API separately. Background
 timer precision, physical devices and other browser engines are not guaranteed.
 

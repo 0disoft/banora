@@ -83,6 +83,14 @@ access, encryption and authorization remain host responsibilities.
 Studio autosaves interacted-with records and selected locations on this browser
 after a 500ms quiet interval. Open **Local drafts** above the board or in its menu
 to turn autosave off/on, refresh/select a draft, restore it or confirm deletion.
+
+The Studio autosave coordinator accepts an optional final runtime argument with
+`now`, `createId` and `scheduler.after(delayMs, task)` functions. Defaults retain
+the browser clock, cryptographic UUIDs and real timers; tests can control each
+without replacing globals. Status-rendering exceptions are isolated behind a fixed
+diagnostic label, so they cannot suppress a save or turn a committed write into a
+storage failure. Closing still flushes the last checkpoint and waits for queued
+writes; it does not cancel an already-started save.
 Restore retains the original and creates a new session copy, so two tabs never
 take over each other's writing key. Dirty replacement offers Export / Discard /
 Cancel, and recovered edits remain dirty until SGF export.

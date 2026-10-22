@@ -3,6 +3,13 @@ import { DraftError, safeDraftFilename } from './draft-store.js';
 import type { DraftStore, StudioDraft, DraftErrorCode } from './draft-store.js';
 
 export type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'off' | DraftErrorCode;
+export interface AutosaveRuntime {
+  readonly now?: () => number;
+  readonly createId?: () => string;
+  readonly scheduler?: {
+    after(delayMs: number, task: () => void): () => void;
+  };
+}
 interface Owner {
   id: string;
   generation: number;
@@ -16,7 +23,7 @@ export class DraftAutosave {
   #capturedEpoch = -1;
   #needsSave = false;
   #status: AutosaveStatus = 'idle';
-  #timer: ReturnType<typeof setTimeout> | undefined;
+  #timer: (() => void) | undefined;
   #queued = new Map<Owner, { epoch: number; draft: StudioDraft }>();
   #running: Promise<void> | undefined;
   #closed = false;
@@ -31,6 +38,7 @@ export class DraftAutosave {
     private enabled: boolean,
     private readonly changed: (status: AutosaveStatus) => void,
     private readonly session?: { ownerKey(): object },
+    private readonly runtime: AutosaveRuntime = {},
   ) {
     this.#seen = controller.getState();
     this.#owner = this.#newOwner(this.#seen.recordGeneration);
@@ -52,12 +60,22 @@ export class DraftAutosave {
     });
   }
   #newOwner(generation: number): Owner {
-    return { id: crypto.randomUUID(), generation, revision: 0 };
+    return { id: this.runtime.createId?.() ?? crypto.randomUUID(), generation, revision: 0 };
   }
   #publish(status: AutosaveStatus): void {
     if (this.#status === status) return;
     this.#status = status;
-    if (!this.#closed) this.changed(status);
+    if (!this.#closed) {
+      try {
+        this.changed(status);
+      } catch {
+        console.error('Banora autosave status listener failed');
+      }
+    }
+  }
+  #cancelTimer(): void {
+    this.#timer?.();
+    this.#timer = undefined;
   }
   getStatus(): AutosaveStatus {
     return this.#status;
@@ -69,7 +87,7 @@ export class DraftAutosave {
     if (this.#closed || enabled === this.enabled) return;
     this.enabled = enabled;
     this.#epoch++;
-    clearTimeout(this.#timer);
+    this.#cancelTimer();
     this.#queued.clear();
     if (enabled) {
       this.#owner = this.#newOwner(this.controller.getState().recordGeneration);
@@ -78,13 +96,26 @@ export class DraftAutosave {
     } else this.#publish('off');
   }
   #schedule(): void {
-    clearTimeout(this.#timer);
+    this.#cancelTimer();
     if (!this.enabled) return;
     this.#needsSave = true;
     this.#publish('saving');
-    this.#timer = setTimeout(() => {
+    if (this.#closed || !this.enabled) return;
+    let cancelled = false;
+    const task = () => {
+      if (cancelled || this.#closed) return;
       void this.flush();
-    }, 500);
+    };
+    const stop = this.runtime.scheduler
+      ? this.runtime.scheduler.after(500, task)
+      : (() => {
+          const handle = setTimeout(task, 500);
+          return () => clearTimeout(handle);
+        })();
+    this.#timer = () => {
+      cancelled = true;
+      stop();
+    };
   }
   retry(): void {
     if (this.#closed || !this.enabled) return;
@@ -97,7 +128,7 @@ export class DraftAutosave {
   }
   /** Capture now so disposal can let this queued immutable checkpoint finish. */
   flush(): Promise<void> {
-    clearTimeout(this.#timer);
+    this.#cancelTimer();
     if (this.#closed || !this.enabled || !this.#needsSave || this.#capturedEpoch === this.#epoch)
       return this.#running ?? Promise.resolve();
     try {
@@ -107,7 +138,7 @@ export class DraftAutosave {
           schemaVersion: 'banora.studio-draft/v1',
           id: this.#owner.id,
           filename: safeDraftFilename(this.filename()),
-          updatedAt: Date.now(),
+          updatedAt: this.runtime.now?.() ?? Date.now(),
           revision: this.#owner.revision + 1,
           checkpoint: this.controller.createCheckpoint(),
         },
@@ -155,7 +186,7 @@ export class DraftAutosave {
   close(): Promise<void> {
     const pending = this.flush();
     this.#closed = true;
-    clearTimeout(this.#timer);
+    this.#cancelTimer();
     this.#unsubscribe();
     return pending;
   }
