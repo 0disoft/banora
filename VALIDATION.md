@@ -3,6 +3,18 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Closed Initial Studio Tab Ownership
+
+The workspace facade now targets a state-free object with the SDK prototype,
+rather than its initial tab controller. Captured methods, `instanceof` dispatch,
+generation changes, independent histories and detached snapshots remain intact.
+The focused workspace suite passed 5 tests / 36 assertions. An isolated Node GC
+comparison against the prior implementation retained the old first controller
+and record, while collecting the old second tab and both fixed closed tabs.
+This confirms reference release in that diagnostic, not a browser heap-size or
+latency measurement. No SDK disposal semantics or public API changed.
+Skills: bugfix and SDK. Browser checks are deferred to the combined review fixes.
+
 ## Parser Subphase Profile and Plain Value Boundaries
 
 A private instrumented parser copy separated value decoding, semantic validation,

@@ -28,7 +28,9 @@ export class StudioWorkspace {
     this.#active = this.#create(19);
     // Existing consumer widgets keep one subscription boundary. Calls always use
     // the currently selected real SDK controller, including its private fields.
-    this.controller = new Proxy(this.#active.controller, {
+    // A real tab as target would keep its record/history alive after close.
+    // Retain the SDK prototype for instanceof dispatch, without owning tab state.
+    this.controller = new Proxy(Object.create(RecordController.prototype) as RecordController, {
       get: (_target, key) => {
         if (key === 'getState') return () => this.getState();
         if (key === 'subscribe')

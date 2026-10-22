@@ -334,7 +334,9 @@ triggering record playback shortcuts. A switch pauses playback and invalidates
 pending imports/search previews and position comparison. Closing a dirty tab
 requires Export / Discard / Cancel; closing the last tab creates a fresh 19-line
 board. The browser exit guard includes inactive dirty tabs. Up to 20 boards may
-remain open; no work is silently evicted. These in-memory sessions are not restored
+remain open; no work is silently evicted. The stable controller facade retains
+the SDK prototype but owns no tab controller, so closing the initial tab releases
+its record/history references just like closing subsequent tabs. These in-memory sessions are not restored
 automatically on reload. Local draft autosave flushes outgoing sessions and keeps
 independent, revision-checked owners, including rapid switches with queued writes.
 Below 1001px the rail reflows above the board to preserve usable board width.

@@ -1,7 +1,34 @@
 import { describe, expect, test } from 'bun:test';
+import { RecordController } from '@0disoft/banora';
 import { StudioWorkspace } from '../examples/studio/workspace.js';
 
 describe('Studio multi-board sessions', () => {
+  test('closing the initial and later tabs preserves the facade and detached snapshots', () => {
+    const workspace = new StudioWorkspace();
+    const controller = workspace.controller;
+    const play = controller.play;
+    expect(controller).toBeInstanceOf(RecordController);
+    play({ x: 3, y: 3 });
+    const snapshot = controller.getState();
+    const first = workspace.active.id;
+    const second = workspace.add(9);
+    expect(workspace.close(first, true)).toBe(true);
+    play({ x: 1, y: 1 });
+    expect(controller.getState().position.width).toBe(9);
+    expect(controller.getState().position.moveNumber).toBe(1);
+    controller.undo();
+    expect(controller.getState().position.moveNumber).toBe(0);
+    const generation = controller.getState().recordGeneration;
+    expect(workspace.close(second.id, true)).toBe(true);
+    expect(controller.getState().recordGeneration).toBeGreaterThan(generation);
+    expect(controller).toBeInstanceOf(RecordController);
+    play({ x: 2, y: 2 });
+    expect(controller.getState().position.width).toBe(19);
+    expect(controller.getState().position.moveNumber).toBe(1);
+    expect(snapshot.position.moveNumber).toBe(1);
+    expect(snapshot.node.properties.B).toEqual(['dd']);
+    workspace.dispose();
+  });
   test('starts at 19 and retains independent position, comments, undo and export baselines', () => {
     const workspace = new StudioWorkspace();
     const controller = workspace.controller;
