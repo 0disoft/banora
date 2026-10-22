@@ -163,6 +163,15 @@ last named check on stderr, without copying raw child logs into a report. Rerun
 that check locally using its root script, or its script with `--release-bundle DIR`,
 to investigate. Do not post raw logs or authored files without reviewing them.
 Timeout cleanup targets the child process tree and this runner's browser session.
+Termination is confirmed independently of pipe closure, with one additional second
+after the stop request (Windows tree termination has its own five-second command
+budget). A failed stop or missing exit/close event cannot leave the check waiting
+forever: owned pipes close and an unconfirmed process is detached from the runner.
+This reports failure, not proof that all descendants stopped. Browser-session
+cleanup retains its separate ten-second budget. Internal callers may pass an
+optional AbortSignal; cancellation uses the same stop/confirmation path and a
+pre-cancelled call never starts a process. Fixed errors retain a private original
+cause and a safe stage for local inspection, excluded from the public JSON report.
 No target service or user browser is stopped.
 
 ## Inspect and Resume

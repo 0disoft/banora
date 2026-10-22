@@ -3,6 +3,28 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Release Check Stop Confirmation
+
+Release checks have an independent one-second exit-confirmation budget after a
+timeout, cancellation or process/pipe error. A missing close event or failed kill
+cannot leave the runner waiting indefinitely. Owned pipes and listeners are
+released; an unconfirmed process is unreferenced, without claiming it stopped.
+Optional caller cancellation uses the same path and pre-abort starts no process.
+Original causes remain private/non-enumerable and the public fixed error is kept.
+Browser-session cleanup cannot replace the primary failure.
+
+Focused release/check tests passed 27 cases / 247 assertions, including failed
+termination, inherited pipes, exit without close, cancellation, spawn/pipe errors,
+late events, cleanup failure and a real successful process. Full `bun run check`
+passed 384 tests / 9,043 assertions in 64 files, quality/boundaries, builds,
+root/Svelte types, 146 documents / 742 links, packed SDK/classic/declarations and
+298 installed CLI checks. Browser UI, other operating systems, hosted CI and actual
+publication were skipped for this local operational change. OS refusal can still
+leave an unconfirmed descendant alive; failure is reported instead of hidden.
+Skills: bugfix, ops-change and test-hardening. Source contracts changed: release
+operations and this record. No public SDK/JSON schema, DB/storage, dependency,
+version, hygiene or CI/runner policy changes.
+
 ## KataGo Host Cancellation and Failure Ownership
 
 The example host replaces its unbounded promise write chain with a FIFO limited
