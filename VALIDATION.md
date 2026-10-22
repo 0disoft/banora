@@ -3,6 +3,33 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Release File Metadata Reuse and Combined Verification
+
+Release file validation returns its checked stat result for the byte-size guard,
+instead of issuing another lstat for every payload and manifest. Type/link/path,
+file/total/manifest limits, sorted inventory and streamed hashes remain. No remote
+observation, pre-upload verification or initial/final source/destination check is
+cached or removed, and hashing remains sequential.
+
+A source-derived old/new inventory comparison over 256 actual fixture files
+reduced lstat calls from 513 to 257 with identical paths, sizes, hashes and order.
+One warmup/five samples measured median 111.31 to 100.09 ms; this small local fixture
+does not establish large-bundle or end-to-end release latency. Fixtures were
+removed after measurement. Final focused release tests passed 23 cases / 244
+assertions, including a 64 MiB + 1 payload, valid JSON at 2 MiB + 1 rejected before
+content verification, restored valid bytes and existing integrity/link checks.
+
+Combined final `bun run check` passed 389 tests / 9,074 assertions across 64 files,
+lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types, 146 documents /
+742 links, packed SDK/classic/declarations and 298 installed CLI checks. Only this
+documentation record changed afterward and passed format/docs checks. Browser,
+other operating systems, hosted CI, remote publication and production-scale load
+were skipped for this local operational change. Full hashing and registry/process
+latency remain future bottlenecks; no concurrent-write isolation guarantee was
+added. Skills: bugfix, ops-change and test-hardening. Source contracts changed:
+release operations and this record. No public SDK/receipt schema, DB/storage,
+dependency/version, hygiene or CI/runner policy changes.
+
 ## Indexed Common Rollback Versions
 
 Channel preflight builds per-package membership sets only after both observations

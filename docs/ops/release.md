@@ -179,6 +179,11 @@ No target service or user browser is stopped.
 `bun run release verify --bundle DIR` checks a prepared bundle's closed manifest,
 complete file inventory, bounds and hashes. It rejects added/removed/changed files
 and symbolic links. Verification does not install or execute a supplied bundle.
+Within each verification, the checked file metadata also supplies its byte size,
+avoiding a second identical status lookup for each payload and the manifest.
+Hashes still stream sequentially; every initial/final and pre-upload verification
+keeps its existing scope and runs afresh. No filesystem observation is cached
+across those boundaries.
 `--release-bundle` on smoke runners is an explicit executable test input; use only
 maintainer-reviewed provenance, even when hashes match. An unsigned manifest can
 be replaced together with its files, so integrity is not authentication or proof

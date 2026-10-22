@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import { copyFile, mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, symlink, truncate, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
   inventory,
@@ -441,6 +441,28 @@ test('integrity verifies complete bytes and rejects extra or changed files witho
   await writeFile(resolve(bundle, 'examples/unexpected.js'), 'Unexpected fixture');
   await expect(verifyRelease(bundle)).rejects.toThrow('integrity');
   expect(await readFile(file)).toEqual(original);
+});
+
+test('release size guards still reject oversized payloads and a valid JSON manifest before content verification', async () => {
+  const { bundle } = await fixture(true);
+  const archive = resolve(bundle, 'packages/sdk.tgz');
+  const manifest = resolve(bundle, 'manifest.json');
+  const originalArchive = await readFile(archive);
+  const originalManifest = await readFile(manifest);
+  try {
+    await truncate(archive, 64 * 1024 * 1024 + 1);
+    await expect(inventory(bundle)).rejects.toMatchObject({ code: 'integrity' });
+    await writeFile(archive, originalArchive);
+    const padded =
+      originalManifest.toString() + ' '.repeat(2 * 1024 * 1024 + 1 - originalManifest.length);
+    expect(JSON.parse(padded)).toEqual(JSON.parse(originalManifest.toString()));
+    await writeFile(manifest, padded);
+    await expect(verifyRelease(bundle)).rejects.toMatchObject({ code: 'manifest' });
+  } finally {
+    await writeFile(archive, originalArchive);
+    await writeFile(manifest, originalManifest);
+  }
+  expect((await verifyRelease(bundle)).manifest.state).toBe('prepared');
 });
 
 test('retained legacy package identities stay verifiable and restorable but cannot mix with current identities', async () => {

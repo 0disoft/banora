@@ -147,10 +147,11 @@ export function isReleaseManifest(input: unknown): input is ReleaseManifest {
     return false;
   }
 }
-async function regular(path: string, directory: boolean): Promise<void> {
+async function regular(path: string, directory: boolean) {
   const info = await lstat(path);
   if (info.isSymbolicLink()) throw new ReleaseError('linked');
   if (directory ? !info.isDirectory() : !info.isFile()) throw new ReleaseError('io');
+  return info;
 }
 export async function inventory(directory: string): Promise<ReleaseFile[]> {
   await regular(directory, true);
@@ -171,8 +172,7 @@ export async function inventory(directory: string): Promise<ReleaseFile[]> {
         await walk(path);
       } else if (entry.isFile() && path !== 'manifest.json') {
         if (!safePath(path) || files.length >= 4096) throw new ReleaseError('integrity');
-        await regular(resolve(directory, path), false);
-        const info = await lstat(resolve(directory, path));
+        const info = await regular(resolve(directory, path), false);
         if (info.size > 64 * 1024 * 1024 || (total += info.size) > 512 * 1024 * 1024)
           throw new ReleaseError('integrity');
         const hash = createHash('sha256');
@@ -187,8 +187,8 @@ export async function inventory(directory: string): Promise<ReleaseFile[]> {
 export async function verifyRelease(directory: string, allowCandidate = false) {
   await regular(directory, true);
   const manifestPath = resolve(directory, 'manifest.json');
-  await regular(manifestPath, false);
-  if ((await lstat(manifestPath)).size > 2 * 1024 * 1024) throw new ReleaseError('manifest');
+  const manifestInfo = await regular(manifestPath, false);
+  if (manifestInfo.size > 2 * 1024 * 1024) throw new ReleaseError('manifest');
   let value: unknown;
   try {
     value = JSON.parse(await readFile(manifestPath, 'utf8'));
