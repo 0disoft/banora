@@ -93,7 +93,19 @@ async function readLive(
   const url = new URL(file.name, 'https://0disoft.github.io/banora/');
   url.searchParams.set('banora-health', tarSha256.slice(0, 16));
   const controller = new AbortController();
+  let finished = false;
+  let body: Response['body'] | undefined;
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  const cleanupBody = () => {
+    const ownedReader = reader,
+      ownedBody = body;
+    reader = undefined;
+    body = undefined;
+    if (ownedReader) {
+      void ownedReader.cancel().catch(() => {});
+      ownedReader.releaseLock();
+    } else if (ownedBody) void ownedBody.cancel().catch(() => {});
+  };
   let timer: ReturnType<typeof setTimeout> | undefined;
   const expired = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
@@ -115,6 +127,12 @@ async function readLive(
         } catch {
           throw new DemoHealthError('transport');
         }
+        body = response.body;
+        // A timed-out attempt can receive a response after its outer finally ran.
+        if (finished || controller.signal.aborted) {
+          cleanupBody();
+          throw new DemoHealthError('transport');
+        }
         if (response.redirected || (response.url && response.url !== url.href))
           throw new DemoHealthError('bound');
         if (absent) {
@@ -132,10 +150,12 @@ async function readLive(
           throw new DemoHealthError('bound');
         const hash = createHash('sha256');
         let bytes = 0;
-        reader = response.body?.getReader();
-        if (reader)
+        const activeReader = body?.getReader();
+        reader = activeReader;
+        if (activeReader)
           while (true) {
-            const chunk = await reader.read();
+            const chunk = await activeReader.read();
+            if (finished || controller.signal.aborted) throw new DemoHealthError('transport');
             if (chunk.done) break;
             bytes += chunk.value.byteLength;
             if (bytes > file.bytes) throw new DemoHealthError('bound');
@@ -147,9 +167,10 @@ async function readLive(
       expired,
     ]);
   } finally {
+    finished = true;
     if (timer) clearTimeout(timer);
     controller.abort();
-    if (reader) void reader.cancel().catch(() => {});
+    cleanupBody();
   }
 }
 

@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { setImmediate as nextTurn } from 'node:timers/promises';
 import { demoInventory, readDemoInventory } from './demo-archive.js';
 import { checkDemoFiles, demoHealthRequest, reserveDemoReceipt } from './demo-health.js';
 
@@ -32,6 +33,173 @@ const fixChecksum = (tar: Buffer) => {
   const sum = [...tar.subarray(0, 512)].reduce((value, byte) => value + byte, 0);
   tar.write(sum.toString(8).padStart(6, '0') + '\0 ', 148, 8, 'ascii');
 };
+
+function nearDeadline(fetch: ReturnType<typeof io>['fetch']) {
+  let ticks = 0;
+  return {
+    now: () => (++ticks < 3 ? 0 : 119999),
+    wait: async () => {},
+    fetch,
+  };
+}
+
+test('responses arriving after the deadline are cancelled without acquiring a reader or changing progress', async () => {
+  for (const cancellation of ['resolved', 'rejected', 'pending'] as const) {
+    let respond!: (response: Response) => void;
+    let finishCancel!: () => void;
+    const pendingCancel = new Promise<void>((resolve) => {
+      finishCancel = resolve;
+    });
+    let cancelled = 0,
+      pulls = 0;
+    let acquired: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    let signal: AbortSignal | undefined;
+    const body = new ReadableStream<Uint8Array>(
+      {
+        pull() {
+          pulls++;
+        },
+        cancel() {
+          cancelled++;
+          if (cancellation === 'rejected') throw Error('Authored private cancellation detail');
+          if (cancellation === 'pending') return pendingCancel;
+        },
+      },
+      { highWaterMark: 0 },
+    );
+    const getReader = body.getReader.bind(body);
+    Object.defineProperty(body, 'getReader', { value: () => (acquired = getReader()) });
+    const outcome = checkDemoFiles(
+      inventory,
+      nearDeadline((_url, init) => {
+        signal = init.signal!;
+        return new Promise<Response>((resolve) => {
+          respond = resolve;
+        });
+      }),
+    ).then(
+      () => {
+        throw Error('Unexpected health success');
+      },
+      (error: unknown) => error,
+    );
+    try {
+      const failure = await outcome;
+      expect(failure).toMatchObject({ code: 'deadline', checkedFiles: 0, attempts: 1 });
+      expect(signal?.aborted).toBe(true);
+      respond(new Response(body));
+      await nextTurn();
+      expect(cancelled).toBe(1);
+      expect(pulls).toBe(0);
+      expect(acquired).toBeUndefined();
+      expect(body.locked).toBe(false);
+      expect(await outcome).toBe(failure);
+    } finally {
+      finishCancel();
+      if (acquired) {
+        await acquired.cancel().catch(() => {});
+        acquired.releaseLock();
+      } else await body.cancel().catch(() => {});
+    }
+  }
+});
+
+test('response validation and expected absence cancel unread bodies without changing refusal codes or retries', async () => {
+  for (const [status, headers, redirected, code] of [
+    [403, {}, false, 'http'],
+    [200, { 'content-length': '67108865' }, false, 'bound'],
+    [200, { 'content-length': 'invalid' }, false, 'bound'],
+    [200, {}, true, 'bound'],
+  ] as const) {
+    let cancelled = 0,
+      calls = 0;
+    const body = new ReadableStream<Uint8Array>(
+      {
+        cancel() {
+          cancelled++;
+        },
+      },
+      { highWaterMark: 0 },
+    );
+    const response = new Response(body, { status, headers });
+    if (redirected) Object.defineProperty(response, 'redirected', { value: true });
+    try {
+      await expect(
+        checkDemoFiles(
+          inventory,
+          io(async () => {
+            calls++;
+            return response;
+          }),
+        ),
+      ).rejects.toMatchObject({ code, checkedFiles: 0, attempts: 1 });
+      expect(cancelled).toBe(1);
+      expect(body.locked).toBe(false);
+      expect(calls).toBe(1);
+    } finally {
+      await body.cancel().catch(() => {});
+    }
+  }
+  let cancelled = 0;
+  const body = new ReadableStream<Uint8Array>(
+    {
+      cancel() {
+        cancelled++;
+      },
+    },
+    { highWaterMark: 0 },
+  );
+  try {
+    const result = await checkDemoFiles(inventory, {
+      now: () => 0,
+      wait: async () => {},
+      fetch: async (url) =>
+        url.includes('/banora-build.json')
+          ? new Response(body, { status: 404 })
+          : new Response(content),
+    });
+    expect(result).toMatchObject({ checkedFiles: 1, attempts: 2, buildIdentityAbsent: true });
+    expect(cancelled).toBe(1);
+    expect(body.locked).toBe(false);
+  } finally {
+    await body.cancel().catch(() => {});
+  }
+});
+
+test('deadline cleanup releases an active reader even while its cancellation is pending', async () => {
+  let finishCancel!: () => void;
+  const pendingCancel = new Promise<void>((resolve) => {
+    finishCancel = resolve;
+  });
+  let cancelled = 0;
+  let acquired: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  const body = new ReadableStream<Uint8Array>(
+    {
+      cancel() {
+        cancelled++;
+        return pendingCancel;
+      },
+    },
+    { highWaterMark: 0 },
+  );
+  const getReader = body.getReader.bind(body);
+  Object.defineProperty(body, 'getReader', { value: () => (acquired = getReader()) });
+  try {
+    await expect(
+      checkDemoFiles(
+        inventory,
+        nearDeadline(async () => new Response(body)),
+      ),
+    ).rejects.toMatchObject({ code: 'deadline', checkedFiles: 0, attempts: 1 });
+    expect(acquired).toBeDefined();
+    expect(cancelled).toBe(1);
+    expect(body.locked).toBe(false);
+  } finally {
+    finishCancel();
+    await acquired?.cancel().catch(() => {});
+    acquired?.releaseLock();
+  }
+});
 
 test('a real system tar yields exact static file bytes and rejects malformed names, links, checksums and truncation', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'banora-demo-health-'));

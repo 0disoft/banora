@@ -55,6 +55,18 @@ receipt is retained as `banora-demo-health` for 14 days when the checker execute
 If health fails, the site may already be deployed: preserve the receipt and
 inspect the previous known-good candidate. No deployment retry or rollback is
 automatic. File-byte health does not replace a browser flow or data recovery.
+
+Each live-file attempt owns its response body, including rejected HTTP/header
+responses and the expected missing build-receipt probe. Timeout closes that
+attempt before cleanup: a fetch completing later has its body cancelled without
+acquiring a reader or continuing byte/hash checks. An active reader is cancelled
+and unlocked, and unread bodies are also cancelled. Cancellation promises are
+observed privately without waiting for a stalled transport; requesting shutdown
+does not confirm an injected transport stopped. Late work cannot change checked
+file/attempt counts or the settled result. The existing four-file batches,
+ten-second request budgets, two-minute overall deadline, at-most-three read
+attempts, two-second retry waits and validation/error order remain.
+
 Investigate a failed deployment before retrying. The reviewed manual recovery
 path redeploys exact retained original bytes. Actual recovery and live file/Studio
 health passed in the [execution record](../engineering/19-demo-recovery-execution-evidence.md);

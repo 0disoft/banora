@@ -3,6 +3,41 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Demo Health Late Response Cleanup
+
+Each live-file attempt now records its closed state and owns a received body
+before validating redirects, HTTP status, expected absence or headers. A response
+arriving after timeout is cancelled without acquiring a reader or continuing
+byte/hash work. Deadline cleanup also cancels and unlocks an active reader; the
+read continuation checks closure before consuming another chunk. Body/reader
+references are cleared before cancellation, and cancellation rejections remain
+private without waiting for an uncooperative transport. Existing validation/error
+order, four-file batches, ten-second request budgets, two-minute overall deadline,
+three read attempts, two-second waits and progress/receipt fields are retained.
+
+Three new regression tests failed against the original source: late responses
+were not cancelled, early response refusals left unread bodies uncancelled, and
+timeout cleanup left an active reader locked. The final focused run passed all
+nine demo-health cases / 95 assertions. Controlled late responses cover resolved,
+rejected and pending cancellation, no reader acquisition/pulls after timeout and
+unchanged settled progress. Additional cases cover auth/redirect/header refusal
+codes and attempt counts, expected build-receipt absence, and active reads with
+pending cancellation. Existing actual tar, origin/credentials, size/hash, retry,
+deadline, receipt and artifact tests remain unchanged.
+
+Final `bun run check` passed 406 tests / 9,235 assertions across 69 files,
+lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types, 146 documents /
+742 links, packed SDK/classic/declarations and 298 installed CLI checks on Windows.
+Only this record changed afterward and received format/docs checks. Browser,
+other operating systems, hosted CI and live Pages/deployment requests were skipped
+for this local operational fix. Shutdown is requested, not confirmed for an
+injected fetch implementation that ignores cancellation. A useful next inspection
+is response interleaving between a timed-out attempt and its retry; no additional
+defect in that path is claimed here. Source contracts changed: demo deployment
+operations and this record. Skills: bugfix, ops-change and test-hardening. No
+public SDK/receipt API, DB/storage, dependency/version, repository hygiene, CI or
+runner policy changes.
+
 ## Registry Download Cleanup Ownership
 
 The highest-priority findings in this pass were (1) awaiting stream cancellation
