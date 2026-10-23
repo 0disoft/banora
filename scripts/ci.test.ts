@@ -42,6 +42,18 @@ test('complete CI builds SDK artifacts once while retaining every installed/brow
 
 test('CI routes documentation cheaply, combines focused changes and falls back safely for unknown or missing diffs', () => {
   expect(planChecks(['README.md', 'docs/sdk/public-api.md']).mode).toBe('docs');
+  for (const path of [
+    'scripts/release.test.ts',
+    'scripts/publication.test.ts',
+    'scripts/publication-plan.test.ts',
+    'scripts/registry-health.test.ts',
+    'scripts/registry-transport.test.ts',
+    'scripts/release-test-fixtures.ts',
+  ])
+    expect(commandsFor(planChecks([path]))).toEqual([
+      ['run', 'check'],
+      ['run', 'security:files'],
+    ]);
   expect(commandsFor(planChecks(['README.md'])).some((command) => command.includes('check'))).toBe(
     false,
   );

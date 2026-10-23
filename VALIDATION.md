@@ -3,6 +3,39 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Release Test Responsibility Boundaries
+
+The former release test module is split into artifact/source checks
+(`scripts/release.test.ts`, six cases), publication execution
+(`scripts/publication.test.ts`, nine), offline planning
+(`scripts/publication-plan.test.ts`, three), registry health/downloads
+(`scripts/registry-health.test.ts`, five), and npm transport/configuration
+(`scripts/registry-transport.test.ts`, three). Test-only factories live in
+`scripts/release-test-fixtures.ts`; each invocation still creates its own mkdtemp
+root, manifest, mutable collections and IO closures. Importing the helper starts
+no fixture work and shares no mutable test state. Original timeout budgets and
+isolated configuration, subprocess and artifact checks remain.
+
+A source comparison against the pre-split commit confirmed all 26 test bodies and
+three factory bodies are byte-identical after newline normalization, with no lost
+or duplicated case. The focused before/after runs both passed 26 cases / 291
+assertions. The largest extracted file is 12,572 bytes; release.test.ts is 6,486
+bytes and repository boundaries now report zero size-review candidates.
+
+Final `bun run check` passed 401 tests / 9,173 assertions across 69 files, including
+six added CI-routing assertions for the five suites and shared helper. Root test
+discovery still includes every suite, and each path selects existing check and
+security gates. Lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types,
+146 documents / 742 links, packed SDK/classic/declarations and 298 installed CLI
+checks passed. Only this validation record changed afterward and received
+format/docs checks. Browser, other operating systems, hosted CI and actual
+registry access/publication were skipped for this test-organization change;
+platform coverage remains limited to the local Windows run. No runtime behavior,
+public SDK/receipt API, DB/storage, dependency/version or hygiene policy changed.
+CI path classification was extended without adding jobs or runner authority.
+Source-of-truth document changed: this record. Skills: refactor, test-hardening
+and ops-change.
+
 ## Bounded Asynchronous Registry Reads
 
 Default npm metadata reads now use asynchronous child processes with a shared
