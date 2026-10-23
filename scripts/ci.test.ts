@@ -60,6 +60,9 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
     commandsFor(
       planChecks([
         'scripts/registry-health.ts',
+        'scripts/registry-read.ts',
+        'scripts/registry-read.test.ts',
+        'scripts/registry-process.ts',
         'scripts/channel-plan.test.ts',
         'scripts/consumer-recovery.ts',
         'scripts/consumer-recovery.test.ts',

@@ -2,6 +2,8 @@ import { publishRelease, parsePublicationRequest, publicRegistryIO } from './pub
 import type { PublicationRequest, PublicationIO } from './publication.js';
 import { ReleaseError } from './release-artifacts.js';
 import { resolve } from 'node:path';
+import { registryReadSequence } from './registry-read.js';
+import type { RegistryReadResult, RegistryReadSource } from './registry-read.js';
 
 export class ChannelPlanError extends Error {
   constructor(
@@ -49,7 +51,7 @@ function object(value: unknown): value is Record<string, unknown> {
 export async function channelPlan(
   root: string,
   request: ChannelRequest,
-  run: PublicationIO['run'] = publicRegistryIO(root).run,
+  source: PublicationIO['run'] | RegistryReadSource = publicRegistryIO(root),
 ) {
   if (
     request.execute !== false ||
@@ -67,27 +69,24 @@ export async function channelPlan(
   )
     throw new ChannelPlanError('channel-target');
   const registry = 'https://registry.npmjs.org/';
-  const metadata = (item: (typeof approved.packages)[number]) => {
+  const argv = (item: (typeof approved.packages)[number]) => [
+    'npm',
+    'view',
+    `${item.name}@${version}`,
+    'name',
+    'version',
+    'versions',
+    'dist',
+    'dist-tags',
+    'deprecated',
+    '--json',
+    '--prefer-online',
+    '--registry',
+    registry,
+  ];
+  const metadata = (item: (typeof approved.packages)[number], read: RegistryReadResult) => {
     let value: unknown;
     try {
-      const read = run(
-        [
-          'npm',
-          'view',
-          `${item.name}@${version}`,
-          'name',
-          'version',
-          'versions',
-          'dist',
-          'dist-tags',
-          'deprecated',
-          '--json',
-          '--prefer-online',
-          '--registry',
-          registry,
-        ],
-        resolve(request.bundle),
-      );
       if (read.status !== 0 || Buffer.byteLength(read.stdout) > 1024 * 1024)
         throw new ChannelPlanError('channel-metadata');
       value = JSON.parse(read.stdout);
@@ -136,8 +135,20 @@ export async function channelPlan(
     };
   };
   // Nothing is returned for execution until both complete observations agree.
-  const first = approved.packages.map(metadata);
-  const second = approved.packages.map(metadata);
+  const observe = async () => {
+    const results: ReturnType<typeof metadata>[] = [];
+    const io = typeof source === 'function' ? { run: source } : source;
+    for await (const { item, result } of registryReadSequence(
+      approved.packages,
+      io,
+      argv,
+      resolve(request.bundle),
+    ))
+      results.push(metadata(item, result));
+    return results;
+  };
+  const first = await observe();
+  const second = await observe();
   if (JSON.stringify(first) !== JSON.stringify(second)) throw new ChannelPlanError('channel-drift');
   const confirmed = await publishRelease(root, request);
   if (JSON.stringify(approved) !== JSON.stringify(confirmed))

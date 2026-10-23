@@ -112,6 +112,55 @@ test('whole-family channel preflight binds bytes, checks twice and distinguishes
   expect(noop.olderCommonVersions).toEqual([]);
 });
 
+test('asynchronous channel reads overlap within each observation and keep the observation barrier', async () => {
+  const f = await fixture();
+  let active = 0,
+    peak = 0,
+    finished = 0;
+  const plan = await channelPlan(f.root, f.request, {
+    run() {
+      throw Error('synchronous registry read is forbidden');
+    },
+    async read(argv) {
+      const index = f.calls.length;
+      if (index === 5) expect(finished).toBe(5);
+      const result = f.run(argv);
+      peak = Math.max(peak, ++active);
+      await Promise.resolve();
+      active--;
+      finished++;
+      return result;
+    },
+  });
+  expect(plan.olderCommonVersions).toEqual(['0.1.0-dev.0']);
+  expect(f.calls).toHaveLength(10);
+  expect(peak).toBe(2);
+  expect(active).toBe(0);
+});
+
+test('an earlier validation failure wins over a faster later failure and prevents the second observation', async () => {
+  const f = await fixture();
+  await expect(
+    channelPlan(f.root, f.request, {
+      run() {
+        throw Error('synchronous registry read is forbidden');
+      },
+      async read(argv) {
+        const index = f.calls.length;
+        const result = f.run(argv);
+        if (index === 0) {
+          await Promise.resolve();
+          return { status: 0, stdout: 'invalid JSON' };
+        }
+        const value = JSON.parse(result.stdout);
+        value.dist.integrity = 'wrong';
+        return { status: 0, stdout: JSON.stringify(value) };
+      },
+    }),
+  ).rejects.toMatchObject({ code: 'channel-metadata' });
+  expect(f.calls).toHaveLength(2);
+});
+
 test('common rollback versions retain semantic ordering, exact intersection and unmodified metadata', async () => {
   const f = await fixture();
   for (const [index, entry] of f.entries.entries()) {

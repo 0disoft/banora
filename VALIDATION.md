@@ -3,6 +3,44 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Bounded Asynchronous Registry Reads
+
+Default npm metadata reads now use asynchronous child processes with a shared
+per-process limit of two active and 32 queued reads. Each read retains a 30-second
+deadline and 1 MiB stdout limit, adds a 1 MiB stderr limit and one-second exit
+confirmation, and never returns raw stderr. An unconfirmed stop closes admission.
+Only `npm view` is accepted by the read adapter. Uploads remain sequential and
+single-attempt, with the existing isolated npm configuration and credentials policy.
+
+Two-read waves yield metadata for validation in original package order. A failed
+validation aborts and drains the current wave before returning; no later wave or
+observation begins. Both channel observations remain separate, all preflight
+checks precede uploads/downloads, and each upload's metadata/version, integrity
+and channel checks finish before the next upload. Registry health still performs
+its final observation after all sequential consumer checks. Legacy run-only
+injections remain serial; optional async readers must settle on cancellation.
+
+Focused tests passed 55 cases / 508 assertions before the final offline npm-version
+assertions. Final `bun run check` passed 401 tests / 9,167 assertions across 65 files,
+lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types, 146 documents /
+742 links, packed SDK/classic/declarations and 298 installed CLI checks. Deferred
+fixtures confirmed overlapping reads with peak concurrency two, ordered failures,
+observation/upload barriers, queue saturation/cancellation and closed admission
+after an unconfirmed stop. Real local children verified timeout, cancellation,
+output boundaries, spawn errors and offline npm resolution. This establishes
+bounded overlap and cleanup, not live registry latency improvement.
+
+Only this validation record changed after the full check and received format/docs
+checks. Browser, other operating systems, hosted CI and actual registry access or
+publication were skipped for this local operational change. Injected readers that
+ignore cancellation are outside the adapter contract; independent OS processes do
+not share the limiter. Boundaries reported `scripts/release.test.ts` as a size-review
+candidate. Skills: ops-change, bugfix and test-hardening. Source contracts changed:
+release operations and this record. The internal operations IO gains an optional
+read dependency; no public SDK/receipt schema, DB/storage, dependency/version or
+hygiene changes. CI routing includes the new operational modules in existing
+checks/security coverage, without additional jobs or runner authority.
+
 ## Release File Metadata Reuse and Combined Verification
 
 Release file validation returns its checked stat result for the byte-size guard,

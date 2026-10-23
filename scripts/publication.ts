@@ -16,6 +16,9 @@ import {
 } from 'node:child_process';
 import { publicationPlan } from './publication-plan.js';
 import { restoreRelease, verifyRelease, ReleaseError } from './release-artifacts.js';
+import { registryReadLimiter, registryReadProcess } from './registry-process.js';
+import { registryReadSequence } from './registry-read.js';
+import type { RegistryRead, RegistryReadResult } from './registry-read.js';
 
 export interface PublicationRequest {
   readonly bundle: string;
@@ -140,6 +143,7 @@ export interface PublicationIO {
   readonly context: ReturnType<typeof publicationContext>;
   wait?(milliseconds: number): Promise<void>;
   now?(): number;
+  read?: RegistryRead;
   run(
     argv: readonly string[],
     cwd: string,
@@ -151,60 +155,79 @@ type NpmRunner = (
   options: SpawnSyncOptionsWithStringEncoding,
 ) => SpawnSyncReturns<string>;
 
-export function publicRegistryIO(root: string, run: NpmRunner = spawnSync): PublicationIO {
+const limitRegistryRead = registryReadLimiter();
+
+export function publicRegistryIO(
+  root: string,
+  run: NpmRunner = spawnSync,
+  readProcess: typeof registryReadProcess = registryReadProcess,
+): PublicationIO & { read: RegistryRead } {
   let configDirectory: string | undefined;
+  function prepare(argv: readonly string[], cwd: string) {
+    try {
+      lstatSync(resolve(cwd, '.npmrc'));
+      throw new PublicationError('authority');
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+    if (!configDirectory) {
+      mkdirSync(resolve(root, '.tmp'), { recursive: true });
+      const parent = resolve(root, '.tmp'),
+        info = lstatSync(parent);
+      if (
+        !info.isDirectory() ||
+        info.isSymbolicLink() ||
+        !realpathSync(parent).startsWith(realpathSync(root) + sep)
+      )
+        throw new ReleaseError('linked');
+      configDirectory = mkdtempSync(resolve(realpathSync(parent), 'npm-publication-'));
+      for (const file of ['user.npmrc', 'global.npmrc'])
+        writeFileSync(resolve(configDirectory, file), '', { flag: 'wx', mode: 0o600 });
+    }
+    const env = Object.fromEntries(
+      Object.entries(process.env).filter(
+        ([key]) =>
+          !key.toLowerCase().startsWith('npm_config_') &&
+          !['npm_token', 'node_auth_token'].includes(key.toLowerCase()),
+      ),
+    );
+    const uploading = argv[1] === 'publish';
+    // Force the transport policy as well as command-level single execution.
+    // Last CLI value wins over inherited config or earlier command arguments.
+    const args = [...argv.slice(1), ...(uploading ? ['--fetch-retries=0'] : []), '--prefix', cwd];
+    // npm otherwise searches ancestors for package.json/.npmrc, even inside an isolated bundle.
+    const options: SpawnSyncOptionsWithStringEncoding = {
+      cwd,
+      encoding: 'utf8',
+      shell: false,
+      timeout: uploading ? 180_000 : 30_000,
+      maxBuffer: 1024 * 1024,
+      windowsHide: true,
+      env: {
+        ...env,
+        NPM_CONFIG_USERCONFIG: resolve(configDirectory, 'user.npmrc'),
+        NPM_CONFIG_GLOBALCONFIG: resolve(configDirectory, 'global.npmrc'),
+        NPM_CONFIG_LOGLEVEL: 'error',
+        ...(uploading ? { NPM_CONFIG_FETCH_RETRIES: '0' } : {}),
+      },
+    };
+    return { args, options };
+  }
   return {
     get context() {
       return publicationContext();
     },
+    read(argv, cwd, signal) {
+      if (argv[0] !== 'npm' || argv[1] !== 'view')
+        return Promise.reject(new PublicationError('authority'));
+      return limitRegistryRead(async () => {
+        const { args, options } = prepare(argv, cwd);
+        return readProcess(argv[0]!, args, { cwd, env: options.env, signal });
+      }, signal);
+    },
     run(argv, cwd) {
-      try {
-        lstatSync(resolve(cwd, '.npmrc'));
-        throw new PublicationError('authority');
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-      }
-      if (!configDirectory) {
-        mkdirSync(resolve(root, '.tmp'), { recursive: true });
-        const parent = resolve(root, '.tmp'),
-          info = lstatSync(parent);
-        if (
-          !info.isDirectory() ||
-          info.isSymbolicLink() ||
-          !realpathSync(parent).startsWith(realpathSync(root) + sep)
-        )
-          throw new ReleaseError('linked');
-        configDirectory = mkdtempSync(resolve(realpathSync(parent), 'npm-publication-'));
-        for (const file of ['user.npmrc', 'global.npmrc'])
-          writeFileSync(resolve(configDirectory, file), '', { flag: 'wx', mode: 0o600 });
-      }
-      const env = Object.fromEntries(
-        Object.entries(process.env).filter(
-          ([key]) =>
-            !key.toLowerCase().startsWith('npm_config_') &&
-            !['npm_token', 'node_auth_token'].includes(key.toLowerCase()),
-        ),
-      );
-      const uploading = argv[1] === 'publish';
-      // Force the transport policy as well as command-level single execution.
-      // Last CLI value wins over inherited config or earlier command arguments.
-      const args = [...argv.slice(1), ...(uploading ? ['--fetch-retries=0'] : []), '--prefix', cwd];
-      // npm otherwise searches ancestors for package.json/.npmrc, even inside an isolated bundle.
-      const result = run(argv[0]!, args, {
-        cwd,
-        encoding: 'utf8',
-        shell: false,
-        timeout: uploading ? 180_000 : 30_000,
-        maxBuffer: 1024 * 1024,
-        windowsHide: true,
-        env: {
-          ...env,
-          NPM_CONFIG_USERCONFIG: resolve(configDirectory, 'user.npmrc'),
-          NPM_CONFIG_GLOBALCONFIG: resolve(configDirectory, 'global.npmrc'),
-          NPM_CONFIG_LOGLEVEL: 'error',
-          ...(uploading ? { NPM_CONFIG_FETCH_RETRIES: '0' } : {}),
-        },
-      });
+      const { args, options } = prepare(argv, cwd);
+      const result = run(argv[0]!, args, options);
       return {
         status: result.status,
         stdout: result.stdout ?? '',
@@ -312,19 +335,26 @@ export async function publishRelease(
   )
     throw new ReleaseError('integrity');
   const command = (argv: readonly string[]) => run(argv, snapshot);
-  const metadata = (name: string) => {
-    const read = command([
-      'npm',
-      'view',
-      name,
-      'name',
-      'versions',
-      'dist-tags',
-      '--json',
-      '--prefer-online',
-      '--registry',
-      plan.registry,
-    ]);
+  const readCommand = async (argv: readonly string[]) => {
+    try {
+      return io.read ? await io.read(argv, snapshot) : command(argv);
+    } catch {
+      throw new PublicationError('registry');
+    }
+  };
+  const metadataArgv = (name: string) => [
+    'npm',
+    'view',
+    name,
+    'name',
+    'versions',
+    'dist-tags',
+    '--json',
+    '--prefer-online',
+    '--registry',
+    plan.registry,
+  ];
+  const metadata = (name: string, read: RegistryReadResult) => {
     if (read.status !== 0) throw new PublicationError('registry'); // A 404 or authorization/transport failure is never absence.
     const value = json(read.stdout);
     if (
@@ -338,8 +368,8 @@ export async function publishRelease(
       throw new PublicationError('registry');
     return { versions: value.versions as string[], tags: value['dist-tags'] };
   };
-  const integrity = (name: string, version: string) => {
-    const read = command([
+  const integrity = async (name: string, version: string) => {
+    const read = await readCommand([
       'npm',
       'view',
       `${name}@${version}`,
@@ -353,15 +383,21 @@ export async function publishRelease(
     return json(read.stdout);
   };
   // Validate every existing identity/version before the first irreversible upload.
-  const existing = archives.map((item) => {
-    const current = metadata(item.name),
+  const existing: boolean[] = [];
+  for await (const { item, result } of registryReadSequence(
+    archives,
+    io,
+    (item) => metadataArgv(item.name),
+    snapshot,
+  )) {
+    const current = metadata(item.name, result),
       present = current.versions.includes(item.version);
-    if (present && integrity(item.name, item.version) !== item.registryIntegrity)
+    if (present && (await integrity(item.name, item.version)) !== item.registryIntegrity)
       throw new PublicationError('version-conflict');
     if (present && current.tags[plan.tag] !== item.version)
       throw new PublicationError('channel-conflict');
-    return present;
-  });
+    existing.push(present);
+  }
   const completed: PackageResult[] = [];
   for (const [index, item] of archives.entries()) {
     let attempted = false;
@@ -382,7 +418,7 @@ export async function publishRelease(
       const confirmationStarted = now();
       for (let confirmation = 0; ; confirmation++) {
         lastCheck = 'registry-metadata';
-        observed = metadata(item.name);
+        observed = metadata(item.name, await readCommand(metadataArgv(item.name)));
         lastCheck = 'registry-version';
         if (observed.versions.includes(item.version)) break;
         // Only successful uploads receive bounded read-only propagation checks.
@@ -398,7 +434,7 @@ export async function publishRelease(
         else await new Promise<void>((resolve) => setTimeout(resolve, 10_000));
       }
       lastCheck = 'registry-integrity';
-      if (integrity(item.name, item.version) !== item.registryIntegrity)
+      if ((await integrity(item.name, item.version)) !== item.registryIntegrity)
         throw new PublicationError('publication-uncertain');
       lastCheck = 'registry-channel';
       if (observed.tags[plan.tag] !== item.version)

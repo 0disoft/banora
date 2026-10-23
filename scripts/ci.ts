@@ -102,7 +102,7 @@ export function planChecks(paths: readonly string[] | null): CheckPlan {
       if (match) browser.add(match[1]);
       else if (path.startsWith('packages/sdk/src/katago')) browser.add('--analysis-only');
       else if (
-        /^(scripts\/(ci|security|repository-policy|development|operations|performance|release|release-check|source-backup|registry-health|publication|publication-plan|publication-candidate|channel-plan|consumer-recovery|package-compatibility|demo-recovery|demo-archive|demo-health|demo-backup|demo-backup-contract)(\.test)?\.ts|scripts\/consumer-recovery-probe\.js$|config\/|\.github\/dependabot\.yml)/.test(
+        /^(scripts\/(ci|security|repository-policy|development|operations|performance|release|release-check|source-backup|registry-health|registry-read|registry-process|publication|publication-plan|publication-candidate|channel-plan|consumer-recovery|package-compatibility|demo-recovery|demo-archive|demo-health|demo-backup|demo-backup-contract)(\.test)?\.ts|scripts\/consumer-recovery-probe\.js$|config\/|\.github\/dependabot\.yml)/.test(
           path,
         )
       ) {

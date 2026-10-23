@@ -363,6 +363,24 @@ duplicate rejection and the 10,000-version metadata bound are retained. Both
 complete observations and the final retained-byte verification still run; the
 indexes live only for this preflight and never cache remote state across calls.
 
+Default npm metadata reads use asynchronous child processes. A shared in-process
+gate admits at most two reads and 32 waiting calls, with 30-second execution and
+1 MiB stdout/stderr bounds. Forced-stop confirmation has a separate one-second
+deadline; an unconfirmed exit closes read admission rather than silently exceeding
+the process limit. Raw stderr is drained, never copied into receipts. Only `npm
+view` is accepted by this read adapter; uploads keep the separate single-attempt
+command path.
+
+Each observation prefetches at most two reads while validating in original package
+order. A validation failure aborts/drains its outstanding wave before returning;
+no later wave or observation begins. The first complete observation precedes the
+second, all preflight validation precedes uploads/downloads, and post-upload
+version, integrity and channel checks still finish before the next upload. Health
+confirmation still follows all installed-consumer checks. Injected legacy `run`
+adapters remain serial; an optional `read` adapter follows the bounded asynchronous
+path and must settle on cancellation. No retries or cross-observation cache were
+added. Fresh filesystem/hash validation and npm configuration isolation remain.
+
 ### Check a Registry Rollback Target Before Moving Tags
 
 Use the separate read-only command when the reviewed target is older than the

@@ -639,6 +639,96 @@ test('npm upload transport disables hidden retries while read configuration and 
   expect(calls[1]!.retries).toBeUndefined();
   expect(calls[1]!.args).not.toContain('--fetch-retries=0');
 });
+test('asynchronous read adapter retains isolated configuration and refuses writes before launching', async () => {
+  await mkdir('.tmp', { recursive: true });
+  const root = await mkdtemp(resolve('.tmp/npm-async-read-'));
+  let launches = 0;
+  const io = publicRegistryIO(
+    root,
+    () => {
+      throw Error('synchronous command is forbidden');
+    },
+    async (command, args, options) => {
+      launches++;
+      expect(command).toBe('npm');
+      expect(args.slice(-2)).toEqual(['--prefix', root]);
+      expect(options.env?.NPM_CONFIG_LOGLEVEL).toBe('error');
+      expect(await readFile(options.env!.NPM_CONFIG_USERCONFIG!, 'utf8')).toBe('');
+      expect(await readFile(options.env!.NPM_CONFIG_GLOBALCONFIG!, 'utf8')).toBe('');
+      expect(options.cwd).toBe(root);
+      return { status: 0, stdout: '{}' };
+    },
+  );
+  expect(await io.read(['npm', 'view', '@0disoft/banora', '--json'], root)).toEqual({
+    status: 0,
+    stdout: '{}',
+  });
+  await expect(io.read(['npm', 'publish', './authored.tgz'], root)).rejects.toMatchObject({
+    code: 'authority',
+  });
+  expect(launches).toBe(1);
+  await writeFile(resolve(root, '.npmrc'), 'registry=https://example.org/\n');
+  await expect(io.read(['npm', 'view', '@0disoft/banora'], root)).rejects.toMatchObject({
+    code: 'authority',
+  });
+  expect(launches).toBe(1);
+});
+
+test('registry health asynchronous observations finish before download and after all consumer checks', async () => {
+  const f = await registryFixture();
+  let active = 0,
+    peak = 0,
+    finished = 0;
+  const result = await registryHealth(f.root, f.request, {
+    ...f.io,
+    run() {
+      throw Error('synchronous registry read is forbidden');
+    },
+    async read(argv, cwd) {
+      if (f.calls.length === 5) expect(f.checks).toHaveLength(3);
+      const response = f.io.run(argv, cwd);
+      peak = Math.max(peak, ++active);
+      await Promise.resolve();
+      active--;
+      finished++;
+      return response;
+    },
+    async download(url, path, bytes) {
+      expect(finished).toBe(5);
+      await f.io.download(url, path, bytes);
+    },
+  });
+  expect(result.packages).toHaveLength(5);
+  expect(f.calls).toHaveLength(10);
+  expect(peak).toBe(2);
+  expect(active).toBe(0);
+});
+
+test('publication uses asynchronous reads but retains serial uploads and per-package post-checks', async () => {
+  const f = await publisherFixture();
+  let active = 0,
+    peak = 0;
+  const result = await publishRelease(f.root, f.request, {
+    ...f.io,
+    run(argv, cwd) {
+      expect(argv[1]).not.toBe('view');
+      expect(active).toBe(0);
+      return f.io.run(argv, cwd);
+    },
+    async read(argv, cwd) {
+      peak = Math.max(peak, ++active);
+      const response = f.io.run(argv, cwd);
+      await Promise.resolve();
+      active--;
+      return response;
+    },
+  });
+  expect(result.packages).toHaveLength(5);
+  expect(f.calls.filter((call) => call.argv[1] === 'publish')).toHaveLength(5);
+  expect(peak).toBe(2);
+  expect(active).toBe(0);
+});
+
 test('registry health binds all identities and downloaded bytes before isolated consumer checks and preserves original artifacts', async () => {
   const { root, bundle, request, io, calls, checks, downloads } = await registryFixture();
   const before = await inventory(bundle);

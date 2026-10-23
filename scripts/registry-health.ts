@@ -12,6 +12,8 @@ import { publicRegistryIO, publishRelease } from './publication.js';
 import type { PublicationIO, PublicationRequest } from './publication.js';
 import { runReleaseCheck } from './release-check.js';
 import { channelPlan } from './channel-plan.js';
+import { registryReadSequence } from './registry-read.js';
+import type { RegistryRead, RegistryReadResult } from './registry-read.js';
 
 export class RegistryHealthError extends Error {
   constructor(
@@ -90,12 +92,15 @@ export async function downloadRegistryArchive(
 }
 export interface RegistryHealthIO {
   run: PublicationIO['run'];
+  read?: RegistryRead;
   download(url: string, destination: string, bytes: number): Promise<void>;
   check(args: string[], label: string): Promise<void>;
 }
 function registryIO(root: string): RegistryHealthIO {
+  const registry = publicRegistryIO(root);
   return {
-    run: publicRegistryIO(root).run,
+    run: registry.run,
+    read: registry.read,
     download: downloadRegistryArchive,
     check: (args, label) => runReleaseCheck(root, args, label),
   };
@@ -113,7 +118,7 @@ export async function registryTargetHealth(
   request: Parameters<typeof channelPlan>[1],
   io: RegistryHealthIO = registryIO(root),
 ) {
-  const preflight = await channelPlan(root, request, io.run);
+  const preflight = await channelPlan(root, request, io);
   const health = await checkRegistry(root, request, io, preflight.expectedCurrentVersion);
   return {
     ...health,
@@ -140,26 +145,23 @@ async function checkRegistry(
   const archiveDirectory = await mkdtemp(
     resolve(await artifactParent(root, 'restores'), 'registry-download-'),
   );
-  const metadata = (item: (typeof plan.packages)[number]) => {
+  const argv = (item: (typeof plan.packages)[number]) => [
+    'npm',
+    'view',
+    `${item.name}@${item.version}`,
+    'name',
+    'version',
+    'dist',
+    'dist-tags',
+    ...(expectedCurrentVersion ? ['deprecated'] : []),
+    '--json',
+    '--registry',
+    'https://registry.npmjs.org/',
+    '--prefer-online',
+  ];
+  const metadata = (item: (typeof plan.packages)[number], read: RegistryReadResult) => {
     let value: unknown;
     try {
-      const read = io.run(
-        [
-          'npm',
-          'view',
-          `${item.name}@${item.version}`,
-          'name',
-          'version',
-          'dist',
-          'dist-tags',
-          ...(expectedCurrentVersion ? ['deprecated'] : []),
-          '--json',
-          '--registry',
-          'https://registry.npmjs.org/',
-          '--prefer-online',
-        ],
-        archiveDirectory,
-      );
       if (read.status !== 0 || Buffer.byteLength(read.stdout) > 1024 * 1024)
         throw new RegistryHealthError('registry-metadata');
       value = JSON.parse(read.stdout);
@@ -189,7 +191,18 @@ async function checkRegistry(
     return tarball;
   };
   // Check the entire family before downloading or executing its packages.
-  const urls = plan.packages.map(metadata);
+  const observe = async () => {
+    const urls: string[] = [];
+    for await (const { item, result } of registryReadSequence(
+      plan.packages,
+      io,
+      argv,
+      archiveDirectory,
+    ))
+      urls.push(metadata(item, result));
+    return urls;
+  };
+  const urls = await observe();
   const downloads: string[] = [],
     completed: string[] = [];
   for (const [index, item] of plan.packages.entries()) {
@@ -241,7 +254,7 @@ async function checkRegistry(
     checks.push(label);
   }
   try {
-    plan.packages.forEach(metadata);
+    await observe();
   } // A channel change during installs is not a passing release health check.
   catch (error) {
     throw new RegistryHealthError(
