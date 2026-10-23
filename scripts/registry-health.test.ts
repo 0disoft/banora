@@ -211,3 +211,91 @@ test('fresh HTTPS download bounds actual streamed bytes, denies redirects/foreig
       downloadRegistryArchive(address, resolve(directory, name + '.tgz'), 4, async () => response),
     ).rejects.toMatchObject({ code: 'registry-download' });
 });
+
+test('download refusal settles and unlocks the body while transport cancellation is still pending', async () => {
+  await mkdir('.tmp', { recursive: true });
+  const directory = await mkdtemp(resolve('.tmp/registry-cancel-test-'));
+  let release!: () => void;
+  const cancellation = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let cancelled = 0;
+  let signal: AbortSignal | undefined;
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new Uint8Array(5));
+    },
+    cancel() {
+      cancelled++;
+      return cancellation;
+    },
+  });
+  const result = downloadRegistryArchive(
+    'https://registry.npmjs.org/authored.tgz',
+    resolve(directory, 'partial.tgz'),
+    4,
+    async (_url, init) => {
+      signal = init.signal!;
+      return new Response(body);
+    },
+  ).then(
+    () => 'unexpected success',
+    (error: unknown) => error,
+  );
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const outcome = await Promise.race([
+      result,
+      new Promise<string>((resolve) => {
+        timer = setTimeout(() => resolve('still waiting for cancellation'), 250);
+      }),
+    ]);
+    expect(outcome).toBeInstanceOf(RegistryHealthError);
+    expect(outcome).toMatchObject({ code: 'registry-download' });
+    expect(cancelled).toBe(1);
+    expect(signal?.aborted).toBe(true);
+    expect(body.locked).toBe(false);
+    expect((await readFile(resolve(directory, 'partial.tgz'))).length).toBe(0);
+  } finally {
+    clearTimeout(timer);
+    release();
+    await result;
+  }
+});
+
+test('response rejection and occupied destinations cancel and unlock every owned body without overwriting bytes', async () => {
+  await mkdir('.tmp', { recursive: true });
+  const directory = await mkdtemp(resolve('.tmp/registry-rejection-test-'));
+  for (const failure of ['status', 'length', 'occupied'] as const) {
+    let cancelled = 0;
+    const body = new ReadableStream<Uint8Array>({
+      cancel() {
+        cancelled++;
+        // A private cleanup rejection must neither replace the failure nor become unhandled.
+        throw Error('Authored private cancellation detail');
+      },
+    });
+    const destination = resolve(directory, failure + '.tgz');
+    if (failure === 'occupied') await writeFile(destination, 'Existing authored bytes');
+    await expect(
+      downloadRegistryArchive(
+        'https://registry.npmjs.org/authored.tgz',
+        destination,
+        4,
+        async () =>
+          new Response(body, {
+            status: failure === 'status' ? 503 : 200,
+            headers: failure === 'length' ? { 'content-length': '5' } : {},
+          }),
+      ),
+    ).rejects.toMatchObject({
+      code: 'registry-download',
+      message: 'Registry health: registry-download.',
+    });
+    expect(cancelled).toBe(1);
+    expect(body.locked).toBe(false);
+    if (failure === 'occupied')
+      expect(await readFile(destination, 'utf8')).toBe('Existing authored bytes');
+    else await expect(readFile(destination)).rejects.toMatchObject({ code: 'ENOENT' });
+  }
+});

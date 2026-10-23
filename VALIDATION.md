@@ -3,6 +3,41 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Registry Download Cleanup Ownership
+
+The highest-priority findings in this pass were (1) awaiting stream cancellation
+without a bound before closing the downloaded file, and (2) rejecting a response
+or destination before owning its body for cleanup. Both are addressed in one
+download-lifecycle increment. Each received body is owned before HTTP/header/file
+checks, and cleanup aborts the request, requests cancellation, releases the reader
+lock and closes the owned file independently of cancellation settlement. Cancel
+rejections are observed privately; file/reader cleanup errors keep the fixed
+`registry-download` boundary. Existing byte/URL/header/exclusive-file checks,
+isolation and preflight/download/consumer/final-observation order remain.
+
+Two new tests failed on the original source: a cancellation held pending still
+blocked the refusal after a 250 ms watchdog, and an HTTP refusal never cancelled
+its body. Both passed after the fix. The pending-cancel fixture settled in about
+3 to 7 ms locally while cancellation was deliberately unresolved; this is a
+synthetic cleanup observation, not a live-network latency benchmark. Regression
+cases cover rejected status, mismatched length, occupied destination, a rejecting
+cancel hook, unlocked bodies, fixed errors and preserved existing bytes. Focused
+registry/publication/channel tests passed 38 cases / 381 assertions.
+
+Final `bun run check` exited successfully with 403 tests / 9,191 assertions across
+69 files, lint/format/boundaries, builds, root/Svelte types and 146 documents / 742
+links. Packed SDK/classic/declaration and installed CLI probes were also run
+explicitly to confirm their completion; CLI passed 298 checks on Windows. Only
+this record changed afterward and received format/docs checks. Browser, other OS,
+hosted CI and actual registry access/publication were skipped for this local
+operations fix. Cancellation is requested, not confirmed for an uncooperative
+injected transport, and filesystem close still depends on the OS. Next candidate:
+late fetch completion after the demo-health deadline, whose cleanup currently
+only sees an already acquired reader; investigate separately before changing it.
+Source contracts changed: release operations and this record. Skills: bugfix,
+ops-change and test-hardening. No public SDK/receipt API, DB/storage, dependency/
+version, repository hygiene, CI or runner policy changes.
+
 ## Release Test Responsibility Boundaries
 
 The former release test module is split into artifact/source checks

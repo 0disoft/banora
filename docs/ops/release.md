@@ -334,6 +334,15 @@ remain isolated and never qualify as health evidence. The original reviewed
 bundle is preserved; only its exclusive verified copy receives downloaded bytes.
 There is no package rebuild or reliance on a previously cached npm tarball.
 
+Each response body is owned before HTTP/header/destination checks, so rejected
+responses also receive cancellation. Cleanup aborts the request, requests body
+cancellation and releases its reader lock, then closes the owned file without
+waiting for the transport's cancellation promise. Rejected cancellation promises
+are observed privately; cleanup failures retain the fixed `registry-download`
+error. A stalled cancellation cannot hold the file or delay an already refused
+download indefinitely. This requests transport shutdown, not confirmation that
+an injected transport has stopped; isolated partial files remain non-evidence.
+
 Existing `packed-consumer`, `packed-cli` and `packed-adapters` commands execute
 serially against those downloaded tarballs, using their independent installations,
 disabled lifecycle scripts, declarations, Node/classic runtime and native

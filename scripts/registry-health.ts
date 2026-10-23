@@ -58,19 +58,20 @@ export async function downloadRegistryArchive(
   const timer = setTimeout(() => abort.abort(), 60_000);
   let file: Awaited<ReturnType<typeof open>> | undefined;
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let failed = false;
   try {
     const response = await fetcher(address.href, {
       redirect: 'error',
       cache: 'no-store',
       signal: abort.signal,
     });
-    if (response.status !== 200 || !response.body)
-      throw new RegistryHealthError('registry-download');
+    // Own the body before any response/header/destination refusal needs cleanup.
+    reader = response.body?.getReader();
+    if (response.status !== 200 || !reader) throw new RegistryHealthError('registry-download');
     const length = response.headers.get('content-length');
     if (length !== null && (!/^\d+$/.test(length) || Number(length) !== bytes))
       throw new RegistryHealthError('registry-download');
     file = await open(destination, 'wx', 0o600);
-    reader = response.body.getReader();
     let total = 0;
     for (;;) {
       const chunk = await reader.read();
@@ -82,13 +83,26 @@ export async function downloadRegistryArchive(
     }
     if (total !== bytes) throw new RegistryHealthError('registry-download');
   } catch {
-    throw new RegistryHealthError('registry-download');
+    failed = true;
   } finally {
     clearTimeout(timer);
     abort.abort();
-    await reader?.cancel().catch(() => undefined);
-    await file?.close();
+    try {
+      // Transport cancellation may never settle; it must not prevent closing our file.
+      if (reader) {
+        void reader.cancel().catch(() => undefined);
+        reader.releaseLock();
+      }
+    } catch {
+      failed = true;
+    }
+    try {
+      await file?.close();
+    } catch {
+      failed = true;
+    }
   }
+  if (failed) throw new RegistryHealthError('registry-download');
 }
 export interface RegistryHealthIO {
   run: PublicationIO['run'];
