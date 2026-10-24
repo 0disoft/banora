@@ -55,6 +55,20 @@ values longer than 4,096 characters and unsupported locales throw before applyin
 an update. Template placeholders are replaced literally, without expression
 execution. Existing BoardLabels customization stays independent of locale helpers.
 
+Touch confirmation also uses localized `pointSelected` and `placementAt` message
+templates, each with `{coordinate}`. `createBoardLabels` exposes these as optional
+`selected` and `placement` BoardLabels alongside the existing confirm/cancel
+templates. Native and controlled boards use them for the visible selection prompt
+and confirmation-group accessible name; missing labels retain English defaults.
+Controlled-board copies validate and snapshot both templates with the existing
+1,024-character text bound. Updating labels replaces them for subsequent input;
+as before, a board option update cancels pending touch placement.
+The two new keys are optional in the public `UiMessages` type so existing complete
+message bags still typecheck. `createUiMessages` returns all resolved fields as
+`Required<UiMessages>`; every built-in locale supplies both translations.
+These keys do not yet translate board live-region interaction notices or the
+separate puzzle/analysis widgets.
+
 Authored SGF names, player names, comments, coordinates, metadata, rule identifiers,
 CLI machine output and protocol/error diagnostics retain their original content.
 Localization changes presentation only; no record rewrite or remote translation

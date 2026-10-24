@@ -1,5 +1,5 @@
 import type { UiMessages } from './locale.js';
-export const ru: UiMessages = {
+export const ru: Required<UiMessages> = {
   viewer: 'Просмотр партий го',
   game: 'Партия {number}',
   gameLabel: 'Партия ',
@@ -62,4 +62,6 @@ export const ru: UiMessages = {
     'Ход {moveNumber}. Ход: {toPlay}. Пленные чёрных {blackCaptures}, белых {whiteCaptures}.',
   confirm: 'Подтвердить ход в {coordinate}',
   cancel: 'Отменить ход',
+  pointSelected: 'Выбрана точка {coordinate}.',
+  placementAt: 'Ход в {coordinate}',
 };

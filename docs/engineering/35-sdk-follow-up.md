@@ -44,5 +44,9 @@ Common Viewer outline reuse and measured DOM retention are recorded in the
 [outline evidence](03-performance-budget.md#common-viewer-outline-reuse).
 The first rendering increment is implemented locally; large-record windowing
 and the remaining feature items below it in the sequence remain pending.
+Touch confirmation prompt/group localization is implemented in all twelve
+locales with backward-compatible optional label/message extensions. Puzzle and
+analysis widgets and board interaction notices remain pending; this is not a
+claim of complete widget localization.
 Other items remain pending until their implementation and verification are
 recorded in [Validation](../../VALIDATION.md).

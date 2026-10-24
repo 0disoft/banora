@@ -53,6 +53,8 @@ function configCopy(config: ControlledBoardOptions): ControlledBoardOptions {
       'state',
       'confirm',
       'cancel',
+      'selected',
+      'placement',
       'black',
       'white',
       'empty',

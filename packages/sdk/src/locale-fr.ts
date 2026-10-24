@@ -1,5 +1,5 @@
 import type { UiMessages } from './locale.js';
-export const fr: UiMessages = {
+export const fr: Required<UiMessages> = {
   viewer: 'Lecteur de parties de go',
   game: 'Partie {number}',
   gameLabel: 'Partie ',
@@ -63,4 +63,6 @@ export const fr: UiMessages = {
     'Coup {moveNumber}. À {toPlay} de jouer. Captures noires {blackCaptures}, blanches {whiteCaptures}.',
   confirm: 'Confirmer le coup en {coordinate}',
   cancel: 'Annuler le coup',
+  pointSelected: '{coordinate} sélectionné.',
+  placementAt: 'Coup en {coordinate}',
 };

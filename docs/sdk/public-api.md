@@ -846,6 +846,11 @@ Studio's Save SVG/PNG actions and all three framework examples exercise this con
 
 The [UI localization contract](localization.md) defines twelve built-in `locale` codes and `SUPPORTED_LOCALES`,
 message overrides, native props and localized board accessibility labels.
+Optional `BoardLabels.selected` / `placement` templates format `{coordinate}`
+for touch confirmation prompt/group text. `createBoardLabels` resolves them from
+`pointSelected` / `placementAt`; absent labels keep English defaults. These two
+message keys are optional for existing `UiMessages` bags, while the helper returns
+all resolved translations. Record/native and controlled boards share the labels.
 The additive `formatUiFailure(code, {locale?})` root/locale/classic helper formats
 controller, SGF, scoring, sharing and file feedback without changing machine results.
 Unknown codes use a localized generic explanation.

@@ -527,6 +527,9 @@ the exact instrumented operation scope is listed in the consumer contract.
   read-only boards with point callbacks. Cropping, transforms, visibility masks
   and diagram preview exclusion remain effective. Semantic changes, keyboard
   focus, ink and touch interactions retain their existing rendering lifecycle.
+- Touch confirmation prompt and group accessible name, alongside confirm/cancel
+  buttons, use the twelve-locale board-label contract. This does not translate
+  authored content or claim completion of puzzle/analysis/live-region messages.
 
 ## Framework Support Contract
 

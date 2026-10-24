@@ -1,5 +1,5 @@
 import type { UiMessages } from './locale.js';
-export const es: UiMessages = {
+export const es: Required<UiMessages> = {
   viewer: 'Visor de partidas de go',
   game: 'Partida {number}',
   gameLabel: 'Partida ',
@@ -62,4 +62,6 @@ export const es: UiMessages = {
     'Jugada {moveNumber}. Turno de {toPlay}. Capturas negras {blackCaptures}, blancas {whiteCaptures}.',
   confirm: 'Confirmar jugada en {coordinate}',
   cancel: 'Cancelar jugada',
+  pointSelected: '{coordinate} seleccionado.',
+  placementAt: 'Jugada en {coordinate}',
 };

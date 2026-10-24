@@ -78,10 +78,13 @@ async function cli(...args: string[]): Promise<string> {
   return stdout;
 }
 async function scenario(file: string, expected: string): Promise<void> {
-  const result = await cli(
-    'run-code',
+  // File transport avoids Windows' command-line limit, including CRLF expansion.
+  const script = resolve(output, `${session}-scenario.js`);
+  await writeFile(
+    script,
     scenarioExpression(await readFile(resolve(root, `scripts/${file}-scenario.js`), 'utf8')),
   );
+  const result = await cli('run-code', '--filename', script);
   requireScenarioResult(result, expected);
 }
 async function browserPerformance(): Promise<void> {
@@ -268,6 +271,7 @@ async function controlledConsumers(): Promise<void> {
 }
 async function localeSmoke(): Promise<void> {
   await scenario('locale', 'banora-locale-complete');
+  await scenario('touch-labels', 'banora-touch-labels-complete');
   const passes = await readFile(resolve(output, 'localized-pass-preserved.sgf'), 'utf8');
   for (const value of ['XX[pass-locale]', 'B[]', 'W[tt]', 'MN[9]'])
     if (!passes.includes(value)) throw Error('Localized pass export lost authored move data');

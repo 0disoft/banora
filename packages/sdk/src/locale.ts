@@ -77,13 +77,18 @@ const english = {
     'Move {moveNumber}. {toPlay} to play. Black captures {blackCaptures}, white captures {whiteCaptures}.',
   confirm: 'Confirm placement at {coordinate}',
   cancel: 'Cancel placement',
+  pointSelected: '{coordinate} selected.',
+  placementAt: 'Placement at {coordinate}',
 } as const;
-export type UiMessages = { readonly [Key in keyof typeof english]: string };
+type TouchMessageKey = 'pointSelected' | 'placementAt';
+export type UiMessages = {
+  readonly [Key in Exclude<keyof typeof english, TouchMessageKey>]: string;
+} & { readonly [Key in TouchMessageKey]?: string };
 export interface LocaleOptions {
   readonly locale?: BanoraLocale;
   readonly messages?: Partial<UiMessages>;
 }
-const korean: UiMessages = {
+const korean: Required<UiMessages> = {
   viewer: '바둑 기보 뷰어',
   game: '기보 {number}',
   gameLabel: '기보 ',
@@ -144,8 +149,10 @@ const korean: UiMessages = {
   boardState: '{moveNumber}수. {toPlay} 차례. 잡은 돌 흑 {blackCaptures}, 백 {whiteCaptures}.',
   confirm: '{coordinate}에 착수 확인',
   cancel: '착수 취소',
+  pointSelected: '{coordinate} 선택됨.',
+  placementAt: '{coordinate} 착수',
 };
-const chinese: UiMessages = {
+const chinese: Required<UiMessages> = {
   viewer: '围棋棋谱查看器',
   game: '棋谱 {number}',
   gameLabel: '棋谱 ',
@@ -204,8 +211,10 @@ const chinese: UiMessages = {
   boardState: '第 {moveNumber} 手。轮到{toPlay}。提子：黑 {blackCaptures}，白 {whiteCaptures}。',
   confirm: '确认在 {coordinate} 落子',
   cancel: '取消落子',
+  pointSelected: '已选择 {coordinate}。',
+  placementAt: '在 {coordinate} 落子',
 };
-const japanese: UiMessages = {
+const japanese: Required<UiMessages> = {
   viewer: '囲碁棋譜ビューア',
   game: '棋譜 {number}',
   gameLabel: '棋譜 ',
@@ -266,8 +275,10 @@ const japanese: UiMessages = {
   boardState: '{moveNumber}手目。{toPlay}の手番。アゲハマ 黒 {blackCaptures}、白 {whiteCaptures}。',
   confirm: '{coordinate}への着手を確定',
   cancel: '着手をキャンセル',
+  pointSelected: '{coordinate}を選択しました。',
+  placementAt: '{coordinate}への着手',
 };
-const catalogs: Readonly<Record<BanoraLocale, UiMessages>> = {
+const catalogs: Readonly<Record<BanoraLocale, Required<UiMessages>>> = {
   en: english,
   ko: korean,
   zh: chinese,
@@ -282,7 +293,7 @@ const catalogs: Readonly<Record<BanoraLocale, UiMessages>> = {
   ms,
 };
 /** Explicit and DOM-free: SDK defaults never depend on browser or machine language. */
-export function createUiMessages(options: LocaleOptions = {}): UiMessages {
+export function createUiMessages(options: LocaleOptions = {}): Required<UiMessages> {
   if (
     options.locale !== undefined &&
     (typeof options.locale !== 'string' || !Object.hasOwn(catalogs, options.locale))
@@ -302,7 +313,7 @@ export function createUiMessages(options: LocaleOptions = {}): UiMessages {
       messages[key] = value;
     }
   }
-  return Object.freeze(messages) as UiMessages;
+  return Object.freeze(messages) as Required<UiMessages>;
 }
 export function formatUiMessage(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) =>
@@ -317,6 +328,8 @@ export function createBoardLabels(options: LocaleOptions = {}): BoardLabels {
     state: ui.boardState,
     confirm: ui.confirm,
     cancel: ui.cancel,
+    selected: ui.pointSelected,
+    placement: ui.placementAt,
     black: ui.black,
     white: ui.white,
     empty: ui.empty,

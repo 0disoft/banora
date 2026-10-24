@@ -37,7 +37,10 @@ const focused: readonly [RegExp, string][] = [
     '--puzzle-only',
   ],
   [/^(packages\/sdk\/src\/playback|scripts\/playback-scenario\.js$)/, '--playback-only'],
-  [/^(packages\/sdk\/src\/locale|examples\/ui-|scripts\/locale-scenario\.js$)/, '--locale-only'],
+  [
+    /^(packages\/sdk\/src\/locale|examples\/ui-|scripts\/(locale|touch-labels)-scenario\.js$)/,
+    '--locale-only',
+  ],
   [
     /^(packages\/sdk\/src\/scoring|examples\/scoring-controls|scripts\/scoring-scenario\.js$)/,
     '--scoring-only',

@@ -1,5 +1,5 @@
 import type { UiMessages } from './locale.js';
-export const hi: UiMessages = {
+export const hi: Required<UiMessages> = {
   viewer: 'गो रिकॉर्ड व्यूअर',
   game: 'खेल {number}',
   gameLabel: 'खेल ',
@@ -60,4 +60,6 @@ export const hi: UiMessages = {
     'चाल {moveNumber}। {toPlay} की बारी। काले बंदी {blackCaptures}, सफ़ेद बंदी {whiteCaptures}।',
   confirm: '{coordinate} पर चाल की पुष्टि करें',
   cancel: 'चाल रद्द करें',
+  pointSelected: '{coordinate} चुना गया।',
+  placementAt: '{coordinate} पर चाल',
 };

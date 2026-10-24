@@ -1,5 +1,5 @@
 import type { UiMessages } from './locale.js';
-export const th: UiMessages = {
+export const th: Required<UiMessages> = {
   viewer: 'โปรแกรมดูบันทึกหมากล้อม',
   game: 'เกม {number}',
   gameLabel: 'เกม ',
@@ -59,4 +59,6 @@ export const th: UiMessages = {
   boardState: 'ตาที่ {moveNumber} ตาของ{toPlay} ดำจับ {blackCaptures} ขาวจับ {whiteCaptures}',
   confirm: 'ยืนยันวางหมากที่ {coordinate}',
   cancel: 'ยกเลิกการวางหมาก',
+  pointSelected: 'เลือก {coordinate} แล้ว',
+  placementAt: 'วางหมากที่ {coordinate}',
 };

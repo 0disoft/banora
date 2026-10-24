@@ -13,6 +13,8 @@ export interface BoardLabels {
   readonly state?: string;
   readonly confirm?: string;
   readonly cancel?: string;
+  readonly selected?: string;
+  readonly placement?: string;
   readonly black?: string;
   readonly white?: string;
   readonly empty?: string;

@@ -73,8 +73,13 @@ export function mountTouchUI(
       magnifier: boolean,
     ) {
       panel.style.display = awaiting && point ? 'flex' : 'none';
-      panel.setAttribute('aria-label', `Placement at ${label}`);
-      prompt.textContent = `${label} selected.`;
+      panel.setAttribute(
+        'aria-label',
+        boardMessage(labels()?.placement ?? 'Placement at {coordinate}', { coordinate: label }),
+      );
+      prompt.textContent = boardMessage(labels()?.selected ?? '{coordinate} selected.', {
+        coordinate: label,
+      });
       accept.textContent = boardMessage(labels()?.confirm ?? 'Confirm placement at {coordinate}', {
         coordinate: label,
       });

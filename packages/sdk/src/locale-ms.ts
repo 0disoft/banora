@@ -1,5 +1,5 @@
 import type { UiMessages } from './locale.js';
-export const ms: UiMessages = {
+export const ms: Required<UiMessages> = {
   viewer: 'Paparan rekod Go',
   game: 'Permainan {number}',
   gameLabel: 'Permainan ',
@@ -62,4 +62,6 @@ export const ms: UiMessages = {
     'Langkah {moveNumber}. Giliran {toPlay}. Tangkapan hitam {blackCaptures}, putih {whiteCaptures}.',
   confirm: 'Sahkan langkah di {coordinate}',
   cancel: 'Batalkan langkah',
+  pointSelected: '{coordinate} dipilih.',
+  placementAt: 'Langkah di {coordinate}',
 };

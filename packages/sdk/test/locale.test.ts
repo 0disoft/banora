@@ -10,6 +10,7 @@ import type { ControllerFailure } from '../src/controller.js';
 import type { SgfDiagnostic } from '../src/sgf.js';
 import type { ScoreFailure } from '../src/scoring.js';
 import type { ShareFailure } from '../src/share.js';
+import type { UiMessages } from '../src/locale.js';
 
 test('failure explanations cover every controller, SGF, scoring and sharing reason in all locales', () => {
   const codes = {
@@ -110,6 +111,37 @@ test('invalid locales/message bags reject before mounting or presentation update
     { messages: { play: 3 } },
   ])
     expect(() => createUiMessages(options as never)).toThrow(TypeError);
+});
+
+test('touch confirmation prompt and group labels localize in every locale with literal substitutions', () => {
+  const acceptsLegacy = (messages: Omit<UiMessages, 'pointSelected' | 'placementAt'>): UiMessages =>
+    messages;
+  expect(acceptsLegacy(createUiMessages()).move).toBe('Move {number}');
+  const english = createUiMessages();
+  for (const locale of SUPPORTED_LOCALES) {
+    const ui = createUiMessages({ locale });
+    const labels = createBoardLabels({ locale });
+    expect(labels.selected).toBe(ui.pointSelected);
+    expect(labels.placement).toBe(ui.placementAt);
+    for (const key of ['pointSelected', 'placementAt'] as const) {
+      expect(ui[key].match(/\{\w+\}/g)).toEqual(['{coordinate}']);
+      expect(formatUiMessage(ui[key], { coordinate: '<tag>$& {coordinate}' })).toContain(
+        '<tag>$& {coordinate}',
+      );
+      if (locale !== 'en') expect(ui[key]).not.toBe(english[key]);
+    }
+  }
+  expect(
+    formatUiMessage(createUiMessages({ locale: 'ko' }).pointSelected, { coordinate: 'C6' }),
+  ).toBe('C6 선택됨.');
+  expect(
+    createBoardLabels({
+      messages: { pointSelected: 'Chosen {coordinate}', placementAt: 'At {coordinate}' },
+    }),
+  ).toMatchObject({
+    selected: 'Chosen {coordinate}',
+    placement: 'At {coordinate}',
+  });
 });
 
 test('Chinese templates preserve every placeholder and support literal overrides', () => {

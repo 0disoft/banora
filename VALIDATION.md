@@ -3,6 +3,52 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Localized Touch Confirmation Text
+
+Visible touch confirmation selection text and the confirmation group's accessible
+name now use twelve-locale `pointSelected` / `placementAt` templates, exposed
+through optional `BoardLabels.selected` / `placement`. The existing confirm/cancel
+buttons already used locale labels. Both new templates support literal coordinate
+substitution and custom overrides; clearing labels keeps English fallback. Native
+and controlled boards share the templates, and controlled updates preserve the
+existing 1,024-character bound, defensive snapshots and atomic rejection.
+
+The new keys remain optional in public `UiMessages` so existing full message bags
+remain source-compatible. `createUiMessages` returns `Required<UiMessages>` and
+every built-in catalog is checked as complete. The locale test includes an old
+message-bag type assignment and all-locale placeholder/literal/override checks.
+Authored SGF is untouched. This is an initial localization increment; puzzle,
+analysis and board live-region interaction notices remain pending.
+
+The Chrome touch scope checks actual touch-start/release confirmation, both
+buttons, prompt and group name in all twelve locales, then cancels and verifies
+the unchanged record. A separate locale scenario checks controlled-board label
+updates/snapshots, invalid-input atomicity, markup/literal text and clearing.
+While adding it, Windows rejected a long inline CLI argument with ENAMETOOLONG;
+the runner now supplies the identical callback expression through the installed
+CLI's documented `--filename` option. This keeps the large locale scenario and
+its existing checks intact regardless of LF/CRLF expansion; generated scripts
+stay in ignored `output/playwright` under the isolated browser session name.
+
+Final production Chrome locale and touch scopes passed with file-based callback
+transport. Built SDK/adapters/examples, lint/format/boundaries, root types,
+21 related locale/board-state/CI/callback tests / 2,567 assertions, 147 documents /
+747 relative links and packed public SDK/classic/type consumer checks passed.
+Only this paragraph changed afterward and received format/docs checks. The
+unrelated full CLI/Git/release suite and full browser matrix were not repeated;
+existing locale and touch flows were retained and both affected scopes rerun.
+Firefox/WebKit, physical devices and hosted CI remain unverified for this change.
+This was the second work unit; no further task started after the ten-minute
+checkpoint. The first work unit was committed independently before starting it.
+
+Source contracts changed: product specification, localization/public API docs
+and follow-up progress; this record was updated. Skills: SDK, refactor,
+test-hardening and Playwright. Additive optional labels/message fields and a
+resolved helper return type are public; no required call argument, DB/storage,
+dependency/version, hygiene policy or hosted workflow changed. The extra label
+scenario reuses existing locale/full browser scopes and CI routing. No push,
+registry publication or Pages deployment was performed.
+
 ## Common Viewer Outline Reuse
 
 The common Viewer now reuses bounded outline elements during linear navigation,

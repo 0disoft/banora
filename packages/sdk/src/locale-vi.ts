@@ -1,5 +1,5 @@
 import type { UiMessages } from './locale.js';
-export const vi: UiMessages = {
+export const vi: Required<UiMessages> = {
   viewer: 'Trình xem kỳ phổ cờ vây',
   game: 'Ván {number}',
   gameLabel: 'Ván ',
@@ -61,4 +61,6 @@ export const vi: UiMessages = {
     'Nước {moveNumber}. Lượt {toPlay}. Đen bắt {blackCaptures}, trắng bắt {whiteCaptures}.',
   confirm: 'Xác nhận đặt quân tại {coordinate}',
   cancel: 'Hủy đặt quân',
+  pointSelected: 'Đã chọn {coordinate}.',
+  placementAt: 'Đặt quân tại {coordinate}',
 };
