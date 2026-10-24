@@ -29,6 +29,56 @@ async (page, studioControl) => {
     ';B[];W[]'.repeat(80) +
     ')';
   await page.goto(`${origin}/studio/`);
+  await page.locator('#file').setInputFiles({
+    name: 'assessment-history.sgf',
+    mimeType: 'application/x-go-sgf',
+    buffer: Buffer.from('(;SZ[19];B[aa]' + ';W[];B[]'.repeat(500) + ')'),
+  });
+  await page.locator('#last').click();
+  const assessmentMove = await page.locator('#move').textContent();
+  await page.evaluate(async () => {
+    const sdk = await import('/sdk/index.js');
+    const original = sdk.RecordController.prototype.inspectNode;
+    window.__restoreAssessmentInspection = () => {
+      sdk.RecordController.prototype.inspectNode = original;
+      delete window.__restoreAssessmentInspection;
+    };
+    sdk.RecordController.prototype.inspectNode = () => {
+      throw Error('Assessment targeting replayed an ancestor position');
+    };
+  });
+  try {
+    await page.locator('#tool').selectOption('good-move');
+    await page.locator('#board [data-stone="0,0"]').click();
+    check(
+      (await page.locator('#move').textContent()) === assessmentMove,
+      'Assessment moved the cursor',
+    );
+    await page.locator('#first').click();
+    await page.locator('#next').click();
+    check(
+      await page.locator('#tree [aria-current="true"] .banora-move-assessment.good').count(),
+      'Historical good move was not marked',
+    );
+    await page.locator('#tool').selectOption('erase');
+    await page.locator('#board [data-stone="0,0"]').click();
+    check(
+      !(await page.locator('#tree [aria-current="true"] .banora-move-assessment').count()),
+      'Erase did not clear the assessment',
+    );
+    await page.locator('#tool').selectOption('bad-move');
+    await page.locator('#board [data-stone="0,0"]').click();
+    check(
+      await page.locator('#tree [aria-current="true"] .banora-move-assessment.bad').count(),
+      'Bad move was not marked',
+    );
+    await page.locator('#undo').click();
+    await page.locator('#undo').click();
+    await page.locator('#undo').click();
+  } finally {
+    await page.evaluate(() => window.__restoreAssessmentInspection());
+  }
+  await page.locator('#tool').selectOption('play');
   await page.locator('#language').selectOption('en');
   const numbered =
     '(;SZ[9]GN[Numbered branches]AB[cc];B[aa];C[Note]N[Review](;W[]MN[23];B[bb])(;AW[dd];W[ee]))';

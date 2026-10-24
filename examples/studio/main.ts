@@ -14,7 +14,6 @@ import {
   mountPlaybackControls,
   variationCandidates,
   getMoveAssessment,
-  pointToSgf,
 } from '@0disoft/banora';
 import type {
   BoardRotation,
@@ -35,6 +34,7 @@ import { mountSharing } from '../sharing-controls.js';
 import { mountTextureControls } from '../texture-controls.js';
 import { mountScoringControls } from '../scoring-controls.js';
 import { mountBoardMenu } from './board-menu.js';
+import { recordedMoveAt } from './recorded-move.js';
 import { mountRecoveryControls } from './recovery-controls.js';
 import { safeDraftFilename } from './draft-store.js';
 import { defaultPreferences, PreferenceStore } from './preferences.js';
@@ -162,23 +162,8 @@ const view = mountBoard(find('board'), {
   onPoint(point) {
     const mode = tool.value;
     const state = controller.getState();
-    const value = pointToSgf(point);
-    const recordedMove = () => {
-      const child = state.node.children.find(
-        (node) => (node.properties.B?.[0] ?? node.properties.W?.[0]) === value,
-      );
-      if (child) return child;
-      const color = state.position.board[point.y * state.position.width + point.x];
-      if (!color) return undefined;
-      const key = color === 'black' ? 'B' : 'W';
-      for (let i = state.path.length - 1; i >= 0; i--) {
-        const node = controller.inspectNode(state.path[i]!)?.node;
-        if (node?.properties[key]?.[0] === value) return node;
-      }
-      return undefined;
-    };
     if (mode === 'good-move' || mode === 'bad-move' || mode === 'erase') {
-      const target = recordedMove();
+      const target = recordedMoveAt(state, point);
       if (mode !== 'erase') {
         if (target)
           report(controller.setMoveAssessment(mode === 'good-move' ? 'good' : 'bad', target.id));

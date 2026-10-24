@@ -1,5 +1,43 @@
 # SDK Performance Evidence
 
+## 2026-10-25: Studio Assessment Target Lookup
+
+Baseline `4fa2b20` found a clicked stone's recorded move by calling `inspectNode`
+backward through the selected path. Only each returned node's move properties were
+used, but inspection also constructed frozen paths and full board snapshots and
+could replay history after missing the 128-position cache. This made a metadata
+lookup pay quadratic path-copy/freeze work in long linear games.
+
+Studio now uses a pure snapshot-only helper. It preserves immediate-child priority,
+visible-stone color filtering and the most recent matching selected-path move by
+walking forward and retaining the last match. It does not inspect board states,
+allocate ancestor snapshots/path arrays, mutate input or add any cache. For depth D
+and S sibling entries examined while following the chosen path, lookup takes
+O(D+S) time and O(1) additional live storage; in a linear game S is O(D). Existing
+assessment validation, edits, Undo, setup behavior and selected cursor are unchanged.
+
+Paired local measurements used Bun 1.4.3 on Windows x64, baseline lookup copied
+verbatim, unchanged SDK dependencies, one warm-up and five alternating samples per
+version. Each 19x19 fixture has a first Black move at aa and subsequent alternating
+passes, with the last node selected before timing. Lookup clicks the first stone.
+One controller is reused per fixture; returned node identity, exact inspection count
+and unchanged public state are checked outside timing. Parsing, initial selection,
+editing/validation, DOM, driver events and disposal are excluded. No other
+verification ran concurrently. This measures target lookup, not full click latency.
+
+| Moves | Before median | After median | Ancestor inspections before → after |
+| ----- | ------------- | ------------ | ----------------------------------- |
+| 1,000 | 168.978 ms    | 0.168 ms     | 1,000 → 0                           |
+| 5,000 | 5,572.191 ms  | 0.908 ms     | 5,000 → 0                           |
+
+The 5,000-move lookup took 99.98% less time in these samples. Local ignored evidence
+is `.tmp/recorded-move-paired.json`, `.tmp/recorded-move-paired.ts` and the verbatim
+`.tmp/recorded-move-before.ts`. Default tests assert semantic cases and no live
+inspection, not wall-clock thresholds. Chrome playback smoke also forbids ancestor
+inspection during real Studio Good/Bad/Erase actions after 1,001 moves, verifies the
+historical target and retained cursor, and restores the record with Undo. Existing
+playback, keyboard/import/export guards and six consumer lifecycle checks remain.
+
 ## 2026-10-25: Bounded Comparison Selector Projection
 
 Baseline `6f3d000` eagerly called `inspectNode` on every collection root to obtain

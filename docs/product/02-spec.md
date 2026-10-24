@@ -75,6 +75,10 @@ bubble, a localized tooltip and an accessible description. Editing, clearing and
 Undo/Redo update the indicator without copying comment text into the row label.
 Studio's Good move / Bad move tools apply SGF `TE[1]` / `BM[1]` to a clicked
 recorded stone or immediate fork candidate, preserving the selected position.
+Target lookup reads the current immutable snapshot's SGF nodes without inspecting
+ancestor board states. An immediate child at the clicked point takes priority;
+otherwise the latest selected-path move at that point matching the visible stone's
+color is used. Empty points and setup-only stones without such a move have no target.
 Erase marker removes an existing move assessment before point markup. Assessments
 are mutually exclusive with `TE`, `BM`, `DO`, and `IT`; clearing removes these
 move annotations. Imported emphasis values remain intact until explicitly edited.

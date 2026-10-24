@@ -3,6 +3,36 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Studio Assessment Target Lookup
+
+Studio Good/Bad/Erase tools now resolve their recorded-move target from one immutable
+snapshot instead of inspecting ancestor positions. The pure helper preserves
+immediate-child priority, latest selected-path match and the current visible stone's
+color, including existing setup behavior. Empty/setup-only points without a matching
+recorded move remain unavailable. No new cache, public API, SDK source changes, DB,
+dependencies, repository hygiene or runner configuration changes.
+
+Against `4fa2b20`, paired Bun 1.4.3 measurements (one warm-up, five alternating samples,
+first stone after a long pass sequence) reduced median lookup from 168.978 to
+0.168 ms at 1,000 moves and 5,572.191 to 0.908 ms at 5,000 moves. Ancestor inspection
+calls fall from depth D to zero; linear-game metadata lookup is O(D), with O(1)
+additional live storage. Node identity and unchanged public state matched in all
+12 paired cases. Parsing, initial selection, edits and DOM are excluded. Method and
+limits are in `docs/engineering/14-sdk-performance-evidence.md`; the Studio target
+policy is recorded in `docs/product/02-spec.md`.
+
+Four focused tests passed (25 assertions), covering child priority, occupied-point
+alternatives, sibling exclusion, latest/color matching, setup-only/empty points,
+root moves, multiple games, Undo, retained snapshots and a 1,001-move history with
+inspection forbidden. Root typecheck and production SDK/declaration/adapter/example
+builds passed. Chrome 155 playback smoke passed with actual Good/Bad/Erase actions,
+cursor retention and Undo under an ancestor-inspection prohibition, plus existing
+speed/pause/end, keyboard/import/SGF preservation and six consumer lifecycles.
+Lint, formatting, module boundaries and documentation checks passed. Skills:
+refactor, sdk, test-hardening. Unrelated SDK-wide/CLI/Git backup/release suites, packed consumers
+and fresh browser latency/heap measurements are omitted because SDK/package behavior
+is unchanged; local timings measure only target lookup. No push or deployment.
+
 ## Single-Priority Refactor: Bounded Comparison Selector
 
 `mountComparison` now delegates its first-500 selector to a pure metadata projection
