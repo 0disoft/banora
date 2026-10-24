@@ -3,6 +3,34 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Closed Analysis View Ownership
+
+Retained closed Analysis view handles now release their separate source-controller
+owner, source/session unsubscribe closures, completed state/result/context, display
+SGF and presentation callbacks. Live source access goes through the session. The
+source controller remains borrowed, view-owned sessions are disposed, borrowed
+sessions remain usable and host-held immutable snapshots are untouched.
+
+Paired baseline `48f647d` / working-source modules in Headless Chrome 155 retained
+four closed view handles per version. Each source had 19 nodes and 1,080,098-byte
+ASCII SGF; each view completed a deterministic local-provider request and had a
+callback capturing its controller. After four forced-GC event-loop turns, live
+controllers, record roots, contexts and normalized results each fell from four to
+zero. Borrowed-session/source controls remained live. This measures reachability,
+not total heap or production GC timing. Method and limits are recorded in
+`docs/engineering/22-browser-memory-lifecycle-evidence.md`; ownership is recorded
+in `docs/sdk/analysis-view.md`.
+
+Chromium `--analysis-only` passed the new closed-handle GC regression and existing
+candidate/PV/ownership, keyboard/touch, freshness, manual JSON, locales, source
+preservation, late-provider and session lifecycle coverage. SDK/browser-option
+tests passed: 252 tests, 15,188 assertions. SDK/adapters/examples build, typecheck,
+packed SDK consumer, lint, formatting, repository boundaries and docs checks passed.
+Full release/CLI, other engines and the 135-cycle memory matrix were not
+repeated because this change is isolated to common Analysis view ownership.
+No public signature/DB, dependency, hygiene, version or CI job changes. Chromium
+Analysis and memory browser routes include the new regression; no remote operations.
+
 ## Single-Priority Refactor: Bounded Variation Sibling Scheduling
 
 The private variation iterator now schedules children lazily through sibling

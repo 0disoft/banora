@@ -183,6 +183,8 @@ async function puzzleSmoke(): Promise<void> {
 async function analysisSmoke(): Promise<void> {
   await scenario('analysis', 'banora-analysis-complete');
   await scenario('analysis-locale', 'banora-analysis-locale-complete');
+  if (engine === 'chromium')
+    await scenario('analysis-disposal', 'banora-analysis-disposal-complete');
   const before = await readFile(resolve(output, 'analysis-before.sgf'), 'utf8'),
     after = await readFile(resolve(output, 'analysis-after.sgf'), 'utf8');
   if (before !== after || !after.includes('XX[analysis-preserve]'))
@@ -437,6 +439,7 @@ try {
   } else if (scope === '--memory-only') {
     if (release) throw Error('Browser memory measures the current built checkout only.');
     await scenario('viewer-disposal', 'banora-viewer-disposal-complete');
+    await scenario('analysis-disposal', 'banora-analysis-disposal-complete');
     await browserMemory(root, () => scenario('browser-memory', 'banora-browser-memory-complete'));
   } else if (scope === '--viewer-disposal-only') {
     await scenario('viewer-disposal', 'banora-viewer-disposal-complete');

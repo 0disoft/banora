@@ -1,5 +1,49 @@
 # Browser Memory Lifecycle Evidence
 
+## Retained Disposed Analysis View Handles (October 25, 2026)
+
+Against baseline `48f647d`, a retained closed Analysis view kept its borrowed source
+controller through both a separate `source` variable and the invoked-but-retained
+source unsubscribe closure. Its local `state`, last result/context and presentation
+callback also remained owners after its internally created AnalysisSession had
+released its own fields. This preserved the source record and completed analysis
+through a handle whose update/export methods already rejected use.
+
+The view now resolves the source through its session while live, clears both
+unsubscribe closures after invoking them, and resets closed-only state/result/
+context/display-text/callback fields. It does not mutate published host snapshots
+or dispose the source controller. Borrowed sessions preserve their existing life.
+
+Paired source modules from `48f647d` and working source ran in the same Windows x64
+Headless Chrome 155.0.0.0 page. Four views per version used a 19-node, 1,080,098-byte
+ASCII SGF fixture (18 unknown values of 60,000 characters), a deterministic local
+provider, a completed normalized result and an onComplete callback capturing the
+controller. Closed view handles stayed strongly referenced. Four separate event
+loop turns forced CDP GC before any WeakRefs were dereferenced.
+
+| Weakly observed owned-view objects | Before alive | After alive |
+| ---------------------------------- | -----------: | ----------: |
+| Source controllers                 |            4 |           0 |
+| Source record roots                |            4 |           0 |
+| Analysis contexts                  |            4 |           0 |
+| Completed normalized results       |            4 |           0 |
+
+A borrowed-session control retained its source and remained usable. These are
+object reachability counts, not total heap bytes or a guarantee of production GC
+timing; source strings may share backing storage. Host-held sessions/snapshots are
+intentional owners. The separate `--analysis-only` regression also preserves an
+explicit host snapshot, repeats disposal and checks rejected closed-view updates
+and disposed view-owned sessions. It uses no network/provider service or timing
+threshold. Chromium runs it with the existing semantic/locale Analysis smoke and
+the opt-in `--memory-only` route; non-CDP engines keep their semantic checks.
+
+```sh
+bun run build:examples
+bun scripts/browser-smoke.ts --analysis-only
+```
+
+The earlier nine-case / 135-cycle resource matrix below was not rerun in this round.
+
 ## Retained Disposed Viewer Handles (October 25, 2026)
 
 The previous lifecycle loops dropped view handles, which did not exercise a host

@@ -1,5 +1,13 @@
 # Analysis View
 
+Disposal releases the view's source subscription closures, cached analysis state,
+last result/context, display SGF and presentation callbacks, even if the closed
+view handle remains referenced. The view obtains its source through the session
+while live instead of keeping a second controller owner after session disposal.
+An internally created analysis session is disposed; an explicitly borrowed session
+remains live. Published snapshots held by the host remain immutable and usable.
+The source record controller is always borrowed and is never disposed by the view.
+
 `@0disoft/banora/analysis-view` and root exports provide `mountAnalysis`, `AnalysisView`,
 `AnalysisViewOptions`, `AnalysisBoardOptions`, `AnalysisLocaleOptions`,
 `AnalysisMessages` and DOM-free `createAnalysisMessages`. Import is safe without runtime

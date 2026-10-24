@@ -110,7 +110,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
   const session =
       initial.session ??
       new AnalysisSession(initial.controller!, initial.provider!, initial.settings!),
-    source = session.controller;
+    source = () => session.controller;
   let state = session.getState(),
     disposed = false,
     selectedRank: number | null = null,
@@ -134,7 +134,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
   overlay.dataset.analysisOverlay = '';
   overlay.setAttribute('aria-hidden', 'true');
   overlay.setAttribute('focusable', 'false');
-  const initialPosition = state.context?.position ?? source.getState().position;
+  const initialPosition = state.context?.position ?? source().getState().position;
   let lastSgf = analysisDisplaySgf(analysisPreview(initialPosition, null, 0));
   const display = new RecordController({ sgf: lastSgf });
   let board: BoardView | undefined,
@@ -193,7 +193,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
       lastResult = incoming.result;
       lastContext = incoming.context;
     }
-    const position = incoming.context?.position ?? source.getState().position,
+    const position = incoming.context?.position ?? source().getState().position,
       result = incoming.result;
     const candidate =
       result?.candidates.find((candidate) => candidate.rank === selectedRank) ?? null;
@@ -341,7 +341,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
     find('stack').append(overlay);
     unsubscribe = session.subscribe(render);
     // Unavailable contexts can remain identical while their source position changes.
-    unsubscribeSource = source.subscribe(() => {
+    unsubscribeSource = source().subscribe(() => {
       if (!disposed && !session.getState().context) render(session.getState());
     });
     find('request').addEventListener(
@@ -481,12 +481,28 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
       abort.abort();
       unsubscribe?.();
       unsubscribeSource?.();
+      unsubscribe = undefined;
+      unsubscribeSource = undefined;
       for (const lease of leases) lease.deliver = undefined;
       leases.clear();
       board!.dispose();
       display.dispose();
       root.remove();
       if (!borrowed) session.dispose();
+      // Retained closed handles must not retain a completed analysis payload.
+      state = {
+        status: 'idle',
+        providerId: '',
+        context: null,
+        requestId: null,
+        result: null,
+        error: null,
+      };
+      lastResult = null;
+      lastContext = null;
+      actionFailure = undefined;
+      lastSgf = '';
+      options = snapshot({});
     },
   });
 }
