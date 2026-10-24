@@ -1,5 +1,63 @@
 # SDK Performance Evidence
 
+## 2026-10-25: KataGo Query History Proof Reuse
+
+Baseline `04addb1` replayed the complete analysis epoch with core `play`/`pass`
+while encoding every KataGo query. `validRequest` already required an exact
+SDK-issued context, and context creation had legally replayed and deeply frozen
+that same epoch. Repeated query construction therefore rebuilt boards, groups and
+ko history without discovering additional valid-input failures.
+
+Encoding now scans only consecutive-pass counts for the engine-specific phase
+restriction. Request fields and limit scalars are copied once before validation,
+so an accessor cannot replace the proven context or limits between checking and
+encoding/decoding. All capability, policy, setup-liberty, komi and limit checks
+remain; common context creation still rejects wrong-turn, illegal-ko and other
+unrepresentable archived epochs. There is no new cache or retained record owner.
+
+Paired source measurements ran on Windows x64 Bun 1.4.3 against `04addb1`.
+The 19-by-19 fixtures contain three independent ko shapes, one reversed, with
+six alternating captures repeated under the SDK's simple-ko policy. For each
+shape center x=1,7,13 (zero-based), the center is at y=1, the capture at y=2;
+supporting stones are at (x-1,1),(x,0),(x+1,1) and opposing supports at
+(x-1,2),(x+1,2),(x,3). The middle shape reverses colors. The repeated move cycle
+is B(1,2), W(7,2), B(13,2), W(1,1), B(7,1), W(13,1). This synthetic legal-core
+workload is not a tournament adjudication or live-engine compatibility claim.
+
+Parsing, controller navigation and public context creation were outside the
+timer. Each version had three warm-ups, then five alternating paired samples
+of five query constructions with GC before each sample. Numbers are medians of
+per-call sample averages; only query-object construction is timed, excluding JSON
+serialization, I/O and engine inference. The final run was isolated from builds
+and other validation commands. Serialized before/after queries matched for every
+fixture.
+
+| Epoch moves | Before (ms) | After (ms) |
+| ----------: | ----------: | ---------: |
+|          60 |    6.597360 |   0.221840 |
+|         600 |   63.977320 |   0.855440 |
+|       3,000 |  315.761180 |   4.003860 |
+
+At 3,000 moves, query construction fell by 98.7% (78.9 times lower cost).
+
+For M moves on an A-point board, redundant legal replay costs O(MA) in the worst
+case; encoding now costs O(M + A), including initial-group checks and output
+tuples. The 3,000-point-move fixture eliminates 3,000 additional 361-cell board
+arrays (1,083,000 board-element copies), plus transition/group allocations.
+The common context validator and engine result/PV validator are unchanged.
+
+The committed spy regression observes zero core play/pass calls for repeated
+encoding of a proven mixed move/pass context; baseline failed with nine play
+calls for three encodings. Independent expected wire values, immutable context
+checks, changing request accessors, copied contexts, invalid visits, single and
+double passes, post-phase moves, setup epoch resets and SGF MN boundaries are
+covered in `packages/sdk/test/katago.test.ts`. Timing is diagnostic, not a test
+threshold. Reproduce semantic/resource checks with:
+
+```sh
+bun test packages/sdk/test/katago.test.ts packages/sdk/test/analysis.test.ts
+```
+
 ## 2026-10-25: Bounded Variation Sibling Scheduling
 
 Baseline `ae04dfc` limited returned variation rows but eagerly pushed every child

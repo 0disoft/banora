@@ -1,4 +1,3 @@
-import { pass, play } from './core.js';
 import type { Color, Point, Position } from './core.js';
 import { AnalysisError } from './analysis-types.js';
 import type { AnalysisMetrics, AnalysisRequest, AnalysisResultInput } from './analysis-types.js';
@@ -97,18 +96,31 @@ function numeric(value: unknown, min: number, max: number, integer = false): num
     fail('Invalid KataGo metric.');
   return value;
 }
-function validRequest(request: AnalysisRequest): void {
-  const result = normalizeAnalysisResult(request, {
-    requestId: request?.id,
-    contextKey: request?.context?.key,
+function validRequest(request: AnalysisRequest): AnalysisRequest {
+  // Read caller-owned accessors once, then validate the exact values used below.
+  const limits = request?.limits;
+  const snapshot = {
+    id: request?.id,
+    providerId: request?.providerId,
+    context: request?.context,
+    limits: limits && {
+      maxVisits: limits.maxVisits,
+      maxPvLength: limits.maxPvLength,
+      includeOwnership: limits.includeOwnership,
+    },
+  };
+  const result = normalizeAnalysisResult(snapshot, {
+    requestId: snapshot.id,
+    contextKey: snapshot.context?.key,
     root: { visits: 0, scoreLeadBlack: 0, winProbabilityBlack: 0.5 },
     candidates: [],
   });
   if (!result.ok) throw new AnalysisError('invalid-request', 'Invalid KataGo analysis request.');
+  return snapshot;
 }
 /** Encode actual setup/history. Throws instead of silently changing unsupported rules. */
 export function createKataGoQuery(request: AnalysisRequest, options: KataGoOptions): KataGoQuery {
-  validRequest(request);
+  request = validRequest(request);
   const capability = kataGoOptions(options),
     context = request.context,
     { initial, position, scoring } = context,
@@ -132,15 +144,14 @@ export function createKataGoQuery(request: AnalysisRequest, options: KataGoOptio
     unsupported('KataGo area analysis does not represent this custom seki exclusion.');
   if (request.limits.maxPvLength === 0)
     unsupported('KataGo requires at least one PV continuation move.');
-  // Engine cleanup phases and finished-game transitions are not Banora play epochs.
-  let replay = initial;
+  // validRequest accepts only SDK-issued immutable contexts, whose complete epoch
+  // already passed legal core transitions. Check the engine-specific phase bound
+  // without repeating board/group/ko calculations or retaining replay positions.
+  let consecutivePasses = initial.consecutivePasses;
   for (const move of context.moves) {
-    if (move.move === null && replay.consecutivePasses >= 1)
+    if (move.move === null && consecutivePasses >= 1)
       unsupported('KataGo analysis does not support histories crossing a two-pass phase boundary.');
-    const next =
-      move.move === null ? pass(replay, move.color) : play(replay, move.move, move.color);
-    if (!next.ok) unsupported('KataGo history is not a legal play epoch.');
-    else replay = next.position;
+    consecutivePasses = move.move === null ? consecutivePasses + 1 : 0;
   }
   // setStone in the engine can remove zero-liberty setup groups. Never change setup.
   const seen = new Set<number>();
@@ -221,7 +232,7 @@ export function decodeKataGoResult(
   input: unknown,
   options: KataGoOptions,
 ): AnalysisResultInput {
-  validRequest(request);
+  request = validRequest(request);
   const capability = kataGoOptions(options),
     value = object(input),
     position = request.context.position,

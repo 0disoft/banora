@@ -1,4 +1,5 @@
-import { expect, test } from 'bun:test';
+import { expect, spyOn, test } from 'bun:test';
+import * as core from '../src/core.js';
 import { RecordController } from '../src/controller.js';
 import { getRuleProfile } from '../src/rules.js';
 import { AnalysisError, AnalysisSession, createAnalysisContext } from '../src/analysis.js';
@@ -178,6 +179,110 @@ test('unsupported engine contexts reject instead of approximating history, polic
   ).toThrow('perspective');
   normal.dispose();
 });
+test('query encoding reuses proven legality without replaying moves or passes', () => {
+  const controller = new RecordController({ sgf: '(;SZ[9];B[aa];W[];B[bb];W[cc])' });
+  for (let move = 0; move < 4; move++) expect(controller.next().ok).toBe(true);
+  const current = request(controller),
+    play = spyOn(core, 'play'),
+    pass = spyOn(core, 'pass');
+  try {
+    for (let query = 0; query < 3; query++) {
+      const encoded = createKataGoQuery(current, options);
+      expect(encoded.moves).toEqual([
+        ['B', 'A9'],
+        ['W', 'pass'],
+        ['B', 'B8'],
+        ['W', 'C7'],
+      ]);
+      expect(encoded.analyzeTurns).toEqual([4]);
+      expect(Object.isFrozen(encoded.moves)).toBe(true);
+    }
+    expect(play).toHaveBeenCalledTimes(0);
+    expect(pass).toHaveBeenCalledTimes(0);
+    for (const value of [
+      current.context,
+      current.context.initial,
+      current.context.initial.board,
+      current.context.position,
+      current.context.position.board,
+      current.context.moves,
+      current.context.moves[0],
+      current.context.moves[0]!.move,
+    ])
+      expect(Object.isFrozen(value)).toBe(true);
+    expect(() =>
+      createKataGoQuery({ ...current, context: { ...current.context } }, options),
+    ).toThrow('Invalid KataGo analysis request');
+    expect(() =>
+      createKataGoQuery({ ...current, context: Object.freeze({ ...current.context }) }, options),
+    ).toThrow('Invalid KataGo analysis request');
+    expect(() =>
+      createKataGoQuery({ ...current, limits: { ...current.limits, maxVisits: 0 } }, options),
+    ).toThrow('Invalid KataGo analysis request');
+  } finally {
+    play.mockRestore();
+    pass.mockRestore();
+    controller.dispose();
+  }
+});
+
+test('query validation and encoding consume the same single-read request snapshot', () => {
+  const controller = new RecordController({ size: 5 });
+  const current = request(controller);
+  let contexts = 0,
+    limits = 0,
+    visits = 0;
+  const changing = {
+    ...current,
+    get context() {
+      return ++contexts === 1 ? current.context : { ...current.context };
+    },
+    get limits() {
+      limits++;
+      return {
+        ...current.limits,
+        get maxVisits() {
+          return ++visits === 1 ? 100 : 0;
+        },
+      };
+    },
+  };
+  try {
+    const encoded = createKataGoQuery(changing, options);
+    expect(encoded.maxVisits).toBe(100);
+    expect(encoded.moves).toEqual([]);
+    expect([contexts, limits, visits]).toEqual([1, 1, 1]);
+    expect(() => createKataGoQuery(changing, options)).toThrow('Invalid KataGo analysis request');
+  } finally {
+    controller.dispose();
+  }
+});
+
+test('query phase checks preserve single-pass, reset, and two-pass history boundaries', () => {
+  for (const [suffix, moves, rejected] of [
+    [';B[]', 1, false],
+    [';B[];W[aa];B[]', 3, false],
+    [';B[];W[]', 2, true],
+    [';B[];W[];B[aa]', 3, true],
+    [';B[];W[];PL[B];B[aa]', 1, false],
+    [';B[aa]MN[200];W[];B[bb]', 3, false],
+  ] as const) {
+    const controller = new RecordController({ sgf: `(;SZ[5]${suffix})` });
+    try {
+      while (controller.next().ok) {
+        /* select the last node */
+      }
+      const current = request(controller);
+      expect(current.context.moves.length).toBe(moves);
+      if (rejected)
+        expect(() => createKataGoQuery(current, options)).toThrow('two-pass phase boundary');
+      else expect(createKataGoQuery(current, options).analyzeTurns).toEqual([moves]);
+    } finally {
+      controller.dispose();
+    }
+  }
+});
+
 test('Tromp-Taylor and explicitly compiled large boards map extended coordinates without changing Banora sizes', () => {
   const controller = new RecordController({
     sgf: '(;SZ[52:3]AB[za][Aa][Za])',

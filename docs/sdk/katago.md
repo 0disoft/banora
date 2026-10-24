@@ -84,6 +84,15 @@ It contains no SGF comments/player names/record generation/full tree. The select
 turn counts epoch moves, not SGF `MN`. Board points use GTP columns excluding I and
 bottom-origin rows, including extended base-25 columns beyond Z.
 
+Request identity, context and limit fields are captured once before validation;
+encoding and decoding use that exact snapshot, including for accessor-backed host
+requests. Contexts must be the exact SDK-issued immutable objects. Their complete
+epoch has already passed the common legal-transition validator, so query encoding
+does not replay it again. The adapter still scans the epoch for its engine-specific
+two-pass phase restriction, and retains setup-liberty, policy, capability, komi and
+request-limit checks in their existing order. Copied or JSON-recreated contexts are
+rejected. No new cache or ownership of the host record is introduced.
+
 Set engine White handicap bonus to zero instead of inferring it from Black setup
 stones. Effective komi adds explicit Banora White handicap compensation; territory
 also subtracts the initial Black-minus-White capture advantage retained before the

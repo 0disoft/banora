@@ -3,6 +3,38 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: KataGo Query History Proof Reuse
+
+KataGo query construction now reuses the exact SDK-created immutable context's
+completed legality proof rather than replaying its full epoch with core play/pass.
+The engine-specific consecutive-pass scan and all setup-liberty, policy, engine
+capability, effective komi and request-limit checks remain in order. Request fields
+and limit scalars are read once before validation, so encoding and decoding consume
+the same checked values even for changing host accessors. Copied contexts, including
+frozen copies, remain untrusted. There is no new cache or record ownership.
+
+Against `04addb1`, paired source measurements in isolated Windows x64 Bun 1.4.3
+reduced median query-object construction at 3,000 moves from 315.761180 to
+4.003860 ms (98.7%). Synthetic 19-by-19 simple-ko fixtures, timing boundaries,
+60/600-move measurements and limits are recorded in
+`docs/engineering/14-sdk-performance-evidence.md`. Serialized query outputs matched;
+encoding removes 3,000 additional core transitions / 361-cell board allocations
+for that fixture. Context construction, JSON serialization, I/O and engine analysis
+are excluded. The SDK ownership/validation rule is recorded in `docs/sdk/katago.md`.
+
+SDK and local KataGo process/shutdown tests passed: 268 tests, 15,235 assertions, covering
+wire conversion, legality, phase/setup/MN boundaries, immutable context provenance,
+changing accessors, bad limits, result/PV validation and cancellation/failure
+isolation. The new repeated-encoding spy regression failed against baseline with
+nine core play calls and passes with zero play/pass calls after the change.
+SDK/adapters/examples build, typecheck, packed SDK/Node consumer, lint, formatting,
+repository boundaries and docs checks passed. Browser, live engine,
+full release/CLI and resource-loop suites were not rerun: this is a pure headless
+wire conversion change, paired wire output is unchanged, and no process/DOM/lifecycle
+policy changed. Live-engine inference and browser latency improvements are unclaimed.
+No public API signatures/DB, dependencies, hygiene, version or CI runner changes;
+no remote operations.
+
 ## Single-Priority Refactor: Closed Analysis View Ownership
 
 Retained closed Analysis view handles now release their separate source-controller
