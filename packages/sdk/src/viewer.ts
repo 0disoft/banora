@@ -189,7 +189,11 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     const branches = options.variationMode === 'focused' ? variationPathKey(state) : '';
     const sameScope =
       previous?.generation === state.recordGeneration && previous.gameIndex === state.gameIndex;
-    const reuse = sameScope && previous.record === state.record && previous.branches === branches;
+    const reuse =
+      sameScope &&
+      previous.record === state.record &&
+      previous.branches === branches &&
+      previous.outlineIds.has(state.node.id);
     if (reuse && previous.selected === state.node.id) return;
     const describe = (
       node: SgfNode,

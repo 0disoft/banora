@@ -43,7 +43,7 @@ export const vi: Required<UiMessages> = {
   move: 'Nước {number}',
   record: 'Kỳ phổ cờ vây',
   summary: '{black} / {white} · Lượt {color} · Quân bắt {blackCaptures} / {whiteCaptures}',
-  treeLimit: 'Hiển thị 500 vị trí đầu. Dùng nút điều hướng để xem toàn bộ kỳ phổ.',
+  treeLimit: 'Hiển thị tối đa 500 vị trí lân cận. Dùng nút điều hướng để xem toàn bộ kỳ phổ.',
   rejected: 'Thao tác bị từ chối: {reason}',
   playback: 'Phát kỳ phổ',
   interval: 'Khoảng cách ',

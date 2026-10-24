@@ -45,7 +45,7 @@ export const fr: Required<UiMessages> = {
   record: 'Partie de go',
   summary: '{black} / {white} · À {color} de jouer · Captures {blackCaptures} / {whiteCaptures}',
   treeLimit:
-    'Les 500 premières positions sont affichées. Les commandes parcourent toute la partie.',
+    'Jusqu’à 500 positions voisines sont affichées. Les commandes parcourent toute la partie.',
   rejected: 'Action refusée : {reason}',
   playback: 'Lecture de la partie',
   interval: 'Intervalle ',

@@ -44,7 +44,7 @@ export const id: Required<UiMessages> = {
   move: 'Langkah {number}',
   record: 'Catatan Go',
   summary: '{black} / {white} · Giliran {color} · Tangkapan {blackCaptures} / {whiteCaptures}',
-  treeLimit: 'Menampilkan 500 posisi pertama. Kontrol langkah menjelajahi seluruh catatan.',
+  treeLimit: 'Menampilkan hingga 500 posisi terdekat. Kontrol langkah menjelajahi seluruh catatan.',
   rejected: 'Tindakan ditolak: {reason}',
   playback: 'Pemutaran catatan',
   interval: 'Jeda ',

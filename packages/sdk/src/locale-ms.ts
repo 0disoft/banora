@@ -44,7 +44,8 @@ export const ms: Required<UiMessages> = {
   move: 'Langkah {number}',
   record: 'Rekod Go',
   summary: '{black} / {white} · Giliran {color} · Tangkapan {blackCaptures} / {whiteCaptures}',
-  treeLimit: 'Memaparkan 500 kedudukan pertama. Gunakan kawalan langkah untuk seluruh rekod.',
+  treeLimit:
+    'Memaparkan sehingga 500 kedudukan berdekatan. Gunakan kawalan langkah untuk seluruh rekod.',
   rejected: 'Tindakan ditolak: {reason}',
   playback: 'Main balik rekod',
   interval: 'Selang ',

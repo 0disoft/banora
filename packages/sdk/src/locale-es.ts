@@ -44,7 +44,7 @@ export const es: Required<UiMessages> = {
   move: 'Jugada {number}',
   record: 'Partida de go',
   summary: '{black} / {white} · Turno de {color} · Capturas {blackCaptures} / {whiteCaptures}',
-  treeLimit: 'Se muestran las primeras 500 posiciones. Los controles recorren toda la partida.',
+  treeLimit: 'Se muestran hasta 500 posiciones cercanas. Los controles recorren toda la partida.',
   rejected: 'Acción rechazada: {reason}',
   playback: 'Reproducción de la partida',
   interval: 'Intervalo ',

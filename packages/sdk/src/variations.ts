@@ -23,10 +23,7 @@ export function variationPathKey(state: ControllerState): string {
   return chosen.join('/');
 }
 
-/** A bounded display projection; collapsing never modifies the record. */
-export function getVariationRows(state: ControllerState, focused = false, limit = 500) {
-  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50_000)
-    throw new RangeError('Variation row limit must be 1 through 50000');
+function* visibleRows(state: ControllerState, focused: boolean): Generator<VariationRow> {
   const path = new Set(state.path);
   const pending = [
     {
@@ -37,8 +34,7 @@ export function getVariationRows(state: ControllerState, focused = false, limit 
       branch: false,
     },
   ];
-  const rows: VariationRow[] = [];
-  while (pending.length && rows.length < limit) {
+  while (pending.length) {
     const entry = pending.pop()!;
     const props = entry.node.properties;
     const moveNumber = props.MN
@@ -46,7 +42,7 @@ export function getVariationRows(state: ControllerState, focused = false, limit 
       : entry.parentMove + (props.B || props.W ? 1 : 0);
     const collapsed =
       focused && entry.branch && !path.has(entry.node.id) && entry.node.children.length > 0;
-    rows.push({ ...entry, moveNumber, collapsed });
+    yield { ...entry, moveNumber, collapsed };
     if (collapsed) continue;
     const branch = entry.node.children.length > 1;
     for (let i = entry.node.children.length - 1; i >= 0; i--)
@@ -58,7 +54,50 @@ export function getVariationRows(state: ControllerState, focused = false, limit 
         branch,
       });
   }
-  return { rows, truncated: pending.length > 0 };
+}
+
+/** A bounded selected neighborhood; collapsing never modifies the record. */
+export function getVariationRows(state: ControllerState, focused = false, limit = 500) {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50_000)
+    throw new RangeError('Variation row limit must be 1 through 50000');
+  const iterator = visibleRows(state, focused);
+  const rows: VariationRow[] = [];
+  let selected = false;
+  while (rows.length < limit) {
+    const step = iterator.next();
+    if (step.done) return { rows, truncated: false };
+    rows.push(step.value);
+    selected ||= step.value.node.id === state.node.id;
+  }
+  let step = iterator.next();
+  if (selected || step.done) return { rows, truncated: !step.done };
+  // Keep bounded preceding context without shifting an array for every skipped row.
+  const capacity = limit - 1;
+  const before = capacity ? rows.slice(-capacity) : [];
+  let head = 0;
+  while (!step.done) {
+    const current = step.value;
+    if (current.node.id === state.node.id) {
+      const after: VariationRow[] = [];
+      while (after.length < Math.ceil(capacity / 2)) {
+        const next = iterator.next();
+        if (next.done) break;
+        after.push(next.value);
+      }
+      const preceding = before.slice(head).concat(before.slice(0, head));
+      const count = capacity - after.length;
+      return {
+        rows: [...(count ? preceding.slice(-count) : []), current, ...after],
+        truncated: true,
+      };
+    }
+    if (capacity) {
+      before[head] = current;
+      head = (head + 1) % capacity;
+    }
+    step = iterator.next();
+  }
+  return { rows, truncated: true };
 }
 
 /** Distinct empty intersections at the current fork; pass/annotation rows stay in the tree. */

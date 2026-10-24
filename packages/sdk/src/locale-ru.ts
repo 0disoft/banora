@@ -44,7 +44,7 @@ export const ru: Required<UiMessages> = {
   move: 'Ход {number}',
   record: 'Партия го',
   summary: '{black} / {white} · Ход: {color} · Пленные {blackCaptures} / {whiteCaptures}',
-  treeLimit: 'Показаны первые 500 позиций. Кнопки ходов доступны для всей партии.',
+  treeLimit: 'Показаны до 500 соседних позиций. Кнопки ходов доступны для всей партии.',
   rejected: 'Действие отклонено: {reason}',
   playback: 'Воспроизведение партии',
   interval: 'Интервал ',

@@ -119,16 +119,18 @@ ignored `output/playwright/hover-*.json`.
 
 ## Common Viewer Outline Reuse
 
-Viewer navigation within the same immutable record/game and focused fork path
+The following measurements record the initial cache increment, before selected
+neighborhoods were implemented. Viewer navigation within the same immutable record/game and focused fork path
 reuses the rendered outline. Its bounded node-to-button map updates the old/new
 selection directly, replacing at most one out-of-outline tail row. For edits,
 the same scalar model drives both row creation and exact presentation comparison;
 nonblank comment text changes do not replace rows when the presence icon stays
 the same. Changed captions, numbering, assessment/comment indicators and focused
 forks rebuild as needed. Generation/game/option changes invalidate the cache;
-disposal clears its record and element references. Limits remain 500 outline
-rows plus one selected tail; usable navigation beyond that window is separate
-follow-up work, not delivered by this cache.
+disposal clears its record and element references. That increment retained 500
+outline rows plus one selected tail. Selected-neighborhood windowing is now
+implemented with at most 500 total rows; current measurements and the prefix-scan
+tradeoff are recorded in VALIDATION.md.
 
 In Chrome 155 on Windows, 100 synchronous public-controller moves through a
 702-node pass/annotation game caused 100 complete outline replacements before

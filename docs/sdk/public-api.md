@@ -516,6 +516,14 @@ child without an edit, including on read-only boards. A custom `onPoint` retains
 host authority. Hints follow transforms/crops and never appear in diagram exports.
 `getVariationRows(state, focused?, limit?)`, `variationPathKey(state)` and
 `variationCandidates(state)` expose DOM-free projections from controller state.
+The row projection keeps its default 500-row bound (custom limits remain 1 through
+50,000). When the selected node lies beyond the initial prefix, it returns a
+contiguous neighborhood around that node, including nearby continuations and fork
+choices. Global depth, indentation, move-number overrides and focused collapse
+rules remain intact. `truncated` also indicates omitted preceding rows. Studio
+and Viewer retain a window during navigation inside it and recenter when the
+selection leaves it. Recentring scans the visible prefix once with bounded row
+storage; it does not promise constant-time random access or render the whole tree.
 
 An externally supplied controller survives view disposal. If omitted, the view
 creates and disposes its own controller. The SDK owns its appended SVG, live

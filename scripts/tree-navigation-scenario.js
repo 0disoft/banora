@@ -42,20 +42,26 @@ async (rootPage, studioControl) => {
     await page.keyboard.press('ArrowRight');
     await selected('2 · White pass', 2, 500);
     await page.locator('#last').click();
-    await selected('700 · Authored annotation', 700, 501);
+    await selected('700 · Authored annotation', 700, 500);
     await current.focus();
+    const focusedTail = await current.getAttribute('data-node');
     await page.keyboard.press('ArrowLeft');
-    await selected('600 · White pass', 600, 501);
+    await selected('600 · White pass', 600, 500);
     check(
-      await current.evaluate((element) => document.activeElement === element),
-      'Replacing the selected tail row lost keyboard focus',
+      await page.evaluate(
+        (id) =>
+          document.activeElement?.getAttribute('data-node') === id &&
+          document.querySelector('#tree').contains(document.activeElement),
+        focusedTail,
+      ),
+      'Retained neighborhood lost keyboard focus',
     );
     await page.keyboard.press('ArrowLeft');
-    await selected('599 · Black pass', 599, 501);
+    await selected('599 · Black pass', 599, 500);
     await page.keyboard.press('ArrowRight');
-    await selected('600 · White pass', 600, 501);
+    await selected('600 · White pass', 600, 500);
     await page.keyboard.press('ArrowRight');
-    await selected('700 · Authored annotation', 700, 501);
+    await selected('700 · Authored annotation', 700, 500);
     check(
       (await current.locator('.banora-comment-indicator').count()) === 1,
       'Tail comment indicator missing',
@@ -116,7 +122,7 @@ async (rootPage, studioControl) => {
       'Edited tail retained its old comment indicator',
     );
     await page.locator('#undo').click();
-    await selected('700 · Authored annotation', 700, 501);
+    await selected('700 · Authored annotation', 700, 500);
     check(
       (await current.locator('.banora-comment-indicator').count()) === 1 &&
         (await page.locator('#comment').inputValue()) === 'tail original',
@@ -140,7 +146,7 @@ async (rootPage, studioControl) => {
     await studioControl(page, '#games', 'record', () => page.locator('#games').selectOption('0'));
     await selected('0 · Start position', 0, 500);
     await page.locator('#last').click();
-    await selected('700 · Authored annotation', 700, 501);
+    await selected('700 · Authored annotation', 700, 500);
     await page.locator('#first').click();
     await selected('0 · Start position', 0, 500);
     const event = page.waitForEvent('download');
@@ -153,6 +159,27 @@ async (rootPage, studioControl) => {
       'Tree navigation/export changed the record or failed',
     );
     await page.screenshot({ path: 'output/playwright/tree-reused.png' });
+    await page.locator('#file').setInputFiles({
+      name: 'distant-fork.sgf',
+      mimeType: 'application/x-go-sgf',
+      buffer: Buffer.from(`(;SZ[9]${';B[];W[]'.repeat(350)}(;B[aa];W[bb])(;B[cc];W[dd]))`),
+    });
+    await page.locator('#last').click();
+    check((await page.locator('#tree button').count()) <= 500, 'Distant Studio rows exceeded cap');
+    const distantChoice = page.locator('#tree button').filter({ hasText: '701 · Black C7' });
+    await distantChoice.click();
+    check(
+      (await current.textContent()) === '701 · Black C7',
+      'Distant Studio choice was not selectable',
+    );
+    check(
+      (await page.locator('#tree button').filter({ hasText: '702 · White D6' }).count()) === 1,
+      'Distant Studio continuation missing',
+    );
+    check(
+      (await page.locator('#tree button').filter({ hasText: '702 · White B8' }).count()) === 0,
+      'Other distant Studio continuation unfolded',
+    );
     const nestedSgf =
       '(;SZ[19];B[pd];W[dd](;B[dj](;W[hj](;B[kh];W[ll])(;B[ij];W[hi]TE[1]C[Continuation];B[hk]BM[1]))(;W[pp]))(;B[dp]))';
     await page.locator('#file').setInputFiles({

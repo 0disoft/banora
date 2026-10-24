@@ -43,7 +43,7 @@ export const hi: Required<UiMessages> = {
   move: 'चाल {number}',
   record: 'गो रिकॉर्ड',
   summary: '{black} / {white} · {color} की बारी · बंदी {blackCaptures} / {whiteCaptures}',
-  treeLimit: 'पहली 500 स्थितियाँ दिखाई गई हैं। आगे जाने के लिए चाल बटन उपयोग करें।',
+  treeLimit: 'आसपास की अधिकतम 500 स्थितियाँ दिखाई गई हैं। पूरी खेल सूची के लिए चाल बटन उपयोग करें।',
   rejected: 'कार्रवाई नहीं हो सकी: {reason}',
   playback: 'रिकॉर्ड प्लेबैक',
   interval: 'अंतराल ',

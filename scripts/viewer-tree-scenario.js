@@ -40,13 +40,22 @@ async (page) => {
       while (node.children[0]) node = node.children[0];
       check(controller.goTo(node.id).ok, 'Cannot select tail');
       check(current()?.textContent === '900 · Authored annotation', 'Lost MN/annotation tail');
-      check(rows().length === 501, 'Tail row bound changed');
+      check(rows().length === 500, 'Selected neighborhood exceeded row bound');
+      check(
+        rows().some((row) => row.textContent === '699 · Black pass'),
+        'Tail neighborhood missing',
+      );
       current().focus();
       const tailBefore = current();
       check(controller.previous().ok, 'Tail previous refused');
       check(current()?.textContent === '700 · White pass', 'Tail selection mismatch');
       check(document.activeElement === current(), 'Tail replacement lost focus');
-      check(!tailBefore.isConnected && rows().length === 501, 'Stale tail remained');
+      check(
+        tailBefore.isConnected &&
+          tailBefore.getAttribute('aria-current') === 'false' &&
+          rows().length === 500,
+        'Neighborhood rows were replaced or selection stayed stale',
+      );
       check(controller.goTo(node.id).ok, 'Cannot return to annotation');
       const beforeEdit = rows();
       const comment = host.querySelector('textarea');
@@ -78,6 +87,38 @@ async (page) => {
       view.update({ messages: undefined });
       check(current().textContent === '1 · Black A5', 'Cleared override stale');
       check(controller.prepareExport().text === authored, 'Presentation changed authored SGF');
+      check(
+        controller.loadSgf(`(;SZ[9]${';B[];W[]'.repeat(350)}(;B[aa];W[bb])(;B[cc];W[dd]))`, {
+          discardChanges: true,
+        }).ok,
+        'Distant fork load refused',
+      );
+      view.update({ variationMode: 'focused' });
+      let distant = controller.getState().node;
+      while (distant.children.length === 1) distant = distant.children[0];
+      check(controller.goTo(distant.id).ok, 'Distant fork selection refused');
+      const [left, right] = distant.children;
+      check(
+        rows().length <= 500 &&
+          tree.querySelector(`[data-node="${left.id}"]`) &&
+          tree.querySelector(`[data-node="${right.id}"]`),
+        'Distant fork candidates missing',
+      );
+      tree.querySelector(`[data-node="${right.id}"]`).click();
+      check(
+        current()?.dataset.node === right.id &&
+          tree.querySelector(`[data-node="${right.children[0].id}"]`),
+        'Distant continuation not clickable',
+      );
+      check(
+        !tree.querySelector(`[data-node="${left.children[0].id}"]`),
+        'Other distant continuation unfolded',
+      );
+      check(
+        tree.querySelector(`[data-node="${right.children[0].id}"]`).style.paddingLeft ===
+          current().style.paddingLeft,
+        'Distant continuation indentation changed',
+      );
       check(
         controller.loadSgf('(;SZ[9];B[aa](;W[bb];B[cc])(;W[dd];B[ee]))', { discardChanges: true })
           .ok,

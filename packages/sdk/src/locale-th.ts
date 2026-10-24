@@ -43,7 +43,7 @@ export const th: Required<UiMessages> = {
   move: 'ตาที่ {number}',
   record: 'บันทึกหมากล้อม',
   summary: '{black} / {white} · ตาของ{color} · หมากที่จับ {blackCaptures} / {whiteCaptures}',
-  treeLimit: 'แสดง 500 ตำแหน่งแรก ใช้ปุ่มเดินตาเพื่อดูทั้งเกม',
+  treeLimit: 'แสดงตำแหน่งใกล้เคียงสูงสุด 500 ตำแหน่ง ใช้ปุ่มเดินตาเพื่อดูทั้งเกม',
   rejected: 'ปฏิเสธการดำเนินการ: {reason}',
   playback: 'เล่นบันทึกเกม',
   interval: 'ช่วงเวลา ',

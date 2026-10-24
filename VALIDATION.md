@@ -3,6 +3,50 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Selected Neighborhoods Beyond the Initial Outline Prefix
+
+`getVariationRows` preserves its signature, 500-row default, 1..50,000 custom
+limit checks and global depth/indent/MN/fold semantics. A selection outside the
+initial prefix now receives a contiguous nearby window rather than a detached
+tail row. A bounded ring retains preceding context; following rows share the
+budget and preceding rows fill unused space near the end. Truncation includes
+omitted leading context. Studio and Viewer invalidate the outline cache when the
+selection leaves the window, then retain its DOM while navigating inside it.
+The twelve existing limit messages now describe nearby rows. No record or
+authored text is modified by windowing.
+
+Twelve variation/locale tests with 2,523 assertions passed, including limit 1/2,
+499/500/501 boundaries, distant MN/annotation rows, a 700-way fork, sibling folding,
+exact global row metadata, invalid limits and unchanged export. Production Chrome
+155 tree scope passed both Viewer and actual Studio navigation, direct distant
+fork selection/continuation, nested indentation, focus retention, game/locale
+changes, comment/assessment Undo, disposal and actual SGF export/reopen. Old tests
+expecting a detached 501st row now require bounded neighborhoods. Studio keyboard
+focus remains on a retained row, consistently with ordinary prefix navigation;
+the selected-row marker advances independently. It is no longer expected to follow
+a replacement tail element because that element is retained in the window.
+
+The browser retained 500/500 Viewer rows with zero root child-list mutations
+during 100 linear moves (73.3ms total). Nonblank comment editing retained all
+500 Studio rows with zero removals (12.5/3.4ms samples). These are local observations,
+not device-independent latency guarantees. A five-warmup/50-sample Bun projection
+comparison on the same 5,000-pass record measured old/new median 0.847/1.385ms and
+p95 1.907/2.381ms: both return 500 rows, but only the new result contains the selected
+and preceding nodes. Recentring trades a visible-prefix scan for usable context;
+it does not reduce every projection's CPU time or promise constant-time jumps.
+Measurements are in ignored `output/playwright/tree-window-projection.json`,
+`viewer-tree-samples.json` and `tree-comment-work.json`.
+
+SDK/adapters/examples builds, root types, lint/format, boundaries, packed public
+SDK/classic/declaration consumers and 147 documents / 750 links passed. Product
+spec, public API and follow-up plan updated using feature/SDK/test-hardening skills.
+No DB, dependencies, versions, ignore policy or hosted workflow changes; the
+existing tree runner has stronger scenarios. No push or publication. Full browser
+regression passed before this windowing change; the affected tree scope was rerun
+after it. Unrelated full CLI/Git/release checks, Firefox/WebKit and physical devices
+were not repeated. Game-information editing, release readiness and content tooling
+remain pending. This round completed two units; the second began before ten minutes.
+
 ## Browser Scope Validation and Shared Board Regression Follow-up
 
 The default production Chrome 155 browser smoke completed end to end, closing

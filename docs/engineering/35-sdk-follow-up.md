@@ -20,7 +20,9 @@ No push or public publication is authorized by this improvement task.
 3. Large records: let Studio and common Viewer navigate the selected node's
    neighboring continuation and forks beyond the first 500 rows. Keep bounded
    rendering and existing indentation/folding rules; do not raise the whole-tree
-   cap as a substitute for usable navigation.
+   cap as a substitute for usable navigation. Implemented locally: bounded
+   selected neighborhoods and row reuse within the current window; validation
+   evidence and the prefix-scan tradeoff are recorded in VALIDATION.md.
 4. Game information: add validated, undoable editing of players, game name,
    date, komi and result; integrate Studio and explicit confirmed scoring result
    persistence, preserving unknown SGF properties and export/reopen/checkpoints.
@@ -51,8 +53,8 @@ state and emit no events. Chrome coverage extends the existing puzzle flow with
 all-locale state/status/error transitions, authored text and safe overrides,
 atomic invalid updates, explicit resets and owned/borrowed disposal. The focused
 CI route retains the original puzzle validation and adds the new scenario.
-Board live-region notices are implemented in the increment below; large-record navigation,
-game-information editing, release readiness and content tooling remain pending.
+Board live-region notices and large-record selected neighborhoods are implemented
+locally; game-information editing, release readiness and content tooling remain pending.
 
 ## Evidence
 
@@ -60,8 +62,8 @@ Mouse hover implementation/measurements are recorded in the
 [performance budget](03-performance-budget.md#mouse-hover-projection).
 Common Viewer outline reuse and measured DOM retention are recorded in the
 [outline evidence](03-performance-budget.md#common-viewer-outline-reuse).
-The first rendering increment is implemented locally; large-record windowing
-and the remaining feature items below it in the sequence remain pending.
+The rendering and selected-neighborhood increments are implemented locally.
+Game-information editing, release readiness and content tooling remain pending.
 Touch confirmation prompt/group localization is implemented in all twelve
 locales with backward-compatible optional label/message extensions. Puzzle and
 analysis widgets now have their own twelve-locale feature catalogs and safe update
@@ -96,5 +98,6 @@ announce pending cancellation, and pin recovery restores current position guidan
 The new locale scenario checks both surface types, annotations, errors, focus,
 language updates, invalid options, English fallbacks, pin recovery and disposal.
 Existing actual touch checks additionally verify all-locale aiming, confirmation
-and cancellation notices. Large-record navigation and later milestones remain
-pending; no push or publication is included.
+and cancellation notices. Large-record selected neighborhoods are implemented
+locally; game-information editing and later milestones remain pending. No push or
+publication is included.

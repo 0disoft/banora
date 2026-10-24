@@ -2,7 +2,6 @@ import { getVariationRows, variationPathKey, getMoveAssessment } from '@0disoft/
 import type { ControllerState, SgfNode } from '@0disoft/banora';
 import { formatUiMessage } from '@0disoft/banora/locale';
 import type { UiMessages } from '@0disoft/banora/locale';
-import { setUiText } from '../ui-language.js';
 import { coordinateTitle, setupNodeTitle } from './setup-editing.js';
 
 /** Bounded outline presentation; authored controller state remains owned by Studio. */
@@ -60,7 +59,8 @@ export function createVariationTree(
       previous.generation === state.recordGeneration &&
       previous.ui === ui &&
       previous.gameIndex === state.gameIndex &&
-      previous.branches === branches;
+      previous.branches === branches &&
+      previous.outlineIds.has(state.node.id);
     if (reuse && previous.id === state.node.id) return;
     const outline = reuse ? undefined : getVariationRows(state, true);
     const describe = (
@@ -192,12 +192,7 @@ export function createVariationTree(
     if (tail) selectedTreeRow = row(tail);
     tree.replaceChildren(fragment);
     revealTreeSelection(state.node.id);
-    setUiText(
-      note,
-      outline!.truncated
-        ? 'First 500 nodes shown. Move controls can navigate the whole record.'
-        : '',
-    );
+    note.textContent = outline!.truncated ? ui.treeLimit : '';
   }
   return {
     render,

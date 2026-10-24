@@ -36,17 +36,18 @@ Viewer consumers can opt into this behavior with `variationMode: 'focused'`;
 its default remains the complete bounded outline. Standalone boards expose
 `variationHints` as an opt-in presentation option. Studio reuses
 existing tree rows when only the selected position changes within the
-same immutable record/game. The first 500 rows and at most one selected tail row
-remain bounded. Record/game/language changes rebuild labels and metadata; tail
-replacement retains keyboard focus and final page disposal releases cached rows.
+same immutable record/game and current window. Outlines contain at most 500 rows
+and recenter around a selection outside the window. Record/game/language changes
+refresh labels and metadata; retained rows preserve keyboard focus and final page
+disposal releases cached rows.
 Within a record generation, edits that leave the visible row presentation unchanged
 also retain the outline elements. Updating a nonblank comment without changing its
 presence indicator does not rebuild hundreds of rows per keystroke. One display
-model defines both row output and cache invalidation, including the selected tail
+model defines both row output and cache invalidation, including the selected
 row, move assessments, setup captions and branch disclosure state. Record replacement,
 game and language changes invalidate the presentation cache.
-The common Viewer likewise retains its bounded outline on linear navigation,
-updating only selection and at most one selected tail row. Its rendered row
+The common Viewer likewise retains its bounded outline within the current window,
+updating only selection until a window shift is needed. Its rendered row
 model also drives cache comparison: changing nonblank comment text without
 changing its presence icon retains the rows, while edited captions, move
 numbers, assessments and fork disclosure states update. Record generations,
@@ -121,6 +122,12 @@ Studio variation pass captions use the SDK locale template for both empty and
 legacy `tt` passes, preserving SGF move-number overrides and the authored encoding.
 Missing komi is a localized presentation label; it never inserts a default `KM`
 property into the record.
+Studio and the common Viewer keep variation outlines bounded to 500 rows. A
+selection beyond the initial prefix opens a nearby window with continuation and
+fork choices rather than appending an isolated selected row. Navigation within
+the current window reuses rows. Window shifts preserve global depth/indentation,
+move-number overrides, focused folding, authored text and export/Undo behavior;
+the localized limit notice describes nearby rows, not the first 500 nodes.
 Comparison follows Studio language changes while open, translating pane labels,
 node captions, counts, empty-comment fallbacks, limits and accessibility labels.
 Move captions use board coordinates rather than SGF point codes or internal IDs.
