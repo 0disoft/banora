@@ -3,6 +3,42 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Reuse Validated SGF Byte Probes
+
+The production byte-import path no longer builds the same entire record twice
+when the validated immutable byte view is provably the final decoded text. ASCII
+input for supported encodings and direct Latin-1 can reuse the probe after real
+root/supported-codec checks. Conflicting BOMs, multibyte input and failed proofs
+retain the original strict decode/recovery behavior. Decoded input bytes and the
+normalized UTF-8 export must both fit the original budget. A private call-local
+size collector reuses the first parser's normalized byte count; no public API,
+global cache or relaxed validation is introduced.
+
+Same-process alternating before/after measurements on 20,000 ASCII moves gave
+median 317.072/157.114ms and p95 390.212/176.045ms (three warmups, twenty samples
+each). Node finalizations on 20,001 nodes fell 40,002 to 20,001. Both algorithms
+remain O(B + N + P), but eligible calls create one complete record instead of two.
+Multibyte UTF-8 is outside the optimization (76.833/77.655ms control medians).
+The performance budget records all four fixtures and the reproducible method;
+ignored `.tmp/decode-paired.json` contains raw measurements. A separate 770-case
+encoding/BOM/high-byte/limit comparison matched the before source exactly.
+
+Forty-three SGF/controller/checkpoint tests with 673 assertions passed, including
+new all-ASCII/all-supported-codec equivalence and normalized-export threshold
+cases. Existing malformed/multibyte/fake-root/mixed-codec recovery and resource
+limits remain covered. SDK/adapters/examples builds, root types and installed
+public SDK/classic/declaration consumers passed. Production Chrome 155 file-drop
+scope passed actual file import, failure guards and SGF export/reopen.
+Root lint, formatting, repository boundaries and documentation checks also passed
+(147 documents, 750 relative links).
+
+Public API and performance docs updated using refactor/SDK/test-hardening skills
+and the existing Playwright CLI harness. No DB, dependencies, versions, ignore
+policy, hosted workflow or runner changes. No push/publication. Browser timing
+was not measured, and unrelated full CLI/Git/release and full cross-browser/device
+matrices were not repeated for this bounded decoder refactor. Studio metadata
+editing and remaining original follow-up milestones remain separate pending work.
+
 ## Atomic Game Information Controller API
 
 The controller now exposes additive `getGameInfo()` / `setGameInfo(GameInfoPatch)`

@@ -119,6 +119,60 @@ describe('SGF FF4 preservation', () => {
     expect(node.rawProperties.XX).toEqual(['caller']);
     expect(record.games[0]!.properties.XX).toEqual(['first', 'second']);
   });
+  test('reused ASCII probes match strict decoding for every supported codec and ASCII code point', () => {
+    const ascii = String.fromCharCode(...Array.from({ length: 128 }, (_, index) => index));
+    const escaped = ascii.replace(/\\/g, '\\\\').replace(/\]/g, '\\]');
+    for (const [label, decoder] of [
+      ['UTF-8', 'utf-8'],
+      ['UTF8', 'utf-8'],
+      ['ISO-8859-1', 'iso-8859-1'],
+      ['latin1', 'iso-8859-1'],
+      ['windows-1252', 'windows-1252'],
+      ['Shift_JIS', 'shift-jis'],
+      ['SJIS', 'shift-jis'],
+      ['GB18030', 'gb18030'],
+      ['EUC-KR', 'euc-kr'],
+    ]) {
+      const text = `(;SZ[5]CA[${label}]XX[raw\\]value]C[${escaped}];B[aa])(;SZ[9]CA[${label}];W[])`;
+      const bytes = new TextEncoder().encode(text);
+      const decoded = new TextDecoder(decoder, { fatal: true }).decode(bytes);
+      expect(decoded).toBe(text);
+      expect(decodeSgf(bytes)).toEqual(parseSgf(decoded));
+      expect(decodeSgf(bytes, { maxBytes: bytes.length })).toEqual(
+        parseSgf(decoded, { maxBytes: bytes.length }),
+      );
+      expect(decodeSgf(bytes, { maxBytes: bytes.length - 1 }).ok).toBe(false);
+    }
+  });
+  test('probe reuse preserves BOM policy, raw Latin-1 and strict decoded byte/value/point limits', () => {
+    const bom = [0xef, 0xbb, 0xbf];
+    for (const declaration of ['', 'CA[UTF-8]', 'CA[UTF8]']) {
+      const text = `(;SZ[5]${declaration}C[ascii])`;
+      expect(decodeSgf(new Uint8Array([...bom, ...new TextEncoder().encode(text)]))).toEqual(
+        parseSgf(text),
+      );
+    }
+    for (const declaration of ['CA[ISO-8859-1]', 'CA[windows-1252]', 'CA[Shift_JIS]'])
+      expect(
+        decodeSgf(new Uint8Array([...bom, ...new TextEncoder().encode(`(;${declaration})`)])).ok,
+      ).toBe(false);
+    const text = '(;SZ[5]CA[latin1]C[café]XX[a\\]b]AB[aa:bb])';
+    const bytes = Uint8Array.from(text, (character) => character.charCodeAt(0));
+    const length = new TextEncoder().encode(text).length;
+    expect(decodeSgf(bytes)).toEqual(parseSgf(text));
+    expect(decodeSgf(bytes, { maxBytes: length })).toEqual(parseSgf(text, { maxBytes: length }));
+    expect(decodeSgf(bytes, { maxBytes: length - 1 })).toEqual(
+      parseSgf(text, { maxBytes: length - 1 }),
+    );
+    const canonicalBytes = new TextEncoder().encode(serializeSgf(parsed(parseSgf(text)))).length;
+    expect(decodeSgf(bytes, { maxBytes: canonicalBytes }).ok).toBe(true);
+    expect(decodeSgf(bytes, { maxBytes: canonicalBytes - 1 })).toEqual(
+      parseSgf(text, { maxBytes: canonicalBytes - 1 }),
+    );
+    expect(decodeSgf(bytes, { maxValueLength: 5 }).ok).toBe(false);
+    expect(decodeSgf(bytes, { maxExpandedPoints: 3 }).ok).toBe(false);
+    expect(decodeSgf(bytes, { maxExpandedPoints: 4 }).ok).toBe(true);
+  });
   test('decodes declared UTF-8, falls back to true Latin-1, and ignores fake CA in comments', () => {
     const utf8 = parsed(decodeSgf(new TextEncoder().encode('(;CA[UTF-8]C[한글])')));
     expect(utf8.games[0]!.properties.C?.[0]).toBe('한글');

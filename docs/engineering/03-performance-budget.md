@@ -166,3 +166,40 @@ by board area and hidden on future PV positions. Completion leases detach their
 display callbacks on disposal. Cropped layers render visible points only; table
 rows remain bounded by the common candidate cap. No per-device render latency or
 screen-reader/browser floor has been measured by these structural limits.
+
+## SGF Byte Decode Probe Reuse
+
+The encoding probe previously built/validated a complete immutable record, then
+strict decoding built/validated the same record again for ASCII and direct Latin-1
+inputs. Reuse now requires a real supported root declaration, matching decoded
+text, compatible BOM and both decoded-input and normalized-export byte budgets.
+The original parser passes its measured normalized size through a private local
+collector. There is no global record cache or second serialization for this check.
+Other input keeps the original strict decoder/recovery path.
+
+Paired Bun 1.4.3 / Windows measurements used source at `cd4bf29` and working
+source in one process, three warmups each, twenty samples each and alternating
+before/after order. Each fixture has two alternating pass nodes per repeated pair
+with a fixed comment, SZ[19] and an explicit root encoding. Values are local
+observations, not browser or device-independent latency guarantees.
+
+| Fixture                                    | Before median / p95 ms | After median / p95 ms |
+| ------------------------------------------ | ---------------------: | --------------------: |
+| ASCII UTF-8, 5,000 moves, 65,018 bytes     |        76.460 / 82.235 |       37.802 / 53.049 |
+| ASCII UTF-8, 20,000 moves, 260,018 bytes   |      317.072 / 390.212 |     157.114 / 176.045 |
+| Latin-1, 5,000 moves, 55,023 bytes         |        81.794 / 88.671 |       38.934 / 50.128 |
+| Multibyte UTF-8, 5,000 moves, 65,018 bytes |        76.833 / 81.837 |       77.655 / 87.106 |
+
+At 20,000 moves the eligible median fell 50.4%. Instrumented node finalizations
+on a 20,001-node fixture fell from 40,002 to 20,001, confirming one complete tree
+instead of two; this is not a process-RSS measurement. Asymptotic work remains
+O(B + N + P) for bytes, nodes and expanded points, with one full parse/validation
+plus a linear text proof on eligible input. Multibyte UTF-8 is intentionally not
+optimized; its control measurement varied about 1.1%.
+
+The paired script and raw results are ignored local artifacts under `.tmp/`
+(`decode-paired.ts`, `sgf-before.ts`, `decode-paired.json`). It also compares 770
+encoding/BOM/high-byte/limit combinations with the original source, requiring
+identical success records or failure diagnostics. Committed tests cover every
+ASCII code point for all nine supported codec labels, exact normalized-size
+boundaries, BOM conflicts, raw properties and decoded value/point limits.

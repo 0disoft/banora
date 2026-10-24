@@ -322,7 +322,10 @@ interface MutableNode {
   rawProperties: Record<string, string[]>;
   children: MutableNode[];
 }
-function parse(text: string, limits: SgfLimits): SgfRecord {
+interface ParseSize {
+  normalizedBytes: number;
+}
+function parse(text: string, limits: SgfLimits, size?: ParseSize): SgfRecord {
   if (new TextEncoder().encode(text).length > limits.maxBytes)
     fail('limit', 'SGF input exceeds byte limit');
   let offset = 0;
@@ -428,24 +431,28 @@ function parse(text: string, limits: SgfLimits): SgfRecord {
   const record: SgfRecord = Object.freeze({ games: Object.freeze(roots) });
   const budget = { remaining: limits.maxExpandedPoints ?? DEFAULT_SGF_LIMITS.maxExpandedPoints };
   for (const root of record.games) validateGame(root, budget);
-  if (new TextEncoder().encode(serializeSgf(record)).length > limits.maxBytes) {
+  const normalizedBytes = new TextEncoder().encode(serializeSgf(record)).length;
+  if (normalizedBytes > limits.maxBytes) {
     fail('limit', 'Normalized UTF-8 export exceeds byte limit');
   }
+  if (size) size.normalizedBytes = normalizedBytes;
   return record;
 }
 
-export function parseSgf(text: string, options: Partial<SgfLimits> = {}): SgfResult {
-  const limits = limitsFor(options);
+function parseResult(text: string, limits: SgfLimits, size?: ParseSize): SgfResult {
   try {
     return {
       ok: true,
-      record: parse(text.replace(/^\uFEFF/, ''), limits),
+      record: parse(text.replace(/^\uFEFF/, ''), limits, size),
       diagnostics: Object.freeze([]),
     };
   } catch (error) {
     if (!(error instanceof SgfError)) throw error;
     return { ok: false, diagnostics: Object.freeze([error.diagnostic]) };
   }
+}
+export function parseSgf(text: string, options: Partial<SgfLimits> = {}): SgfResult {
+  return parseResult(text, limitsFor(options));
 }
 
 function latin1(bytes: Uint8Array): string {
@@ -454,17 +461,36 @@ function latin1(bytes: Uint8Array): string {
     text += String.fromCharCode(...bytes.subarray(start, start + 8192));
   return text;
 }
+/** Prove that the already validated immutable byte view is the final decoded text. */
+function reusableProbe(text: string, encoding: string, bom: boolean, maxBytes: number): boolean {
+  if (bom && encoding !== 'utf-8' && encoding !== 'utf8') return false;
+  const directLatin1 = encoding === 'iso-8859-1' || encoding === 'latin1';
+  let decodedBytes = text.length;
+  if (decodedBytes > maxBytes) return false;
+  for (let index = 0; index < text.length; index++) {
+    if (text.charCodeAt(index) < 128) continue;
+    if (!directLatin1 || ++decodedBytes > maxBytes) return false;
+  }
+  return true;
+}
 export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): SgfResult {
   const limits = limitsFor(options);
   if (bytes.length > limits.maxBytes)
     return { ok: false, diagnostics: [{ code: 'limit', message: 'SGF input exceeds byte limit' }] };
   // Parse an ASCII-compatible view to find real root CA properties, never a regex
   // that could mistake comment contents for an encoding declaration.
-  const probe = parseSgf(latin1(bytes).replace(/^\xEF\xBB\xBF/, ''), {
-    ...limits,
-    maxBytes: limits.maxBytes * 2,
-  });
-  const utf8Bom = bytes[0] === 239 && bytes[1] === 187 && bytes[2] === 191;
+  const byteView = latin1(bytes);
+  const utf8Bom = byteView.startsWith('\xEF\xBB\xBF');
+  const probeText = utf8Bom ? byteView.slice(3) : byteView;
+  const size: ParseSize = { normalizedBytes: 0 };
+  const probe = parseResult(
+    probeText,
+    limitsFor({
+      ...limits,
+      maxBytes: limits.maxBytes * 2,
+    }),
+    size,
+  );
   const normalize = (label: string) => label.toLowerCase().replace(/[_\s]/g, '-');
   const encodingOf = (record: SgfRecord) => {
     const encodings = record.games.map((root) =>
@@ -524,6 +550,14 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
       ok: false,
       diagnostics: [{ code: 'encoding', message: `Unsupported SGF encoding: ${encoding}` }],
     });
+  // Only after real-root declaration and supported-encoding checks. Multibyte
+  // input, conflicting BOMs and Latin-1 expansion over the strict byte limit
+  // retain the complete existing decode/recovery path.
+  if (
+    size.normalizedBytes <= limits.maxBytes &&
+    reusableProbe(probeText, encoding, utf8Bom, limits.maxBytes)
+  )
+    return probe;
   const decoded = decode(encoding);
   if (decoded.ok && encodingOf(decoded.record) !== encoding)
     return recover({

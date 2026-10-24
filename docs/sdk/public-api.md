@@ -327,6 +327,15 @@ point-list areas across every property, node and game. Compressed rectangles cou
 their full area; permitted empty lists count zero. Exceeding it returns `limit`.
 See [compatibility](compatibility.md#record-compatibility) for the supported subset.
 
+Byte decoding reuses its already validated probe only when its captured immutable
+text is identical to the declared decoding: supported ASCII input, or direct
+Latin-1 without a conflicting BOM. Both decoded input size and the original strict
+normalized UTF-8 export size must fit the configured byte budget. The parser
+passes the already measured normalized size through a private call-local collector;
+no public signature, global record cache or relaxed limit is introduced.
+Multibyte input, unsupported/mixed declarations, BOM conflicts and failed proofs
+retain the original strict decoding and recovery path.
+
 `@0disoft/banora/controller` exports `RecordController` and related state/command types.
 Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
 `prepareImport(input, {locator?})` validates under that controller's fixed limits
