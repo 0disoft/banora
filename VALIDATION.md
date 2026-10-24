@@ -3,6 +3,34 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Bounded Variation Sibling Scheduling
+
+The private variation iterator now schedules children lazily through sibling
+cursors instead of allocating work entries for every child before continuing.
+Exhausted cursors are removed before descent, keeping linear games at one pending
+frame. Public row order/payload, depth/indent, MN, folding, selected-neighborhood
+and truncation behavior remain unchanged. No new cache or input mutation.
+
+Against `ae04dfc`, five alternating Bun 1.4.3 sample pairs (20 calls/sample) reduced
+median helper cost at 49,999 root children / 500 rows from 3.830770 to 0.068050 ms.
+Child reads fell from 49,999 to 500 and sibling scheduling entries from 49,999 to
+one cursor. Parsing, controller construction and DOM are excluded; distant selected
+rows can still require a linear scan. Method, four workloads and complexity limits
+are in `docs/engineering/14-sdk-performance-evidence.md`.
+
+Before/after metadata matched in 252 paired linear/wide/nested cases, including
+window boundaries, setup/annotations/MN, folding and limits 1 through 50,000.
+The committed maximum-size wide-tree regression checks child-read budgets and
+independent expected row order/metadata. SDK/browser-option tests passed:
+252 tests, 15,188 assertions. SDK/adapters/examples build and Chromium `--tree-only`
+passed, including existing Viewer/Studio selection, branches, localized labels,
+keyboard focus, comments, Undo/Redo and export/reopen coverage. Typecheck, packed
+SDK consumer, lint, formatting, repository boundaries and docs checks passed.
+Full release/CLI, unrelated browser
+scopes and other engines were skipped because only the shared pure variation
+projection changed. No public API/DB, dependencies, hygiene, version or CI/runner
+changes; no remote operations.
+
 ## Single-Priority Refactor: Viewer Game Selector Navigation
 
 Viewer navigation now reuses game options while immutable collection roots and

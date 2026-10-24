@@ -27,7 +27,8 @@ function* visibleRows(state: ControllerState, focused: boolean): Generator<Varia
   const path = new Set(state.path);
   const pending = [
     {
-      node: state.record.games[state.gameIndex]!,
+      nodes: [state.record.games[state.gameIndex]!] as readonly SgfNode[],
+      index: 0,
       depth: 0,
       indent: 0,
       parentMove: 0,
@@ -35,24 +36,26 @@ function* visibleRows(state: ControllerState, focused: boolean): Generator<Varia
     },
   ];
   while (pending.length) {
-    const entry = pending.pop()!;
-    const props = entry.node.properties;
-    const moveNumber = props.MN
-      ? Number(props.MN[0])
-      : entry.parentMove + (props.B || props.W ? 1 : 0);
-    const collapsed =
-      focused && entry.branch && !path.has(entry.node.id) && entry.node.children.length > 0;
-    yield { ...entry, moveNumber, collapsed };
-    if (collapsed) continue;
-    const branch = entry.node.children.length > 1;
-    for (let i = entry.node.children.length - 1; i >= 0; i--)
-      pending.push({
-        node: entry.node.children[i]!,
-        depth: entry.depth + 1,
-        indent: entry.indent + (branch ? 1 : 0),
-        parentMove: moveNumber,
-        branch,
-      });
+    const frame = pending.at(-1)!;
+    const node = frame.nodes[frame.index++]!;
+    // Drop an exhausted sibling cursor before descending: linear games keep one frame.
+    if (frame.index === frame.nodes.length) pending.pop();
+    const { depth, indent, parentMove, branch } = frame;
+    const props = node.properties;
+    const moveNumber = props.MN ? Number(props.MN[0]) : parentMove + (props.B || props.W ? 1 : 0);
+    const collapsed = focused && branch && !path.has(node.id) && node.children.length > 0;
+    const row = { node, depth, indent, parentMove, branch, moveNumber, collapsed };
+    yield row;
+    if (collapsed || !node.children.length) continue;
+    const childBranch = node.children.length > 1;
+    pending.push({
+      nodes: node.children,
+      index: 0,
+      depth: depth + 1,
+      indent: indent + (childBranch ? 1 : 0),
+      parentMove: moveNumber,
+      branch: childBranch,
+    });
   }
 }
 

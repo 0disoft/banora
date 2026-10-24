@@ -588,7 +588,10 @@ host authority. Hints follow transforms/crops and never appear in diagram export
 `getVariationRows(state, focused?, limit?)`, `variationPathKey(state)` and
 `variationCandidates(state)` expose DOM-free projections from controller state.
 The row projection keeps its default 500-row bound (custom limits remain 1 through
-50,000). When the selected node lies beyond the initial prefix, it returns a
+50,000). Sibling traversal is lazy: a bounded prefix does not allocate scheduling
+entries for every hidden sibling. Exhausted sibling cursors are dropped before
+descent, so linear games do not accumulate ancestor cursors. The source record is
+unchanged. When the selected node lies beyond the initial prefix, it returns a
 contiguous neighborhood around that node, including nearby continuations and fork
 choices. Global depth, indentation, move-number overrides and focused collapse
 rules remain intact. `truncated` also indicates omitted preceding rows. Studio

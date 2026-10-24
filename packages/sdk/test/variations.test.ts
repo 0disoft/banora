@@ -2,6 +2,56 @@ import { expect, test } from 'bun:test';
 import { RecordController } from '../src/controller.js';
 import { getVariationRows, variationCandidates, variationPathKey } from '../src/variations.js';
 
+test('bounded outlines inspect only requested siblings in a maximum-size wide fork', () => {
+  const width = 49_999;
+  const controller = new RecordController({ sgf: `(;SZ[9]${'(;B[])'.repeat(width)})` });
+  try {
+    const state = controller.getState();
+    let reads = 0;
+    const children = new Proxy(state.node.children, {
+      get(target, key, receiver) {
+        if (typeof key === 'string' && /^\d+$/.test(key)) reads++;
+        return Reflect.get(target, key, receiver);
+      },
+    });
+    const root = { ...state.node, children };
+    const observed = { ...state, node: root, record: { games: [root] } };
+    for (const focused of [false, true]) {
+      for (const limit of [1, 2, 500, 501, 50_000]) {
+        reads = 0;
+        const actual = getVariationRows(observed, focused, limit);
+        expect(reads).toBe(Math.min(limit, width));
+        expect(actual.truncated).toBe(limit <= width);
+        expect(actual.rows.map((row) => row.node.id)).toEqual([
+          state.node.id,
+          ...state.node.children.slice(0, limit - 1).map((node) => node.id),
+        ]);
+        expect(actual.rows[0]).toMatchObject({
+          depth: 0,
+          indent: 0,
+          moveNumber: 0,
+          branch: false,
+          collapsed: false,
+        });
+        expect(
+          actual.rows
+            .slice(1)
+            .every(
+              (row) =>
+                row.depth === 1 &&
+                row.indent === 1 &&
+                row.moveNumber === 1 &&
+                row.branch &&
+                !row.collapsed,
+            ),
+        ).toBe(true);
+      }
+    }
+  } finally {
+    controller.dispose();
+  }
+});
+
 test('fork candidates remain reachable while unselected and nested continuations stay folded', () => {
   const controller = new RecordController({
     sgf: '(;SZ[9];B[aa](;W[bb];B[cc](;W[dd];B[ee])(;W[]MN[20];C[pass note]))(;W[ff];B[gg]))',

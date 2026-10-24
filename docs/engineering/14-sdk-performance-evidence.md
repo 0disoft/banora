@@ -1,5 +1,57 @@
 # SDK Performance Evidence
 
+## 2026-10-25: Bounded Variation Sibling Scheduling
+
+Baseline `ae04dfc` limited returned variation rows but eagerly pushed every child
+of an expanded node onto its pending stack before yielding the next row. A root
+with 49,999 children therefore read and allocated 49,999 sibling work entries even
+when the selected root needed only one or 500 displayed rows. This is a transient
+allocation/cost issue, not a claim that the old generator leaked records.
+
+The private iterator now stores a cursor over each active sibling array and reads
+one child at a time, in the same depth-first order. It drops an exhausted cursor
+before yielding/descending, so a linear game keeps one pending frame rather than
+retaining every ancestor. No cache, input mutation or public signature changes.
+The row payload, global depth/indent, inherited move numbers/MN, branch collapsing,
+selected neighborhoods and exact truncation lookahead are unchanged.
+
+Paired source measurements used Windows x64 Bun 1.4.3, baseline `ae04dfc` and
+working source. Each parsed 9-by-9 fixture had a root with pass-only leaf variations,
+with no limit overrides (50,000 nodes at the maximum width). Parsing, controller
+construction and root selection were outside the timer. After three warm-up calls
+per version, five alternating paired samples each timed 20 calls; GC ran before
+each sample. Values below are medians of per-call sample averages. A separate,
+untimed Proxy counted numeric child-array reads without modifying source nodes.
+
+| Root children | Row limit | Before, ms/call | After, ms/call | Child reads before / after |
+| ------------: | --------: | --------------: | -------------: | -------------------------: |
+|         5,000 |         1 |        0.282190 |       0.005690 |                  5,000 / 1 |
+|         5,000 |       500 |        0.300060 |       0.062395 |                5,000 / 500 |
+|        49,999 |         1 |        3.059450 |       0.003285 |                 49,999 / 1 |
+|        49,999 |       500 |        3.830770 |       0.068050 |               49,999 / 500 |
+
+For a root-selected wide prefix of L rows, sibling scheduling changes from O(W)
+work/storage for width W to O(L) reads and one pending sibling frame. Across a
+general tree, pending cursors depend on unfinished branch depth, not unused sibling
+width; the existing path set and output rows still use O(D + L) storage. Locating
+a distant selected node can still scan the visible prefix in O(N), and returning
+every row still costs O(N). This is helper-only evidence, not total UI latency.
+
+Before/after public row metadata plus the existing runtime payload matched in 252
+paired cases over 5,001-node linear/wide fixtures and a nested setup/comment/MN
+fixture. Cases included root, row-window boundaries, middle/last selection, both
+folding modes and row limits 1, 2, 7, 499, 500, 501 and 50,000.
+
+The committed regression uses a valid maximum-size wide record, asserts exact
+child-read budgets and independently derived order/row metadata for both folding
+modes at limits 1, 2, 500, 501 and 50,000. No timing thresholds enter the unit suite.
+
+```sh
+bun test packages/sdk/test/variations.test.ts
+bun run build:examples
+bun scripts/browser-smoke.ts --tree-only
+```
+
 ## 2026-10-25: Viewer Game Selector Navigation
 
 Baseline `4582976` recreated every game `<option>` on every controller notification,
