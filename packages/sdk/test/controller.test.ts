@@ -3,6 +3,91 @@ import { RecordController } from '../src/controller.js';
 import { stoneAt } from '../src/core.js';
 
 describe('authoritative record editing', () => {
+  test('adjacent navigation bounds parent reads and preserves immutable held paths', () => {
+    const moves = 1000;
+    const controller = new RecordController({
+      sgf: '(;SZ[9]' + ';B[];W[]'.repeat(moves / 2) + ')',
+    });
+    const root = controller.getState();
+    const held: (typeof root)[] = [root];
+    const get = Map.prototype.get;
+    let parentReads = 0;
+    const probe = spyOn(Map.prototype, 'get').mockImplementation(function (
+      this: Map<unknown, unknown>,
+      key,
+    ) {
+      const value = get.call(this, key);
+      if (typeof value === 'string' || value === null) parentReads++;
+      return value;
+    });
+    try {
+      for (let i = 1; i <= moves; i++) {
+        expect(controller.next().ok).toBe(true);
+        const state = controller.getState();
+        expect(state.path.length).toBe(i + 1);
+        expect(state.path.at(-1)).toBe(state.node.id);
+        expect(Object.isFrozen(state.path)).toBe(true);
+        if (i % 250 === 0) held.push(state);
+      }
+      expect(parentReads).toBe(moves);
+      for (let i = 0; i < 10; i++) expect(controller.previous().ok).toBe(true);
+      for (const state of held) {
+        expect(state.path.length).toBe(state.position.moveNumber + 1);
+        expect(state.path.at(-1)).toBe(state.node.id);
+      }
+    } finally {
+      probe.mockRestore();
+      controller.dispose();
+    }
+    expect(root.path).toEqual([root.node.id]);
+  });
+
+  test('path checkpoints fall back for branches, edits, imports and Undo', () => {
+    const controller = new RecordController({
+      sgf: '(;SZ[9];B[aa](;W[bb];B[cc])(;W[dd];B[ee]))(;SZ[13];B[ff])',
+    });
+    const assertPath = () => {
+      const state = controller.getState();
+      let node = state.record.games[state.gameIndex]!;
+      expect(state.path[0]).toBe(node.id);
+      for (const id of state.path.slice(1)) {
+        node = node.children.find((child) => child.id === id)!;
+        expect(node).toBeDefined();
+      }
+      expect(node).toBe(state.node);
+      expect(Object.isFrozen(state.path)).toBe(true);
+    };
+    const check = (result: { ok: boolean }) => {
+      expect(result.ok).toBe(true);
+      assertPath();
+    };
+    const root = controller.getState();
+    check(controller.next());
+    const fork = controller.getState();
+    check(controller.next(0));
+    check(controller.next());
+    const leaf = controller.getState();
+    check(controller.goTo(fork.node.children[1]!.id));
+    check(controller.next());
+    expect(controller.inspectNode(leaf.node.id)!.path).toEqual(leaf.path);
+    assertPath();
+    check(controller.previous());
+    check(controller.setComment('edited'));
+    check(controller.undo());
+    check(controller.redo());
+    check(controller.goTo(root.record.games[1]!.children[0]!.id));
+    check(controller.loadSgf('(;SZ[9];B[gg])', { discardChanges: true }));
+    check(controller.next());
+    expect(root.path).toEqual([root.node.id]);
+    expect(leaf.path).toEqual([
+      root.node.id,
+      fork.node.id,
+      fork.node.children[0]!.id,
+      leaf.node.id,
+    ]);
+    controller.dispose();
+  });
+
   test('closed handles reject commands while held snapshots and cleanup callbacks remain safe', () => {
     const controller = new RecordController({ sgf: '(;SZ[9]C[original];B[aa])' });
     controller.setComment('one');

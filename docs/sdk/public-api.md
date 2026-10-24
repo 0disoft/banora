@@ -503,6 +503,14 @@ on record/rule replacement or edits. See the
 [measured SDK evidence](../engineering/14-sdk-performance-evidence.md); it changes
 neither public snapshot ownership nor rules/dirty/Undo behavior.
 
+One private path checkpoint is weakly keyed by the parent index. Adjacent forward
+and backward selection append or remove one ID from its private working array;
+each different path publishes a separate frozen copy. Repeated inspection of the
+same checkpoint reuses its frozen path. Branch jumps and index replacements
+reconstruct the complete path; comment-only edits may reuse the unchanged parent
+index. Only one checkpoint is retained, and disposal releases it. This reduces
+ancestor lookups, but immutable path copying still costs O(depth) per changed path.
+
 `inspectNode` uses the same record replay and bounded position cache as ordinary
 navigation; it never creates a separate rules engine. Its snapshot's path/game/node
 refer to the inspected node while dirty/Undo flags describe the owning controller.

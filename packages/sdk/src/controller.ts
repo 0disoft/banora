@@ -135,6 +135,10 @@ export class RecordController {
   #selected: string;
   #index: RecordIndex;
   #positionCache = new Map<string, Position>();
+  #paths = new WeakMap<
+    RecordIndex['parents'],
+    { id: string; path: string[]; snapshot: readonly string[] }
+  >();
   #rules: Partial<RulePolicy> | undefined;
   #limits: Partial<SgfLimits>;
   #baselineRecord: SgfRecord;
@@ -178,14 +182,32 @@ export class RecordController {
   #assertLive(): void {
     if (this.#disposed) throw new Error('RecordController is disposed');
   }
-  #path(id = this.#selected): string[] {
-    const path: string[] = [];
-    let current: string | null = id;
-    while (current !== null) {
-      path.push(current);
-      current = this.#index.parents.get(current) ?? null;
+  #path(id = this.#selected): readonly string[] {
+    const parents = this.#index.parents;
+    const previous = this.#paths.get(parents);
+    if (previous?.id === id) return previous.snapshot;
+    let path: string[];
+    if (previous && parents.get(id) === previous.id) {
+      path = previous.path;
+      path.push(id);
+    } else if (previous?.path.at(-2) === id) {
+      path = previous.path;
+      path.pop();
+    } else {
+      path = [];
+      let current: string | null = id;
+      while (current !== null) {
+        path.push(current);
+        current = parents.get(current) ?? null;
+      }
+      path.reverse();
     }
-    return path.reverse();
+    // Mutate only our private path; published snapshots always own a frozen copy.
+    // Keep one entry, weakly keyed by topology; never retain old records.
+    if (!previous) this.#paths = new WeakMap();
+    const frozen = Object.freeze([...path]);
+    this.#paths.set(parents, { id, path, snapshot: frozen });
+    return frozen;
   }
   #position(path: readonly string[]): Position {
     let position: Position | undefined;
@@ -257,7 +279,7 @@ export class RecordController {
       record: this.#record,
       node,
       position,
-      path: Object.freeze(path),
+      path,
       gameIndex: this.#index.games.get(id)!,
       dirty: this.#dirty,
       recordGeneration: this.#recordGeneration,
@@ -971,6 +993,7 @@ export class RecordController {
     this.#importPreviews = new WeakMap();
     this.#positionCache.clear();
     this.#baselineContent = new WeakMap();
+    this.#paths = new WeakMap();
     this.#serialized.clear();
     this.#record = disposedRecord;
     this.#baselineRecord = disposedRecord;

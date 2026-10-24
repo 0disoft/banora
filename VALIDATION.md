@@ -3,6 +3,35 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Adjacent Controller Paths
+
+`RecordController` now keeps one weak parent-index path checkpoint. Direct-child
+and direct-parent navigation update only its private working array and publish a
+separate frozen snapshot; repeated identical paths reuse that frozen snapshot.
+Other branches and new indexes retain full reconstruction. Comment-only index
+refresh is safe because topology is unchanged; disposal clears the checkpoint.
+Public signatures, dirty/Undo semantics, SGF limits and the 128-position cache are
+unchanged. No API, DB, dependencies, runner or repository hygiene changes.
+
+Against `bcbc55a`, paired Bun 1.4.3 measurements (two warm-ups, seven alternating
+samples, pass-heavy 19x19, synchronous forward calls only) reduced median 1,000-move
+time from 182.206 to 168.116 ms and 5,000-move time from 6,351.971 to 5,681.584 ms.
+Parent lookups for 5,000 steps fall from 12,507,500 to 5,000; total path-copy/freeze
+work remains O(N²). Method, limits and local raw evidence are recorded in
+`docs/engineering/14-sdk-performance-evidence.md`; snapshot/cache policy is in
+`docs/sdk/public-api.md`.
+
+Validation: SDK tests passed (241 tests / 14,907 assertions), including a
+deterministic 1,000-parent-read bound and immutable path connectivity across
+branches, inspection, comment edits, Undo/Redo, game switches, import and disposal.
+Root typecheck, SDK/declaration/adapter/example production builds, packed SDK and
+classic-global consumers, Chrome 155 playback (speed/pause/end, keyboard guards,
+import/SGF preservation and six consumer lifecycles), lint, formatting, repository
+boundaries and documentation checks passed. Skills: refactor, sdk, test-hardening.
+Full unrelated CLI/Git backup/release suites and new browser latency/heap
+measurements are outside this controller-only change; the benchmark is not a
+browser performance claim. No push or deployment.
+
 ## Single-Priority Refactor: Incremental Move-Number Projection
 
 Board numbering now reuses one weak record checkpoint only for the same game,

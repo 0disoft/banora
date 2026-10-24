@@ -1,5 +1,40 @@
 # SDK Performance Evidence
 
+## 2026-10-25: Adjacent Controller Paths
+
+Baseline `bcbc55a` reconstructed the root-to-selected path on every state change.
+For N forward moves from an already selected root this performs N(N+3)/2 parent
+Map lookups. A single weak parent-index checkpoint now performs N such lookups;
+5,000 moves reduce 12,507,500 lookups to 5,000 (99.96%). The working array is private;
+published paths own frozen copies. A different index or nonadjacent branch falls
+back to full reconstruction. The cache holds one path, not a history of frames,
+and disposal clears it. The existing 128-position replay cache is unchanged.
+
+This reduces ancestor lookup work from O(N²) to O(N) for adjacent forward traversal,
+but **total traversal remains O(N²)** because immutable paths must still be copied
+and frozen. Extra working storage is O(depth). This is not incremental SGF editing
+or a new arbitrary-jump replay policy.
+
+Paired local measurements used Bun 1.4.3 on Windows x64, before/current source in
+one process with shared unchanged dependencies, two warm-ups and seven samples per
+version, alternating version order. Each fresh 19x19 record alternates Black/White
+passes. Timing covers all synchronous `next()` calls and their success assertions;
+parsing/construction, final path/move-number assertions, disposal and file I/O are
+excluded. No other validation job ran concurrently. Values are aggregate navigation
+time, not individual frame latency, browser rendering or a p95 estimate.
+
+| Forward moves | Before median | After median | Reduction |
+| ------------- | ------------- | ------------ | --------- |
+| 1,000         | 182.206 ms    | 168.116 ms   | 7.7%      |
+| 5,000         | 6,351.971 ms  | 5,681.584 ms | 10.6%     |
+
+Raw paired timings and the copied baseline/harness are local ignored artifacts
+`.tmp/path-paired.json`, `.tmp/controller-path-before.ts`, `.tmp/path-paired.ts`.
+The deterministic regression test checks exactly 1,000 parent reads for 1,000
+forward steps and frozen held snapshots across backtracking/disposal. A second
+test checks full path connectivity through branches, nonselected inspection,
+comments, Undo/Redo, another game and import. Timing is not a CI assertion.
+
 Status: desktop Node before/after navigation optimization measured; broader
 browser/device performance measurements remain separate work.
 
