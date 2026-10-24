@@ -4,6 +4,7 @@ import { createBoardSnapshot } from './board-state.js';
 import { snapshotFrame } from './board-frame.js';
 import { mountBoardSurface } from './board-surface.js';
 import { createStroke } from './annotations.js';
+import { boardNotices, boardFailureLabelKeys } from './board-notices.js';
 import type { DiagramOptions } from './diagram-export.js';
 
 export type ControlledBoardPresentation = Pick<
@@ -58,7 +59,10 @@ function configCopy(config: ControlledBoardOptions): ControlledBoardOptions {
       'black',
       'white',
       'empty',
-    ] as const) {
+      ...Object.keys(boardNotices),
+      ...Object.values(boardFailureLabelKeys),
+      'failureUnknown',
+    ] as (keyof BoardLabels)[]) {
       const value = config.labels[key];
       if (value === undefined) continue;
       if (typeof value !== 'string' || value.length > 1024)

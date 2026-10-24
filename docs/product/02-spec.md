@@ -529,7 +529,12 @@ the exact instrumented operation scope is listed in the consumer contract.
   focus, ink and touch interactions retain their existing rendering lifecycle.
 - Touch confirmation prompt and group accessible name, alongside confirm/cancel
   buttons, use the twelve-locale board-label contract. This does not translate
-  authored content or claim completion of live-region messages.
+  authored content. Touch/ink/keyboard interaction announcements and comparison
+  accessible descriptions share optional twelve-locale BoardLabels notices.
+  Existing controller failure codes retain their values; owned UI explanations
+  are localized. Label updates relocalize owned announcements, preserving literal
+  host announcements; cancellation and recovered pin announcements reflect the
+  actual current input/availability state.
 - Puzzle widget controls, progress, help, board labels, default feedback and
   rejected/unlisted-answer guidance use explicit twelve-locale feature catalogs.
   Language updates preserve exact session state and authored content, including

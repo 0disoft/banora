@@ -21,6 +21,8 @@ import { normalizeStoneTextures } from './stone-textures.js';
 import { mountPlacementAnimation, normalizePlacementAnimation } from './placement-animation.js';
 import { BOARD_PADDING } from './board-layout.js';
 import { paintBoard, paintBoardHover } from './board-paint.js';
+import { boardNotices, boardFailureLabelKeys } from './board-notices.js';
+import type { ControllerFailure } from './controller.js';
 const namespace = 'http://www.w3.org/2000/svg';
 const padding = BOARD_PADDING;
 const letters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
@@ -65,6 +67,33 @@ export function mountBoardSurface(
   svg.style.cssText =
     'display:block;width:100%;height:auto;touch-action:manipulation;outline-offset:4px;border-radius:12px;';
   const live = document.createElement('span');
+  let lastAnnouncement: (() => string) | undefined;
+  function say(message: () => string): void {
+    lastAnnouncement = message;
+    live.textContent = message();
+  }
+  function notice(
+    key: keyof typeof boardNotices,
+    values: Record<string, string | number> = {},
+  ): string {
+    return boardMessage(options.labels?.[key] ?? boardNotices[key], values);
+  }
+  function sayNotice(
+    key: keyof typeof boardNotices,
+    values: Record<string, string | number> = {},
+  ): void {
+    say(() => notice(key, values));
+  }
+  function sayFailure(key: 'moveRejected' | 'inkRejected', reason: ControllerFailure): void {
+    say(() =>
+      notice(key, {
+        reason:
+          options.labels?.[boardFailureLabelKeys[reason]] ??
+          options.labels?.failureUnknown ??
+          `${reason}.`,
+      }),
+    );
+  }
   live.setAttribute('aria-live', 'polite');
   live.style.cssText =
     'position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;';
@@ -82,7 +111,7 @@ export function mountBoardSurface(
       cancelTouch();
       render(current);
       svg.focus({ preventScroll: true });
-      live.textContent = 'Placement cancelled.';
+      sayNotice('placementCancelled');
     },
     abort.signal,
     () => options.labels,
@@ -93,7 +122,7 @@ export function mountBoardSurface(
       if (touchAim) {
         cancelTouch();
         render(current);
-        live.textContent = 'Placement cancelled: viewport changed.';
+        sayNotice('viewportChanged');
       }
     },
     { signal: abort.signal },
@@ -207,11 +236,11 @@ export function mountBoardSurface(
               'font-family': 'system-ui',
               fill: '#687b69',
             },
-            'Node unavailable',
+            notice('nodeUnavailable'),
           ),
         );
         touchUI.render(null, null, '', false, false);
-        live.textContent = 'Pinned node is unavailable.';
+        sayNotice('pinnedUnavailable');
         return;
       }
       state = pinned;
@@ -335,15 +364,20 @@ export function mountBoardSurface(
   }
   function announce(state: BoardFrame): void {
     if (!available) return;
-    live.textContent = boardMessage(
-      options.labels?.state ??
-        'Move {moveNumber}. {toPlay} to play. Black captures {blackCaptures}, white captures {whiteCaptures}.',
-      {
-        moveNumber: state.position.moveNumber,
-        toPlay: options.labels?.[state.position.toPlay] ?? state.position.toPlay,
-        blackCaptures: state.position.captures.black,
-        whiteCaptures: state.position.captures.white,
-      },
+    const { moveNumber, toPlay, captures } = state.position;
+    const blackCaptures = captures.black,
+      whiteCaptures = captures.white;
+    say(() =>
+      boardMessage(
+        options.labels?.state ??
+          'Move {moveNumber}. {toPlay} to play. Black captures {blackCaptures}, white captures {whiteCaptures}.',
+        {
+          moveNumber,
+          toPlay: options.labels?.[toPlay] ?? toPlay,
+          blackCaptures,
+          whiteCaptures,
+        },
+      ),
     );
   }
   function activate(point: Point): void {
@@ -359,7 +393,7 @@ export function mountBoardSurface(
     if (options.onPoint) options.onPoint(Object.freeze({ ...point }));
     else if (!readOnly()) {
       const result = controller.play(point);
-      if (!result.ok) live.textContent = `Move rejected: ${result.reason}.`;
+      if (!result.ok) sayFailure('moveRejected', result.reason);
     }
   }
   function logicalPointer(event: PointerEvent): Point | null {
@@ -414,7 +448,7 @@ export function mountBoardSurface(
     if (Math.hypot(point.x - last.x, point.y - last.y) < 0.01) return;
     if (pendingStroke.points.length >= strokeLimits.pointsPerStroke) {
       cancelInk();
-      live.textContent = 'Stroke cancelled: more than 512 sampled points. Draw shorter strokes.';
+      sayNotice('strokeLimit', { limit: strokeLimits.pointsPerStroke });
     } else pendingStroke.points.push(point);
   }
   function finishInk(): void {
@@ -425,9 +459,8 @@ export function mountBoardSurface(
       return;
     }
     const result = controller.addStroke(points, options.drawing);
-    live.textContent = result.ok
-      ? 'Ink stroke added. Undo removes it.'
-      : `Ink rejected: ${result.reason}.`;
+    if (result.ok) sayNotice('inkAdded');
+    else sayFailure('inkRejected', result.reason);
     render(current);
   }
   svg.addEventListener(
@@ -462,11 +495,13 @@ export function mountBoardSurface(
           svg.setPointerCapture(event.pointerId);
         } catch {
           cancelTouch();
-          live.textContent = 'Placement cancelled: pointer capture is unavailable.';
+          sayNotice('placementCaptureUnavailable');
         }
         render(current);
         if (touchAim)
-          live.textContent = `${coordinate(point)} selected. Drag to aim; release ${options.touch.mode === 'confirm' ? 'then confirm' : 'to place'}.`;
+          sayNotice(options.touch.mode === 'confirm' ? 'aimConfirm' : 'aimRelease', {
+            coordinate: coordinate(point),
+          });
         return;
       }
       if (!options.drawing || readOnly() || event.button !== 0 || !event.isPrimary || pendingStroke)
@@ -481,7 +516,7 @@ export function mountBoardSurface(
         svg.setPointerCapture(event.pointerId);
       } catch {
         cancelInk();
-        live.textContent = 'Ink cancelled: pointer capture is unavailable.';
+        sayNotice('inkCaptureUnavailable');
       }
       render(current);
     },
@@ -495,9 +530,14 @@ export function mountBoardSurface(
         touchAim.point = pointerPoint(event);
         touchAim.screen = { x: event.clientX, y: event.clientY };
         render(current);
-        live.textContent = touchAim.point
-          ? `${coordinate(touchAim.point)} selected.`
-          : 'Outside board. Release to cancel.';
+        if (touchAim.point) {
+          const selected = coordinate(touchAim.point);
+          say(() =>
+            boardMessage(options.labels?.selected ?? '{coordinate} selected.', {
+              coordinate: selected,
+            }),
+          );
+        } else sayNotice('outsideBoard');
         return;
       }
       if (pendingStroke?.pointer === event.pointerId) {
@@ -542,9 +582,9 @@ export function mountBoardSurface(
             focus = point;
             if (options.touch.mode === 'confirm') {
               touchAim = { pointer: null, point, screen: null };
-              live.textContent = `${coordinate(point)} selected. Confirm placement or cancel. Enter confirms; Escape cancels.`;
+              sayNotice('confirmHint', { coordinate: coordinate(point) });
             } else activate(point);
-          } else live.textContent = 'Placement cancelled: release inside the board.';
+          } else sayNotice('placementReleaseInside');
         } finally {
           if (!disposed) render(current);
         }
@@ -569,7 +609,7 @@ export function mountBoardSurface(
         } else {
           cancelInk();
           render(current);
-          live.textContent = 'Ink cancelled: release inside the board.';
+          sayNotice('inkReleaseInside');
         }
         return;
       }
@@ -590,12 +630,12 @@ export function mountBoardSurface(
         if (touchAim?.pointer === event.pointerId) {
           cancelTouch();
           render(current);
-          live.textContent = 'Placement cancelled.';
+          sayNotice('placementCancelled');
         }
         if (pendingStroke?.pointer === event.pointerId) {
           cancelInk();
           render(current);
-          live.textContent = 'Ink cancelled.';
+          sayNotice('inkCancelled');
         }
       },
       { signal: abort.signal },
@@ -683,16 +723,21 @@ export function mountBoardSurface(
           )
           .map((overlay) => overlay.ariaLabel)
           .join('. ');
-        live.textContent =
-          boardMessage(options.labels?.point ?? '{coordinate}. {stone}.', {
-            coordinate: coordinate(focus),
-            stone: stone ? (options.labels?.[stone] ?? stone) : (options.labels?.empty ?? 'Empty'),
-          }) + (description ? ' ' + description : '');
+        const label = coordinate(focus);
+        say(
+          () =>
+            boardMessage(options.labels?.point ?? '{coordinate}. {stone}.', {
+              coordinate: label,
+              stone: stone
+                ? (options.labels?.[stone] ?? stone)
+                : (options.labels?.empty ?? 'Empty'),
+            }) + (description ? ' ' + description : ''),
+        );
       } else if (event.key === 'Escape') {
         cancelInk();
         cancelTouch();
         render(current);
-        live.textContent = 'Pending input cancelled.';
+        sayNotice('pendingCancelled');
       } else if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         if (!visible(focus)) return;
@@ -705,8 +750,7 @@ export function mountBoardSurface(
           if (readOnly() || (pendingStroke && pendingStroke.pointer !== null)) return;
           if (!pendingStroke) {
             pendingStroke = { pointer: null, points: [{ ...focus }] };
-            live.textContent =
-              'Ink started. Move the cursor and add points with Space; Enter finishes.';
+            sayNotice('inkStarted');
           } else {
             appendInk({ ...focus });
             if (event.key === 'Enter') finishInk();
@@ -737,7 +781,7 @@ export function mountBoardSurface(
       if (disposed) throw new Error('Board view is disposed');
       if (typeof message !== 'string' || message.length > 4096)
         throw new TypeError('Announcement must be bounded text');
-      live.textContent = message;
+      say(() => message);
     },
     exportSvg(config: DiagramOptions = {}) {
       if (disposed) throw new Error('Board view is disposed');
@@ -794,9 +838,17 @@ export function mountBoardSurface(
         (Object.hasOwn(next, 'compareTo') && next.compareTo !== previous.compareTo)
       )
         compareGeneration = next.referenceGeneration ?? controller.getState().recordGeneration;
+      const pendingInput = !!pendingStroke || !!touchAim;
+      const wasAvailable = available;
       cancelInk();
       cancelTouch();
       render(controller.getState());
+      if (!wasAvailable && available) announce(current);
+      else if (pendingInput && available) sayNotice('pendingCancelled');
+      else if (lastAnnouncement) {
+        const message = lastAnnouncement();
+        if (message !== live.textContent) live.textContent = message;
+      }
     },
     dispose() {
       if (disposed) return;
@@ -807,6 +859,7 @@ export function mountBoardSurface(
       unsubscribe();
       touchUI.dispose();
       hoverLayer = undefined;
+      lastAnnouncement = undefined;
       svg.remove();
       live.remove();
       controller.dispose();

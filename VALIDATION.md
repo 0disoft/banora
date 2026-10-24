@@ -3,6 +3,51 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Localized Shared Board Interaction Notices
+
+Shared record/controlled surfaces now localize touch aiming/confirmation/cancel,
+viewport/capture failures, ink start/completion/cancel/point-limit feedback,
+pending input, unavailable pins and comparison accessible descriptions in twelve
+languages through optional `BoardLabels` fields. Existing label bags and
+`UiMessages` inputs remain compatible. English fallbacks are separate from optional
+locale catalogs; controller failures retain their original codes while labels use
+the existing translated failure explanations. Stroke limits come from the actual
+policy. Controlled labels retain their copy/freeze, 1,024-character and atomic
+rejection contract for every new field.
+
+The surface stores a formatter over small announcement values rather than an old
+board/record snapshot, and refreshes owned text after label changes. Host-owned
+`announce(text)` and authored overlay descriptions remain literal. Valid option
+updates still cancel pending input, now announcing cancellation instead of stale
+confirmation instructions. Invalid options retain pending input. Pin recovery
+restores the current position announcement, and disposal clears the formatter.
+
+Production Chrome 155 locale, touch and repetition-rule scopes passed. The locale scope retains
+its prior checks and adds both native/controlled all-locale notices, command-code
+preservation, cursor/ink feedback, language refresh, invalid updates, host/custom
+text, controlled intent identity, comparison labels, overflow cancellation,
+English fallback, pin recovery and disposal. The 513th sampled point cancels the
+pending stroke without saving or emitting a stroke intent. Existing CDP touch
+flows now also assert aiming, confirmation guidance and cancellation notices in
+all twelve locales.
+
+SDK/adapters/examples builds, root types, boundaries, lint/format, 18 related
+board-state/locale/notice/CI tests with 3,521 assertions, packed public SDK/classic/
+declaration consumers and 147 documents / 750 relative links passed. The installed
+headless consumer explicitly checks new notice/failure labels. New pure modules
+are registered in the boundary contract and the locale runner includes the new
+scenario. Product spec, localization and follow-up docs updated using feature,
+SDK and test-hardening skills, with the repository Playwright CLI harness.
+No database, dependencies, versions, ignore policy, hosted workflow, push or public
+publication changes. An unsupported ink-only flag started the full browser run,
+which stopped at an assertion expecting the literal machine word superko. That
+assertion now checks the exact translated explanation while retaining state/event/
+rule checks; the focused repetition-rule scope passed. The full run, ink and hover
+checks remain incomplete and are the next verification priority. Unrelated full
+CLI/Git/release checks, Firefox/WebKit, physical devices and hosted CI remain
+unverified. Large-record navigation and later follow-up milestones remain pending.
+This round completed one unit and started no new unit after ten minutes.
+
 ## Localized Analysis Widget
 
 The analysis view now accepts explicit `locale` and literal feature `messages`,

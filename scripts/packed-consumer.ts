@@ -152,6 +152,7 @@ import {createUiMessages, createBoardLabels, formatUiMessage, formatUiFailure} f
 import {formatUiFailure as rootFormatUiFailure} from '@0disoft/banora';
 if (formatUiFailure!==rootFormatUiFailure || formatUiFailure('occupied',{locale:'ko'})!=='이미 돌이 놓인 자리입니다.' || formatUiFailure('unrecognized',{locale:'en'})!=='The action could not be completed.') throw Error('Packed headless failure localization failed');
 if (formatUiMessage(createUiMessages({locale:'ko'}).move,{number:23})!=='23\uC218' || createBoardLabels({locale:'ko'}).black!=='\uD751') throw Error('Packed headless localization failed');
+if (createBoardLabels({locale:'ko'}).inkStarted==='Ink started. Move the cursor and add points with Space; Enter finishes.' || createBoardLabels({locale:'ko'}).failureOccupied!==formatUiFailure('occupied',{locale:'ko'})) throw Error('Packed board notice catalogs failed');
 import {createRecordPlayback} from '@0disoft/banora/playback';
 const playbackController=new RecordController({sgf:'(;SZ[9];B[aa])'});
 const playback=createRecordPlayback(playbackController,{intervalMs:500});

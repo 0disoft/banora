@@ -5,7 +5,8 @@ import type { BoardCrop } from './geometry.js';
 import { displayCrop, normalizeBoardTransform } from './geometry.js';
 import { BOARD_PADDING as padding, boardColumnLabel as columnLabel } from './board-layout.js';
 import type { BoardFrame } from './board-frame.js';
-import { frameDifferences } from './board-frame.js';
+import { frameDifferences, boardMessage } from './board-frame.js';
+import { boardNotices } from './board-notices.js';
 import type { StrokeStyle } from './annotations.js';
 import type { BoardOptions } from './board-types.js';
 import type { StoneTextures } from './stone-textures.js';
@@ -383,7 +384,11 @@ export function paintBoard(context: PaintContext): SVGElement {
         'stroke-dasharray': kind === 'removed' ? '0.12 0.08' : 'none',
         'data-difference': kind,
         'data-point': `${difference.point.x},${difference.point.y}`,
-        'aria-label': `${coordinate(difference.point)}: ${difference.before ?? 'empty'} to ${difference.after ?? 'empty'}`,
+        'aria-label': boardMessage(options.labels?.difference ?? boardNotices.difference, {
+          coordinate: coordinate(difference.point),
+          before: options.labels?.[difference.before ?? 'empty'] ?? difference.before ?? 'empty',
+          after: options.labels?.[difference.after ?? 'empty'] ?? difference.after ?? 'empty',
+        }),
       });
       add(
         'text',

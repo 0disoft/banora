@@ -85,15 +85,27 @@ async (page, studioControl) => {
           await import('/sdk/locale.js');
         window.banoraTouchCheck.view.update({ labels: createBoardLabels({ locale }) });
         const ui = createUiMessages({ locale });
+        const labels = createBoardLabels({ locale });
         return {
           prompt: formatUiMessage(ui.pointSelected, { coordinate: 'C6' }),
           group: formatUiMessage(ui.placementAt, { coordinate: 'C6' }),
           confirm: formatUiMessage(ui.confirm, { coordinate: 'C6' }),
           cancel: ui.cancel,
+          aiming: formatUiMessage(labels.aimConfirm, { coordinate: 'C6' }),
+          hint: formatUiMessage(labels.confirmHint, { coordinate: 'C6' }),
+          cancelled: labels.placementCancelled,
         };
       }, locale);
       await start([{ x: 2, y: 3 }]);
+      verify(
+        (await mobile.locator('#touch-fixture > [aria-live]').textContent()) === expected.aiming,
+        `Touch aiming notice not localized: ${locale}`,
+      );
       await touch('touchEnd');
+      verify(
+        (await mobile.locator('#touch-fixture > [aria-live]').textContent()) === expected.hint,
+        `Touch confirmation hint not localized: ${locale}`,
+      );
       const panel = mobile.locator('#touch-fixture [data-touch-confirm]');
       verify(await panel.isVisible(), 'Localized confirmation panel not visible');
       verify(
@@ -113,6 +125,10 @@ async (page, studioControl) => {
         `Touch cancel not localized: ${locale}`,
       );
       await panel.locator('button').last().click();
+      verify(
+        (await mobile.locator('#touch-fixture > [aria-live]').textContent()) === expected.cancelled,
+        `Touch cancellation notice not localized: ${locale}`,
+      );
       verify(await unchanged(), 'Localized cancellation changed SGF');
     }
     await mobile.evaluate(() => window.banoraTouchCheck.view.update({ labels: undefined }));

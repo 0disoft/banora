@@ -51,7 +51,7 @@ state and emit no events. Chrome coverage extends the existing puzzle flow with
 all-locale state/status/error transitions, authored text and safe overrides,
 atomic invalid updates, explicit resets and owned/borrowed disposal. The focused
 CI route retains the original puzzle validation and adds the new scenario.
-Board live-region notices are next; large-record navigation,
+Board live-region notices are implemented in the increment below; large-record navigation,
 game-information editing, release readiness and content tooling remain pending.
 
 ## Evidence
@@ -65,8 +65,8 @@ and the remaining feature items below it in the sequence remain pending.
 Touch confirmation prompt/group localization is implemented in all twelve
 locales with backward-compatible optional label/message extensions. Puzzle and
 analysis widgets now have their own twelve-locale feature catalogs and safe update
-contracts. Board interaction notices remain pending; this is not a claim of
-complete widget localization.
+contracts. Shared board interaction notices now use optional BoardLabels fields;
+authored and provider messages intentionally retain their source content.
 Other items remain pending until their implementation and verification are
 recorded in [Validation](../../VALIDATION.md).
 
@@ -82,3 +82,19 @@ updates preserve pending work, result identity, PV selection and source history.
 The existing Chrome analysis flow is retained with an additional all-locale
 scenario. Shared message policy changes select both puzzle and analysis scopes.
 No public publication or push is included in this implementation increment.
+
+## Board Notice Localization Increment
+
+Shared record/controlled surfaces now use twelve-locale touch/ink/input/pin notices
+and comparison accessible descriptions. New BoardLabels fields remain optional;
+controller reason codes are unchanged and receive existing localized explanations.
+English fallbacks stay separate from optional locale catalogs. Controlled label
+updates retain defensive snapshots, the original text bound and atomic rejection.
+The current owned announcement can be reformatted after label changes without
+holding an old board/record; host announcements remain literal. Option updates
+announce pending cancellation, and pin recovery restores current position guidance.
+The new locale scenario checks both surface types, annotations, errors, focus,
+language updates, invalid options, English fallbacks, pin recovery and disposal.
+Existing actual touch checks additionally verify all-locale aiming, confirmation
+and cancellation notices. Large-record navigation and later milestones remain
+pending; no push or publication is included.

@@ -66,7 +66,43 @@ as before, a board option update cancels pending touch placement.
 The two new keys are optional in the public `UiMessages` type so existing complete
 message bags still typecheck. `createUiMessages` returns all resolved fields as
 `Required<UiMessages>`; every built-in locale supplies both translations.
-These keys do not yet translate board live-region interaction notices.
+Board live-region interaction notices use the optional BoardLabels fields below.
+
+## Board Interaction Notices
+
+`createBoardLabels({locale})` now also supplies the board's live-region notices:
+touch aiming, confirmation and cancellation, pointer-capture/viewport failures,
+ink start/completion/cancellation and point-limit feedback, pending input, unavailable
+pinned positions and accessible comparison differences. Rejected moves and ink
+operations use localized explanations for every existing controller failure code;
+command results themselves retain their machine codes. The stroke-limit template
+uses `{limit}` from the actual stroke policy rather than duplicating its value.
+
+All new `BoardLabels` fields are optional, including `moveRejected`, `inkStarted`,
+`difference`, `failureOccupied` and the other `failure*` explanations. Existing
+label bags remain compatible and new `UiMessages` fields are not required.
+Override notice text directly with a BoardLabels bag; ordinary locale message
+overrides still use `Partial<UiMessages>` as before.
+
+```ts
+const labels = {
+  ...createBoardLabels({ locale: 'ko' }),
+  inkStarted: 'Use arrow keys and Space to draw; press Enter to finish.',
+};
+board.update({ labels });
+```
+
+Record and controlled boards share the notices. Controlled boards defensively
+copy every new field, retaining the existing 1,024-character string bound and
+atomic rejection. Labels are literal text, including comparison accessible names.
+Changing labels refreshes the current owned announcement in the new language
+without retaining an old record snapshot. Host `controlledBoard.announce(text)`
+messages and authored overlay descriptions remain verbatim. A valid option update
+still cancels pending input, now announcing that cancellation rather than leaving
+stale confirmation instructions. Invalid updates do not cancel it. Recovering an
+unavailable pin restores the current position announcement. Disposing the surface
+releases its stored announcement formatter. SDK callers without labels retain
+the original English fallbacks.
 
 ## Puzzle Widget Messages
 
@@ -102,8 +138,8 @@ text: identical text authored for a successful answer is preserved as authored.
 Authored SGF names, player names, comments, coordinates, metadata, rule identifiers,
 CLI machine output and protocol/error diagnostics retain their original content.
 Localization changes presentation only; no record rewrite or remote translation
-service is used. Board live-region interaction notices still have their existing
-English text; their localization remains pending.
+service is used. These presentation catalogs do not translate provider/authored
+messages or change protocol and diagnostic payloads.
 
 ## Analysis Widget Messages
 

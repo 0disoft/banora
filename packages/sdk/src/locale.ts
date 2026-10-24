@@ -1,4 +1,7 @@
 import type { BoardLabels } from './board-state.js';
+import { boardNoticeCatalogs } from './board-notice-locales.js';
+import { boardFailureLabelKeys } from './board-notices.js';
+import { formatUiFailure } from './locale-failures.js';
 import type { BanoraLocale } from './locale-codes.js';
 import { hi } from './locale-hi.js';
 import { es } from './locale-es.js';
@@ -323,6 +326,14 @@ export function formatUiMessage(template: string, values: Record<string, string 
 export function createBoardLabels(options: LocaleOptions = {}): BoardLabels {
   const ui = createUiMessages(options);
   return Object.freeze({
+    ...boardNoticeCatalogs[options.locale ?? 'en'],
+    ...Object.fromEntries(
+      Object.entries(boardFailureLabelKeys).map(([reason, key]) => [
+        key,
+        formatUiFailure(reason, options),
+      ]),
+    ),
+    failureUnknown: formatUiFailure('unknown', options),
     board: ui.board,
     point: ui.boardPoint,
     state: ui.boardState,

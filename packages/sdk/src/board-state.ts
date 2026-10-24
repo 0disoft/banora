@@ -2,12 +2,15 @@ import type { Color, Point } from './core.js';
 import type { Marker, Connection } from './controller.js';
 import { createStroke, strokeLimits } from './annotations.js';
 import type { Stroke } from './annotations.js';
+import type { BoardNotices, BoardFailureLabels } from './board-notices.js';
+export type { BoardNotices, BoardFailureLabels } from './board-notices.js';
 
 export interface BoardNumber {
   readonly point: Point;
   readonly value: number;
 }
-export interface BoardLabels {
+export interface BoardLabels extends Partial<BoardNotices>, Partial<BoardFailureLabels> {
+  readonly failureUnknown?: string;
   readonly board?: string;
   readonly point?: string;
   readonly state?: string;

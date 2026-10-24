@@ -38,7 +38,7 @@ const focused: readonly [RegExp, string][] = [
   ],
   [/^(packages\/sdk\/src\/playback|scripts\/playback-scenario\.js$)/, '--playback-only'],
   [
-    /^(packages\/sdk\/src\/locale|examples\/ui-|scripts\/(locale|touch-labels)-scenario\.js$)/,
+    /^(packages\/sdk\/src\/(locale|board-notice)|examples\/ui-|scripts\/(locale|touch-labels|board-notices)-scenario\.js$)/,
     '--locale-only',
   ],
   [

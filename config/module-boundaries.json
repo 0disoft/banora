@@ -16,6 +16,8 @@
     "automation-operations",
     "automation-schema",
     "board-layout",
+    "board-notices",
+    "board-notice-locales",
     "board-state",
     "checkpoint",
     "comment-batch",

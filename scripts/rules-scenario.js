@@ -8,7 +8,13 @@ async (page) => {
     await page.goto(`${origin}/readonly/`);
     for (const ko of ['none', 'simple', 'positional-superko', 'situational-superko']) {
       await page.evaluate(async (ko) => {
-        const { RecordController, mountViewer } = await import('/sdk/index.js');
+        const {
+          RecordController,
+          mountViewer,
+          createBoardLabels,
+          formatUiFailure,
+          formatUiMessage,
+        } = await import('/sdk/index.js');
         const host = document.createElement('section');
         host.id = 'rules-fixture';
         host.style.width = '460px';
@@ -32,6 +38,9 @@ async (page) => {
           unsubscribe,
           before: model.getState(),
           events: () => events,
+          expectedRejection: formatUiMessage(createBoardLabels().moveRejected, {
+            reason: formatUiFailure('superko'),
+          }),
         };
       }, ko);
       const svg = page.locator('#rules-fixture svg[role="application"]');
@@ -42,7 +51,7 @@ async (page) => {
       const legal = ko === 'none' || ko === 'simple';
       await page.evaluate(
         ({ ko, legal }) => {
-          const { model, host, before, events, view } = window.__rulesFixture,
+          const { model, host, before, events, view, expectedRejection } = window.__rulesFixture,
             state = model.getState();
           if (state.position.rules.ko !== ko) throw Error('Mounted policy diverged');
           if (legal) {
@@ -57,7 +66,7 @@ async (page) => {
               state !== before ||
               events() !== 1 ||
               state.dirty ||
-              !host.querySelector('[aria-live="polite"]').textContent.includes('superko')
+              host.querySelector('[aria-live="polite"]').textContent !== expectedRejection
             )
               throw Error('Mounted rejection changed record/events or lost announcement');
             const diagram = view.exportSvg({ width: 320 });
