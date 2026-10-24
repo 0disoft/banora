@@ -249,3 +249,41 @@ The comparison script, copied before sources and measurements are ignored local
 artifacts under `.tmp/` (`board-paired.ts`, `core-before.ts`, `controller-before.ts`,
 `record-runtime-before.ts`, `board-paired.json`). Timing precedes freeze-counter
 instrumentation. No time threshold or new hosted job is added to default CI.
+
+## Closed Controller Record Ownership
+
+Before `dispose()` at `edaafb3`, clearing position/export caches did not remove
+the current record, saved baseline, Undo/Redo entries or node index. A reachable
+closed controller could therefore retain its entire authored graph and historical
+edits. Disposal now replaces current/baseline roots with a frozen empty sentinel,
+drops both history arrays and clears all three private index maps. Live-only API
+guards prevent the sentinel from escaping. Existing immutable host-held snapshots
+are not mutated, and no production GC call, WeakRef or observer is introduced.
+
+Node 24.14.0 / Windows evidence uses the exact before controller and working
+controller bundled together with identical dependencies. The authored 5,000-pass
+fixture receives three comment edits and one Undo, exercising the current record,
+saved baseline, Undo, Redo, current index, export ticket and cached snapshot. A
+global holder deliberately keeps the disposed controller reachable. WeakRefs track
+four distinct record wrappers and all 5,004 distinct nodes. Six forced GC turns,
+each separated by `setImmediate`, precede counts; no intermediate deref can keep
+objects alive through those collection turns.
+
+| Forced-GC phase                                  | Before records / nodes alive | After records / nodes alive |
+| ------------------------------------------------ | ---------------------------: | --------------------------: |
+| Disposed controller handle deliberately retained |                    4 / 5,004 |                       0 / 0 |
+| Controller and host-held snapshots released      |                        0 / 0 |                       0 / 0 |
+
+An after-version positive control retains one public snapshot alongside the closed
+handle: exactly one record and 5,001 nodes survive, and its authored comment is
+unchanged. Releasing that snapshot and handle reduces both counts to zero. This
+distinguishes SDK ownership cleanup from caller-owned data destruction and verifies
+that the oracle actually observes reachable objects.
+
+Retained authored node count through a closed handle changes from O(N + H*D) in
+the path-copying worst case (initial nodes, history entries and rebuilt path depth)
+to zero; only fixed empty controller bookkeeping remains. This is object reachability
+evidence under forced Node GC, not browser/RSS/peak-memory evidence or an immediate
+physical-memory-return guarantee. The ignored `.tmp/dispose-evidence.ts`,
+`dispose-before.ts`, `dispose-evidence.json` and logs preserve the local procedure.
+GC survival/time thresholds are not added to default CI.

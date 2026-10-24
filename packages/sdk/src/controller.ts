@@ -126,6 +126,9 @@ const markerProperties: Readonly<Record<MarkerKind, string>> = {
   label: 'LB',
 };
 
+// No authored data is retained by a closed handle; live access is guarded below.
+const disposedRecord: SgfRecord = Object.freeze({ games: Object.freeze([]) });
+
 export class RecordController {
   #record: SgfRecord;
   #recordGeneration = 0;
@@ -969,5 +972,12 @@ export class RecordController {
     this.#positionCache.clear();
     this.#baselineContent = new WeakMap();
     this.#serialized.clear();
+    this.#record = disposedRecord;
+    this.#baselineRecord = disposedRecord;
+    this.#undo = [];
+    this.#redo = [];
+    this.#index.nodes.clear();
+    this.#index.parents.clear();
+    this.#index.games.clear();
   }
 }

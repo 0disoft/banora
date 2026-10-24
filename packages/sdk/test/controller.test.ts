@@ -3,6 +3,90 @@ import { RecordController } from '../src/controller.js';
 import { stoneAt } from '../src/core.js';
 
 describe('authoritative record editing', () => {
+  test('closed handles reject commands while held snapshots and cleanup callbacks remain safe', () => {
+    const controller = new RecordController({ sgf: '(;SZ[9]C[original];B[aa])' });
+    controller.setComment('one');
+    controller.setComment('two');
+    controller.undo();
+    const state = controller.getState();
+    const checkpoint = controller.createCheckpoint();
+    const ticket = controller.prepareExport();
+    const comments = controller.previewComments([{ nodeId: state.node.id, text: 'preview' }]);
+    const imported = controller.prepareImport('(;SZ[13])');
+    if (!comments.ok || !imported.ok) throw Error('Expected valid previews');
+    const end = controller.beginEditGroup();
+    let notifications = 0;
+    const unsubscribe = controller.subscribe(() => notifications++);
+    controller.dispose();
+    expect(() => controller.dispose()).not.toThrow();
+    expect(() => end()).not.toThrow();
+    expect(() => unsubscribe()).not.toThrow();
+    expect(() => controller.endEditGroup()).not.toThrow();
+    for (const command of [
+      () => controller.getState(),
+      () => controller.inspectNode(state.node.id),
+      () => controller.goTo(state.node.id),
+      () => controller.previous(),
+      () => controller.next(),
+      () => controller.play(null),
+      () => controller.setMoveAssessment('good'),
+      () => controller.getGameInfo(),
+      () => controller.setGameInfo({ gameName: 'closed' }),
+      () => controller.setComment('closed'),
+      () => controller.previewComments([]),
+      () => controller.applyComments(comments.preview),
+      () => controller.setComments([]),
+      () => controller.removeBranch(),
+      () => controller.reorderBranch(state.node.id, 0),
+      () => controller.setSetup([]),
+      () => controller.setConnection({ x: 0, y: 0 }, { x: 1, y: 1 }, 'line'),
+      () =>
+        controller.addStroke([
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ]),
+      () => controller.removeStroke('missing'),
+      () => controller.clearStrokes(),
+      () => controller.setMarker({ x: 0, y: 0 }, null),
+      () => controller.undo(),
+      () => controller.redo(),
+      () => controller.loadSgf('(;SZ[19])'),
+      () => controller.prepareImport('(;SZ[19])'),
+      () => controller.applyImport(imported.preview),
+      () => controller.createCheckpoint(),
+      () => controller.loadCheckpoint(checkpoint),
+      () => controller.prepareExport(),
+      () => controller.acknowledgeExport(ticket.id),
+      () => controller.cancelExport(ticket.id),
+      () => controller.subscribe(() => {}),
+      () => controller.beginEditGroup(),
+    ])
+      expect(command).toThrow('RecordController is disposed');
+    expect(notifications).toBe(1);
+    expect(state.node.properties.C).toEqual(['one']);
+    expect(state.node.children[0]!.properties.B).toEqual(['aa']);
+    expect(state.canUndo && state.canRedo).toBe(true);
+    expect(checkpoint.sgf).toBe(ticket.text);
+    expect(comments.preview.source).toBe(state.record);
+    expect(Object.isFrozen(state.record)).toBe(true);
+  });
+  test('disposal inside a subscriber cancels queued notifications without mutating held states', () => {
+    const controller = new RecordController({ sgf: '(;C[original])' });
+    let held = controller.getState();
+    controller.subscribe((state) => {
+      if (state.node.properties.C?.[0] !== 'close') return;
+      held = state;
+      controller.setComment('queued');
+      controller.dispose();
+    });
+    const observed: string[] = [];
+    controller.subscribe((state) => observed.push(state.node.properties.C?.[0] ?? ''));
+    expect(controller.setComment('close')).toEqual({ ok: true });
+    expect(observed).toEqual(['original']);
+    expect(held.node.properties.C).toEqual(['close']);
+    expect(() => controller.getState()).toThrow('RecordController is disposed');
+    expect(() => controller.dispose()).not.toThrow();
+  });
   test('an old edit-group cleanup cannot split a newer editor session', () => {
     const controller = new RecordController({ sgf: '(;C[original])' });
     const endFirst = controller.beginEditGroup();

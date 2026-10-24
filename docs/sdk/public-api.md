@@ -474,6 +474,16 @@ separate follow-up consumer work.
 
 ### Export and Controller Lifetimes
 
+`dispose()` releases the controller's current/baseline records, Undo/Redo entries
+and node/parent/game indexes as well as snapshots, listeners, pending notifications,
+tickets and caches. A host retaining the closed handle therefore does not retain
+its authored record graph. The private empty record is a disposed-only sentinel;
+existing live-only API guards still throw `RecordController is disposed` before
+it can be read. Disposal remains idempotent and edit-group/subscription cleanup
+callbacks remain safe. Previously returned immutable snapshots/previews remain
+caller-owned and unchanged; collection of those values requires their host refs
+to be released. Disposal does not force garbage collection.
+
 An asynchronous acknowledgment of older content leaves newer edits dirty; stale
 acknowledgments cannot replace a newer acknowledged baseline. Import invalidates old
 tickets. Keep at most eight outstanding tickets, 100 edit history entries and 128

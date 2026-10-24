@@ -3,6 +3,43 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Release Closed Controller Record Graphs
+
+`RecordController.dispose()` now also replaces current/baseline records with a
+frozen disposed-only sentinel, clears Undo/Redo and clears the node/parent/game
+indexes. Existing cache/listener/ticket cleanup, idempotence, closed-command errors
+and safe edit-group/unsubscribe cleanup remain. No externally held snapshot or
+preview is mutated, and no production GC/WeakRef operation is added.
+
+Exact before-source (`edaafb3`) and current controller share dependencies in a
+Node 24.14.0 bundle. A 5,000-pass record with three edits and one Undo exercises
+baseline/current/Undo/Redo/index ownership. While a global holder keeps the closed
+controller alive, six separate forced-GC turns leave 4 record wrappers / 5,004
+nodes alive before, and 0 / 0 after. Dropping all handles yields 0 / 0 in both.
+The new-version host-held snapshot control preserves 1 record / 5,001 nodes and
+its authored comment; dropping the snapshot and handle then yields 0 / 0.
+Ignored `.tmp/dispose-evidence.ts`, before source, JSON and logs hold the method;
+the performance budget records scope and remaining GC/RSS/browser limitations.
+
+Initial controller/checkpoint validation passed 26 tests / 491 assertions.
+New regressions exercise every existing live-only command guard, repeated disposal,
+post-disposal cleanup callbacks, held snapshot/preview content and reentrant
+disposal after a subscriber queues a second notification. No GC timing/survival
+threshold is imposed on the default test suite.
+The full SDK suite passed 237 tests / 10,579 assertions. Root types, SDK/declaration/
+adapter/production-example builds and packed public SDK/classic consumers passed.
+Chrome 155 focused playback passed speed/pause/end, keyboard guards, imports, SGF
+preservation and all six existing consumer lifecycles through the Playwright CLI.
+The unrelated full CLI/Git/release suite and complete cross-browser/device matrix
+were not repeated for this controller-only lifetime fix. Object collection was
+measured in Node; browser heap, RSS and immediate physical RAM return are unclaimed.
+Root lint, formatting, repository boundaries and docs checks passed
+(147 documents, 750 relative links).
+
+Refactor, SDK, bugfix and test-hardening skills selected; API lifetime and performance
+source-of-truth docs updated. No public signatures, DB, dependencies, versions,
+ignore policy, hosted workflows or runner contracts change. No push/publication.
+
 ## Single-Priority Refactor: Ownership-Proven Core Board Sharing
 
 Core snapshot sealing previously copied/froze every current and previous board,
