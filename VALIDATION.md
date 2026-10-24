@@ -3,6 +3,39 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Bounded Comparison Selector
+
+`mountComparison` now delegates its first-500 selector to a pure metadata projection
+with an iterative ancestor cursor. It no longer inspects every collection root or
+copies hidden sibling lists. Preorder, game/depth labels, authored names, rectangular
+coordinates, legacy passes, locale messages and exact truncation notices are
+preserved. Chosen nodes outside the prefix are still appended and inspected by the
+existing path. SGF import limits, dimension validation and pinned board replay are
+unchanged. No public API, DB, dependency or runner changes. The new private module
+is registered as headless in the existing boundary map; boundary rules are unchanged.
+
+Against `6f3d000`, paired Bun 1.4.3 measurements (two warm-ups, seven alternating
+samples, first game containing 500 passes) reduced selector construction median
+from 202.657 to 1.481 ms for 1,000 games and from 919.270 to 1.384 ms for 5,000 games.
+Root inspection calls become zero for the projection; selected panes still inspect
+their chosen positions. Timing excludes parse/setup/disposal, DOM and pane rendering.
+Rows/truncation and unchanged controller identity matched in all 18 paired cases.
+Method and limits are in `docs/engineering/14-sdk-performance-evidence.md`; the
+selector contract is in `docs/sdk/public-api.md`.
+
+SDK tests passed (245 tests / 14,986 assertions), including 499/500/501 boundaries,
+twelve locales, a 49,999-child fork with exactly 499 child reads and a 5,000-game
+collection with only its first root read. Root typecheck and production
+SDK/declaration/adapter/example builds, packed SDK/classic-global consumers and
+Chrome 155 focused comparison smoke passed. The browser regression forbids hidden
+unchosen root inspection in a 1,000-game collection while preserving the appended
+chosen node, localized limit notice and main cursor. Lint, formatting, module
+boundaries and documentation checks passed. The first boundary check identified
+the new module's missing classification; registering it resolved that check without
+changing dependency rules. Skills: refactor, sdk, test-hardening.
+Full unrelated CLI/Git backup/release suites and fresh browser latency/heap
+measurements are outside this selector-only scope. No push or deployment.
+
 ## Single-Priority Refactor: Adjacent Controller Paths
 
 `RecordController` now keeps one weak parent-index path checkpoint. Direct-child

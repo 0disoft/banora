@@ -836,6 +836,13 @@ The returned `ComparisonView` exposes `controller`, `update({left?,right?,board?
 and owned comparison DOM while preserving the borrowed controller/other host children.
 Node selectors show the first 500 nodes plus each chosen node; the API can address
 the entire record. Server imports are safe; mounting requires a browser DOM.
+The selector projects validated SGF metadata in collection/preorder order without
+inspecting every game's board position. Its iterative cursor reads at most 500
+displayed nodes and retains only ancestor frames, without copying hidden siblings.
+An exact 500-node record has no truncation notice; extra nodes do. Explicitly chosen
+nodes outside the prefix still use ordinary controller inspection and are appended
+to both selectors. Authored names, coordinates, legacy passes and locale labels
+retain their existing behavior.
 
 ## Embedded Share Links
 

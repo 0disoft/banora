@@ -21,6 +21,7 @@
     "board-state",
     "checkpoint",
     "comment-batch",
+    "comparison-rows",
     "controller",
     "diagnostics",
     "geometry",

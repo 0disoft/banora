@@ -256,6 +256,39 @@ async (page, studioControl) => {
     pinnedHost.remove();
     controller.dispose();
     host.remove();
+    const collection = new sdk.RecordController({
+      sgf: '(;SZ[9]' + ';B[];W[]'.repeat(250) + ')' + '(;SZ[9])'.repeat(999),
+    });
+    const collectionState = collection.getState();
+    const chosen = collectionState.record.games.at(-1).id;
+    const hidden = new Set(collectionState.record.games.slice(1, -1).map((node) => node.id));
+    const inspect = collection.inspectNode.bind(collection);
+    collection.inspectNode = (id) => {
+      if (hidden.has(id)) throw Error('Comparison selector replayed a hidden game');
+      return inspect(id);
+    };
+    const collectionHost = document.createElement('div');
+    document.body.append(collectionHost);
+    let collectionView;
+    try {
+      collectionView = sdk.mountComparison(collectionHost, {
+        controller: collection,
+        right: chosen,
+      });
+      collectionView.update({ locale: 'ko' });
+      const select = collectionHost.querySelector('[data-pane="right"] select');
+      verify(
+        select.value === chosen &&
+          select.options.length === 501 &&
+          collectionHost.querySelector('[data-limit]').textContent &&
+          collection.getState() === collectionState,
+        'Bounded collection selector lost the chosen hidden node, limit notice or cursor',
+      );
+    } finally {
+      collectionView?.dispose();
+      collection.dispose();
+      collectionHost.remove();
+    }
     return 'Pinned inspection, changed-stone highlights, crop/transforms, SVG/PNG, deletion/Undo, recycled IDs, bounded selectors and disposal passed';
   });
   await page.goto(`${origin}/studio/`);

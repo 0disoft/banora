@@ -1,5 +1,48 @@
 # SDK Performance Evidence
 
+## 2026-10-25: Bounded Comparison Selector Projection
+
+Baseline `6f3d000` eagerly called `inspectNode` on every collection root to obtain
+dimensions, then kept only the first 500 selector rows. It also copied all children
+of visited nodes into a `shift`/`unshift` work queue. A pure metadata projection now
+reads sizes only for reached games and uses an iterative ancestor cursor. It reads
+at most 500 displayed nodes without copying hidden siblings; exhausting the cursor
+distinguishes exactly 500 nodes from a truncated record. Existing chosen-node
+appending, position validation/replay, rendering and all import limits are unchanged.
+`sgfBoardSize` retains its existing dimension validation; this does not bypass SGF
+validation or make pinned board inspection free.
+
+For G games, L=500 rows and board area A, root inspection previously scaled with G
+even when all rows came from one game. The new projection uses O(L + K·A) work for
+K reached games (K ≤ L), independent of hidden roots/siblings. Ancestor cursor space
+is O(min(depth,L)), replacing a queue that could contain the whole hidden frontier.
+Actual strings still incur their normal formatting cost. No result cache or new
+record-retention root is introduced.
+
+Paired local source measurements used Bun 1.4.3 on Windows x64, two warm-ups and
+seven alternating samples per version, with unchanged shared dependencies. Each
+19x19 collection contains a first game with 500 alternating passes and the remaining
+games as root-only records. Each projection returns the same 500 rows and truncation
+flag, checked outside timing. Parsing/controller setup and disposal are excluded;
+no DOM, canvas, selected-pane replay or browser rendering is timed. One controller
+is reused per fixture; its immutable state remains identical. No other verification
+job ran concurrently. Root-inspection counts are asserted separately from timing.
+
+| Games | Before median | After median | Root inspections before → after |
+| ----- | ------------- | ------------ | ------------------------------- |
+| 1,000 | 202.657 ms    | 1.481 ms     | 1,000 → 0                       |
+| 5,000 | 919.270 ms    | 1.384 ms     | 5,000 → 0                       |
+
+The 5,000-game projection took 99.85% less time in these samples; this is not an
+end-to-end browser latency claim. Raw paired results, harness and verbatim baseline
+projection are local ignored `.tmp/comparison-rows-paired.json`,
+`.tmp/comparison-rows-paired.ts`, `.tmp/comparison-rows-before.ts`.
+Deterministic tests cover 499/500/501 boundaries, nested preorder, rectangular and
+legacy-pass labels, twelve locales, a 49,999-child fork (499 child reads) and a
+5,000-game collection whose full first game leaves every later game unread. Chrome
+comparison smoke additionally forbids inspecting hidden unchosen roots while
+preserving an explicitly chosen node outside the selector prefix.
+
 ## 2026-10-25: Adjacent Controller Paths
 
 Baseline `bcbc55a` reconstructed the root-to-selected path on every state change.

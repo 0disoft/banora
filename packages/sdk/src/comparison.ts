@@ -7,8 +7,7 @@ import { normalizeStoneTextures } from './stone-textures.js';
 import { selectStyles } from './select-style.js';
 import { createUiMessages, createBoardLabels, formatUiMessage, formatUiFailure } from './locale.js';
 import type { LocaleOptions } from './locale.js';
-import { pointFromSgf } from './sgf.js';
-import { boardColumnLabel } from './board-layout.js';
+import { comparisonRows } from './comparison-rows.js';
 
 export type ComparisonSide = 'left' | 'right';
 export type ComparisonBoardOptions = Pick<
@@ -130,38 +129,7 @@ export function mountComparison(
       boardOptions = { ...boardOptions, crop: null };
       syncBoards();
     }
-    const pending = current.record.games.map((node, index) => {
-      const { width, height } = controller.inspectNode(node.id)!.position;
-      return { node, depth: 0, game: index + 1, width, height };
-    });
-    const rows: { id: string; label: string }[] = [];
-    let count = 0;
-    while (pending.length && count++ < 500) {
-      const { node, depth, game, width, height } = pending.shift()!;
-      let caption = node.properties.N?.[0] ?? ui.annotation;
-      const move = node.properties.B?.[0] ?? node.properties.W?.[0];
-      if (node.properties.N === undefined && move !== undefined) {
-        const color = node.properties.B ? ui.black : ui.white;
-        // SGF tt is the legacy pass encoding on boards up to 19 lines.
-        if (!move || (move === 'tt' && width <= 19 && height <= 19))
-          caption = formatUiMessage(ui.colorPass, { color });
-        else {
-          const point = pointFromSgf(move, width, height);
-          caption = `${color} ${boardColumnLabel(point.x)}${height - point.y}`;
-        }
-      }
-      rows.push({
-        id: node.id,
-        label: formatUiMessage(ui.comparisonRow, {
-          game: formatUiMessage(ui.game, { number: game }),
-          position: depth === 0 ? ui.start : formatUiMessage(ui.comparisonNode, { number: depth }),
-          caption,
-        }),
-      });
-      pending.unshift(
-        ...node.children.map((child) => ({ node: child, depth: depth + 1, game, width, height })),
-      );
-    }
+    const { rows, truncated } = comparisonRows(current.record, ui);
     const selected = new Set(rows.map((row) => row.id));
     for (const id of [left, right])
       if (!selected.has(id)) {
@@ -217,7 +185,7 @@ export function mountComparison(
         replaced: changes.length - added - removed,
       });
     }
-    limit.textContent = pending.length ? ui.comparisonLimit : '';
+    limit.textContent = truncated ? ui.comparisonLimit : '';
   }
   function syncBoards(): void {
     const common = {
