@@ -3,6 +3,48 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Isolated Mouse Hover Rendering
+
+Ordinary mouse motion now updates one transient SVG hover layer, preserving
+the board surface, grid, stones and annotations. Read-only/pinned views skip
+ordinary hover entirely, including views with point callbacks. Full state/option
+renders still apply clipping/transforms and reset inapplicable previews; ink,
+touch and keyboard lifecycles retain their existing behavior. Layer references
+are released when a pinned node becomes unavailable or the view is disposed.
+
+The new `--hover-only` Chrome 155 scenario failed against the original source:
+200 synthetic movements caused 200 root SVG child-list mutations in each mode,
+replacing the board surface and stone elements. After the change both modes
+produce zero root mutations and retain those elements. One local sample changed
+from 580.8ms to 7.0ms read-only and 490.2ms to 15.1ms editable, including input
+coordinate overhead. This is a structural regression and single-run local
+measurement, not a cross-device paint/latency guarantee. The same scenario
+checks occupied/outside/leave behavior, eight cropped transforms, read-only
+point callbacks, unchanged controller state and actual SVG preview exclusion.
+It runs in full browser smoke and routes to its focused scope for scenario-only
+CI changes, without adding a workflow or automatic remote run.
+
+Focused hover and full production Chrome browser smoke passed. The full run
+retained Studio editing/export/reopen, external controlled boards/masks,
+React/Vue/Svelte/classic consumers, keyboard, cropped transforms, diagrams,
+ink, touch, comparison, sharing, textures, animation, scoring, puzzle and
+analysis coverage. A repeated hover sample during full smoke again reported
+zero root mutations and preserved surface/stone identity. Firefox, WebKit,
+physical mobile devices and hosted CI were not rerun for this local increment.
+
+Final `bun run check` passed 406 tests / 9,236 assertions across 69 files,
+lint/format/boundaries, SDK/adapter/CLI builds, root/Svelte types, 147 documents /
+746 relative links, packed SDK/classic declarations and 298 installed CLI checks
+on Windows. Only this evidence paragraph changed afterward and received focused
+format/document validation. No new task started after the ten-minute checkpoint.
+
+Follow-up scope and pending work are tracked in the
+[SDK follow-up](docs/engineering/35-sdk-follow-up.md). Source contracts changed:
+product specification/roadmap and performance budget; this evidence record was
+updated. Skills: bugfix, refactor, SDK, test-hardening and Playwright. No public
+API, DB/storage, dependency/version, repository hygiene or hosted workflow change.
+No push, npm publication or Pages deployment was performed.
+
 ## Demo Health Late Response Cleanup
 
 Each live-file attempt now records its closed state and owns a received body

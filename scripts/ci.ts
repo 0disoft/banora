@@ -11,6 +11,7 @@ export interface CheckPlan {
 const focused: readonly [RegExp, string][] = [
   [/^scripts\/(browser-zoom\.ts|zoom-scenario\.js)$/, '--zoom-only'],
   [/^scripts\/tree-navigation-scenario\.js$/, '--tree-only'],
+  [/^scripts\/hover-scenario\.js$/, '--hover-only'],
   [/^scripts\/browser-performance-scenario\.js$/, '--performance-only'],
   [/^scripts\/browser-memory(-scenario\.js|\.ts|\.test\.ts)$/, '--memory-only'],
   [/^scripts\/accessibility-scenario\.js$/, '--accessibility-only'],

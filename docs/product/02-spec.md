@@ -515,6 +515,11 @@ the exact instrumented operation scope is listed in the consumer contract.
   artifact; internal source imports cannot substitute for consumer evidence.
 - Keyboard navigation, visible focus, accessible controls, and move announcements
   are part of the board/viewer design, alongside touch support.
+- Ordinary mouse hover updates only a transient preview layer; it never replaces
+  board/grid/stone elements. Read-only/pinned boards skip hover work, including
+  read-only boards with point callbacks. Cropping, transforms, visibility masks
+  and diagram preview exclusion remain effective. Semantic changes, keyboard
+  focus, ink and touch interactions retain their existing rendering lifecycle.
 
 ## Framework Support Contract
 

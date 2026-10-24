@@ -95,6 +95,28 @@ does not justify stale analysis, divergent rules, data loss or unbounded work.
 Performance checks should target changed workloads rather than run by default on
 every documentation or unrelated code change.
 
+## Mouse Hover Projection
+
+Ordinary hover owns one transient SVG group, at the previous preview's paint
+order and inside the existing visibility clip. Pointer movement updates that
+group without rebuilding the grid, stones, annotations, variation hints or
+placement animation. Read-only/pinned boards skip ordinary hover entirely;
+their explicit point callbacks and keyboard controls remain active. Ink and
+touch keep their existing lifecycle, rather than sharing mouse-only throttling.
+Record and option changes still rebuild the full authoritative presentation.
+
+Chrome 155 on Windows, with a 19x19 board/four stones and 200 synchronous
+synthetic pointer movements, measured 200 root child-list mutations before
+and zero after in both modes. Board surface and stone identities survive all
+after movements. One local sample was 580.8ms to 7.0ms read-only and 490.2ms to
+15.1ms editable, including synthetic coordinate/event overhead. These are
+single-run main-thread observations, not end-to-end paint percentiles, physical
+pointer latency, mobile claims or a general speedup ratio. The repeatable
+`--hover-only` browser scope verifies structural reuse, occupied/outside/leave
+behavior, eight transforms with crops, read-only point activation, no semantic
+mutation and actual diagram preview exclusion. Measurements are retained under
+ignored `output/playwright/hover-*.json`.
+
 Analysis context extraction traverses the bounded selected SGF path and validates
 its active epoch. It retains current/initial immutable positions and ordered moves,
 not every intermediate position or the full record in its provider DTO. Exact

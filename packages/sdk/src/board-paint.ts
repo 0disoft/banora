@@ -34,7 +34,39 @@ interface PaintContext {
   coordinate: (point: Point) => string;
   readOnly: () => boolean;
 }
-export function paintBoard(context: PaintContext): void {
+/** Mouse hover owns only this transient layer, preserving the board and stone elements. */
+export function paintBoardHover(
+  layer: SVGElement,
+  context: Pick<
+    PaintContext,
+    'state' | 'hover' | 'visible' | 'readOnly' | 'options' | 'displayPoint' | 'element'
+  >,
+): void {
+  const { state, hover, visible, readOnly, options, displayPoint, element } = context;
+  layer.replaceChildren();
+  layer.removeAttribute('data-preview');
+  if (
+    !hover ||
+    !visible(hover) ||
+    state.position.board[hover.y * state.position.width + hover.x] ||
+    readOnly() ||
+    options.drawing
+  )
+    return;
+  const point = displayPoint(hover);
+  layer.setAttribute('data-preview', 'hover');
+  layer.append(
+    element('circle', {
+      cx: point.x,
+      cy: point.y,
+      r: 0.44,
+      fill: state.position.toPlay === 'black' ? '#20272a' : '#fff',
+      opacity: 0.4,
+      'data-preview': '',
+    }),
+  );
+}
+export function paintBoard(context: PaintContext): SVGElement {
   const {
     document,
     svg,
@@ -43,7 +75,6 @@ export function paintBoard(context: PaintContext): void {
     crop,
     textureId,
     focus,
-    hover,
     pendingStroke,
     touchAim,
     reference,
@@ -51,7 +82,6 @@ export function paintBoard(context: PaintContext): void {
     displayPoint,
     visible,
     coordinate,
-    readOnly,
   } = context;
   const { width, height, board } = state.position;
   const displayedCrop = displayCrop(
@@ -372,23 +402,9 @@ export function paintBoard(context: PaintContext): void {
         kind === 'added' ? '+' : kind === 'removed' ? '−' : '↔',
       );
     }
-  if (
-    hover &&
-    visible(hover) &&
-    !board[hover.y * width + hover.x] &&
-    !readOnly() &&
-    !options.drawing
-  ) {
-    const point = displayPoint(hover);
-    add('circle', {
-      cx: point.x,
-      cy: point.y,
-      r: 0.44,
-      fill: state.position.toPlay === 'black' ? '#20272a' : '#fff',
-      opacity: 0.4,
-      'data-preview': '',
-    });
-  }
+  const hoverLayer = element('g', { 'data-hover-layer': '', 'pointer-events': 'none' });
+  paintBoardHover(hoverLayer, context);
+  fragment.append(hoverLayer);
   for (const index of state.dimPoints) {
     const point = { x: index % width, y: Math.floor(index / width) };
     if (!visible(point)) continue;
@@ -479,4 +495,5 @@ export function paintBoard(context: PaintContext): void {
     fragment.append(group);
   }
   svg.replaceChildren(fragment);
+  return hoverLayer;
 }

@@ -447,6 +447,8 @@ try {
     await browserMemory(root, () => scenario('browser-memory', 'banora-browser-memory-complete'));
   } else if (process.argv.includes('--performance-only')) {
     await browserPerformance();
+  } else if (process.argv.includes('--hover-only')) {
+    await scenario('hover', 'banora-hover-complete');
   } else if (process.argv.includes('--desktop-only')) {
     await desktopSmoke(address);
   } else if (process.argv.includes('--fullscreen-only')) {
@@ -621,6 +623,7 @@ try {
     );
     await cli('snapshot');
     await scenario('presentation', 'banora-presentation-complete');
+    await scenario('hover', 'banora-hover-complete');
     console.log(
       'Presentation smoke passed: eight rectangular/cropped transforms, logical mouse input, screen keyboard axes, upright labels and atomic configuration.',
     );

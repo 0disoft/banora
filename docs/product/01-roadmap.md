@@ -18,6 +18,10 @@ implementation evidence alone does not establish publication or broader runtime 
 
 ## M1: Banora Studio and Read-Only Embedding
 
+The active post-release usability work is tracked separately in the
+[SDK follow-up](../engineering/35-sdk-follow-up.md). Its pending items are not
+part of the historical milestone completion claim below.
+
 - Headless TypeScript board and rules engine: captures, suicide policy, simple ko,
   pass, setup positions and rule-relevant history.
 - SVG board with standard sizes, coordinates, themes, labels, shape markers,

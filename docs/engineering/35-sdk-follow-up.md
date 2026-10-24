@@ -1,0 +1,44 @@
+# SDK Follow-up After External Review
+
+- Status: In progress; local implementation does not establish npm publication.
+- Source snapshot reviewed externally: `cacae6b`.
+- Decisions are based on verified user workflows, not subjective competitor scores.
+
+## Delivery Sequence
+
+Each item is an independent implementation/verification/commit unit on existing
+`main`. Preserve unrelated work, existing validation and ownership contracts.
+No push or public publication is authorized by this improvement task.
+
+1. Rendering: remove invisible read-only hover work and isolate ordinary mouse
+   previews; then retain common Viewer outline elements during linear navigation.
+   Compare actual browser work before/after and preserve touch, ink, keyboard,
+   diagrams, focus, focused forks and lifecycle behavior.
+2. Localization: connect puzzle/analysis widgets and board/touch system guidance
+   to the existing twelve-locale contract, including update behavior. Never
+   translate authored SGF, puzzle prompts, feedback or hints implicitly.
+3. Large records: let Studio and common Viewer navigate the selected node's
+   neighboring continuation and forks beyond the first 500 rows. Keep bounded
+   rendering and existing indentation/folding rules; do not raise the whole-tree
+   cap as a substitute for usable navigation.
+4. Game information: add validated, undoable editing of players, game name,
+   date, komi and result; integrate Studio and explicit confirmed scoring result
+   persistence, preserving unknown SGF properties and export/reopen/checkpoints.
+5. Release readiness: align API documentation, examples, release notes and a
+   versioned publication plan after implemented changes pass installed-consumer
+   validation. Registry/npm publication and Pages deployment remain separate,
+   explicitly authorized actions.
+6. Subsequent content tooling: DOM-free SVG generation and CLI diagram output,
+   followed by explicit puzzle authoring/export from Studio's existing tree.
+   Keep presentation, solution semantics and source preservation separate.
+
+Streaming/bulk AI analysis, new compatibility targets and SGF conversion tools
+remain proposals for later product decisions. They are not prerequisites for
+the first usability delivery above, and are not claimed as implemented.
+
+## Evidence
+
+Mouse hover implementation/measurements are recorded in the
+[performance budget](03-performance-budget.md#mouse-hover-projection).
+Other items remain pending until their implementation and verification are
+recorded in [Validation](../../VALIDATION.md).

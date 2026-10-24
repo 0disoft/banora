@@ -20,7 +20,7 @@ import { mountTouchUI, normalizeTouchOptions } from './touch-aim.js';
 import { normalizeStoneTextures } from './stone-textures.js';
 import { mountPlacementAnimation, normalizePlacementAnimation } from './placement-animation.js';
 import { BOARD_PADDING } from './board-layout.js';
-import { paintBoard } from './board-paint.js';
+import { paintBoard, paintBoardHover } from './board-paint.js';
 const namespace = 'http://www.w3.org/2000/svg';
 const padding = BOARD_PADDING;
 const letters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
@@ -50,6 +50,7 @@ export function mountBoardSurface(
   let available = true;
   let focus: Point = { x: 0, y: 0 };
   let hover: Point | null = null;
+  let hoverLayer: SVGElement | undefined;
   let pendingStroke: { pointer: number | null; points: Point[] } | null = null;
   let cancelledPointer: number | null = null;
   let touchAim: { pointer: number | null; point: Point | null; screen: Point | null } | null = null;
@@ -161,7 +162,20 @@ export function mountBoardSurface(
     const displayed = toDisplayPoint(point, current.position, options.transform);
     return { x: displayed.x + padding, y: displayed.y + padding };
   }
+  function renderHover(): void {
+    if (hoverLayer)
+      paintBoardHover(hoverLayer, {
+        state: current,
+        hover,
+        visible,
+        readOnly,
+        options,
+        displayPoint,
+        element,
+      });
+  }
   function render(state: BoardFrame): void {
+    if (readOnly() || options.drawing) hover = null;
     if (options.nodeId) {
       const pinned =
         nodeGeneration === state.recordGeneration ? controller.inspectNode(options.nodeId) : null;
@@ -172,6 +186,7 @@ export function mountBoardSurface(
         cancelInk();
         cancelTouch();
         hover = null;
+        hoverLayer = undefined;
         svg.setAttribute('viewBox', '0 0 12 3');
         svg.setAttribute('data-node-status', 'unavailable');
         svg.setAttribute('data-comparison-status', 'unavailable');
@@ -264,7 +279,7 @@ export function mountBoardSurface(
       options.compareTo && compareGeneration === state.recordGeneration
         ? controller.inspectNode(options.compareTo)
         : null;
-    paintBoard({
+    hoverLayer = paintBoard({
       document,
       svg,
       state,
@@ -492,11 +507,11 @@ export function mountBoardSurface(
         render(current);
         return;
       }
-      if (options.drawing) return;
+      if (options.drawing || readOnly() || !available) return;
       const point = pointerPoint(event);
       if (point?.x !== hover?.x || point?.y !== hover?.y) {
         hover = point;
-        render(current);
+        renderHover();
       }
     },
     { signal: abort.signal },
@@ -504,8 +519,9 @@ export function mountBoardSurface(
   svg.addEventListener(
     'pointerleave',
     () => {
+      if (!hover) return;
       hover = null;
-      render(current);
+      renderHover();
     },
     { signal: abort.signal },
   );
@@ -790,6 +806,7 @@ export function mountBoardSurface(
       abort.abort();
       unsubscribe();
       touchUI.dispose();
+      hoverLayer = undefined;
       svg.remove();
       live.remove();
       controller.dispose();
