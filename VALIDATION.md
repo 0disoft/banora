@@ -3,6 +3,34 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Browser Scope Validation and Shared Board Regression Follow-up
+
+The default production Chrome 155 browser smoke completed end to end, closing
+the preceding round's incomplete full-run, hover and ink checks. It retained
+framework/controlled lifecycle, editing/Undo, classic distribution, transforms,
+SVG/PNG, actual touch, comparison, sharing, textures, animation, scoring, puzzle
+and analysis checks, as well as Studio's workspace/recovery/locale/menu/playback
+flows. No SDK source changed after the previously verified examples build.
+
+Browser smoke options now reject unknown/positional arguments and repeated or
+conflicting scopes before release input, artifact directories, server or browser
+creation. All thirty existing scopes, four browser selections and default full
+execution remain supported. Existing zoom/CDP requirements and all eleven actual
+invalid-browser subprocess checks remain intact. Release bundle path values stay
+opaque; duplicate/missing release values and content verification remain owned by
+the existing release input boundary. The release operations guide documents this
+contract. Scope/catalog coverage prevents a new runner branch being silently
+omitted from argument validation.
+
+Fifteen option/scenario/CI tests with 318 assertions, root types, lint, formatting,
+boundaries and 147 documents / 750 relative links passed. An actual unsupported
+`--ink-only` invocation exited with an error before browser startup. No public API,
+database, dependencies, version, ignore policy or hosted workflow changes; this
+unit changes only the local runner and its tests/docs using bugfix/test-hardening
+skills and the Playwright CLI harness. No push or publication. Physical devices,
+Firefox/WebKit and full CLI/Git/release checks were not repeated for this runner
+change. Large-record navigation and later milestones remain pending.
+
 ## Localized Shared Board Interaction Notices
 
 Shared record/controlled surfaces now localize touch aiming/confirmation/cancel,
@@ -42,8 +70,8 @@ No database, dependencies, versions, ignore policy, hosted workflow, push or pub
 publication changes. An unsupported ink-only flag started the full browser run,
 which stopped at an assertion expecting the literal machine word superko. That
 assertion now checks the exact translated explanation while retaining state/event/
-rule checks; the focused repetition-rule scope passed. The full run, ink and hover
-checks remain incomplete and are the next verification priority. Unrelated full
+rule checks; the focused repetition-rule scope passed. The next round completed
+the full run, ink and hover checks as recorded above. Unrelated full
 CLI/Git/release checks, Firefox/WebKit, physical devices and hosted CI remain
 unverified. Large-record navigation and later follow-up milestones remain pending.
 This round completed one unit and started no new unit after ten minutes.

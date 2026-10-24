@@ -189,6 +189,14 @@ maintainer-reviewed provenance, even when hashes match. An unsigned manifest can
 be replaced together with its files, so integrity is not authentication or proof
 that an unknown author ran checks.
 
+The browser smoke runner accepts one optional `--browser=chrome|msedge|firefox|webkit`
+and at most one supported focused `--*-only` scope. Omit a scope for the full run;
+unknown options and duplicate/conflicting scopes fail before creating a server,
+browser session or artifact directory. `--release-bundle DIR` remains compatible
+with either full or focused runs, with the existing release usage, provenance and
+hash verification applied before resources start. Native zoom still requires
+Chrome; memory/performance measurements still require a Chromium engine.
+
 ## Inspect a Publication Handoff
 
 Run `bun run release publication-plan --bundle DIR --workflow publish.yml` on a

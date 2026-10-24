@@ -7,24 +7,10 @@ import { releaseInput } from './release-artifacts.js';
 import { syntheticReview } from './performance.js';
 import { browserMemory } from './browser-memory.js';
 import { browserZoom } from './browser-zoom.js';
+import { parseBrowserOptions } from './browser-options.js';
 
 const root = process.cwd();
-const browserOptions = process.argv.slice(2).filter((arg) => arg.startsWith('--browser'));
-const browser = browserOptions[0]?.slice('--browser='.length) ?? 'chrome';
-if (
-  browserOptions.length > 1 ||
-  (browserOptions.length && !browserOptions[0]!.startsWith('--browser=')) ||
-  !['chrome', 'msedge', 'firefox', 'webkit'].includes(browser)
-)
-  throw Error('Use one --browser=chrome|msedge|firefox|webkit option.');
-const engine = browser === 'firefox' || browser === 'webkit' ? browser : 'chromium';
-if (process.argv.includes('--zoom-only') && browser !== 'chrome')
-  throw Error('Native zoom verification requires --browser=chrome.');
-if (
-  process.argv.some((arg) => ['--performance-only', '--memory-only'].includes(arg)) &&
-  engine !== 'chromium'
-)
-  throw Error('Browser measurement requires a Chromium engine for CDP measurements.');
+const { browser, engine, scope } = parseBrowserOptions(process.argv.slice(2));
 const release = await releaseInput();
 const output = resolve(root, 'output/playwright');
 await mkdir(output, { recursive: true });
@@ -37,10 +23,7 @@ const server = Bun.serve({
       return new Response('Method not allowed', { status: 405 });
     const pathname = decodeURIComponent(new URL(request.url).pathname);
     const stress = /^\/performance\/(300|5000)\.sgf$/.exec(pathname);
-    if (
-      stress &&
-      process.argv.some((arg) => ['--performance-only', '--memory-only'].includes(arg))
-    ) {
+    if (stress && (scope === '--performance-only' || scope === '--memory-only')) {
       const moves = Number(stress[1]);
       return new Response(
         syntheticReview(moves).replace(
@@ -427,7 +410,7 @@ async function supportSmoke() {
 }
 try {
   const address = `http://127.0.0.1:${server.port}`;
-  if (!process.argv.includes('--zoom-only')) {
+  if (!(scope === '--zoom-only')) {
     await cli('open', `${address}/studio/`, '--browser', browser);
     requireScenarioResult(
       await cli(
@@ -447,24 +430,24 @@ try {
       'async (page) => { await page.locator("#language").selectOption("en"); return "english-fixture"; }',
     );
   }
-  if (process.argv.includes('--zoom-only')) {
+  if (scope === '--zoom-only') {
     if (release) throw Error('Native zoom verification uses the current built checkout only.');
     await browserZoom(root, address);
-  } else if (process.argv.includes('--memory-only')) {
+  } else if (scope === '--memory-only') {
     if (release) throw Error('Browser memory measures the current built checkout only.');
     await browserMemory(root, () => scenario('browser-memory', 'banora-browser-memory-complete'));
-  } else if (process.argv.includes('--performance-only')) {
+  } else if (scope === '--performance-only') {
     await browserPerformance();
-  } else if (process.argv.includes('--hover-only')) {
+  } else if (scope === '--hover-only') {
     await scenario('hover', 'banora-hover-complete');
-  } else if (process.argv.includes('--desktop-only')) {
+  } else if (scope === '--desktop-only') {
     await desktopSmoke(address);
-  } else if (process.argv.includes('--fullscreen-only')) {
+  } else if (scope === '--fullscreen-only') {
     await fullscreenSmoke();
     console.log(
       'Focused fullscreen smoke passed: native entry/exit, keyboard, locale, responsive controls and unchanged SGF.',
     );
-  } else if (process.argv.includes('--sizing-only')) {
+  } else if (scope === '--sizing-only') {
     await scenario('sizing', 'banora-sizing-complete');
     if (
       (await readFile(resolve(output, 'resize-before.sgf'), 'utf8')) !==
@@ -474,12 +457,12 @@ try {
     console.log(
       'Focused sizing smoke passed: size dropdown/custom, invisible edges/corners, keyboard/cancel, exports and responsive layout.',
     );
-  } else if (process.argv.includes('--sound-only')) {
+  } else if (scope === '--sound-only') {
     await scenario('sound', 'banora-sound-complete');
     console.log(
       'Focused sound smoke passed: actual native audio, mute, replay, silent history/tabs/imports, locales and preferences.',
     );
-  } else if (process.argv.includes('--workspace-only')) {
+  } else if (scope === '--workspace-only') {
     await scenario('workspace', 'banora-workspace-complete');
     const first = await readFile(resolve(output, 'workspace-first.sgf'), 'utf8');
     const second = await readFile(resolve(output, 'workspace-second.sgf'), 'utf8');
@@ -493,95 +476,95 @@ try {
     console.log(
       'Focused workspace smoke passed: default size, tabs, independent history, close/export guards, playback, locales and narrow layouts.',
     );
-  } else if (process.argv.includes('--tree-only')) {
+  } else if (scope === '--tree-only') {
     await treeNavigation();
     console.log(
       'Focused variation tree smoke passed: keyboard focus, bounded tail rows, game/record/language changes, comment Undo and export/reopen.',
     );
-  } else if (process.argv.includes('--accessibility-only')) {
+  } else if (scope === '--accessibility-only') {
     await scenario('accessibility', 'banora-accessibility-complete');
     console.log(
       'Focused accessibility smoke passed: localized guard names, modal keyboard/cancel, narrow layouts and three framework sharing consumers.',
     );
-  } else if (process.argv.includes('--support-only')) {
+  } else if (scope === '--support-only') {
     await supportSmoke();
     console.log(
       'Focused support smoke passed: consent/privacy, actual operation evidence/download, clear/reload, discovery, locale/mobile/menu and no remote requests.',
     );
-  } else if (process.argv.includes('--search-only')) {
+  } else if (scope === '--search-only') {
     await searchSmoke();
     console.log(
       'Focused search smoke passed: all games/branches, paging, long paths, preview/apply/Undo, freshness, bounds and locale/mobile/menu.',
     );
-  } else if (process.argv.includes('--preferences-only')) {
+  } else if (scope === '--preferences-only') {
     await preferencesSmoke();
     console.log(
       'Focused preferences smoke passed: migration, presentation, reset, record/draft retention, tabs, versions and denied storage.',
     );
-  } else if (process.argv.includes('--recovery-only')) {
+  } else if (scope === '--recovery-only') {
     await recoverySmoke();
     console.log(
       'Focused recovery smoke passed: real IndexedDB, reload, two tabs, quotas/cap, backups, guards, deletion and locale/mobile controls.',
     );
-  } else if (process.argv.includes('--locale-only')) {
+  } else if (scope === '--locale-only') {
     await localeSmoke();
     console.log('Focused UI localization smoke passed.');
-  } else if (process.argv.includes('--playback-only')) {
+  } else if (scope === '--playback-only') {
     await playbackSmoke();
     console.log(
       'Playback smoke passed: speed/pause/end, keyboard guards, import, SGF preservation and six consumer lifecycles.',
     );
-  } else if (process.argv.includes('--controlled-only')) {
+  } else if (scope === '--controlled-only') {
     await scenario('controlled', 'banora-controlled-complete');
     await controlledConsumers();
     console.log(
       'Focused controlled-board smoke passed: common surface, four native consumers, host decisions, lifecycle, diagrams and touch confirmation.',
     );
-  } else if (process.argv.includes('--analysis-only')) {
+  } else if (scope === '--analysis-only') {
     await analysisSmoke();
     console.log(
       'Focused analysis smoke passed: candidate metrics/PVs/ownership, keyboard/touch, exact freshness, manual JSON, source preservation and lifecycle.',
     );
-  } else if (process.argv.includes('--puzzle-only')) {
+  } else if (scope === '--puzzle-only') {
     await puzzleSmoke();
     console.log(
       'Focused puzzle smoke passed: authored answers/responses, hints, keyboard/touch, diagrams and owned/borrowed lifecycle.',
     );
-  } else if (process.argv.includes('--menu-only')) {
+  } else if (scope === '--menu-only') {
     await scenario('menu', 'banora-menu-complete');
     console.log(
       'Focused board menu smoke passed: direct dialogs, immediate tool settings, focus/keyboard, shared Undo, retained sessions and mobile zoom.',
     );
-  } else if (process.argv.includes('--scoring-only')) {
+  } else if (scope === '--scoring-only') {
     await scoringSmoke();
     console.log(
       'Focused scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.',
     );
-  } else if (process.argv.includes('--rules-only')) {
+  } else if (scope === '--rules-only') {
     await scenario('rules', 'banora-rules-complete');
     console.log('Focused repetition rules smoke passed.');
-  } else if (process.argv.includes('--drop-only')) {
+  } else if (scope === '--drop-only') {
     await dropSmoke();
     console.log('Focused file-drop smoke passed.');
-  } else if (process.argv.includes('--animation-only')) {
+  } else if (scope === '--animation-only') {
     await scenario('animation', 'banora-animation-sdk-complete');
     await animationConsumers();
     console.log('Focused animation smoke passed.');
-  } else if (process.argv.includes('--texture-only')) {
+  } else if (scope === '--texture-only') {
     await scenario('texture', 'banora-textures-complete: SDK');
     await textureConsumers();
     console.log('Focused texture smoke passed.');
-  } else if (process.argv.includes('--share-only')) {
+  } else if (scope === '--share-only') {
     await shareSmoke();
     await scenario('accessibility', 'banora-accessibility-complete');
     console.log('Focused share smoke passed.');
-  } else if (process.argv.includes('--touch-only')) {
+  } else if (scope === '--touch-only') {
     await scenario('touch', 'banora-touch-complete');
     console.log('Focused touch smoke passed.');
-  } else if (process.argv.includes('--framework-only')) {
+  } else if (scope === '--framework-only') {
     await scenario('framework', 'banora-frameworks-complete');
     console.log('Focused framework lifecycle and variation options smoke passed.');
-  } else if (process.argv.includes('--comparison-only')) {
+  } else if (scope === '--comparison-only') {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
@@ -695,7 +678,7 @@ try {
   }
 } finally {
   try {
-    if (!process.argv.includes('--zoom-only')) await cli('close');
+    if (!(scope === '--zoom-only')) await cli('close');
   } finally {
     await server.stop(true);
   }
