@@ -418,6 +418,7 @@ test('provider errors/invalid results stay in analysis; local record/Undo remain
   jobs[1]!.reject(Error('secret token from transport'));
   expect(failure(await error)).toBe('provider');
   expect(session.getState().error?.message).toBe('Analysis provider failed.');
+  expect(session.getState().error?.messageSource).toBeUndefined();
   expect(controller.play({ x: 0, y: 0 }).ok).toBe(true);
   expect(controller.undo().ok).toBe(true);
   expect(controller.getState().dirty).toBe(false);
@@ -429,6 +430,7 @@ test('provider errors/invalid results stay in analysis; local record/Undo remain
   });
   expect(failure(await session.request())).toBe('unsupported');
   expect(session.getState().error?.message).toBe('Explicit public diagnostic');
+  expect(session.getState().error?.messageSource).toBe('provider');
   session.dispose();
   controller.dispose();
 });

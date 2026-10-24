@@ -529,11 +529,16 @@ the exact instrumented operation scope is listed in the consumer contract.
   focus, ink and touch interactions retain their existing rendering lifecycle.
 - Touch confirmation prompt and group accessible name, alongside confirm/cancel
   buttons, use the twelve-locale board-label contract. This does not translate
-  authored content or claim completion of analysis/live-region messages.
+  authored content or claim completion of live-region messages.
 - Puzzle widget controls, progress, help, board labels, default feedback and
   rejected/unlisted-answer guidance use explicit twelve-locale feature catalogs.
   Language updates preserve exact session state and authored content, including
   authored text identical to a system English message. Invalid updates are atomic.
+- Analysis widget controls, metrics labels, guidance, PV/pass captions and SDK
+  failure explanations use explicit twelve-locale feature catalogs. Locale updates
+  preserve pending requests, result/PV/ownership selection and source records.
+  Explicitly public provider diagnostics retain their original text via optional
+  failure provenance, without guessing from their language or message contents.
 
 ## Framework Support Contract
 

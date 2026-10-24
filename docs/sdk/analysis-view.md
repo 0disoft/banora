@@ -1,7 +1,8 @@
 # Analysis View
 
 `@0disoft/banora/analysis-view` and root exports provide `mountAnalysis`, `AnalysisView`,
-`AnalysisViewOptions` and `AnalysisBoardOptions`. Import is safe without runtime
+`AnalysisViewOptions`, `AnalysisBoardOptions`, `AnalysisLocaleOptions`,
+`AnalysisMessages` and DOM-free `createAnalysisMessages`. Import is safe without runtime
 browser globals; mounting requires a browser DOM. The view displays the common
 [analysis session](analysis.md), without an engine, network or framework dependency.
 
@@ -10,7 +11,7 @@ import {mountAnalysis} from '@0disoft/banora/analysis-view';
 
 // Borrow an existing model; mounting never submits its position.
 const view = mountAnalysis(element, {
-  session: analysis,
+  session: analysis, locale: 'ko',
   board: {theme:'flat', transform:{rotation:90}},
   request: {maxVisits:1000, maxPvLength:16, includeOwnership:true},
   onComplete: completion => console.log(completion.ok)
@@ -88,7 +89,7 @@ focus/cursor redraws cannot erase the separate prediction layer. On a smaller so
 board, reset an incompatible old crop to full board. Presentation alone does not
 edit the source, change its export baseline or request analysis.
 
-`update({board,request,showOwnership,onComplete})` merges configuration and snapshots
+`update({board,request,showOwnership,onComplete,locale,messages})` merges configuration and snapshots
 mutable crop/transform/touch/texture maps and request limits. Invalid board/request
 configuration retains prior presentation/model. Callback changes apply to later
 completions of requests initiated by this view's Analyze button; explicit host
@@ -104,6 +105,25 @@ source SGF. Disposed views reject exports/updates; disposal is idempotent and re
 DOM, input/subscription/display resources. A borrowed session can complete after
 unmount and display its matching result on a later remount, but cannot update a
 destroyed view. An owned session is cancelled/disposed with its view.
+
+## Localization
+
+Explicit `locale` and `messages: Partial<AnalysisMessages>` use complete catalogs
+for the same twelve [supported languages](localization.md). English remains the
+default. Controls, table labels, summaries, statuses, ownership guidance, pass/PV
+captions, accessible names and SDK failure explanations are translated. Numbers,
+coordinates, B/W move notation and provider identifiers retain their original
+meaning and format. `AnalysisError` public provider diagnostics remain literal,
+using optional failure provenance rather than matching English strings.
+
+Locale updates retain the exact analysis state/result, pending request, selected
+PV step, inspected ownership point and ownership visibility. They never submit
+work, cancel analysis or edit the source record. Omitted locale/messages retain
+prior configuration; explicit `undefined` resets either to its default. Overrides
+are copied/frozen, literal and bounded to 4,096 characters per known field;
+unsupported locales/keys, invalid values and invalid combined board/request
+updates reject without applying language/callback changes. The feature catalog
+adds no required fields to `UiMessages`.
 
 The common view can be mounted from React/Vue/Svelte host lifecycles; native Analysis
 component exports are not shipped. Browser consumer evidence is recorded in

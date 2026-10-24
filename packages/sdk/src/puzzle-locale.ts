@@ -1,6 +1,7 @@
 import { createUiMessages } from './locale.js';
 import type { UiMessages } from './locale.js';
 import type { BanoraLocale } from './locale-codes.js';
+import { resolveWidgetMessages } from './widget-messages.js';
 
 const en = {
   puzzle: 'Go puzzle',
@@ -239,19 +240,5 @@ export function createPuzzleMessages(options: PuzzleLocaleOptions = {}): PuzzleM
     pass: ui.pass,
     rejected: ui.rejected,
   };
-  const result = { ...messages };
-  if (options.messages !== undefined) {
-    if (
-      !options.messages ||
-      typeof options.messages !== 'object' ||
-      Array.isArray(options.messages)
-    )
-      throw TypeError('Puzzle messages must be an object');
-    for (const [key, value] of Object.entries(options.messages)) {
-      if (!Object.hasOwn(messages, key) || typeof value !== 'string' || value.length > 4096)
-        throw TypeError('Invalid puzzle message');
-      (result as Record<string, string>)[key] = value;
-    }
-  }
-  return Object.freeze(result);
+  return resolveWidgetMessages(messages, options.messages);
 }

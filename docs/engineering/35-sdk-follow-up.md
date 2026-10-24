@@ -51,7 +51,7 @@ state and emit no events. Chrome coverage extends the existing puzzle flow with
 all-locale state/status/error transitions, authored text and safe overrides,
 atomic invalid updates, explicit resets and owned/borrowed disposal. The focused
 CI route retains the original puzzle validation and adds the new scenario.
-Analysis and board live-region notices are next; large-record navigation,
+Board live-region notices are next; large-record navigation,
 game-information editing, release readiness and content tooling remain pending.
 
 ## Evidence
@@ -64,7 +64,21 @@ The first rendering increment is implemented locally; large-record windowing
 and the remaining feature items below it in the sequence remain pending.
 Touch confirmation prompt/group localization is implemented in all twelve
 locales with backward-compatible optional label/message extensions. Puzzle and
-analysis widgets and board interaction notices remain pending; this is not a
-claim of complete widget localization.
+analysis widgets now have their own twelve-locale feature catalogs and safe update
+contracts. Board interaction notices remain pending; this is not a claim of
+complete widget localization.
 Other items remain pending until their implementation and verification are
 recorded in [Validation](../../VALIDATION.md).
+
+## Analysis Localization Increment
+
+Analysis controls, accessible names, table headings, statuses, summaries,
+ownership guidance, pass/PV captions and SDK failure explanations are localized
+through `createAnalysisMessages` and optional view locale/messages. Public
+`AnalysisError` diagnostics retain authored text using optional provenance on the
+failure; headless reason/message fields and default transport redaction remain.
+Puzzles and analysis share their literal override validation/copy policy. Language
+updates preserve pending work, result identity, PV selection and source history.
+The existing Chrome analysis flow is retained with an additional all-locale
+scenario. Shared message policy changes select both puzzle and analysis scopes.
+No public publication or push is included in this implementation increment.

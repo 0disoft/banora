@@ -29,7 +29,7 @@ const focused: readonly [RegExp, string][] = [
     '--recovery-only',
   ],
   [
-    /^(packages\/sdk\/src\/analysis|examples\/analysis\/|scripts\/analysis-scenario\.js$)/,
+    /^(packages\/sdk\/src\/analysis|examples\/analysis\/|scripts\/analysis(?:-locale)?-scenario\.js$)/,
     '--analysis-only',
   ],
   [
@@ -103,7 +103,10 @@ export function planChecks(paths: readonly string[] | null): CheckPlan {
       // Installed CLI and SDK tests are already part of check.
     } else {
       const match = focused.find(([pattern]) => pattern.test(path));
-      if (match) browser.add(match[1]);
+      if (path === 'packages/sdk/src/widget-messages.ts') {
+        browser.add('--puzzle-only');
+        browser.add('--analysis-only');
+      } else if (match) browser.add(match[1]);
       else if (path.startsWith('packages/sdk/src/katago')) browser.add('--analysis-only');
       else if (
         /^(scripts\/(ci|security|repository-policy|development|operations|performance|release|release-test-fixtures|release-check|source-backup|registry-health|registry-transport|registry-read|registry-process|publication|publication-plan|publication-candidate|channel-plan|consumer-recovery|package-compatibility|demo-recovery|demo-archive|demo-health|demo-backup|demo-backup-contract)(\.test)?\.ts|scripts\/consumer-recovery-probe\.js$|config\/|\.github\/dependabot\.yml)/.test(

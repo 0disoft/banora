@@ -107,6 +107,11 @@ access throws after session disposal and grants no separate ownership.
 Arbitrary transport exceptions produce the public diagnostic `Analysis provider
 failed.` rather than leaking exception text. Providers can deliberately throw
 `AnalysisError(reason,message)` for a public message bounded to 4,096 characters.
+Such provider failures carry optional `messageSource: 'provider'` provenance.
+Their existing `reason` and `message` are unchanged. Other failures omit the field;
+legacy `AnalysisFailure` values remain valid. The browser view uses provenance to
+preserve public provider diagnostics while translating SDK-owned failure guidance
+by reason, without matching English text.
 Errors remain confined to analysis; they do not disable play/edit/Undo/export.
 See [ADR 0009](../adr/0009-analysis-context-and-external-provider-contract.md). The
 KataGo and the isolated display have separate contracts/evidence. Their compatibility

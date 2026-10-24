@@ -65,6 +65,11 @@ test('CI routes documentation cheaply, combines focused changes and falls back s
   expect(planChecks(['scripts/viewer-tree-scenario.js']).browser).toEqual(['--tree-only']);
   expect(planChecks(['scripts/touch-labels-scenario.js']).browser).toEqual(['--locale-only']);
   expect(planChecks(['scripts/puzzle-locale-scenario.js']).browser).toEqual(['--puzzle-only']);
+  expect(planChecks(['scripts/analysis-locale-scenario.js']).browser).toEqual(['--analysis-only']);
+  expect(planChecks(['packages/sdk/src/widget-messages.ts']).browser).toEqual([
+    '--analysis-only',
+    '--puzzle-only',
+  ]);
   expect(planChecks(['scripts/hover-scenario.js']).browser).toEqual(['--hover-only']);
   expect(planChecks(['scripts/browser-zoom.ts', 'scripts/zoom-scenario.js']).browser).toEqual([
     '--zoom-only',

@@ -66,8 +66,7 @@ as before, a board option update cancels pending touch placement.
 The two new keys are optional in the public `UiMessages` type so existing complete
 message bags still typecheck. `createUiMessages` returns all resolved fields as
 `Required<UiMessages>`; every built-in locale supplies both translations.
-These keys do not yet translate board live-region interaction notices or the
-separate analysis widget.
+These keys do not yet translate board live-region interaction notices.
 
 ## Puzzle Widget Messages
 
@@ -103,8 +102,22 @@ text: identical text authored for a successful answer is preserved as authored.
 Authored SGF names, player names, comments, coordinates, metadata, rule identifiers,
 CLI machine output and protocol/error diagnostics retain their original content.
 Localization changes presentation only; no record rewrite or remote translation
-service is used. Analysis widget messages and board live-region interaction
-notices still have their existing English text; their localization remains pending.
+service is used. Board live-region interaction notices still have their existing
+English text; their localization remains pending.
+
+## Analysis Widget Messages
+
+`mountAnalysis` accepts explicit `locale` and `messages: Partial<AnalysisMessages>`.
+Its selective entrypoint and root export DOM-free `createAnalysisMessages` and the
+feature types. The catalog covers all twelve languages, including controls,
+table headings, statuses, summaries, ownership/PV/pass guidance and SDK failure
+explanations. See the [analysis view contract](analysis-view.md#localization).
+It shares the puzzle catalog's validation/copy/text-length policy without adding
+required `UiMessages` fields. Language changes preserve requests, metrics, selected
+PV and source history. Public `AnalysisError` messages are preserved verbatim via
+optional `messageSource: 'provider'` provenance; raw transport exceptions remain
+redacted. Headless reason/message values are unchanged; callbacks receive the
+original completion rather than a translated copy.
 
 ## Studio Language Selection
 

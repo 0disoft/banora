@@ -3,6 +3,51 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Localized Analysis Widget
+
+The analysis view now accepts explicit `locale` and literal feature `messages`,
+with DOM-free `createAnalysisMessages` / `AnalysisMessages` / `AnalysisLocaleOptions`
+exports through analysis-view and root. All twelve catalogs cover controls,
+accessible names, table headers, statuses, summary/ownership/PV guidance, pass
+captions and SDK failure explanations. Exact numerical format, coordinates, B/W
+notation, provider IDs and source content remain unchanged. Public provider
+`AnalysisError` failures add optional `messageSource: 'provider'`; existing
+reason/message values and arbitrary transport redaction remain unchanged. The
+view preserves public diagnostics literally and selects other guidance by reason,
+without matching English text or leaking arbitrary exception text.
+
+Language updates preserve exact state/result identity, pending requests, PV step,
+candidate focus, ownership inspection and source record/history. Invalid combined
+locale/message/board/request updates retain the prior view/callbacks. Overrides
+are copied/frozen and bounded by the existing 4,096-character string policy. This
+policy now lives in one headless helper shared with the puzzle catalog. No new
+required `UiMessages` or analysis input/result fields were introduced.
+
+Production Chrome 155 analysis scope passed the unchanged original consumer flow
+and new all-locale scenario: idle/loading/ready/error/cancelled states, metrics,
+pass/candidate-only PVs, keyboard ownership inspection, focus and state retention,
+pending-work preservation, literal/public/transport errors, empty results,
+atomic invalid updates, custom/reset messages and owned/borrowed disposal.
+The puzzle scope also passed its existing and all-locale scenarios after the
+shared policy extraction. The initial analysis test used a nonexistent controller export method, then
+selected the outer status-bearing section rather than the status paragraph; the
+fixture now uses public SGF serialization and scopes its selectors inside the
+section. The scenario passed with all checks retained.
+
+SDK/adapters/examples builds, root types, lint/format/boundaries, 58 related tests
+with 5,057 assertions, packed SDK/classic/declaration consumers and 147 documents /
+750 relative links passed. Installed consumer checks explicitly import and use
+the new selective message API/types. Shared-helper CI routing selects both puzzle
+and analysis scopes; their prior scenarios remain included. Source spec, analysis
+API/view, localization and follow-up documents were updated under feature, SDK and
+test-hardening skills. No database, dependencies, versions, ignore policy, hosted
+workflow, push or publication changes.
+
+Unrelated full CLI/Git/release checks and other browser scopes were not repeated;
+Firefox/WebKit, physical devices and hosted CI remain unverified. Board live-region
+localization and the later follow-up milestones are still pending. This round
+completed one cohesive unit and started no new unit after ten minutes.
+
 ## Localized Puzzle Widget
 
 The browser puzzle view now accepts explicit `locale` and literal

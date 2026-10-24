@@ -1,9 +1,15 @@
 import { mountBoard } from './board.js';
 import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
 import { RecordController } from './controller.js';
+import { createBoardLabels, formatUiMessage } from './locale.js';
+import { createAnalysisMessages, analysisFailureMessage } from './analysis-locale.js';
+import type { AnalysisLocaleOptions, AnalysisMessages } from './analysis-locale.js';
+export { createAnalysisMessages } from './analysis-locale.js';
+export type { AnalysisLocaleOptions, AnalysisMessages } from './analysis-locale.js';
 import { AnalysisSession } from './analysis.js';
 import type {
   AnalysisCompletion,
+  AnalysisFailure,
   AnalysisProvider,
   AnalysisRequestOptions,
   AnalysisSettings,
@@ -17,7 +23,7 @@ export type AnalysisBoardOptions = Pick<
   BoardOptions,
   'theme' | 'coordinates' | 'crop' | 'transform' | 'touch' | 'stoneTextures'
 >;
-export interface AnalysisViewOptions {
+export interface AnalysisViewOptions extends AnalysisLocaleOptions {
   readonly session?: AnalysisSession;
   readonly controller?: RecordController;
   readonly provider?: AnalysisProvider;
@@ -42,23 +48,30 @@ interface Options {
   request: Required<AnalysisRequestOptions>;
   showOwnership: boolean;
   onComplete: AnalysisViewOptions['onComplete'];
+  locale: AnalysisViewOptions['locale'];
+  messages: AnalysisViewOptions['messages'];
+  text: AnalysisMessages;
 }
-function validateInput(
-  input: Pick<AnalysisViewOptions, 'board' | 'request' | 'showOwnership' | 'onComplete'>,
-): void {
+type PresentationInput = Pick<
+  AnalysisViewOptions,
+  'board' | 'request' | 'showOwnership' | 'onComplete' | 'locale' | 'messages'
+>;
+function validateInput(input: PresentationInput): void {
   for (const value of [input.board, input.request])
     if (value !== undefined && (!value || typeof value !== 'object' || Array.isArray(value)))
       throw TypeError('Analysis board/request options must be objects');
 }
-function snapshot(
-  input: Pick<AnalysisViewOptions, 'board' | 'request' | 'showOwnership' | 'onComplete'>,
-): Options {
+function snapshot(input: PresentationInput): Options {
   validateInput(input);
   if (input.showOwnership !== undefined && typeof input.showOwnership !== 'boolean')
     throw TypeError('Analysis ownership visibility must be boolean');
   if (input.onComplete !== undefined && typeof input.onComplete !== 'function')
     throw TypeError('Analysis completion callback must be a function');
+  const text = createAnalysisMessages(input);
   return {
+    locale: input.locale,
+    messages: input.messages && Object.freeze({ ...input.messages }),
+    text,
     board: {
       ...input.board,
       crop: input.board?.crop ? { ...input.board.crop } : input.board?.crop,
@@ -105,13 +118,13 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
     inspected: Point | null = null;
   let lastResult = state.result,
     lastContext = state.context;
+  let actionFailure: AnalysisFailure | undefined;
   const document = container.ownerDocument,
     root = document.createElement('section'),
     abort = new AbortController();
   root.className = 'banora-analysis';
-  root.setAttribute('aria-label', 'Go analysis');
   root.innerHTML =
-    '<h2>Position analysis</h2><p data-analysis-status role="status"></p><p data-analysis-summary></p><nav aria-label="Analysis controls"><button type="button" data-analysis-request>Analyze position</button><button type="button" data-analysis-cancel>Cancel analysis</button><label><input type="checkbox" data-analysis-ownership/> Show ownership prediction</label></nav><div data-analysis-stack><div data-analysis-board></div></div><p data-analysis-legend>Blue favors Black; orange favors White. Ownership predicts the analyzed root only; it does not confirm dead stones.</p><p data-analysis-point role="status"></p><table data-analysis-candidates><caption>Suggested moves · metrics use Black’s perspective</caption><thead><tr><th scope="col">Move / PV</th><th scope="col">Black win</th><th scope="col">Black lead</th><th scope="col" data-analysis-loss>Move loss</th><th scope="col">Visits</th></tr></thead><tbody></tbody></table><p data-analysis-empty></p><nav aria-label="Principal variation controls"><button type="button" data-analysis-return>Return to analyzed position</button><button type="button" data-analysis-previous>Previous PV move</button><button type="button" data-analysis-next>Next PV move</button></nav><p data-analysis-pv role="status"></p><p data-analysis-help>Choose a suggested move to preview its continuation. Arrow keys move the board cursor; Enter inspects a candidate or ownership value. Predictions and PV previews never edit the source record.</p>';
+    '<h2 data-analysis-title></h2><p data-analysis-status role="status"></p><p data-analysis-summary></p><nav data-analysis-controls><button type="button" data-analysis-request></button><button type="button" data-analysis-cancel></button><label><input type="checkbox" data-analysis-ownership/><span data-analysis-ownership-label></span></label></nav><div data-analysis-stack><div data-analysis-board></div></div><p data-analysis-legend></p><p data-analysis-point role="status"></p><table data-analysis-candidates><caption data-analysis-caption></caption><thead><tr><th scope="col" data-analysis-move></th><th scope="col" data-analysis-win></th><th scope="col" data-analysis-lead></th><th scope="col" data-analysis-loss></th><th scope="col" data-analysis-visits></th></tr></thead><tbody></tbody></table><p data-analysis-empty></p><nav data-analysis-pv-controls><button type="button" data-analysis-return></button><button type="button" data-analysis-previous></button><button type="button" data-analysis-next></button></nav><p data-analysis-pv role="status"></p><p data-analysis-help></p>';
   const style = document.createElement('style');
   style.textContent = stylesheet;
   root.prepend(style);
@@ -159,13 +172,19 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
     transform: options.board.transform,
     touch: options.board.touch,
     stoneTextures: options.board.stoneTextures,
+    labels: createBoardLabels({
+      locale: options.locale,
+      messages: { black: options.text.black, white: options.text.white },
+    }),
     readOnly: true,
     onPoint: pvStep === 0 ? inspect : undefined,
   });
   function render(incoming: AnalysisState) {
     if (disposed) return;
     // A prior listener can change the source while a notification is queued.
-    state = session.getState();
+    const current = session.getState();
+    if (current !== state) actionFailure = undefined;
+    state = current;
     if (state !== incoming) incoming = state;
     if (incoming.result !== lastResult || incoming.context !== lastContext) {
       selectedRank = null;
@@ -202,18 +221,51 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
     root.dataset.analysisStatus = incoming.status;
     root.dataset.analysisPvStep = String(pvStep);
     root.dataset.analysisRequestId = incoming.requestId ?? '';
-    find('status').textContent =
-      incoming.error?.message ??
-      (incoming.status === 'loading'
-        ? 'Analyzing the captured position…'
-        : incoming.status === 'ready'
-          ? 'Analysis ready.'
-          : incoming.status === 'cancelled'
-            ? 'Analysis cancelled.'
-            : 'Choose Analyze position to request predictions.');
+    const text = options.text,
+      coordinate = (move: Point | null) =>
+        move === null ? text.pass : analysisCoordinate(move, position.height);
+    root.lang = options.locale ?? 'en';
+    root.setAttribute('aria-label', text.analysis);
+    find('controls').setAttribute('aria-label', text.controls);
+    find('pv-controls').setAttribute('aria-label', text.pvControls);
+    find('ownership-label').textContent = text.ownership;
+    for (const key of [
+      'title',
+      'request',
+      'cancel',
+      'legend',
+      'caption',
+      'move',
+      'win',
+      'lead',
+      'visits',
+      'return',
+      'previous',
+      'next',
+      'help',
+    ] as const)
+      find(key).textContent = text[key];
+    find('status').textContent = actionFailure
+      ? analysisFailureMessage(actionFailure, text)
+      : incoming.error
+        ? analysisFailureMessage(incoming.error, text)
+        : incoming.status === 'loading'
+          ? text.loading
+          : incoming.status === 'ready'
+            ? text.ready
+            : incoming.status === 'cancelled'
+              ? text.cancelled
+              : text.idle;
     find('summary').textContent = result
-      ? `Black win ${probability(result.root.winProbabilityBlack)} · predicted Black lead ${signed(result.root.scoreLeadBlack)} points · ${result.root.visits} visits`
-      : `Provider: ${incoming.providerId} · ${position.toPlay === 'black' ? 'Black' : 'White'} to play`;
+      ? formatUiMessage(text.summary, {
+          win: probability(result.root.winProbabilityBlack),
+          lead: signed(result.root.scoreLeadBlack),
+          visits: result.root.visits,
+        })
+      : formatUiMessage(text.context, {
+          provider: incoming.providerId,
+          color: text[position.toPlay],
+        });
     find<HTMLButtonElement>('request').disabled =
       incoming.status === 'loading' || !incoming.context;
     find<HTMLButtonElement>('cancel').disabled = incoming.status !== 'loading';
@@ -222,9 +274,12 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
     find('legend').hidden = !result?.ownership || pvStep !== 0 || !options.showOwnership;
     find('point').textContent =
       inspected && result?.ownership && pvStep === 0
-        ? `${analysisCoordinate(inspected, position.height)} ownership: ${result.ownership[inspected.y * position.width + inspected.x]!.toFixed(3)} (positive favors Black).`
+        ? formatUiMessage(text.point, {
+            coordinate: coordinate(inspected),
+            value: result.ownership[inspected.y * position.width + inspected.x]!.toFixed(3),
+          })
         : '';
-    find('loss').textContent = `Loss (${position.toPlay === 'black' ? 'Black' : 'White'})`;
+    find('loss').textContent = formatUiMessage(text.loss, { color: text[position.toPlay] });
     const body = find<HTMLTableElement>('candidates').tBodies[0]!,
       focus = document.activeElement;
     const focusedRank =
@@ -236,10 +291,10 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
         button = document.createElement('button');
       button.type = 'button';
       button.dataset.analysisSelect = String(move.rank);
-      button.textContent = `${move.rank + 1}. ${analysisCoordinate(move.move, position.height)}`;
+      button.textContent = `${move.rank + 1}. ${coordinate(move.move)}`;
       button.setAttribute(
         'aria-label',
-        `Preview ${analysisCoordinate(move.move, position.height)} principal variation`,
+        formatUiMessage(text.preview, { coordinate: coordinate(move.move) }),
       );
       button.setAttribute('aria-pressed', String(move.rank === selectedRank));
       cell.append(button);
@@ -261,14 +316,25 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
         .querySelector<HTMLButtonElement>(`[data-analysis-select="${focusedRank}"]`)
         ?.focus({ preventScroll: true });
     find('candidates').hidden = !result?.candidates.length;
-    find('empty').textContent =
-      result && !result.candidates.length ? 'The provider returned no suggested moves.' : '';
+    find('empty').textContent = result && !result.candidates.length ? text.empty : '';
     find<HTMLButtonElement>('return').disabled = selectedRank === null;
     find<HTMLButtonElement>('previous').disabled = pvStep === 0;
     find<HTMLButtonElement>('next').disabled = !candidate || pvStep >= preview.line.length;
     find('pv').textContent = candidate
-      ? `Preview ${analysisCoordinate(candidate.move, position.height)} · step ${pvStep} of ${preview.line.length}${candidate.principalVariation.length === 0 ? ' · Candidate only; no continuation supplied.' : ''} · ${preview.played.map((move) => `${move.number}. ${move.color === 'black' ? 'B' : 'W'} ${analysisCoordinate(move.move, position.height)}`).join(' → ') || 'Analyzed position'}`
-      : 'Viewing the analyzed position.';
+      ? formatUiMessage(text.pv, {
+          coordinate: coordinate(candidate.move),
+          step: pvStep,
+          length: preview.line.length,
+          notice: candidate.principalVariation.length === 0 ? text.candidateOnly : '',
+          line:
+            preview.played
+              .map(
+                (move) =>
+                  `${move.number}. ${move.color === 'black' ? 'B' : 'W'} ${coordinate(move.move)}`,
+              )
+              .join(' → ') || text.analyzed,
+        })
+      : text.viewing;
   }
   try {
     board = mountBoard(find('board'), { controller: display, ...boardOptions() });
@@ -289,8 +355,10 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
             if (
               !completion.ok &&
               ['busy', 'invalid-request', 'disposed'].includes(completion.reason)
-            )
-              find('status').textContent = completion.message;
+            ) {
+              actionFailure = completion;
+              find('status').textContent = analysisFailureMessage(completion, options.text);
+            }
             try {
               options.onComplete?.(completion);
             } catch {
@@ -311,7 +379,10 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
       'click',
       () => {
         const cancelled = session.cancel();
-        if (!cancelled.ok) find('status').textContent = cancelled.message;
+        if (!cancelled.ok) {
+          actionFailure = cancelled;
+          find('status').textContent = analysisFailureMessage(cancelled, options.text);
+        }
       },
       { signal: abort.signal },
     );

@@ -94,6 +94,8 @@ export interface AnalysisFailure {
   readonly ok: false;
   readonly reason: AnalysisFailureReason;
   readonly message: string;
+  /** Present only for an explicitly public AnalysisError from the provider. */
+  readonly messageSource?: 'provider';
 }
 export type AnalysisContextResult =
   | { readonly ok: true; readonly value: AnalysisContext }

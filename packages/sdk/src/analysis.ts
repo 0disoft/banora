@@ -326,7 +326,10 @@ export class AnalysisSession {
     this.#finish(
       pending,
       error instanceof AnalysisError
-        ? analysisFailure(error.reason, error.message)
+        ? Object.freeze({
+            ...analysisFailure(error.reason, error.message),
+            messageSource: 'provider' as const,
+          })
         : analysisFailure('provider', 'Analysis provider failed.'),
     );
   }
