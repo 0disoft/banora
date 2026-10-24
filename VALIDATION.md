@@ -3,6 +3,34 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Viewer Game Selector Navigation
+
+Viewer navigation now reuses game options while immutable collection roots and
+the game-label template are unchanged, and skips resetting an unchanged native
+selection. Root/name changes, Undo/Redo, record replacement, locale/template
+changes and clearing overrides still update labels and selection. The one-view
+cache is explicitly released on disposal. Public signatures and ownership remain
+unchanged; authored SGF is unaffected.
+
+Against `4582976`, five alternating paired Headless Chrome 155 samples reduced
+median synchronous cost for 16 next/previous actions in a 5,000-game collection
+from 622.2 to 9.5 ms. New option nodes fell from 80,000 to zero. At 100/1,000 games,
+medians were 22.9/115.6 ms before and 9.9/8.7 ms after. Parsing, mount, asynchronous
+rendering and paint are excluded. Method/limits and the O(MG) to O(G + M) selector
+construction bound are in `docs/engineering/14-sdk-performance-evidence.md`.
+
+Chromium `--tree-only` passed the new 5,000-game selector regression and existing
+Viewer/Studio tree, keyboard, branch, comments and export/reopen coverage.
+`--viewer-disposal-only` passed, including collected closed-view roots and live
+host-owned input/borrowed controller controls. SDK/browser-option tests passed:
+251 tests, 15,138 assertions. SDK/adapters/examples build, typecheck, packed SDK
+consumer, lint, formatting, repository boundaries and docs checks all passed.
+Full release/CLI,
+other browser engines and the 135-cycle memory matrix were not repeated because
+this change affects the shared Viewer selector only. No public API/DB,
+dependencies, hygiene, version or CI job changes; the existing tree browser scope
+now also invokes the selector regression. No remote operations.
+
 ## Single-Priority Refactor: Retained Disposed Viewer Handles
 
 Viewer presentation options no longer retain imported SGF input. Disposed board,

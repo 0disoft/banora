@@ -1,5 +1,56 @@
 # SDK Performance Evidence
 
+## 2026-10-25: Viewer Game Selector Navigation
+
+Baseline `4582976` recreated every game `<option>` on every controller notification,
+including an adjacent move in the same game. A 5,000-game collection therefore
+allocated 5,000 option elements per move despite unchanged names and game index.
+Viewer now keeps one collection-roots identity, one game-label template and one
+selected index. It rebuilds only when roots or the label template change, updates
+the native selection only when needed, and releases the cached roots on disposal.
+Immutable roots include authored game names, so name edits and Undo/Redo invalidate
+the cache. Locale/message changes are keyed by the actual `game` template, while
+authored `GN` values keep their existing nullish-fallback semantics (including
+intentionally empty names).
+
+Paired Windows x64 Headless Chrome 155.0.0.0 measurements used source bundles from
+`4582976` and working source in the same page, Bun 1.4.3, a 1280-by-900 viewport and
+a 520-pixel host. Each collection contained one 9-by-9 game with two moves and
+remaining 9-by-9 root-only games. Both viewers warmed up through two next/previous
+pairs, then five alternating paired samples each executed eight next/previous
+pairs (16 notifications). CDP forced GC before each timed sample. `createElement`
+instrumentation counted only option creation and was restored in `finally`.
+
+| Games | Before median, ms | After median, ms | Options before / after per sample |
+| ----: | ----------------: | ---------------: | --------------------------------: |
+|   100 |              22.9 |              9.9 |                         1,600 / 0 |
+| 1,000 |             115.6 |              8.7 |                        16,000 / 0 |
+| 5,000 |             622.2 |              9.5 |                        80,000 / 0 |
+
+All 15 updated samples preserved the first option and ended at move zero; all
+baseline samples replaced it. The 5,000-game median dropped 98.5% for this measured
+boundary. Timing includes synchronous controller notifications and board/view DOM
+updates; parsing, initial mount, asynchronous rendering, browser paint and CSS
+loading are excluded. These are local measurements, not an end-to-end latency SLA.
+For G games and M navigation events in one unchanged collection, selector option
+construction falls from O(MG) to O(G) at mount plus O(M) scalar checks, with zero
+new option nodes during navigation. The DOM still contains G options; edits that
+change immutable roots still rebuild them in O(G). There is no multi-record cache.
+
+Reproduce the committed semantic/allocation regression after `bun run build:examples`:
+
+```sh
+bun scripts/browser-smoke.ts --tree-only
+bun scripts/browser-smoke.ts --viewer-disposal-only
+```
+
+`viewer-games-scenario.js` checks 5,000 options across 16 moves with zero option
+replacements, native last/first game selection, unrelated theme/messages, language
+and template replacement/clearing, rename/Undo/Redo, record replacement, an empty
+authored name and single-game visibility. It uses identity/mutation assertions,
+not timing thresholds. The disposal scope separately checks weak record roots
+after forced GC. Existing Studio/viewer tree and export/reopen checks remain.
+
 ## 2026-10-25: Studio Assessment Target Lookup
 
 Baseline `4fa2b20` found a clicked stone's recorded move by calling `inspectNode`

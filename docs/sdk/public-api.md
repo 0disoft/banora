@@ -965,6 +965,11 @@ nested `board` options. Playback defaults to 1 second with Play/Pause and a
 0.5–5 second interval selector; it advances recorded nodes only.
 Supplying both controller and SGF throws. The viewer includes game selection,
 move controls, branch selection, player information/captures and comments.
+Game options are reused while the immutable collection roots and game-label
+template are unchanged. Navigation updates the selected game without replacing
+options; record edits/replacement and game-label locale/override changes rebuild
+them. Other presentation changes preserve option identity. This per-view cache is
+released on disposal and does not change authored SGF or controller ownership.
 
 `variationMode: 'focused'` folds unselected branch continuations, retains every
 fork choice, unfolds the selected path and enables board hints unless explicitly

@@ -162,6 +162,9 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       }
     | undefined;
   const treeButtons = new Map<string, HTMLButtonElement>();
+  let gameOptions:
+    | { source: ControllerState['record']['games']; template: string; selected: number }
+    | undefined;
   let tailRow: HTMLElement | undefined;
   const playbackControls = mountPlaybackControls(nav, {
     controller,
@@ -340,20 +343,30 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     }
   }
   renderLabels();
+  function renderGames(state: ControllerState): void {
+    const source = state.record.games;
+    if (!gameOptions || gameOptions.source !== source || gameOptions.template !== ui.game) {
+      games.replaceChildren(
+        ...source.map((game, index) => {
+          const option = document.createElement('option');
+          option.value = String(index);
+          option.textContent =
+            game.properties.GN?.[0] ?? formatUiMessage(ui.game, { number: index + 1 });
+          return option;
+        }),
+      );
+      gameOptions = { source, template: ui.game, selected: -1 };
+    }
+    if (gameOptions.selected !== state.gameIndex) {
+      games.value = String(state.gameIndex);
+      gameOptions.selected = state.gameIndex;
+    }
+    gameLabel.hidden = source.length < 2;
+  }
   function render(state: ControllerState): void {
     const game = state.record.games[state.gameIndex]!;
     title.textContent = game.properties.GN?.[0] ?? ui.record;
-    games.replaceChildren(
-      ...state.record.games.map((game, index) => {
-        const option = document.createElement('option');
-        option.value = String(index);
-        option.textContent =
-          game.properties.GN?.[0] ?? formatUiMessage(ui.game, { number: index + 1 });
-        return option;
-      }),
-    );
-    games.value = String(state.gameIndex);
-    gameLabel.hidden = state.record.games.length < 2;
+    renderGames(state);
     move.textContent = formatUiMessage(ui.move, { number: state.position.moveNumber });
     first.disabled = previous.disabled = state.path.length < 2;
     next.disabled = last.disabled = state.node.children.length === 0;
@@ -452,6 +465,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       treeButtons.clear();
       lastTree = undefined;
       tailRow = undefined;
+      gameOptions = undefined;
       root.remove();
       if (owned) controller.dispose();
     },
