@@ -62,14 +62,23 @@ function nextHistory(
     : null;
 }
 
-function seal(position: Position): Position {
+// Only arrays frozen here are trusted; a foreign frozen array may contain getters.
+const sealedBoards = new WeakSet<readonly (Color | null)[]>();
+function sealBoard(board: readonly (Color | null)[], owned = false): readonly (Color | null)[] {
+  if (sealedBoards.has(board)) return board;
+  const sealed = Object.freeze(owned ? board : [...board]);
+  sealedBoards.add(sealed);
+  return sealed;
+}
+
+function seal(position: Position, ownedBoard = false): Position {
   return Object.freeze({
     ...position,
-    board: Object.freeze([...position.board]),
+    board: sealBoard(position.board, ownedBoard),
     captures: Object.freeze({ ...position.captures }),
     passPrisoners: Object.freeze({ ...position.passPrisoners }),
     rules: Object.freeze({ ...position.rules }),
-    previousBoard: position.previousBoard ? Object.freeze([...position.previousBoard]) : null,
+    previousBoard: position.previousBoard ? sealBoard(position.previousBoard) : null,
   });
 }
 
@@ -94,19 +103,22 @@ export function createPosition(options: PositionOptions = {}): Position {
   const toPlay = options.toPlay ?? 'black';
   if (!['black', 'white'].includes(toPlay)) throw new TypeError('Invalid stone color');
   const board = Array<Color | null>(width * height).fill(null);
-  return seal({
-    width,
-    height,
-    board,
-    toPlay,
-    captures: { black: 0, white: 0 },
-    moveNumber: 0,
-    previousBoard: null,
-    rules,
-    passPrisoners: { black: 0, white: 0 },
-    consecutivePasses: 0,
-    repetitionHistory: superko(rules) ? rememberSituation(null, boardKey(board), toPlay) : null,
-  });
+  return seal(
+    {
+      width,
+      height,
+      board,
+      toPlay,
+      captures: { black: 0, white: 0 },
+      moveNumber: 0,
+      previousBoard: null,
+      rules,
+      passPrisoners: { black: 0, white: 0 },
+      consecutivePasses: 0,
+      repetitionHistory: superko(rules) ? rememberSituation(null, boardKey(board), toPlay) : null,
+    },
+    true,
+  );
 }
 
 export function isOnBoard(position: Pick<Position, 'width' | 'height'>, point: Point): boolean {
@@ -198,19 +210,22 @@ export function play(position: Position, point: Point, color: Color = position.t
     return { ok: false, reason: 'superko' };
   return {
     ok: true,
-    position: seal({
-      ...position,
-      board,
-      captures,
-      toPlay,
-      moveNumber: position.moveNumber + 1,
-      previousBoard: position.board,
-      consecutivePasses: 0,
-      repetitionHistory:
-        repetitionKey === null
-          ? null
-          : rememberSituation(position.repetitionHistory, repetitionKey, toPlay),
-    }),
+    position: seal(
+      {
+        ...position,
+        board,
+        captures,
+        toPlay,
+        moveNumber: position.moveNumber + 1,
+        previousBoard: position.board,
+        consecutivePasses: 0,
+        repetitionHistory:
+          repetitionKey === null
+            ? null
+            : rememberSituation(position.repetitionHistory, repetitionKey, toPlay),
+      },
+      true,
+    ),
     captured: Object.freeze(captured.map((point) => Object.freeze(point))),
   };
 }
@@ -257,16 +272,19 @@ export function setup(
   }
   return {
     ok: true,
-    position: seal({
-      ...position,
-      board,
-      toPlay,
-      previousBoard: null,
-      consecutivePasses: 0,
-      repetitionHistory: superko(position.rules)
-        ? rememberSituation(null, boardKey(board), toPlay)
-        : null,
-    }),
+    position: seal(
+      {
+        ...position,
+        board,
+        toPlay,
+        previousBoard: null,
+        consecutivePasses: 0,
+        repetitionHistory: superko(position.rules)
+          ? rememberSituation(null, boardKey(board), toPlay)
+          : null,
+      },
+      true,
+    ),
     captured: Object.freeze([]),
   };
 }
@@ -287,12 +305,15 @@ export function replayMove(position: Position, point: Point | null, color: Color
   const board = [...position.board];
   board[point.y * position.width + point.x] = null;
   const result = play(
-    seal({
-      ...position,
-      board,
-      toPlay: color,
-      rules: { suicide: 'allow', ko: 'none', passStones: position.rules.passStones },
-    }),
+    seal(
+      {
+        ...position,
+        board,
+        toPlay: color,
+        rules: { suicide: 'allow', ko: 'none', passStones: position.rules.passStones },
+      },
+      true,
+    ),
     point,
     color,
   );

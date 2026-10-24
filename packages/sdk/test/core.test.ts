@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createPosition, pass, play, setup, stoneAt } from '../src/core.js';
+import { createPosition, pass, play, replayMove, setup, stoneAt } from '../src/core.js';
 import type { MoveResult, Position } from '../src/core.js';
 
 function successful(result: MoveResult): Position {
@@ -8,6 +8,52 @@ function successful(result: MoveResult): Position {
 }
 
 describe('headless board transitions', () => {
+  test('shares only owned immutable boards across passes, prior positions and recorded moves', () => {
+    const original = createPosition({ width: 3 });
+    const passed = successful(pass(original));
+    expect(passed).not.toBe(original);
+    expect(passed.board).toBe(original.board);
+    expect(passed.previousBoard).toBeNull();
+    expect(passed.moveNumber).toBe(1);
+    const played = successful(play(original, { x: 1, y: 1 }));
+    expect(played.board).not.toBe(original.board);
+    expect(played.previousBoard).toBe(original.board);
+    const recorded = successful(replayMove(played, { x: 1, y: 1 }, 'white'));
+    expect(recorded.previousBoard).toBe(played.board);
+    expect(stoneAt(recorded, { x: 1, y: 1 })).toBe('white');
+    expect(stoneAt(played, { x: 1, y: 1 })).toBe('black');
+    expect(stoneAt(original, { x: 1, y: 1 })).toBeNull();
+    for (const position of [original, passed, played, recorded]) {
+      expect(Object.isFrozen(position)).toBe(true);
+      expect(Object.isFrozen(position.board)).toBe(true);
+      if (position.previousBoard) expect(Object.isFrozen(position.previousBoard)).toBe(true);
+    }
+    expect(() => (played.board as (string | null)[]).push('white')).toThrow();
+  });
+  test('foreign mutable and frozen accessor arrays remain defensively copied', () => {
+    const original = createPosition({ width: 3 });
+    const board = [...original.board];
+    const external = { ...original, board };
+    const played = successful(play(external, { x: 1, y: 1 }));
+    const passed = successful(pass(external));
+    expect(played.previousBoard).not.toBe(board);
+    expect(passed.board).not.toBe(board);
+    expect(Object.isFrozen(board)).toBe(false);
+    board[0] = 'white';
+    expect(played.previousBoard![0]).toBeNull();
+    expect(passed.board[0]).toBeNull();
+    let value: 'black' | null = null;
+    const accessors = [...original.board];
+    Object.defineProperty(accessors, '0', { get: () => value, enumerable: true });
+    Object.freeze(accessors);
+    const captured = successful(pass({ ...original, board: accessors }));
+    expect(captured.board).not.toBe(accessors);
+    value = 'black';
+    expect(accessors[0]).toBe('black');
+    expect(captured.board[0]).toBeNull();
+    expect(Object.isFrozen(captured.board)).toBe(true);
+    expect(successful(pass(captured)).board).toBe(captured.board);
+  });
   test('captures an enemy group without mutating the input snapshot', () => {
     const before = successful(
       setup(createPosition({ width: 3 }), [

@@ -203,3 +203,49 @@ encoding/BOM/high-byte/limit combinations with the original source, requiring
 identical success records or failure diagnostics. Committed tests cover every
 ASCII code point for all nine supported codec labels, exact normalized-size
 boundaries, BOM conflicts, raw properties and decoded value/point limits.
+
+## Owned Immutable Core Board Arrays
+
+`core.ts` previously spread/froze current and previous board arrays on every
+snapshot seal, even when they were already immutable SDK arrays. Recorded moves
+seal multiple intermediate snapshots, multiplying this work. A private weak set
+now proves SDK ownership: new internal working arrays are frozen after their last
+mutation, while known sealed arrays are shared. Foreign arrays still receive a
+defensive copy, including frozen accessor arrays; `Object.isFrozen` alone is not
+treated as a content-stability proof. Weak ownership does not retain dead boards.
+
+For A board intersections, sealing an SDK-owned board is now O(1) instead of O(A).
+Simple/no-ko passes remove that board scan altogether. Ordinary moves and recorded
+placements retain their necessary O(A) working copies/group work; superko passes
+retain board-key/history work. Position metadata is still independently frozen.
+No public signature or rule/error-order change is involved.
+
+Paired Bun 1.4.3 / Windows measurements compare source at `a6b9a9d` with the working
+source in one process. Three warmups and twenty samples per version alternate
+execution order, without simultaneous builds/browser jobs. Direct transition
+cases include initial position creation; controller-jump setup parses the same
+record and finds the target outside timing. Timed navigation includes its success
+and final move-number check. Synthetic sequential placements wrap across a 19x19
+board through the actual recorded-move semantics, not ordinary legal-play claims.
+
+| Workload                                | Before median / p95 ms | After median / p95 ms |
+| --------------------------------------- | ---------------------: | --------------------: |
+| 20,000 passes, 19x19                    |    2956.283 / 3175.356 |       20.480 / 24.297 |
+| 5,000 recorded placements, 19x19        |    3833.016 / 4304.594 |   1307.489 / 1473.465 |
+| 5,000 passes, 52x52                     |    6802.246 / 8889.463 |        4.635 / 10.790 |
+| Controller jump to 20,000th pass, 19x19 |    5058.583 / 6823.055 |       60.815 / 96.347 |
+
+The recorded-placement median fell 65.9%; the pass-only controller jump fell 98.8%.
+Separate post-timing instrumentation counted frozen 361-cell board arrays,
+including initial creation: 2,000 passes fell from 2,001 arrays to 1, and 2,000
+recorded placements from 12,000 to 4,001. These counts do not measure process RSS
+or metadata objects. Full result comparisons matched the original implementation
+for 2,560 seeded transitions: four ko modes, two suicide modes, both pass-prisoner
+settings, four rectangular/small/standard/maximum board sizes, mixed play/pass/
+setup/replay/rejection paths and periodic externally copied inputs.
+
+These local observations are not device-independent or browser latency promises.
+The comparison script, copied before sources and measurements are ignored local
+artifacts under `.tmp/` (`board-paired.ts`, `core-before.ts`, `controller-before.ts`,
+`record-runtime-before.ts`, `board-paired.json`). Timing precedes freeze-counter
+instrumentation. No time threshold or new hosted job is added to default CI.

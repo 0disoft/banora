@@ -3,6 +3,51 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Ownership-Proven Core Board Sharing
+
+Core snapshot sealing previously copied/froze every current and previous board,
+including immutable SDK boards reused by passes and intermediate recorded-move
+states. It now freezes private working arrays after their final mutation and
+reuses only arrays branded by its private weak set. Foreign mutable/frozen arrays
+still receive defensive copies; a frozen array with dynamic accessor values is
+explicitly covered. Metadata remains independently frozen, public positions remain
+new immutable snapshots and ownership does not strongly retain past boards.
+
+For A intersections, owned-board sealing changes O(A) to O(1), eliminating the
+board scan on simple/no-ko passes. Normal moves retain their working copy/group
+work and superko retains board-key/history work. The public signatures, rejection
+order, captures, pass prisoners, ko reset and recorded replacement semantics are
+unchanged. No external trust option is introduced.
+
+Alternating same-process Bun 1.4.3 / Windows comparison against `a6b9a9d` uses
+three warmups and twenty samples each. A 19x19 series of 20,000 passes measured
+2956.283/20.480ms medians before/after; 5,000 recorded placements measured
+3833.016/1307.489ms (65.9% lower). Full method, fixtures and limitations are in
+the performance budget; ignored `.tmp/board-paired.ts` and its before sources
+produce `.tmp/board-paired.json`. Timings precede counter instrumentation.
+The actual controller jump to the 20,000th pass measured 5058.583/60.815ms medians
+(98.8% lower); 52x52 pass stress also improved. Separate 2,000-transition counters
+found 2,001/1 frozen board arrays for passes and 12,000/4,001 for recorded placements,
+including initial creation, not process RSS. A 2,560-transition differential oracle
+matched every complete result across all ko/suicide/pass-prisoner combinations,
+four board sizes, seeded mixed/rejected operations and periodic foreign inputs.
+
+The first focused core/rules/superko/playback/controller/checkpoint run passed
+55 tests / 752 assertions, including new owned-array identity, external mutation
+isolation and frozen-accessor cases. No flaky timing assertion is added to CI.
+The complete SDK suite then passed 235 tests / 10,530 assertions. Root typecheck,
+SDK/declarations/adapters/production examples builds and packed public SDK/classic
+consumers passed. Chrome 155 focused playback passed speed/pause/end, keyboard
+guards, imports, SGF preservation and all six existing consumer lifecycles.
+Root lint, formatting, repository boundaries and docs checks also passed
+(147 documents, 750 relative links).
+The unrelated full CLI/Git/release suite and full cross-browser/device matrix were
+not repeated for this core-only refactor. Browser performance and process RSS are
+unmeasured; local synthetic timings do not promise universal user latency.
+SDK public API and performance source-of-truth docs changed with refactor, SDK,
+test-hardening and Playwright CLI skills. No DB, dependencies, versions, ignore
+policy, workflow or runner changes; no push/publication is included.
+
 ## Single-Priority Refactor: Reuse Validated SGF Byte Probes
 
 The production byte-import path no longer builds the same entire record twice

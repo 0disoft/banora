@@ -64,6 +64,14 @@ out-of-turn passes restart the alternating streak without losing their credited
 prisoners. No automatic game ending is implied.
 The defaults forbid suicide and enforce simple ko, with no pass prisoners. Snapshots
 freeze their board, captures, pass ledger, rule policy and history.
+SDK-owned frozen board arrays may be shared across immutable snapshots, including
+passes and a move's previous board. Fresh internal working arrays are frozen in
+place only after their last mutation. Foreign arrays are still defensively copied
+without freezing caller state, even when already frozen: an external frozen array
+can contain accessors whose values change. Ownership is tracked weakly inside the
+core, without a public trust flag or a strong cache of previous boards. For owned
+boards under simple/no ko, pass sealing no longer scans the board; superko retains
+its board-key/history work and ordinary moves retain their working copy.
 Move color defaults to the current turn; a mismatched color is rejected.
 
 ### Named Rule Presets
