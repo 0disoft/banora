@@ -1,6 +1,35 @@
 import { expect, test } from 'bun:test';
 import { RecordController } from '../src/controller.js';
-import { normalizePlacementAnimation, placementTarget } from '../src/placement-animation.js';
+import {
+  mountPlacementAnimation,
+  normalizePlacementAnimation,
+  placementTarget,
+} from '../src/placement-animation.js';
+
+test('aborted placement owners ignore late sync without reading or recaching presentation state', () => {
+  const controller = new RecordController({ sgf: '(;SZ[9];B[aa])' });
+  const abort = new AbortController();
+  const svg = { ownerDocument: { defaultView: null } } as unknown as SVGSVGElement;
+  const animation = mountPlacementAnimation(svg, abort.signal);
+  let reads = 0;
+  const options = {
+    get nodeId() {
+      reads++;
+      return undefined;
+    },
+  };
+  try {
+    const state = controller.getState();
+    animation.sync(state, options, null);
+    expect(reads).toBe(1);
+    abort.abort();
+    animation.sync(state, options, null);
+    expect(reads).toBe(1);
+  } finally {
+    abort.abort();
+    controller.dispose();
+  }
+});
 
 test('placement motion is opt-in with immutable bounded duration options', () => {
   for (const value of [undefined, null, false])

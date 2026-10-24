@@ -49,7 +49,8 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
   const owned = !initial.controller;
   const controller = initial.controller ?? new RecordController({ sgf: initial.sgf });
   controller.getState();
-  let options = { ...initial, board: { ...initial.board } };
+  // The controller owns the parsed record; presentation updates never need input bytes.
+  let options = { ...initial, sgf: undefined, board: { ...initial.board } };
   let disposed = false;
   let closeCommentGroup: (() => void) | undefined;
   const endCommentGroup = () => {

@@ -435,7 +435,13 @@ try {
     await browserZoom(root, address);
   } else if (scope === '--memory-only') {
     if (release) throw Error('Browser memory measures the current built checkout only.');
+    await scenario('viewer-disposal', 'banora-viewer-disposal-complete');
     await browserMemory(root, () => scenario('browser-memory', 'banora-browser-memory-complete'));
+  } else if (scope === '--viewer-disposal-only') {
+    await scenario('viewer-disposal', 'banora-viewer-disposal-complete');
+    console.log(
+      'Disposed viewer handles release input and record graphs; borrowed owners remain live.',
+    );
   } else if (scope === '--performance-only') {
     await browserPerformance();
   } else if (scope === '--hover-only') {

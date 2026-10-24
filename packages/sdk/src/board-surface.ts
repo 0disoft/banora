@@ -5,7 +5,8 @@ import type {
   BoardSurfaceOptions,
   BoardSurfaceView,
 } from './board-frame.js';
-import { boardContains, boardMessage } from './board-frame.js';
+import { boardContains, boardMessage, snapshotFrame } from './board-frame.js';
+import { createBoardSnapshot } from './board-state.js';
 import {
   normalizeBoardTransform,
   displayCrop,
@@ -862,6 +863,15 @@ export function mountBoardSurface(
       lastAnnouncement = undefined;
       svg.remove();
       live.remove();
+      // A retained closed handle must not own the last record/position frame.
+      current = snapshotFrame(
+        createBoardSnapshot({
+          key: 'disposed',
+          width: 2,
+          height: 2,
+          stones: [null, null, null, null],
+        }),
+      );
       controller.dispose();
     },
   });

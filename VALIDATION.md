@@ -3,6 +3,32 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Retained Disposed Viewer Handles
+
+Viewer presentation options no longer retain imported SGF input. Disposed board,
+placement animation and playback handles release their last record-bearing frames
+and selection state; aborted animation sync cannot acquire a new state. Borrowed
+controllers and snapshots explicitly held by hosts keep their existing ownership.
+
+Paired source modules against `daa6024`, measured on Windows x64 Headless Chrome
+155.0.0.0, retained four closed view handles per version. Four 1,080,098-byte SGF
+input arrays and four parsed roots remained live before; zero remained after four
+forced-GC event-loop turns. Original input bytes fell from 4,320,392 to zero. A
+host-retained positive control survived. This is reachability/input-byte evidence,
+not a total heap or production GC timing claim. Reproduction and limits are in
+`docs/engineering/22-browser-memory-lifecycle-evidence.md`.
+
+Focused Chromium regression `--viewer-disposal-only` passed, including repeated
+disposal, update rejection, host-owned input and a usable borrowed controller.
+SDK/browser-option tests passed: 251 tests, 15,138 assertions, including aborted
+animation late-sync and Chromium-only scope guards. Typecheck and SDK,
+adapter/example builds, packed SDK consumer, focused animation browser smoke,
+lint, formatting, repository boundaries and docs checks all passed. Full
+release/CLI/deployment suites are outside this SDK lifecycle change;
+the prior 135-cycle memory matrix was not repeated. No public API signatures, DB,
+dependencies, hygiene or CI runner changes; the new opt-in browser scope is also
+included in `--memory-only`. No remote operations or version change.
+
 ## Single-Priority Refactor: Studio Assessment Target Lookup
 
 Studio Good/Bad/Erase tools now resolve their recorded-move target from one immutable

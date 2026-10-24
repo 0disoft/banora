@@ -1,5 +1,38 @@
 # Browser Memory Lifecycle Evidence
 
+## Retained Disposed Viewer Handles (October 25, 2026)
+
+The previous lifecycle loops dropped view handles, which did not exercise a host
+retaining a disposed handle. `mountViewer` presentation options retained the original
+SGF input; the board frame, placement animation's previous state (even when motion
+was disabled), and playback's selected state independently retained parsed records.
+Disposal now releases these owners and prevents aborted animation sync from
+repopulating its cache. The surface replaces its frame with a constant-size empty
+2-by-2 snapshot; public signatures and disposal ownership remain unchanged.
+
+Paired baseline `daa6024` and working-source modules were bundled together and run
+in Windows x64 Headless Chrome 155.0.0.0. Four viewers per version each parsed a
+1,080,098-byte Uint8Array (18 SGF nodes with 60,000-character unknown `XX` values,
+plus a root). All closed handles were deliberately retained. Four separate event
+loop turns each forced collection through CDP; WeakRefs were dereferenced only
+after the final collection. Before: four inputs / 4,320,392 bytes / four record
+roots alive. After: zero inputs / zero input bytes / zero record roots alive. A
+host-held positive-control input remained alive. These byte counts describe the
+original typed arrays, not total JS heap or parsed-record allocations.
+
+The committed focused regression is reproducible after `bun run build:examples`:
+
+```sh
+bun scripts/browser-smoke.ts --viewer-disposal-only
+```
+
+It checks four retained closed handles and intentional input/borrowed-controller
+owners, repeated disposal, and rejection of post-disposal updates. The full opt-in
+`--memory-only` route also runs it before the existing nine lifecycle cases. It
+requires Chromium/CDP and runs outside default timing-sensitive unit assertions.
+Forced collection proves reachability under this workload, not when production GC
+will run, whole-app peak memory, or release of snapshots explicitly kept by hosts.
+
 Status: nine production lifecycle cases / 135 measured cycles executed on Windows
 x64 Headless Chrome 154.0.8037.97 on October 12, 2026. This is retained-resource
 measurement under forced collection, not a universal leak-free or peak-memory claim.

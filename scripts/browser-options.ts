@@ -1,6 +1,7 @@
 export const browserSmokeScopes = Object.freeze([
   '--zoom-only',
   '--memory-only',
+  '--viewer-disposal-only',
   '--performance-only',
   '--hover-only',
   '--desktop-only',
@@ -69,7 +70,12 @@ export function parseBrowserOptions(args: readonly string[]): Readonly<{
   const engine = browser === 'firefox' || browser === 'webkit' ? browser : 'chromium';
   if (scope === '--zoom-only' && browser !== 'chrome')
     throw Error('Native zoom verification requires --browser=chrome.');
-  if ((scope === '--performance-only' || scope === '--memory-only') && engine !== 'chromium')
+  if (
+    (scope === '--performance-only' ||
+      scope === '--memory-only' ||
+      scope === '--viewer-disposal-only') &&
+    engine !== 'chromium'
+  )
     throw Error('Browser measurement requires a Chromium engine for CDP measurements.');
   return Object.freeze({ browser, engine, scope });
 }

@@ -985,7 +985,11 @@ own unsaved-change confirmation and file export transport.
 
 Viewer disposal removes only its own DOM/listeners and preserves an external
 controller. Playback timers/controls are disposed with the viewer. An internally
-created controller is disposed with the viewer. The
+created controller is disposed with the viewer. A retained disposed handle releases
+its original SGF input and record-bearing render, animation and playback snapshots;
+the parsed controller owns record data, not presentation options. Host-retained
+input buffers, immutable snapshots and borrowed controllers remain host-owned.
+The
 variation tree labels include the position's move number, for example `23 · Black Q4`.
 Numbers follow each branch independently, count passes, retain the number on annotation/setup
 nodes and honor SGF `MN` overrides, matching the navigation counter. The start position is

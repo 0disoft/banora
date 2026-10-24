@@ -36,7 +36,7 @@ export function createRecordPlayback(
   let intervalMs = normalizePlaybackInterval(options.intervalMs),
     playing = false,
     disposed = false;
-  let selected = controller.getState();
+  let selected: ControllerState | undefined = controller.getState();
   let expected: ControllerState['node'] | undefined;
   let timer: (() => void) | undefined;
   const { signal } = options;
@@ -56,7 +56,7 @@ export function createRecordPlayback(
     timer = undefined;
   };
   const publish = () => {
-    snapshot = Object.freeze({ playing, intervalMs, canPlay: selected.node.children.length > 0 });
+    snapshot = Object.freeze({ playing, intervalMs, canPlay: !!selected?.node.children.length });
     for (const listener of [...listeners]) {
       if (!listeners.has(listener)) continue;
       try {
@@ -80,7 +80,7 @@ export function createRecordPlayback(
     const stop = scheduler.after(intervalMs, () => {
       if (cancelled || !playing || disposed || signal?.aborted) return;
       timer = undefined;
-      expected = selected.node.children[0];
+      expected = selected?.node.children[0];
       try {
         if (!controller.next().ok) pause();
       } catch {
@@ -98,13 +98,13 @@ export function createRecordPlayback(
   publish();
   const unsubscribe = controller.subscribe((state) => {
     const changed =
-      selected.record !== state.record ||
-      selected.node.id !== state.node.id ||
-      selected.recordGeneration !== state.recordGeneration;
+      selected?.record !== state.record ||
+      selected?.node.id !== state.node.id ||
+      selected?.recordGeneration !== state.recordGeneration;
     const ownStep =
       expected === state.node &&
-      selected.record === state.record &&
-      selected.recordGeneration === state.recordGeneration;
+      selected?.record === state.record &&
+      selected?.recordGeneration === state.recordGeneration;
     if (ownStep) expected = undefined;
     selected = state;
     if (playing && ((changed && !ownStep) || !state.node.children.length)) pause();
@@ -131,7 +131,7 @@ export function createRecordPlayback(
     },
     play() {
       active();
-      if (playing || signal?.aborted || !selected.node.children.length) return;
+      if (playing || signal?.aborted || !selected?.node.children.length) return;
       playing = true;
       publish();
       schedule();
@@ -154,6 +154,8 @@ export function createRecordPlayback(
       signal?.removeEventListener('abort', pause);
       unsubscribe();
       listeners.clear();
+      selected = undefined;
+      expected = undefined;
     },
   });
 }

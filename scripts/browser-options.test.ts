@@ -41,6 +41,8 @@ test('unknown, conflicting and incompatible options reject rather than selecting
     ['--locale-only', '--locale-only'],
     ['--browser=firefox', '--performance-only'],
     ['--browser=webkit', '--memory-only'],
+    ['--browser=firefox', '--viewer-disposal-only'],
+    ['--browser=webkit', '--viewer-disposal-only'],
     ['--browser=msedge', '--zoom-only'],
   ])
     expect(() => parseBrowserOptions(args)).toThrow();

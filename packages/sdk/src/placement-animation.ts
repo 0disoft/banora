@@ -135,7 +135,16 @@ export function mountPlacementAnimation(svg: SVGSVGElement, signal: AbortSignal)
     },
     { signal },
   );
-  signal.addEventListener('abort', cancel, { once: true });
+  signal.addEventListener(
+    'abort',
+    () => {
+      cancel();
+      previous = undefined;
+      context = undefined;
+      duration = undefined;
+    },
+    { once: true },
+  );
   return {
     cancel,
     sync(
@@ -143,6 +152,7 @@ export function mountPlacementAnimation(svg: SVGSVGElement, signal: AbortSignal)
       options: BoardOptions,
       config: Readonly<Required<PlacementAnimationOptions>> | null,
     ): void {
+      if (signal.aborted) return;
       const nextContext = contextFor(options),
         changed =
           !context ||
