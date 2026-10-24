@@ -235,7 +235,8 @@ providers or progress storage are started.
 ### Complete Puzzle View
 
 `@0disoft/banora/puzzle-view` and root exports provide browser `mountPuzzle`, `PuzzleView`,
-`PuzzleViewOptions` and `PuzzleBoardOptions`. Import is SSR-safe; mounting requires a
+`PuzzleViewOptions`, `PuzzleBoardOptions`, `PuzzleLocaleOptions`, `PuzzleMessages`
+and DOM-free `createPuzzleMessages`. Import is SSR-safe; mounting requires a
 DOM. Supply exactly one `session` (borrowed) or `definition` (creates an owned session).
 The view includes title/prompt, board, authored feedback, revealed hints, status/attempt
 summary, Pass, Reveal next hint and Restart controls. Author text is rendered as text,
@@ -253,9 +254,15 @@ const view = mountPuzzle(container, {
 view.dispose(); // A borrowed puzzle session remains live for remounting.
 ```
 
+`locale` and literal `messages: Partial<PuzzleMessages>` localize widget controls,
+progress, default/system feedback and board labels in twelve languages; see
+[localization](localization.md#puzzle-widget-messages). Authored title, prompt,
+feedback and hints are preserved. Locale-only updates retain the exact session
+state and emit no puzzle events. Headless state/result strings remain unchanged.
+
 `board` accepts theme, coordinates, crop, transform, touch and ready stone textures.
 No host-supplied board controller, drawing mode, node pin, callback or animation can
-replace the session's answer path. `update({board,onEvent})` merges supported options,
+replace the session's answer path. `update({board,onEvent,locale,messages})` merges supported options,
 updates callbacks and preserves puzzle progress; remount to replace the session or
 definition. Invalid presentation updates retain prior settings. Buttons reflect
 finished status and remaining hints. Hint/response redraws retain the outer SVG and

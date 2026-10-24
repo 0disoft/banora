@@ -36,6 +36,24 @@ Streaming/bulk AI analysis, new compatibility targets and SGF conversion tools
 remain proposals for later product decisions. They are not prerequisites for
 the first usability delivery above, and are not claimed as implemented.
 
+## Puzzle Localization Increment
+
+The puzzle view now has explicit twelve-locale controls, accessible names, board
+labels, progress, help and default/unlisted/rejected-action feedback. It exports
+its own DOM-free `createPuzzleMessages` and optional locale/message configuration;
+existing `UiMessages` callers acquire no new required fields. Headless puzzle
+results and authored definitions are unchanged. Outcome identity distinguishes
+system unlisted feedback from identical authored answer text.
+
+Updates validate messages and board configuration before committing presentation
+options; accepted overrides are copied. Locale changes preserve exact puzzle
+state and emit no events. Chrome coverage extends the existing puzzle flow with
+all-locale state/status/error transitions, authored text and safe overrides,
+atomic invalid updates, explicit resets and owned/borrowed disposal. The focused
+CI route retains the original puzzle validation and adds the new scenario.
+Analysis and board live-region notices are next; large-record navigation,
+game-information editing, release readiness and content tooling remain pending.
+
 ## Evidence
 
 Mouse hover implementation/measurements are recorded in the

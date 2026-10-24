@@ -49,7 +49,7 @@ async (page) => {
     await answer(page, 1, 1);
     verify(
       (await page.locator('#state').innerText()) === stateBefore &&
-        (await page.locator('[data-puzzle-feedback]').innerText()).includes('occupied'),
+        (await page.locator('[data-puzzle-feedback]').innerText()).includes('already a stone'),
       'Illegal puzzle input counted/notified',
     );
     await page.getByRole('button', { name: 'Restart puzzle', exact: true }).click();

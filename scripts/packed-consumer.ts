@@ -67,8 +67,8 @@ if (externalBoard.stones.length!==6 || 'rules' in externalBoard || !Object.isFro
 import { opposite, comparePositions } from '@0disoft/banora/core';
 import type { ControllerState } from '@0disoft/banora/controller';
 import { mountViewer } from '@0disoft/banora/viewer';
-import {mountPuzzle} from '@0disoft/banora/puzzle-view';
-import type {PuzzleView} from '@0disoft/banora/puzzle-view';
+import {mountPuzzle,createPuzzleMessages} from '@0disoft/banora/puzzle-view';
+import type {PuzzleView,PuzzleViewOptions,PuzzleMessages} from '@0disoft/banora/puzzle-view';
 import {mountAnalysis} from '@0disoft/banora/analysis-view';
 import type {AnalysisView} from '@0disoft/banora/analysis-view';
 import { mountComparison } from '@0disoft/banora/comparison';
@@ -85,6 +85,9 @@ if (typeof mountComparison !== 'function') throw Error('Comparison artifact expo
 if (typeof mountViewer !== 'function') throw Error('Viewer artifact export failed');
 const puzzleMount:typeof mountPuzzle=mountPuzzle;
 const puzzleView:PuzzleView|undefined=undefined;
+const puzzleOptions:PuzzleViewOptions={locale:'ko',messages:{hint:'Literal hint'}};
+const puzzleMessages:PuzzleMessages=createPuzzleMessages(puzzleOptions);
+if (puzzleMessages.hint!=='Literal hint' || puzzleMessages.unlisted===createPuzzleMessages().unlisted || !Object.isFrozen(puzzleMessages)) throw Error('Packed puzzle locale exports/types failed');
 if (typeof puzzleMount!=='function') throw Error('Packed SSR-safe puzzle view import failed');
 const analysisMount:typeof mountAnalysis=mountAnalysis;
 const analysisView:AnalysisView|undefined=undefined;

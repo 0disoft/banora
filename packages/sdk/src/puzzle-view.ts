@@ -1,15 +1,26 @@
 import { mountBoard } from './board.js';
 import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
 import { RecordController } from './controller.js';
+import { createBoardLabels, formatUiFailure, formatUiMessage } from './locale.js';
+import { createPuzzleMessages } from './puzzle-locale.js';
+import type { PuzzleLocaleOptions } from './puzzle-locale.js';
+export { createPuzzleMessages } from './puzzle-locale.js';
+export type { PuzzleMessages, PuzzleLocaleOptions } from './puzzle-locale.js';
 import { PuzzleSession } from './puzzle.js';
-import type { PuzzleDefinition, PuzzleEvent, PuzzleResult, PuzzleState } from './puzzle.js';
+import type {
+  PuzzleDefinition,
+  PuzzleEvent,
+  PuzzleFailure,
+  PuzzleResult,
+  PuzzleState,
+} from './puzzle.js';
 import { createSgfNode, pointToSgf, serializeSgf } from './sgf.js';
 
 export type PuzzleBoardOptions = Pick<
   BoardOptions,
   'theme' | 'coordinates' | 'crop' | 'transform' | 'touch' | 'stoneTextures'
 >;
-export interface PuzzleViewOptions {
+export interface PuzzleViewOptions extends PuzzleLocaleOptions {
   readonly session?: PuzzleSession;
   readonly definition?: PuzzleDefinition;
   readonly board?: PuzzleBoardOptions;
@@ -52,57 +63,103 @@ export function mountPuzzle(container: HTMLElement, initial: PuzzleViewOptions):
     throw new TypeError('Supply a puzzle session or definition, not both');
   if (!initial.session && !initial.definition)
     throw new TypeError('A puzzle session or definition is required');
+  let messages = createPuzzleMessages(initial);
   const owned = !initial.session,
     session = initial.session ?? new PuzzleSession(initial.definition!);
   const state = session.getState(),
     document = container.ownerDocument,
     root = document.createElement('section');
   root.className = 'banora-puzzle';
-  root.setAttribute('aria-label', 'Go puzzle');
   root.innerHTML =
-    '<h2 data-puzzle-title></h2><p data-puzzle-prompt></p><div data-puzzle-board></div><p data-puzzle-progress></p><p data-puzzle-feedback role="status"></p><ul data-puzzle-hints aria-label="Revealed puzzle hints"></ul><nav aria-label="Puzzle controls"><button type="button" data-puzzle-hint>Reveal next hint</button><button type="button" data-puzzle-pass>Pass</button><button type="button" data-puzzle-restart>Restart puzzle</button></nav><p data-puzzle-help>Arrow keys move the cursor; Enter answers. A triangle marks a revealed hint; a circle marks the last played move. Answers follow the author’s tree.</p>';
+    '<h2 data-puzzle-title></h2><p data-puzzle-prompt></p><div data-puzzle-board></div><p data-puzzle-progress></p><p data-puzzle-feedback role="status"></p><ul data-puzzle-hints></ul><nav data-puzzle-controls><button type="button" data-puzzle-hint></button><button type="button" data-puzzle-pass></button><button type="button" data-puzzle-restart></button></nav><p data-puzzle-help></p>';
   const style = document.createElement('style');
   style.textContent = stylesheet;
   root.prepend(style);
   const find = <T extends HTMLElement>(name: string) =>
     root.querySelector<T>(`[data-puzzle-${name}]`)!;
   const abort = new AbortController();
-  let options = { ...initial, board: { ...initial.board } },
+  let options = {
+      ...initial,
+      messages: initial.messages && Object.freeze({ ...initial.messages }),
+      board: { ...initial.board },
+    },
     disposed = false,
-    lastSgf = displaySgf(state);
+    lastSgf = displaySgf(state),
+    lastState = state;
+  let lastFailure: PuzzleFailure | undefined;
   const display = new RecordController({ sgf: lastSgf });
   let board: BoardView | undefined,
     unsubscribe: (() => void) | undefined,
     stopEvents: (() => void) | undefined;
   const report = (result: PuzzleResult) => {
-    if (!result.ok)
-      find('feedback').textContent = `Action rejected: ${result.reason.replaceAll('-', ' ')}.`;
+    lastFailure = result.ok ? undefined : result.reason;
+    renderFeedback(lastState);
   };
-  const boardOptions = (state: PuzzleState): BoardOptions => ({
-    theme: options.board.theme,
-    coordinates: options.board.coordinates,
-    crop: options.board.crop,
-    transform: options.board.transform,
-    touch: options.board.touch,
-    stoneTextures: options.board.stoneTextures,
+  const boardOptions = (state: PuzzleState, config = options, text = messages): BoardOptions => ({
+    theme: config.board.theme,
+    coordinates: config.board.coordinates,
+    crop: config.board.crop,
+    transform: config.board.transform,
+    touch: config.board.touch,
+    stoneTextures: config.board.stoneTextures,
+    labels: createBoardLabels({
+      locale: config.locale,
+      messages: { black: text.black, white: text.white },
+    }),
     readOnly: true,
     onPoint: state.status === 'active' ? (point) => report(session.play(point)) : undefined,
   });
-  function render(state: PuzzleState) {
+  function renderLabels() {
+    root.lang = options.locale ?? 'en';
+    root.setAttribute('aria-label', messages.puzzle);
+    find('hints').setAttribute('aria-label', messages.hints);
+    find('controls').setAttribute('aria-label', messages.controls);
+    for (const key of ['hint', 'pass', 'restart', 'help'] as const)
+      find(key).textContent = messages[key];
+  }
+  function renderFeedback(state: PuzzleState) {
+    if (lastFailure) {
+      const reason =
+        lastFailure === 'finished'
+          ? messages.finished
+          : lastFailure === 'no-hint'
+            ? messages.noHint
+            : lastFailure === 'busy'
+              ? messages.busy
+              : lastFailure === 'disposed'
+                ? messages.disposed
+                : formatUiFailure(lastFailure === 'invalid-move' ? 'out-of-bounds' : lastFailure, {
+                    locale: options.locale,
+                  });
+      find('feedback').textContent = formatUiMessage(messages.rejected, { reason });
+    } else {
+      find('feedback').textContent =
+        state.lastAnswer?.outcome === 'unlisted'
+          ? messages.unlisted
+          : state.feedback || messages.findSolution;
+    }
+  }
+  function render(state: PuzzleState, updateBoard = true) {
     if (disposed) return;
+    if (state !== lastState) lastFailure = undefined;
+    lastState = state;
     const sgf = displaySgf(state);
     if (lastSgf !== sgf) {
       const loaded = display.loadSgf(sgf, { discardChanges: true });
       if (!loaded.ok) throw Error('Could not render puzzle position');
       lastSgf = sgf;
     }
-    board!.update(boardOptions(state));
+    if (updateBoard) board!.update(boardOptions(state));
     root.dataset.puzzleStatus = state.status;
     find('title').textContent = state.title;
     find('prompt').textContent = state.prompt;
-    find('progress').textContent =
-      `${state.player === 'black' ? 'Black' : 'White'} to solve · ${state.status === 'active' ? 'In progress' : state.status === 'correct' ? 'Correct' : 'Incorrect'} · ${state.attempts} attempts · ${state.line.length} played moves`;
-    find('feedback').textContent = state.feedback || 'Find an authored solution.';
+    find('progress').textContent = formatUiMessage(messages.progress, {
+      color: messages[state.player],
+      status: messages[state.status],
+      attempts: state.attempts,
+      moves: state.line.length,
+    });
+    renderFeedback(state);
     const hints = find('hints');
     hints.replaceChildren();
     hints.hidden = state.hints.length === 0;
@@ -116,6 +173,7 @@ export function mountPuzzle(container: HTMLElement, initial: PuzzleViewOptions):
     find<HTMLButtonElement>('pass').disabled = state.status !== 'active';
   }
   try {
+    renderLabels();
     board = mountBoard(find('board'), { controller: display, ...boardOptions(state) });
     unsubscribe = session.subscribe(render);
     stopEvents = session.onEvent((event) => options.onEvent?.(event));
@@ -143,15 +201,14 @@ export function mountPuzzle(container: HTMLElement, initial: PuzzleViewOptions):
       if (disposed) throw Error('Puzzle view is disposed');
       if ('session' in next || 'definition' in next)
         throw TypeError('Remount to replace a puzzle session/definition');
-      const previous = options,
-        merged = { ...options, ...next, board: { ...options.board, ...next.board } };
-      options = merged;
-      try {
-        board!.update(boardOptions(session.getState()));
-      } catch (error) {
-        options = previous;
-        throw error;
-      }
+      const merged = { ...options, ...next, board: { ...options.board, ...next.board } },
+        nextMessages = createPuzzleMessages(merged),
+        state = session.getState();
+      board!.update(boardOptions(state, merged, nextMessages));
+      options = { ...merged, messages: merged.messages && Object.freeze({ ...merged.messages }) };
+      messages = nextMessages;
+      renderLabels();
+      render(state, false);
     },
     exportSvg: (config?: DiagramOptions) => {
       if (disposed) throw Error('Puzzle view is disposed');

@@ -33,7 +33,7 @@ const focused: readonly [RegExp, string][] = [
     '--analysis-only',
   ],
   [
-    /^(packages\/sdk\/src\/puzzle|examples\/puzzle\/|scripts\/puzzle-scenario\.js$)/,
+    /^(packages\/sdk\/src\/puzzle|examples\/puzzle\/|scripts\/puzzle(?:-locale)?-scenario\.js$)/,
     '--puzzle-only',
   ],
   [/^(packages\/sdk\/src\/playback|scripts\/playback-scenario\.js$)/, '--playback-only'],

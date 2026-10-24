@@ -37,6 +37,7 @@
     "playback",
     "puzzle",
     "puzzle-authoring",
+    "puzzle-locale",
     "puzzle-types",
     "record-runtime",
     "record-search",

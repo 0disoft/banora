@@ -67,13 +67,44 @@ The two new keys are optional in the public `UiMessages` type so existing comple
 message bags still typecheck. `createUiMessages` returns all resolved fields as
 `Required<UiMessages>`; every built-in locale supplies both translations.
 These keys do not yet translate board live-region interaction notices or the
-separate puzzle/analysis widgets.
+separate analysis widget.
+
+## Puzzle Widget Messages
+
+`mountPuzzle` accepts `locale` and `messages: Partial<PuzzleMessages>` from its
+own feature catalog. `createPuzzleMessages`, `PuzzleMessages` and
+`PuzzleLocaleOptions` are exported by `@0disoft/banora/puzzle-view` and the root.
+The helper is DOM-free and returns a complete frozen catalog for the same twelve
+locales. Default language is English and never depends on the browser.
+
+```ts
+import { mountPuzzle } from '@0disoft/banora/puzzle-view';
+const view = mountPuzzle(container, { session: puzzle, locale: 'ko' });
+view.update({ locale: 'ja', messages: { hint: 'ヒントを見る' } });
+view.update({ locale: undefined, messages: undefined }); // Reset to English defaults.
+```
+
+Controls, accessible group names, board labels, keyboard/marker help, progress,
+default feedback, unlisted-answer guidance and rejected-action explanations are
+localized. `progress` accepts `{color}`, `{status}`, `{attempts}` and `{moves}`;
+`rejected` accepts `{reason}`. Overrides are literal text, defensively copied and
+limited to 4,096 characters per known string field. Invalid locale/message/crop
+updates retain the previous language, presentation, callbacks and puzzle state.
+Omitted options retain the prior configuration; explicit `undefined` resets the
+locale or messages. Existing English callers and headless `PuzzleSession` results
+remain compatible. Feature messages do not add required keys to `UiMessages`.
+
+Language updates preserve the exact puzzle state, attempts, hints, authored
+feedback and source definition, without emitting puzzle events. A rejected action
+remains visible in the new language until a subsequent action changes the state.
+System unlisted feedback is identified by its outcome, never by matching English
+text: identical text authored for a successful answer is preserved as authored.
 
 Authored SGF names, player names, comments, coordinates, metadata, rule identifiers,
 CLI machine output and protocol/error diagnostics retain their original content.
 Localization changes presentation only; no record rewrite or remote translation
-service is used. Puzzle and analysis widgets currently have their existing English
-labels and are outside the built-in Viewer language bundle.
+service is used. Analysis widget messages and board live-region interaction
+notices still have their existing English text; their localization remains pending.
 
 ## Studio Language Selection
 

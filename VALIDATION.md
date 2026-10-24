@@ -3,6 +3,44 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Localized Puzzle Widget
+
+The browser puzzle view now accepts explicit `locale` and literal
+`messages: Partial<PuzzleMessages>` with a complete twelve-language feature
+catalog. DOM-free `createPuzzleMessages` is exported through puzzle-view and root;
+new locale options do not change existing required inputs or headless puzzle
+state/result strings. Controls, accessible names, board labels, progress, help,
+default/unlisted feedback and rejected-action explanations are localized.
+Authored title, prompt, hints and feedback remain literal. System unlisted
+feedback is selected by outcome, rather than matching English strings.
+
+Options validate before committing presentation; message overrides are copied,
+frozen and bounded by the existing 4,096-character policy. Locale updates preserve
+the exact immutable puzzle state, attempts, hints and event counts. Failed input
+remains visible in the new language. The previous puzzle browser flow remains;
+its occupied-input assertion now expects the human-readable explanation instead
+of a machine code. A separate all-locale scenario verifies controls, accessible
+groups/board, progress and correct/incorrect/unlisted states, authored text that
+matches a system message, keyboard rejection, invalid-update atomicity, literal
+overrides, explicit resets, rejected mounts and owned/borrowed disposal. It also
+checks localized closed-session feedback without reading a disposed session.
+
+Production Chrome 155 puzzle scope passed both scenarios, including the previous
+actual mouse/keyboard/touch/diagram/lifecycle checks. SDK/adapters/examples build,
+root types, lint, format, boundaries, 26 related puzzle/locale/CI tests with 3,150
+assertions, installed SDK/classic/type consumer checks and 147 documents / 748
+relative links passed. The consumer explicitly imports and executes the new
+selective API and checks its public types. Browser routing adds the locale
+scenario to the existing puzzle-only CI scope. Feature, SDK and test-hardening
+skills applied; source spec, public API, localization and follow-up docs updated.
+No dependency, version, database, hosted workflow, push or publication changes.
+
+The unrelated full CLI/Git/release suite and browser scopes were not repeated;
+the affected scope retained its previous checks. Firefox/WebKit, physical devices
+and hosted CI remain unverified. Analysis and board live-region localization,
+large-record navigation and later follow-up milestones remain pending. This round
+completed one cohesive work unit; no additional unit began after ten minutes.
+
 ## Localized Touch Confirmation Text
 
 Visible touch confirmation selection text and the confirmation group's accessible

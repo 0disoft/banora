@@ -187,6 +187,7 @@ async function scoringSmoke(): Promise<void> {
 }
 async function puzzleSmoke(): Promise<void> {
   await scenario('puzzle', 'banora-puzzle-complete');
+  await scenario('puzzle-locale', 'banora-puzzle-locale-complete');
   const diagram = await readFile(resolve(output, 'puzzle.svg'), 'utf8');
   if (
     !diagram.includes('xmlns="http://www.w3.org/2000/svg"') ||
