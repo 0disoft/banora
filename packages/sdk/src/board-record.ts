@@ -1,11 +1,44 @@
 import type { BoardFrame, BoardBinding } from './board-frame.js';
 import type { RecordController, ControllerState } from './controller.js';
 import { expandSgfPoints, pointFromSgf } from './sgf.js';
+import type { SgfNode, SgfRecord } from './sgf.js';
 import { variationCandidates } from './variations.js';
+
+/** Mutates only the fresh map being built for this frame. */
+function numberNode(
+  node: SgfNode,
+  numbers: Map<number, number>,
+  number: number,
+  width: number,
+  height: number,
+): number {
+  for (const key of ['AB', 'AW', 'AE'])
+    for (const value of node.properties[key] ?? [])
+      for (const point of expandSgfPoints(value, width, height))
+        numbers.delete(point.y * width + point.x);
+  const value = node.properties.B?.[0] ?? node.properties.W?.[0];
+  if (value !== undefined) number++;
+  if (node.properties.MN) number = Number(node.properties.MN[0]);
+  if (value && !(value === 'tt' && width <= 19 && height <= 19)) {
+    const point = pointFromSgf(value, width, height);
+    numbers.set(point.y * width + point.x, number);
+  }
+  return number;
+}
 
 /** A projection, not another record or rules engine. Number traversal stays lazy. */
 export function recordBoardBinding(controller: RecordController, owned: boolean): BoardBinding {
   const cache = new WeakMap<ControllerState, BoardFrame>();
+  let checkpoint = new WeakMap<
+    SgfRecord,
+    {
+      node: SgfNode;
+      game: number;
+      depth: number;
+      number: number;
+      values: ReadonlyMap<number, number>;
+    }
+  >();
   function frame(state: ControllerState): BoardFrame {
     const previous = cache.get(state);
     if (previous) return previous;
@@ -31,25 +64,40 @@ export function recordBoardBinding(controller: RecordController, owned: boolean)
       overlays: [],
       numbers() {
         if (numbers) return numbers;
-        numbers = new Map();
-        let number = 0,
-          node = state.record.games[state.gameIndex]!;
-        // Only the selected path contributes numbers; other games and fork
-        // descendants need neither traversal nor a temporary collection index.
-        for (let index = 0; index < state.path.length; index++) {
-          if (index) node = node.children.find((child) => child.id === state.path[index])!;
-          for (const key of ['AB', 'AW', 'AE'])
-            for (const value of node.properties[key] ?? []) {
-              for (const point of expandSgfPoints(value, width, height))
-                numbers.delete(point.y * width + point.x);
-            }
-          const value = node.properties.B?.[0] ?? node.properties.W?.[0];
-          if (value !== undefined) number++;
-          if (node.properties.MN) number = Number(node.properties.MN[0]);
-          if (!value || (value === 'tt' && width <= 19 && height <= 19)) continue;
-          const point = pointFromSgf(value, width, height);
-          numbers.set(point.y * width + point.x, number);
+        const before = checkpoint.get(state.record);
+        let number: number;
+        if (
+          before &&
+          before.game === state.gameIndex &&
+          before.depth + 1 === state.path.length &&
+          before.node.children.includes(state.node)
+        ) {
+          numbers = new Map(before.values);
+          number = numberNode(state.node, numbers, before.number, width, height);
+        } else {
+          numbers = new Map();
+          number = 0;
+          let node = state.record.games[state.gameIndex]!;
+          // Non-adjacent navigation keeps the original selected-path traversal.
+          for (let index = 0; index < state.path.length; index++) {
+            if (index) node = node.children.find((child) => child.id === state.path[index])!;
+            number = numberNode(node, numbers, number, width, height);
+          }
         }
+        // Exactly one weak record key, no retained history cache. Copy the private
+        // checkpoint so even a mutated returned map cannot affect future frames.
+        checkpoint = new WeakMap([
+          [
+            state.record,
+            {
+              node: state.node,
+              game: state.gameIndex,
+              depth: state.path.length,
+              number,
+              values: new Map(numbers),
+            },
+          ],
+        ]);
         return numbers;
       },
     };

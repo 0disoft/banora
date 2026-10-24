@@ -3,6 +3,50 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Incremental Move-Number Projection
+
+Board numbering now reuses one weak record checkpoint only for the same game,
+exact direct-child identity and one extra path node. It applies only the current
+node's properties to a fresh map; cold reads, forks/backtracking, game changes,
+edits and imports retain the selected-path fallback. The private checkpoint copy
+is separate from returned maps, old frames stay independently memoized, and no
+history cache or new strong record-retention root is introduced.
+
+For linear traversal, selected-node processing drops from 12,507,501 to 5,001
+applications across 5,000 moves. Including bounded A-point map copies, projection
+work changes O(N^2) to O(N*A); controller path construction and SVG painting are
+unchanged. Actual setup expansion and direct-child membership work remain.
+
+Same-controller paired Bun 1.4.3 / Windows evidence against `baaefea` alternates
+version order on every frame, with parsing/navigation/frame creation/assertions
+outside the timer. Two warmups/nine samples give 194.102/3.597ms medians for 1,000
+recorded placements and 5799.015/45.711ms for 5,000. The fuller 128-numbered-point
+legal-opening/pass workload uses one warmup/five samples and gives
+2872.521/53.348ms (98.1% lower). All 96,028 frame-map comparisons, including warmups,
+matched exactly. The performance budget records methods and ignored raw artifacts.
+
+Node 24.14.0 GC ownership evidence keeps the binding after controller disposal:
+tracked record/leaf are both collected. Holding a public frame keeps both alive,
+and dropping frame/binding handles permits both to collect. No production GC or
+WeakRef operation and no default-CI timing/GC threshold is added.
+
+Focused projection tests passed 4 tests / 241 assertions. They bound observed
+property reads linearly, keep existing off-path isolation, and cover MN zero,
+setup/pass/annotations, delayed frames, branches/backtracking, edits/Undo/Redo,
+games/imports, 52-line tt semantics and mutation isolation for returned maps.
+The complete SDK suite passed 239 tests / 10,807 assertions. Root types,
+SDK/declaration/adapters/production-example builds and packed public SDK/classic
+consumers passed. Chrome 155 focused comparison and playback scopes passed,
+including pinned presentation and all six existing playback consumer lifecycles,
+using the existing Playwright CLI harness. Unrelated full CLI/Git/release and
+complete browser/device matrices were not repeated for this projection-only
+refactor. Timings are Bun projection totals; browser paint latency/RSS are unmeasured.
+Root lint, formatting, repository boundaries and docs checks passed
+(147 documents, 750 relative links).
+Refactor, SDK and test-hardening skills applied; API and performance source-of-truth
+docs updated. No public signatures, DB, dependencies, versions, ignore policy,
+hosted workflows or runner contracts changed. No push/publication.
+
 ## Single-Priority Refactor: Release Closed Controller Record Graphs
 
 `RecordController.dispose()` now also replaces current/baseline records with a

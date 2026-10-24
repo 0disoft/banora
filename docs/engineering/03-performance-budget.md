@@ -287,3 +287,56 @@ evidence under forced Node GC, not browser/RSS/peak-memory evidence or an immedi
 physical-memory-return guarantee. The ignored `.tmp/dispose-evidence.ts`,
 `dispose-before.ts`, `dispose-evidence.json` and logs preserve the local procedure.
 GC survival/time thresholds are not added to default CI.
+
+## Incremental Move-Number Projection
+
+`board-record.ts` previously recalculated numbers from the root for each new
+frame. Sequentially displaying an N-move linear record processes (N+1)(N+2)/2
+nodes, including the root at each step: 12,507,501 visits for 5,000 moves. The
+projection now proves same immutable record, same game, one extra path node and
+exact direct-child identity before reusing the previous counter/map. That sequence
+applies node properties 5,001 times, with bounded map copying. Non-adjacent moves,
+fork changes, new records and cold reads retain the original path calculation.
+
+For a linear record without expanded setup lists, projection work changes O(N^2)
+to O(N*A) for A board points (constant board dimensions). General adjacent work
+includes direct-child membership and the current node's setup expansion. This
+does not change controller path construction or SVG painting complexity.
+Only one weak record key is stored per binding, preventing a history cache or
+record-retention root. A private map copy isolates future frames from mutation of
+returned maps; old immutable-frame projections remain independently memoized.
+
+Paired Bun 1.4.3 / Windows comparisons use the exact `baaefea` projection with the
+working projection on the same controller/state. Two full warmups precede nine
+samples per size, alternating before/after order on every frame. A sample sums
+only `numbers()` time across every state from root to last move; parsing,
+controller movement/state construction, frame creation, equality assertions and
+disposal are outside the timer. Each frame's ordered map entries must match.
+Synthetic 19x19 repeated recorded aa/bb placements stress long histories without
+claiming ordinary legal-play sequences. Timing thresholds are not added to CI.
+
+| Sequential workload                                         | Before projection median ms | After projection median ms |
+| ----------------------------------------------------------- | --------------------------: | -------------------------: |
+| 1,000 recorded aa/bb placements                             |                     194.102 |                      3.597 |
+| 5,000 recorded aa/bb placements                             |                    5799.015 |                     45.711 |
+| 5,000 moves: legal opening then passes, 128 numbered points |                    2872.521 |                     53.348 |
+
+The fuller-map case uses one warmup and five measured samples, with the same
+frame-by-frame alternation/equality checks. Each opening attempt uses actual
+legal `play`, falling back to pass on rejection; remaining moves are passes.
+Its projection median falls 98.1%. All three cases compare 96,028 frame maps
+including warmups. These are local projection totals, not whole-UI, browser
+latency or universal device claims.
+
+Node 24.14.0 forced-GC checks retain the binding after closing its controller:
+both tracked record and leaf are collected. A host-held frame positive control
+keeps both alive until the frame/binding handles are dropped. Six separate GC
+turns precede each observation. This checks weak-cache ownership without a heap
+byte/RSS threshold; `.tmp/number-lifetime.ts` and its log hold the local procedure.
+
+Ignored `.tmp/numbers-before.ts`, `number-paired.ts`, `number-paired.json` and logs
+retain the source and raw measurements. `number-dense.ts` separately generates a
+legal 128-attempt opening followed by passes to check a fuller map. The projection
+tests bound observed property reads linearly and cover setup, MN including zero,
+legacy pass, maximum-board tt, annotations, delayed frames, branches, backward
+movement, edits/Undo/Redo, game/import changes and private checkpoint isolation.

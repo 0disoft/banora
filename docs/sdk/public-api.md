@@ -788,6 +788,13 @@ annotations/comments and move numbers come from the pinned node's actual path.
 Move-number projection walks only that path in its selected game, including root,
 setup and annotation nodes; it does not rebuild an index of unrelated branches
 or games. Each immutable frame retains its lazily computed number map.
+Adjacent frames in the same immutable record/game reuse a single checkpoint only
+when path depth increases by one and the previous node owns the exact current
+child. They copy its number map/counter and apply only that child's setup, pass,
+move and MN properties. Cold/non-adjacent navigation and edited/imported records
+retain the selected-path calculation. A one-entry weak record cache adds O(A)
+space for A board points without retaining historical records; its private map is
+copied separately from returned frame maps. Existing frames remain independent.
 Pinned boards never issue their own play/ink/touch-aim commands or Page Up/Down
 navigation; optional `onPoint` remains a host-owned inspection callback.
 
