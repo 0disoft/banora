@@ -31,6 +31,9 @@ import { matches } from './json-schema.js';
 import { buildCommentBatch, CommentBatchError } from './comment-batch.js';
 import type { CommentChange, CommentBatchPreview } from './comment-batch.js';
 export type { CommentChange, CommentBatchPreview, CommentBatchEdit } from './comment-batch.js';
+import { buildGameInfo, readGameInfo } from './game-info.js';
+import type { GameInfo, GameInfoPatch } from './game-info.js';
+export type { GameInfo, GameInfoPatch } from './game-info.js';
 
 export type MarkerKind = 'triangle' | 'square' | 'circle' | 'cross' | 'label';
 export type MoveAssessment = 'good' | 'bad';
@@ -506,6 +509,29 @@ export class RecordController {
       this.#selected,
       node.id,
     );
+  }
+  /** Frozen authored information from the current game root; no defaults are inserted. */
+  getGameInfo(): GameInfo {
+    this.#assertLive();
+    return readGameInfo(this.#record.games[this.#index.games.get(this.#selected)!]!);
+  }
+  /** One atomic undoable root edit, preserving the selected node and all other games. */
+  setGameInfo(patch: GameInfoPatch): CommandResult {
+    this.#assertLive();
+    const record = this.#record,
+      selected = this.#selected;
+    const root = this.#record.games[this.#index.games.get(this.#selected)!]!;
+    const result = buildGameInfo(
+      root,
+      patch,
+      this.#limits.maxValueLength ?? DEFAULT_SGF_LIMITS.maxValueLength,
+    );
+    if (!result.ok) return result;
+    this.#assertLive();
+    if (this.#record !== record || this.#selected !== selected)
+      return { ok: false, reason: 'stale-preview' };
+    if (result.node === root) return { ok: true };
+    return this.#edit(result.node, this.#selected, root.id);
   }
   setComment(comment: string): CommandResult {
     this.#assertLive();

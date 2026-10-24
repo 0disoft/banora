@@ -122,6 +122,14 @@ Studio variation pass captions use the SDK locale template for both empty and
 legacy `tt` passes, preserving SGF move-number overrides and the authored encoding.
 Missing komi is a localized presentation label; it never inserts a default `KM`
 property into the record.
+The controller exposes typed, atomic, undoable game-information patches for player
+names, game name, FF4 date, komi and result on the current game root. Unspecified
+authored properties and other games remain untouched; unknown SGF properties and
+raw values survive export/reopen/checkpoints. New values are checked before the
+existing full candidate validation and commit. Missing/removed komi remains absent.
+Studio's information editor and explicitly confirmed scoring-result persistence
+remain separate consumer implementation work; scoring never writes a result merely
+by opening or changing its preview.
 Studio and the common Viewer keep variation outlines bounded to 500 rows. A
 selection beyond the initial prefix opens a nearby window with continuation and
 fork choices rather than appending an isolated selected row. Navigation within

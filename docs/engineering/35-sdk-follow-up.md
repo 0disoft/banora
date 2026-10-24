@@ -26,6 +26,8 @@ No push or public publication is authorized by this improvement task.
 4. Game information: add validated, undoable editing of players, game name,
    date, komi and result; integrate Studio and explicit confirmed scoring result
    persistence, preserving unknown SGF properties and export/reopen/checkpoints.
+   The typed atomic controller API is implemented locally; the Studio editor and
+   explicit scoring confirmation still require consumer implementation.
 5. Release readiness: align API documentation, examples, release notes and a
    versioned publication plan after implemented changes pass installed-consumer
    validation. Registry/npm publication and Pages deployment remain separate,

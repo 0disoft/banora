@@ -3,6 +3,46 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Atomic Game Information Controller API
+
+The controller now exposes additive `getGameInfo()` / `setGameInfo(GameInfoPatch)`
+and readonly `GameInfo` / `GameInfoPatch` types through existing root/controller
+exports. The getter returns frozen authored root fields without inserting defaults.
+One patch edits only supplied player names, game name, date, komi and result as one
+Undo unit; null/empty removes a property and undefined leaves it unchanged. It keeps
+the selected node, immutable children, unknown/raw properties and other games.
+Successful edits still pass full candidate SGF validation before commit and reuse
+the exact checked serialization for export/checkpoint. Rejections/no-ops preserve
+state/history and active comment grouping; successful patches are separate edits.
+
+New values validate FF4 date precision/shortcuts with explicit Gregorian leap
+arithmetic, supported result forms, bounded finite komi and existing value/byte
+limits. Numeric komi expands exponent notation, including tiny finite numbers.
+Unedited legacy information remains authored data. Closed data-only patches reject
+unknown keys, accessors, malformed values and missing descriptors; plain cross-realm
+objects and null-prototype dictionaries work. A reentrant host changing the record
+or selection cannot apply an old-root edit to a replacement record. Existing
+failure codes/localized explanations are reused; no failure-union expansion.
+
+Thirty-one metadata/controller/checkpoint tests with 600 assertions passed. They
+cover Gregorian century/leap/partial-date boundaries, invalid shortcut state,
+numeric boundaries, raw escaping, normalization, mutation isolation, no-op identity,
+current-game targeting, one-step Undo/Redo, unchanged positions, byte/value rejection,
+comment grouping, exact validated export reuse, actual reopen/checkpoint restoration,
+cross-realm data, reentrancy and disposed access. SDK/adapters/examples builds and
+the installed public SDK/classic/declaration consumer passed; the installed
+controller subpath type and actual metadata edit/Undo/Redo are explicitly checked.
+Root types, lint/format, boundaries and 147 documents / 750 links passed.
+
+Product spec, public API and follow-up plan updated with feature/SDK/test-hardening
+skills. The new pure helper is registered as headless. No DB, dependencies,
+versions, ignore policy or hosted workflow changes; the existing installed-consumer
+fixture gains coverage, with no runner scheduling or browser harness change.
+No push/publication. No browser UI was introduced in this increment, so browser,
+physical-device and unrelated full CLI/Git/release matrices were not repeated.
+Studio's form, explicit scoring-result confirmation, release readiness and content
+tooling remain pending. This increment completes the controller API unit only.
+
 ## Selected Neighborhoods Beyond the Initial Outline Prefix
 
 `getVariationRows` preserves its signature, 500-row default, 1..50,000 custom

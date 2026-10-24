@@ -24,6 +24,7 @@
     "controller",
     "diagnostics",
     "geometry",
+    "game-info",
     "json-schema",
     "katago",
     "katago-protocol",

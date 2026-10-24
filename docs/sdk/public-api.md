@@ -421,6 +421,42 @@ This differs from the lower-level `setup`, which always returns a new epoch.
 | `acknowledgeExport(id)` / `cancelExport(id)`                                   | Acknowledge host export success or cancel; only acknowledgment advances the exact exported semantic baseline                                              |
 | `dispose()`                                                                    | Release controller subscriptions/cache/tickets; subsequent state/mutation use is rejected                                                                 |
 
+### Game Information Editing
+
+`RecordController.getGameInfo()` returns a frozen `GameInfo` snapshot from the
+current game root. Optional `blackPlayer`, `whitePlayer`, `gameName`, `date`, `komi`
+and `result` contain authored SGF strings, including numeric spelling and legacy
+text. Missing fields stay absent; no default komi is inserted.
+
+`setGameInfo(patch: GameInfoPatch): CommandResult` applies supplied fields as one
+atomic Undo entry to that root, preserving the selected node, children, unknown/raw
+properties and other games. Omitted/undefined fields are untouched; null or an
+empty string removes the corresponding property. Simple-text line endings and
+whitespace normalize according to the existing SGF text rules. No-ops retain the
+current state/history and active comment group. Successful edits form a separate
+history unit; rejection preserves the current group.
+
+New dates accept FF4 four-digit Gregorian years, partial year/month dates and
+comma-separated month/day shortcuts, with actual month/leap-day validation.
+Results accept FF4 draw, unknown, void, winner, resignation/time/forfeit and
+nonnegative finite score forms. These follow the [SGF property definitions](https://www.red-bean.com/sgf/properties.html#DT).
+Komi accepts finite numbers or SGF real strings within -1,000,000,000 through
+1,000,000,000; numeric inputs expand exponent notation into decimal SGF text.
+Unchanged legacy information is never repaired implicitly. Supply only the fields
+the user edited when presenting an imported record.
+
+Malformed patches/fields return `invalid-edit`, bounds return `limit`, and a
+reentrant host object changing the record/selection during validation returns
+`stale-preview`. Data-only plain objects from other realms and null-prototype
+dictionaries are accepted; unknown fields and accessors are rejected. Disposed
+controllers retain their existing rejection behavior. The complete candidate still
+passes the controller's existing SGF limits/semantic validation before commit;
+checkpoint/export reuse that exact checked serialization. This API does not save
+scoring results implicitly. Studio editing and explicit scoring confirmation are
+separate follow-up consumer work.
+
+### Export and Controller Lifetimes
+
 An asynchronous acknowledgment of older content leaves newer edits dirty; stale
 acknowledgments cannot replace a newer acknowledged baseline. Import invalidates old
 tickets. Keep at most eight outstanding tickets, 100 edit history entries and 128
