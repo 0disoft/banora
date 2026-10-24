@@ -117,6 +117,29 @@ behavior, eight transforms with crops, read-only point activation, no semantic
 mutation and actual diagram preview exclusion. Measurements are retained under
 ignored `output/playwright/hover-*.json`.
 
+## Common Viewer Outline Reuse
+
+Viewer navigation within the same immutable record/game and focused fork path
+reuses the rendered outline. Its bounded node-to-button map updates the old/new
+selection directly, replacing at most one out-of-outline tail row. For edits,
+the same scalar model drives both row creation and exact presentation comparison;
+nonblank comment text changes do not replace rows when the presence icon stays
+the same. Changed captions, numbering, assessment/comment indicators and focused
+forks rebuild as needed. Generation/game/option changes invalidate the cache;
+disposal clears its record and element references. Limits remain 500 outline
+rows plus one selected tail; usable navigation beyond that window is separate
+follow-up work, not delivered by this cache.
+
+In Chrome 155 on Windows, 100 synchronous public-controller moves through a
+702-node pass/annotation game caused 100 complete outline replacements before
+and zero after. All 500 initial row elements survive after navigation, and an
+out-of-outline nonblank comment edit retains its 501 rows. One local sample
+was 675.9ms before and 119.9ms after, including controller/board/other Viewer
+presentation work. This is a single-run main-thread observation, not a physical
+input or paint-percentile guarantee. `--tree-only` now includes this Viewer
+scenario alongside existing Studio keyboard/export/reopen coverage. Raw reports
+are retained under ignored `output/playwright/viewer-tree-*.json`.
+
 Analysis context extraction traverses the bounded selected SGF path and validates
 its active epoch. It retains current/initial immutable positions and ordered moves,
 not every intermediate position or the full record in its provider DTO. Exact

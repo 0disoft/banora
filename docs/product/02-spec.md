@@ -45,6 +45,13 @@ presence indicator does not rebuild hundreds of rows per keystroke. One display
 model defines both row output and cache invalidation, including the selected tail
 row, move assessments, setup captions and branch disclosure state. Record replacement,
 game and language changes invalidate the presentation cache.
+The common Viewer likewise retains its bounded outline on linear navigation,
+updating only selection and at most one selected tail row. Its rendered row
+model also drives cache comparison: changing nonblank comment text without
+changing its presence icon retains the rows, while edited captions, move
+numbers, assessments and fork disclosure states update. Record generations,
+games and Viewer language/message/option updates invalidate the cache. Disposal
+releases cached rows and records; a borrowed controller remains host-owned.
 Studio variation rows offer a right-click menu (also Shift+F10 / Context Menu)
 to delete the targeted node and its descendants after confirmation. Root nodes
 cannot be deleted. Sibling paths remain intact; selection stays on its existing

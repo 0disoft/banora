@@ -148,6 +148,7 @@ async function browserPerformance(): Promise<void> {
   );
 }
 async function treeNavigation(): Promise<void> {
+  await scenario('viewer-tree', 'banora-viewer-tree-complete');
   await scenario('tree-navigation', 'banora-tree-navigation-complete');
   const saved = await readFile(resolve(output, 'tree-reused.sgf'), 'utf8');
   for (const value of [

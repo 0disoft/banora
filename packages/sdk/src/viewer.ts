@@ -10,7 +10,7 @@ import { mountPlaybackControls } from './playback-controls.js';
 import { normalizePlaybackInterval } from './playback.js';
 import type { PlaybackOptions, RecordPlayback } from './playback.js';
 import { selectStyles } from './select-style.js';
-import { getVariationRows } from './variations.js';
+import { getVariationRows, variationPathKey } from './variations.js';
 
 export interface ViewerOptions extends LocaleOptions {
   readonly controller?: RecordController;
@@ -148,7 +148,20 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     if (owned) controller.dispose();
     throw error;
   }
-  let lastTree: { record: ControllerState['record']; selected: string } | undefined;
+  let lastTree:
+    | {
+        record: ControllerState['record'];
+        generation: number;
+        gameIndex: number;
+        branches: string;
+        selected: string;
+        outlineIds: ReadonlySet<string>;
+        presentation: string;
+        tailPresentation: string | undefined;
+      }
+    | undefined;
+  const treeButtons = new Map<string, HTMLButtonElement>();
+  let tailRow: HTMLElement | undefined;
   const playbackControls = mountPlaybackControls(nav, {
     controller,
     scope: root,
@@ -172,35 +185,84 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     return `${color} ${'ABCDEFGHJKLMNOPQRSTUVWXYZ'[point.x] ?? point.x + 1}${state.position.height - point.y}`;
   }
   function renderTree(state: ControllerState): void {
-    if (lastTree?.record === state.record && lastTree.selected === state.node.id) return;
-    lastTree = { record: state.record, selected: state.node.id };
-    const focusInside = tree.contains(document.activeElement);
-    const fragment = document.createDocumentFragment();
-    let selected: HTMLButtonElement | undefined;
-    const row = (
+    const previous = lastTree;
+    const branches = options.variationMode === 'focused' ? variationPathKey(state) : '';
+    const sameScope =
+      previous?.generation === state.recordGeneration && previous.gameIndex === state.gameIndex;
+    const reuse = sameScope && previous.record === state.record && previous.branches === branches;
+    if (reuse && previous.selected === state.node.id) return;
+    const describe = (
       node: SgfNode,
       indent: number,
       moveNumber: number,
       branch = false,
       collapsed = false,
-    ) => {
+    ) => ({
+      id: node.id,
+      label: `${moveNumber} · ${nodeName(node, state)}`,
+      indent,
+      expanded:
+        options.variationMode === 'focused' && branch && node.children.length
+          ? !collapsed
+          : undefined,
+      assessment: getMoveAssessment(node),
+      hasComment: !!node.properties.C?.[0]?.trim(),
+    });
+    const outline = reuse
+      ? undefined
+      : getVariationRows(state, options.variationMode === 'focused');
+    const rows = outline?.rows.map((item) =>
+      describe(item.node, item.indent, item.moveNumber, item.branch, item.collapsed),
+    );
+    const outlineIds = outline
+      ? new Set(outline.rows.map((item) => item.node.id))
+      : previous!.outlineIds;
+    const tail = outlineIds.has(state.node.id)
+      ? undefined
+      : describe(state.node, 0, state.position.moveNumber);
+    const presentation = outline
+      ? JSON.stringify([rows, outline.truncated])
+      : previous!.presentation;
+    const tailPresentation = JSON.stringify(tail);
+    lastTree = {
+      record: state.record,
+      generation: state.recordGeneration,
+      gameIndex: state.gameIndex,
+      branches,
+      selected: state.node.id,
+      outlineIds,
+      presentation,
+      tailPresentation,
+    };
+    const unchanged = sameScope && previous.presentation === presentation;
+    if (
+      unchanged &&
+      previous.selected === state.node.id &&
+      previous.tailPresentation === tailPresentation
+    )
+      return;
+    const focusInside = tree.contains(document.activeElement);
+    const fragment = document.createDocumentFragment();
+    let selected: HTMLButtonElement | undefined;
+    const row = (model: ReturnType<typeof describe>) => {
       const item = document.createElement('div');
       item.setAttribute('role', 'listitem');
       const entry = document.createElement('button');
       entry.type = 'button';
-      const label = `${moveNumber} · ${nodeName(node, state)}`;
+      const { label } = model;
       entry.textContent = label;
       entry.setAttribute('aria-label', formatUiMessage(ui.selectNode, { label }));
-      entry.dataset.node = node.id;
+      entry.dataset.node = model.id;
       if (options.variationMode === 'focused') {
-        if (branch && node.children.length) entry.setAttribute('aria-expanded', String(!collapsed));
+        if (model.expanded !== undefined)
+          entry.setAttribute('aria-expanded', String(model.expanded));
         const disclosure = document.createElement('span');
         disclosure.className = 'variation-disclosure';
         disclosure.setAttribute('aria-hidden', 'true');
         entry.prepend(disclosure);
       }
       const descriptions: string[] = [];
-      const assessment = getMoveAssessment(node);
+      const assessment = model.assessment;
       if (assessment) {
         const indicator = document.createElement('span');
         indicator.className = `banora-move-assessment ${assessment}`;
@@ -209,7 +271,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
         descriptions.push(indicator.title);
         entry.append(indicator);
       }
-      if (node.properties.C?.[0]?.trim()) {
+      if (model.hasComment) {
         const indicator = document.createElement('span');
         indicator.className = 'banora-comment-indicator';
         indicator.title = ui.hasComment;
@@ -220,18 +282,35 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
         entry.append(indicator);
       }
       if (descriptions.length) entry.setAttribute('aria-description', descriptions.join(' · '));
-      entry.style.paddingLeft = `${10 + Math.min(indent, 8) * 12}px`;
-      entry.setAttribute('aria-current', String(node.id === state.node.id));
-      if (node.id === state.node.id) selected = entry;
+      entry.style.paddingLeft = `${10 + Math.min(model.indent, 8) * 12}px`;
+      entry.setAttribute('aria-current', String(model.id === state.node.id));
+      if (model.id === state.node.id) selected = entry;
+      treeButtons.set(model.id, entry);
       item.append(entry);
       fragment.append(item);
+      return item;
     };
-    const outline = getVariationRows(state, options.variationMode === 'focused');
-    for (const item of outline.rows)
-      row(item.node, item.indent, item.moveNumber, item.branch, item.collapsed);
-    if (!selected) row(state.node, 0, state.position.moveNumber);
-    tree.replaceChildren(fragment);
-    treeNote.textContent = outline.truncated ? ui.treeLimit : '';
+    if (unchanged) {
+      treeButtons.get(previous.selected)?.setAttribute('aria-current', 'false');
+      if (tailRow) {
+        treeButtons.delete(previous.selected);
+        tailRow.remove();
+        tailRow = undefined;
+      }
+      selected = treeButtons.get(state.node.id);
+      if (selected) selected.setAttribute('aria-current', 'true');
+      else {
+        tailRow = row(tail!);
+        tree.append(fragment);
+      }
+    } else {
+      treeButtons.clear();
+      tailRow = undefined;
+      for (const model of rows!) row(model);
+      if (tail) tailRow = row(tail);
+      tree.replaceChildren(fragment);
+      treeNote.textContent = outline!.truncated ? ui.treeLimit : '';
+    }
     if (focusInside) selected?.focus({ preventScroll: true });
   }
   function renderLabels(): void {
@@ -365,6 +444,9 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       unsubscribe();
       playbackControls.dispose();
       board.dispose();
+      treeButtons.clear();
+      lastTree = undefined;
+      tailRow = undefined;
       root.remove();
       if (owned) controller.dispose();
     },

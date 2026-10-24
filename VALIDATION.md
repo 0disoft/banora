@@ -3,6 +3,49 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Common Viewer Outline Reuse
+
+The common Viewer now reuses bounded outline elements during linear navigation,
+updating the old/new selection and at most one selected tail row. A scalar row
+model drives both rendering and exact comparison after immutable record edits;
+changing nonblank comment text retains rows while caption/number/assessment/
+comment-presence/disclosure changes update them. Generation, game and Viewer
+option/language changes invalidate the cache. Disposal clears its record/map/
+tail references and preserves host-owned borrowed controllers.
+
+The new Viewer scenario failed against the original source: 100 public-controller
+moves replaced the entire 500-row tree 100 times, retained zero initial rows and
+replaced the tree again for a nonblank tail comment edit. After the change the
+same fixture replaces it zero times, retains all 500 rows and preserves all
+501 rows for that comment edit. One Chrome 155/Windows local sample changed
+from 675.9ms to 119.9ms, including controller/board/other Viewer work; this is
+not a paint-percentile, physical-input or cross-device speedup guarantee.
+
+Focused `--tree-only` browser smoke passed the new Viewer scenario and existing
+Studio tree checks. Coverage includes exactly one selection, bounded/replaced
+tail rows, focus, authored annotation/MN labels, comment presence/Undo,
+assessment/Undo, game and locale/message overrides, record replacement,
+focused fork switching, all-mode restoration, disposal/borrowed ownership and
+authored SGF preservation. Existing Studio checks retain keyboard navigation,
+comment grouping, export/reopen and nested-fork indentation.
+
+Additional focused locale, playback and framework browser scopes passed. Local
+lint/format/boundaries, built SDK/adapters/examples, root types, 8 related tests /
+163 assertions, 147 documents / 747 relative links and packed SDK/classic/types
+consumer checks passed. Only this evidence paragraph changed afterward and
+received format/docs checks. The unrelated full CLI/Git/release suite and the
+full browser suite were not repeated: the previous increment ran them, and this
+increment changes only Viewer projection and focused scenario routing. Firefox,
+WebKit, physical devices and hosted CI remain unverified for this change.
+
+Source contracts changed: product specification, performance budget and follow-up
+progress; this evidence record was updated. Skills: refactor, SDK, test-hardening
+and Playwright. Public API, DB/storage, dependencies/version, repository hygiene
+and hosted workflows are unchanged. One browser scenario joins the existing
+tree scope/full smoke, with focused CI routing and no extra job or remote run.
+No push, registry publication or Pages deployment was performed. Large-record
+windowing remains pending; this cache retains the existing 500-plus-tail bound.
+
 ## Isolated Mouse Hover Rendering
 
 Ordinary mouse motion now updates one transient SVG hover layer, preserving

@@ -40,5 +40,9 @@ the first usability delivery above, and are not claimed as implemented.
 
 Mouse hover implementation/measurements are recorded in the
 [performance budget](03-performance-budget.md#mouse-hover-projection).
+Common Viewer outline reuse and measured DOM retention are recorded in the
+[outline evidence](03-performance-budget.md#common-viewer-outline-reuse).
+The first rendering increment is implemented locally; large-record windowing
+and the remaining feature items below it in the sequence remain pending.
 Other items remain pending until their implementation and verification are
 recorded in [Validation](../../VALIDATION.md).
