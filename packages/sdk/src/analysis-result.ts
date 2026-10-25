@@ -35,6 +35,26 @@ function metrics(value: unknown): AnalysisMetrics {
     visits: number(data.visits, 0, 1e9, true),
   });
 }
+/** Decode bounded indexed data into an SDK-owned dense array, never host array methods. */
+function array<T>(
+  input: unknown,
+  minimum: number,
+  maximum: number,
+  message: string,
+  read: (value: unknown) => T,
+): T[] {
+  if (!Array.isArray(input)) fail(message);
+  const length = input.length;
+  if (!Number.isSafeInteger(length) || length < minimum || length > maximum) fail(message);
+  const result = new Array<T>(length);
+  for (let index = 0; index < length; index++) {
+    if (!Object.hasOwn(input, index)) fail(message);
+    const value = input[index];
+    if (value === undefined) fail(message);
+    result[index] = read(value);
+  }
+  return result;
+}
 const key = (move: Point | null) => (move ? `${move.x},${move.y}` : 'pass');
 export function normalizeAnalysisResult(
   request: AnalysisRequest,
@@ -64,68 +84,62 @@ export function normalizeAnalysisResult(
       area = position.width * position.height;
     if (value.requestId !== request.id || value.contextKey !== request.context.key)
       fail('Analysis response identity does not match the request.');
-    const root = metrics(value.root),
-      rawCandidates = value.candidates;
-    if (
-      !Array.isArray(rawCandidates) ||
-      rawCandidates.length > area + 1 ||
-      rawCandidates.includes(undefined)
-    )
-      fail('Candidate list is invalid or exceeds board area plus pass.');
+    const root = metrics(value.root);
     const move = (value: unknown): Point | null => {
       if (value === null) return null;
-      const point = object(value);
-      if (
-        typeof point.x !== 'number' ||
-        typeof point.y !== 'number' ||
-        !isOnBoard(position, point as unknown as Point)
-      )
+      const point = object(value),
+        x = point.x,
+        y = point.y;
+      if (typeof x !== 'number' || typeof y !== 'number' || !isOnBoard(position, { x, y }))
         fail('Analysis point is outside the board.');
-      return Object.freeze({ x: point.x, y: point.y });
+      return Object.freeze({ x, y });
     };
     let pvTotal = 0;
     const moveKeys = new Set<string>(),
       ranks = new Set<number>();
-    const candidates: Omit<AnalysisCandidate, 'scoreLoss'>[] = rawCandidates.map((raw) => {
-      const data = object(raw),
-        point = move(data.move),
-        rank = number(data.rank, 0, area, true),
-        pv = data.principalVariation;
-      if (moveKeys.has(key(point)) || ranks.has(rank))
-        fail('Analysis candidates contain duplicate moves or ranks.');
-      moveKeys.add(key(point));
-      ranks.add(rank);
-      const pvLength = Array.isArray(pv) ? pv.length : -1;
-      if (
-        !Array.isArray(pv) ||
-        pvLength > request.limits.maxPvLength + 1 ||
-        pv.includes(undefined) ||
-        (pvTotal += pvLength) > 8192
-      )
-        fail('Principal variations exceed their bounds or contain missing moves.');
-      // Own the bounded dense copy; do not invoke a host array's map/iterator/species.
-      const principalVariation = new Array<Point | null>(pvLength);
-      for (let index = 0; index < pvLength; index++) principalVariation[index] = move(pv[index]);
-      if (principalVariation.length && key(principalVariation[0]!) !== key(point))
-        fail('Principal variation must start with its candidate move.');
-      const proposed = point === null ? pass(position) : play(position, point);
-      if (!proposed.ok) fail(`Analysis candidate is illegal: ${proposed.reason}.`);
-      // The first PV move was checked equal to the legal candidate above.
-      // Continue from that exact transition instead of playing it twice.
-      let current = proposed.position;
-      for (let index = 1; index < principalVariation.length; index++) {
-        const step = principalVariation[index]!;
-        const result = step === null ? pass(current) : play(current, step);
-        if (!result.ok) fail(`Principal variation is illegal: ${result.reason}.`);
-        current = result.position;
-      }
-      return Object.freeze({
-        ...metrics(data),
-        move: point,
-        rank,
-        principalVariation: Object.freeze(principalVariation),
-      });
-    });
+    const candidates: Omit<AnalysisCandidate, 'scoreLoss'>[] = array(
+      value.candidates,
+      0,
+      area + 1,
+      'Candidate list is invalid or exceeds board area plus pass.',
+      (raw) => {
+        const data = object(raw),
+          point = move(data.move),
+          rank = number(data.rank, 0, area, true),
+          pv = data.principalVariation;
+        if (moveKeys.has(key(point)) || ranks.has(rank))
+          fail('Analysis candidates contain duplicate moves or ranks.');
+        moveKeys.add(key(point));
+        ranks.add(rank);
+        const principalVariation = array(
+          pv,
+          0,
+          Math.min(request.limits.maxPvLength + 1, 8192 - pvTotal),
+          'Principal variations exceed their bounds or contain missing moves.',
+          move,
+        );
+        pvTotal += principalVariation.length;
+        if (principalVariation.length && key(principalVariation[0]!) !== key(point))
+          fail('Principal variation must start with its candidate move.');
+        const proposed = point === null ? pass(position) : play(position, point);
+        if (!proposed.ok) fail(`Analysis candidate is illegal: ${proposed.reason}.`);
+        // The first PV move was checked equal to the legal candidate above.
+        // Continue from that exact transition instead of playing it twice.
+        let current = proposed.position;
+        for (let index = 1; index < principalVariation.length; index++) {
+          const step = principalVariation[index]!;
+          const result = step === null ? pass(current) : play(current, step);
+          if (!result.ok) fail(`Principal variation is illegal: ${result.reason}.`);
+          current = result.position;
+        }
+        return Object.freeze({
+          ...metrics(data),
+          move: point,
+          rank,
+          principalVariation: Object.freeze(principalVariation),
+        });
+      },
+    );
     const sign = position.toPlay === 'black' ? 1 : -1,
       best = candidates.length
         ? Math.max(...candidates.map((candidate) => sign * candidate.scoreLeadBlack))
@@ -139,14 +153,17 @@ export function normalizeAnalysisResult(
       )
       .sort((a, b) => a.rank - b.rank);
     let ownership: readonly number[] | null = null;
-    if (value.ownership !== undefined) {
-      if (
-        !Array.isArray(value.ownership) ||
-        value.ownership.length !== area ||
-        value.ownership.includes(undefined)
-      )
-        fail('Ownership must be a dense vector with one value per point.');
-      ownership = Object.freeze(value.ownership.map((value) => number(value, -1, 1)));
+    const rawOwnership = value.ownership;
+    if (rawOwnership !== undefined) {
+      ownership = Object.freeze(
+        array(
+          rawOwnership,
+          area,
+          area,
+          'Ownership must be a dense vector with one value per point.',
+          (value) => number(value, -1, 1),
+        ),
+      );
     }
     return {
       ok: true,

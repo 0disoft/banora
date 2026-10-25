@@ -3,6 +3,39 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Provider Result Array Validation
+
+Analysis result normalization now decodes candidate/PV/ownership arrays with one
+bounded indexed helper instead of provider-owned map/includes dispatch. It samples
+length once, rejects missing/undefined own indices, invokes only SDK decoders and
+publishes SDK-owned frozen values. Ownership envelope data and each point's x/y
+scalars are sampled once. Candidate uniqueness/legality, finite metric ranges,
+ranking/score-loss calculation, exact board-area ownership, per-PV bounds and the
+8,192-move aggregate PV cap remain enforced. ADR 0009 and the Analysis API own this
+clarified boundary; no provider/request/result signatures changed.
+
+Paired source execution against `d8cb711` reproduced three malformed payloads:
+an off-board candidate/negative rank whose map replaces validation; 25 NaN ownership
+values whose map returns only one NaN; and a one-hole candidate array whose includes
+returns false. Baseline accepted all three; the changed source rejects all three
+as invalid-result. Valid indexed arrays with throwing map/includes/iterator/species
+hooks are accepted without invoking those hooks. A 25-cell valid ownership vector
+requires 25 indexed reads rather than the baseline's 50 (includes plus map).
+
+Five new headless regression tests cover those bypasses, valid hostile-method arrays,
+immutable output/input isolation, bounds before indexed reads, single-read envelope/
+length/coordinates, and PV totals 8,191/8,192 accepted versus 8,193 rejected before
+the excess PV is read. Existing plus new SDK tests passed: 259 tests / 15,916
+assertions across 41 files. Production SDK/adapters/examples build and Chromium
+analysis smoke passed (metrics/PVs/ownership, keyboard/touch, freshness, manual JSON,
+source preservation and lifecycle). Typecheck, packed public/classic SDK consumer,
+lint, format, repository boundaries and docs (147 documents / 750 relative links)
+also passed. Other browser engines, full CLI/release and broad memory/performance suites
+are skipped because this is one headless result-boundary fix. Remaining limit: this
+does not establish transport/provider correctness or whole-browser latency.
+No public API/DB, dependencies, version or hygiene changes. No runner flags, CI jobs,
+timeouts or timing thresholds changed; no remote operations.
+
 ## Single-Priority Refactor: Studio Selected-Parent Lookup
 
 Studio now resolves the promotion button's parent from the selected immutable

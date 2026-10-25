@@ -44,6 +44,10 @@
    manual scoring, player agreement or an authored puzzle answer.
 7. Validate result identities, finite metrics, unique on-board/legal candidates,
    legal PVs, dense exact-size ownership and resource bounds before publication.
+   Decode candidate/PV/ownership arrays by bounded index into SDK-owned arrays,
+   without invoking provider array methods, iterators or species constructors.
+   Sample array bounds and point scalars once; validate the same copies that will
+   be published, rather than delegating validation to provider-owned callbacks.
    Bound candidates by board area plus pass, individual PVs by requested length
    (at most 257 including the first move), aggregate PV moves by 8,192, visits by
    1,000,000,000 and score magnitude by 1,000,000,000. Requests default to 1,000

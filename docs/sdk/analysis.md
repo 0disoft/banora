@@ -83,9 +83,14 @@ the current player. White reverses the Black-lead comparison. Ranking may reflec
 provider utility rather than score alone. The output adds provider identity and
 uses null for absent ownership. Unknown extra fields are not retained.
 
-PV validation takes a bounded dense SDK-owned copy by index, without invoking a
-host PV array's overridden map, iterator or species constructor. The first PV
-move, when present, must equal the candidate. Its already-validated candidate
+Candidate, PV and ownership arrays are decoded by index into dense SDK-owned
+arrays. Their lengths are sampled once and checked before indexed reads, without
+invoking host map/includes methods, iterators or species constructors. Every index
+must be present and its value must pass the same bounds/legality checks; overridden
+array methods cannot replace or skip validation. Ownership is sampled once from
+the envelope, and each decoded point's x/y scalars are sampled once before checking
+and freezing that exact copy. Input arrays/points remain host-owned and unmodified.
+Each nonempty PV starts with its candidate. Its already-validated candidate
 transition is reused and only subsequent PV moves are replayed. Empty PVs still
 require a legal candidate; mismatched first moves, illegal continuations, ko and
 all existing size/metric/identity bounds remain checked. The copy and published
