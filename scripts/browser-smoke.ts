@@ -172,6 +172,7 @@ async function scoringSmoke(): Promise<void> {
 async function puzzleSmoke(): Promise<void> {
   await scenario('puzzle', 'banora-puzzle-complete');
   await scenario('puzzle-locale', 'banora-puzzle-locale-complete');
+  if (engine === 'chromium') await scenario('puzzle-disposal', 'banora-puzzle-disposal-complete');
   const diagram = await readFile(resolve(output, 'puzzle.svg'), 'utf8');
   if (
     !diagram.includes('xmlns="http://www.w3.org/2000/svg"') ||
@@ -442,6 +443,7 @@ try {
     await scenario('viewer-disposal', 'banora-viewer-disposal-complete');
     await scenario('analysis-disposal', 'banora-analysis-disposal-complete');
     await scenario('katago-disposal', 'banora-katago-disposal-complete');
+    await scenario('puzzle-disposal', 'banora-puzzle-disposal-complete');
     await browserMemory(root, () => scenario('browser-memory', 'banora-browser-memory-complete'));
   } else if (scope === '--viewer-disposal-only') {
     await scenario('viewer-disposal', 'banora-viewer-disposal-complete');

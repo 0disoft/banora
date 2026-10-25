@@ -79,21 +79,23 @@ export function mountPuzzle(container: HTMLElement, initial: PuzzleViewOptions):
     root.querySelector<T>(`[data-puzzle-${name}]`)!;
   const abort = new AbortController();
   let options = {
-      ...initial,
+      locale: initial.locale,
+      onEvent: initial.onEvent,
       messages: initial.messages && Object.freeze({ ...initial.messages }),
       board: { ...initial.board },
     },
     disposed = false,
-    lastSgf = displaySgf(state),
-    lastState = state;
+    lastSgf = displaySgf(state);
+  let lastState: PuzzleState | undefined = state;
   let lastFailure: PuzzleFailure | undefined;
   const display = new RecordController({ sgf: lastSgf });
   let board: BoardView | undefined,
     unsubscribe: (() => void) | undefined,
     stopEvents: (() => void) | undefined;
   const report = (result: PuzzleResult) => {
+    if (disposed) return;
     lastFailure = result.ok ? undefined : result.reason;
-    renderFeedback(lastState);
+    renderFeedback(lastState!);
   };
   const boardOptions = (state: PuzzleState, config = options, text = messages): BoardOptions => ({
     theme: config.board.theme,
@@ -224,10 +226,17 @@ export function mountPuzzle(container: HTMLElement, initial: PuzzleViewOptions):
       abort.abort();
       unsubscribe?.();
       stopEvents?.();
+      unsubscribe = undefined;
+      stopEvents = undefined;
       board!.dispose();
       display.dispose();
       root.remove();
       if (owned) session.dispose();
+      lastState = undefined;
+      lastFailure = undefined;
+      lastSgf = '';
+      options = { locale: undefined, onEvent: undefined, messages: undefined, board: {} };
+      messages = createPuzzleMessages();
     },
   });
 }

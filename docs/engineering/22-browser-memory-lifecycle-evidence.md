@@ -1,5 +1,52 @@
 # Browser Memory Lifecycle Evidence
 
+## Puzzle View Definition and Closed-State Ownership (October 25, 2026)
+
+Baseline `c44ed53` spread all mount options into the presentation cache, retaining
+the original puzzle definition, authored tree and SGF even after compilation.
+Closed handles additionally retained the event callback and last PuzzleState after
+their owned PuzzleSession had released its own fields. The view now selects only
+presentation fields and clears closed-only options/callbacks, last state/failure,
+display SGF and subscription closures. Feedback reporting stops if a host disposes
+the view during an event callback, so it cannot use or repopulate cleared state.
+
+Paired baseline/working source modules ran in the same Windows x64 Headless Chrome
+155.0.0.0 page. Each version mounted four live views without callbacks and four
+closed views with callbacks capturing their source definition. Every source used
+a 19-node, 1,080,098-byte ASCII SGF (18 unknown values of 60,000 characters) and a
+two-node authored answer tree. All view handles stayed strongly held. Four separate
+CDP forced-GC/event-loop turns preceded WeakRef inspection.
+
+| Objects observed                 | Before alive | After alive |
+| -------------------------------- | -----------: | ----------: |
+| Live-view source definitions     |            4 |           0 |
+| Live-view source answer arrays   |            4 |           0 |
+| Closed-view source definitions   |            4 |           0 |
+| Closed-view source answer arrays |            4 |           0 |
+| Closed-view last states          |            4 |           0 |
+
+These are object reachability counts, not total heap bytes or production GC timing.
+SGF strings may share backing storage. Live compiled sessions still own the state
+and compiled answer data they need. Host callbacks may intentionally capture a
+definition while live; only the view's ownership of that callback ends on disposal.
+
+The committed Chromium regression also uses four live and four closed owned views,
+closing the latter after completed answers. After collection, live views can still
+update locale/theme, solve their compiled puzzle and export a diagram. A borrowed
+session remains usable and a host-held snapshot stays immutable/live. A pass-button
+event disposes another owned view from its callback without a page error. Repeated
+dispose and rejected closed update/SVG/PNG operations are checked; temporary hosts,
+sessions, event listeners and the CDP session are cleaned up in finally blocks.
+It runs in existing Chromium puzzle and opt-in memory scopes, without a new CI job:
+
+```sh
+bun run build:examples
+bun scripts/browser-smoke.ts --puzzle-only
+```
+
+Other engines, full release/CLI and the earlier 135-cycle memory matrix were not
+rerun in this round. The headless authoring/legality/response rules are unchanged.
+
 ## Unfinished KataGo Writes After Request Settlement (October 25, 2026)
 
 Baseline `86245d6` passed an error callback closing over the provider and its full

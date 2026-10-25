@@ -3,6 +3,37 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Puzzle View Definition and State Ownership
+
+Puzzle presentation now selects locale/messages, board options and the event
+callback instead of retaining its original definition/SGF or a generic session
+option. Disposal clears callback/options/messages, last state/failure, display SGF
+and subscription closures. A reentrant event callback may dispose the view without
+the subsequent feedback report reading cleared state. Owned sessions are disposed;
+borrowed sessions and host-held immutable snapshots retain their ownership.
+
+Against `c44ed53`, paired Headless Chrome 155 source modules retained four live and
+four closed handles per version. Each definition held a 19-node, 1,080,098-byte ASCII
+SGF and a two-node answer tree. After four forced-GC event-loop turns, live-view
+definitions/answer arrays and closed-view definitions/answer arrays/states each
+fell from four to zero. This is object reachability evidence, not total heap bytes
+or production GC timing. Method and limits are recorded in
+`docs/engineering/22-browser-memory-lifecycle-evidence.md`; lifecycle ownership is
+clarified in `docs/adr/0008-curated-puzzle-authoring-and-session.md`.
+
+SDK/adapters/examples build and Chromium puzzle smoke passed, including the new
+GC regression and existing authored answers/responses, hints, keyboard/touch,
+localized labels, diagrams and owned/borrowed lifecycle. The new probe also checks
+post-GC live solving/export, host snapshots, reentrant disposal, repeated close and
+rejected closed update/SVG/PNG calls. SDK and browser-option unit tests passed:
+259 tests, 16,037 assertions. Typecheck, packed public/classic SDK consumer,
+lint, format, repository boundaries and docs (147 documents / 750 relative links)
+also passed. Other browser engines, full release/CLI and the older memory matrix
+were skipped because this change is confined to common Puzzle view ownership.
+No public API signatures/DB, dependencies, hygiene, version or CI jobs changed.
+Existing Chromium puzzle and opt-in memory browser scopes include the regression;
+no remote operations.
+
 ## Single-Priority Refactor: Candidate / First-PV Transition Reuse
 
 Analysis result validation now reuses the legal candidate transition for an

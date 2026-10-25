@@ -52,6 +52,13 @@
    hints, pass, restart, feedback and lifecycle without framework-specific puzzle rules.
    Client-bundled answers are inspectable data, not an anti-cheating boundary.
 
+   View presentation retains only locale/messages, board options and the event
+   callback, not the original definition/SGF or a second generic session option.
+   Closing a view releases cached state, display SGF, subscription closures and
+   presentation callbacks. A view-created session is disposed; a supplied session
+   and host-held immutable snapshots remain owned by the host. Disposal during an
+   event callback is safe and suppresses the subsequent view feedback report.
+
 ## Deferred
 
 Automatic SGF problem-format inference, AI-generated responses, random response
