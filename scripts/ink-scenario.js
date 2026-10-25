@@ -43,6 +43,83 @@ async (page, studioControl) => {
   ];
   try {
     await page.goto(`${origin}/studio/`);
+    await page.evaluate(async () => {
+      const sdk = await import('/sdk/index.js');
+      const host = document.createElement('div');
+      host.id = 'ink-perf-fixture';
+      host.style.cssText = 'width:320px;margin:auto';
+      document.body.append(host);
+      const controller = new sdk.RecordController({ sgf: '(;SZ[19]AB[aa:ss])' });
+      const view = sdk.mountBoard(host, {
+        controller,
+        coordinates: false,
+        drawing: { color: '#cc5522', width: 0.16 },
+      });
+      window.inkPerformance = { controller, view, host, before: controller.getState() };
+    });
+    const denseBoard = page.locator('#ink-perf-fixture svg');
+    const targets = await screen(denseBoard, [
+      { x: 1, y: 9 },
+      { x: 17, y: 9 },
+    ]);
+    await page.mouse.move(targets[0].x, targets[0].y);
+    await page.mouse.down();
+    await page.evaluate(() => {
+      const f = window.inkPerformance;
+      const svg = f.host.querySelector('svg');
+      const first = svg.firstElementChild,
+        preview = svg.querySelector('[data-preview="ink"]');
+      const original = document.createElementNS;
+      let created = 0,
+        moves = 0;
+      const count = () => moves++;
+      svg.addEventListener('pointermove', count);
+      document.createElementNS = function (...args) {
+        created++;
+        return original.apply(this, args);
+      };
+      f.finish = () => {
+        document.createElementNS = original;
+        svg.removeEventListener('pointermove', count);
+        const current = svg.querySelector('[data-preview="ink"]');
+        return {
+          created,
+          moves,
+          boardRetained: first === svg.firstElementChild,
+          previewRetained: preview === current,
+          samples: current.points.numberOfItems,
+          unchanged: f.controller.getState() === f.before,
+        };
+      };
+    });
+    let inkMetrics;
+    try {
+      await page.mouse.move(targets[1].x, targets[1].y, { steps: 20 });
+    } finally {
+      inkMetrics = await page.evaluate(() => window.inkPerformance.finish());
+    }
+    await page.mouse.up();
+    verify(
+      inkMetrics.created === 0 &&
+        inkMetrics.moves === 20 &&
+        inkMetrics.samples === 21 &&
+        inkMetrics.boardRetained &&
+        inkMetrics.previewRetained &&
+        inkMetrics.unchanged,
+      `Drawing rebuilt the unchanged board: ${JSON.stringify(inkMetrics)}`,
+    );
+    await page.evaluate(() => {
+      const f = window.inkPerformance;
+      if (f.host.querySelectorAll('[data-stroke]').length !== 1)
+        throw Error('Dense drawing did not commit exactly one stroke');
+      f.controller.undo();
+      if (f.controller.getState().dirty || f.host.querySelector('[data-stroke]'))
+        throw Error('Dense drawing was not one Undo unit');
+      f.view.dispose();
+      f.controller.dispose();
+      f.host.remove();
+      delete window.inkPerformance;
+    });
     await page.locator('#file').setInputFiles({
       name: 'ink.sgf',
       mimeType: 'application/x-go-sgf',

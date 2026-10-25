@@ -455,6 +455,9 @@ try {
     await browserPerformance();
   } else if (scope === '--hover-only') {
     await scenario('hover', 'banora-hover-complete');
+  } else if (scope === '--ink-only') {
+    await scenario('ink', 'banora-ink-complete');
+    console.log('Focused ink smoke passed.');
   } else if (scope === '--desktop-only') {
     await desktopSmoke(address);
   } else if (scope === '--fullscreen-only') {

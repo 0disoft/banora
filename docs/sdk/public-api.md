@@ -652,6 +652,11 @@ capture the pointer, sample fractional logical points at least 0.01 intersection
 apart, and commit one stroke on release inside the visible board. A click is a
 no-op. More than 512 sampled points cancels the gesture with live feedback rather
 than silently truncating it. Drawing disables native touch panning only while active.
+During a pointer drag, accepted samples update the existing preview polyline while
+retaining the board, stones and annotations. Unsampled/outside movement leaves the
+preview unchanged. Cancellation, record/configuration changes and release still
+use the existing full render and commit paths. Point serialization remains bounded
+by the same 512-sample limit; this does not introduce stroke simplification.
 Pressure-sensitive widths and smoothed curves are not implemented.
 
 Arrow keys move the cursor along screen axes; Space starts/appends a keyboard stroke

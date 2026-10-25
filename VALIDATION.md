@@ -1,5 +1,42 @@
 # Validation
 
+## Single-Priority Refactor: Retain the Board During Ink Preview Updates
+
+Baseline b757185 rebuilt the entire SVG on every active drawing pointermove,
+including moves rejected by the existing 0.01-intersection sampling distance.
+In Chrome 155, a 19x19 board with 361 setup stones and a 20-step native mouse drag
+created 8,280 SVG elements. The controller frame was unchanged during the drag;
+the board and preview nodes were replaced while accumulating 21 sampled points.
+
+The board painter now returns its view-owned ink preview. Accepted samples update
+that polyline's points through the same helper used for full paints, preserving
+its style, transformation and drawing order. Rejected/outside samples skip painting.
+Cancellation/limit exhaustion, missing previews and commits retain full-render
+fallbacks. Preview references are reset before repaint and on disposal. SVG
+element construction changes from O(P*N) to O(N) for P drag steps on an N-element
+frame, including initial preview creation. Point-string serialization still costs
+O(K) for K retained samples per update, with the unchanged 512-point limit.
+
+The existing ink browser scenario adds the dense native drag, requiring exactly
+20 pointermoves, 21 samples, zero SVG creations, retained board/preview nodes and
+an unchanged controller frame. Release must commit one stroke and one Undo must
+restore the clean record. Existing cancellation, touch, keyboard, transform,
+SGF/diagram and framework checks remain in that scenario. A registered
+`--ink-only` scope runs this existing scenario independently; parser tests still
+reject unknown/duplicate options and now accept the new registered scope. The
+full browser suite keeps its original ink call; no CI job/dependency was added.
+The owning contract is docs/sdk/public-api.md. Public API signatures, DB/schema,
+repository hygiene and package versions are unchanged; no automatic bump applies.
+
+Passed on Windows/Bun 1.4.3: SDK plus browser-option tests (305 tests / 17,438
+assertions), typecheck, example/framework builds, focused Chrome ink smoke,
+packed SDK consumer/declarations/classic-global smoke, lint, format, boundaries,
+docs (147 documents / 750 links), security file/permission signals (520 files)
+and git diff --check. The Chrome allocation case passed with zero SVG creations.
+Physical devices, other engines and the full browser matrix were not rerun for
+this bounded input-rendering change. No end-user latency or total-memory reduction
+is inferred from the SVG construction counts.
+
 ## Single-Priority Refactor: Pan Touch Aim Without Repainting the Board
 
 Baseline 86a8aab reused SVG content within one rounded target, but still repainted

@@ -21,7 +21,7 @@ import { mountTouchUI, normalizeTouchOptions } from './touch-aim.js';
 import { normalizeStoneTextures } from './stone-textures.js';
 import { mountPlacementAnimation, normalizePlacementAnimation } from './placement-animation.js';
 import { BOARD_PADDING } from './board-layout.js';
-import { paintBoard, paintBoardHover, paintBoardTouch } from './board-paint.js';
+import { paintBoard, paintBoardHover, paintBoardTouch, paintBoardInk } from './board-paint.js';
 import { boardNotices, boardFailureLabelKeys } from './board-notices.js';
 import type { ControllerFailure } from './controller.js';
 const namespace = 'http://www.w3.org/2000/svg';
@@ -55,6 +55,7 @@ export function mountBoardSurface(
   let hover: Point | null = null;
   let hoverLayer: SVGElement | undefined;
   let touchLayer: SVGElement | undefined;
+  let inkPreview: SVGElement | undefined;
   let pendingStroke: { pointer: number | null; points: Point[] } | null = null;
   let cancelledPointer: number | null = null;
   let touchAim: { pointer: number | null; point: Point | null; screen: Point | null } | null = null;
@@ -208,6 +209,7 @@ export function mountBoardSurface(
   function render(state: BoardFrame): void {
     hoverLayer = undefined;
     touchLayer = undefined;
+    inkPreview = undefined;
     if (readOnly() || options.drawing) hover = null;
     if (options.nodeId) {
       const pinned =
@@ -332,6 +334,7 @@ export function mountBoardSurface(
     });
     hoverLayer = layers.hover;
     touchLayer = layers.touch;
+    inkPreview = layers.ink;
     if (state.recordState) placement.sync(state.recordState, options, animationOptions);
     else placement.cancel();
     renderTouch();
@@ -557,8 +560,12 @@ export function mountBoardSurface(
       if (pendingStroke?.pointer === event.pointerId) {
         event.preventDefault();
         const point = inkPoint(event);
+        const samples = pendingStroke.points.length;
         if (point) appendInk(point);
-        render(current);
+        if (pendingStroke?.points.length === samples) return;
+        if (pendingStroke && inkPreview)
+          paintBoardInk({ pendingStroke, options, displayPoint, element }, inkPreview);
+        else render(current);
         return;
       }
       if (options.drawing || readOnly() || !available) return;
@@ -888,6 +895,7 @@ export function mountBoardSurface(
       touchUI.dispose();
       hoverLayer = undefined;
       touchLayer = undefined;
+      inkPreview = undefined;
       lastAnnouncement = undefined;
       svg.remove();
       live.remove();

@@ -28,7 +28,7 @@ test('browser smoke accepts every actual scope and a compatible browser in eithe
 
 test('unknown, conflicting and incompatible options reject rather than selecting more or fewer checks', () => {
   for (const args of [
-    ['--ink-only'],
+    ['--inks-only'],
     ['--lokale-only'],
     ['locale'],
     ['--help'],
@@ -77,7 +77,7 @@ test('retained release input remains owned by releaseInput, with path values kep
     ['--release-bundle', 'one', '--release-bundle', 'two'],
   ])
     expect(() => parseBrowserOptions(args)).not.toThrow();
-  expect(() => parseBrowserOptions(['--release-bundle', 'bundle', '--ink-only'])).toThrow();
+  expect(() => parseBrowserOptions(['--release-bundle', 'bundle', '--inks-only'])).toThrow();
   expect(() => parseBrowserOptions(['--release-bundle', 'bundle', 'extra'])).toThrow();
 });
 

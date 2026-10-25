@@ -102,7 +102,44 @@ export function paintBoardTouch(
   );
   circle.setAttribute('data-target', `${touchAim.point.x},${touchAim.point.y}`);
 }
-export function paintBoard(context: PaintContext): { hover: SVGElement; touch: SVGElement } {
+/** A view-owned preview; updating sampled points never edits the authored strokes. */
+export function paintBoardInk(
+  {
+    pendingStroke,
+    options,
+    displayPoint,
+    element,
+  }: Pick<PaintContext, 'pendingStroke' | 'options' | 'displayPoint' | 'element'>,
+  preview?: SVGElement,
+): SVGElement | undefined {
+  if (!pendingStroke || !options.drawing) return;
+  const line =
+    preview ??
+    element('polyline', {
+      fill: 'none',
+      stroke: options.drawing.color,
+      'stroke-width': options.drawing.width,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      opacity: 0.7,
+      'data-preview': 'ink',
+    });
+  line.setAttribute(
+    'points',
+    pendingStroke.points
+      .map((point) => {
+        const shown = displayPoint(point);
+        return `${shown.x},${shown.y}`;
+      })
+      .join(' '),
+  );
+  return line;
+}
+export function paintBoard(context: PaintContext): {
+  hover: SVGElement;
+  touch: SVGElement;
+  ink: SVGElement | undefined;
+} {
   const {
     document,
     svg,
@@ -111,7 +148,6 @@ export function paintBoard(context: PaintContext): { hover: SVGElement; touch: S
     crop,
     textureId,
     focus,
-    pendingStroke,
     reference,
     element,
     displayPoint,
@@ -351,22 +387,8 @@ export function paintBoard(context: PaintContext): { hover: SVGElement; touch: S
       'data-stroke': stroke.id,
     });
   paintBoardOverlays(state.overlays, false, add, displayPoint, visible);
-  if (pendingStroke && options.drawing)
-    add('polyline', {
-      points: pendingStroke.points
-        .map((point) => {
-          const shown = displayPoint(point);
-          return `${shown.x},${shown.y}`;
-        })
-        .join(' '),
-      fill: 'none',
-      stroke: options.drawing.color,
-      'stroke-width': options.drawing.width,
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round',
-      opacity: 0.7,
-      'data-preview': 'ink',
-    });
+  const inkPreview = paintBoardInk(context);
+  if (inkPreview) fragment.append(inkPreview);
   const touchLayer = element('g', { 'data-preview': 'touch-layer' });
   paintBoardTouch(touchLayer, context);
   fragment.append(touchLayer);
@@ -522,5 +544,5 @@ export function paintBoard(context: PaintContext): { hover: SVGElement; touch: S
     fragment.append(group);
   }
   svg.replaceChildren(fragment);
-  return { hover: hoverLayer, touch: touchLayer };
+  return { hover: hoverLayer, touch: touchLayer, ink: inkPreview };
 }

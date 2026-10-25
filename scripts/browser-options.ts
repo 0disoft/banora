@@ -4,6 +4,7 @@ export const browserSmokeScopes = Object.freeze([
   '--viewer-disposal-only',
   '--performance-only',
   '--hover-only',
+  '--ink-only',
   '--desktop-only',
   '--fullscreen-only',
   '--sizing-only',
