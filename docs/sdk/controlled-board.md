@@ -19,9 +19,14 @@ points may be nonrectangular: null/omitted shows all points, [] shows none.
 Dim points do not change the position. Colors are six-digit hex; labels/descriptions
 are bounded text. URLs, arbitrary SVG/HTML and provider-specific payloads are absent.
 
-The factory validates and deeply freezes owned copies. Invalid dimensions/cells,
-out-of-bounds points, duplicate mask/number/stroke entries and invalid presentation
-values throw before an update can commit. State keys are not authentication:
+The factory validates and deeply freezes owned copies. Top-level cell and annotation
+collections capture their array length once and copy only own indexed entries
+within that bound; host iterators, array methods and species cannot supply extra
+entries or hide invalid/sparse data. Cells still require exactly width * height
+entries, with existing independent bounds for optional collections. This bounds
+SDK copying work; it does not sandbox arbitrary host getters or proxy traps.
+Invalid dimensions/cells, out-of-bounds points, duplicate mask/number/stroke entries
+and invalid presentation values throw before an update can commit. State keys are not authentication:
 hosts verify permissions, game legality, revision equality and stale replies.
 Point, navigation, stroke and context-menu intentions carry `stateKey`; the host
 can reject them without changing the displayed board or supply an accepted snapshot.

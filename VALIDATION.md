@@ -3,6 +3,48 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Bounded Indexed Board Snapshot Collections
+
+createBoardSnapshot previously checked host array length and then copied using
+Array.from, which follows a host iterator rather than that checked length. On the
+b2ea847 runtime, two new finite regression fixtures reproduced accepted snapshots
+with 10,000 cells from a six-cell 3x2 input and 10,000 overlays from a one-entry
+array (exceeding the 8,192 overlay cap). An empty iterator could also hide sparse
+or invalid indexed data. A nonterminating iterator would prevent synchronous
+completion; no infinite fixture was executed.
+
+The shared collection reader now captures length once, verifies a nonnegative safe
+integer and the existing maximum/exact cell count, and copies only own indexed
+entries into an SDK array. Both cells and all seven optional top-level collection
+fields use it. Invalid holes fail before publication; color/geometry/uniqueness,
+ink, text/color/opacity and aggregate ink checks remain. Host hooks are never used
+to enumerate these top-level collections; nested item validation remains owned by
+its existing domain validators. Host getters/proxies are not sandboxed. The
+controlled-board contract records this boundary. No public signature/entrypoint,
+DB, dependencies, hygiene or runner policy changed.
+
+Copying now takes O(L) work/space for the captured length L within each existing
+cap, rather than O(K) for arbitrary iterator output K. The two finite fixtures
+copy 6/1 entries instead of 10,000 each and invoke no host iterator. No latency,
+peak-memory or browser responsiveness measurement is claimed. Regression cases
+cover every collection's max+1, negative/fractional/nonfinite proxy lengths before
+indexed reads; hidden holes/undefined; changing source/length with each color read
+once; exact maximum accepted sizes; and throwing iterator/map/species hooks.
+
+Passed on Windows/Bun 1.4.3: snapshot tests (23 tests / 181 assertions), full SDK
+suite (296 tests / 16,444 assertions), typecheck, lint, format, boundaries (no size
+review candidates), docs (147 documents / 750 links), production SDK/adapters/
+examples build, packed public SDK/classic-global/ambient declaration consumers
+and whitespace checks. The existing focused --controlled-only production browser
+suite passed on Chrome 155: common surface, disposal ownership, all four native
+consumers (vanilla/React/Vue/Svelte), host accept/reject, lifecycle, SVG/PNG and touch
+confirmation. No runner/CI configuration or timing thresholds were changed.
+Full operations/CLI/unrelated browser suites, Firefox/WebKit and hosted CI were
+skipped for this common snapshot boundary change; the native consumer scope does
+not establish wider device/browser coverage. Existing SDK-side copying is bounded,
+not arbitrary execution inside host getters/proxy traps. No push, release or
+deployment ran.
+
 ## Single-Priority Refactor: KataGo Pending Request Ownership
 
 KataGoProvider previously validated/encoded a request snapshot but retained the

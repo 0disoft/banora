@@ -72,11 +72,27 @@ const text = (value: unknown, name: string, max: number): string => {
     throw new TypeError(`${name} must be text of at most ${max} characters`);
   return value;
 };
-function list<T>(value: readonly T[] | undefined, name: string, max: number): readonly T[] {
-  if (value === undefined) return [];
-  if (!Array.isArray(value) || value.length > max)
-    throw new RangeError(`${name} exceeds its bound`);
-  return Array.from(value);
+function list<T>(
+  value: readonly T[] | undefined,
+  name: string,
+  max: number,
+  exact = false,
+): readonly T[] {
+  if (value === undefined && !exact) return [];
+  const message = exact
+    ? `${name} must contain exactly width * height cells`
+    : `${name} exceeds its bound`;
+  if (!Array.isArray(value)) throw new RangeError(message);
+  const length = value.length;
+  if (!Number.isSafeInteger(length) || length < 0 || length > max || (exact && length !== max))
+    throw new RangeError(message);
+  // Snapshot bounded indexed data, never a host iterator or array method.
+  const copied = new Array<T>(length);
+  for (let index = 0; index < length; index++) {
+    if (!Object.hasOwn(value, index)) throw new TypeError(`${name} must be a dense array`);
+    copied[index] = value[index]!;
+  }
+  return copied;
 }
 const hex = (value: unknown): string => {
   if (typeof value !== 'string' || !/^#[\da-f]{6}$/i.test(value))
@@ -94,9 +110,7 @@ export function createBoardSnapshot(input: BoardSnapshot): BoardSnapshotValue {
     height = integer(input.height, 'Height', 52);
   if (width < 2 || height < 2) throw new RangeError('Dimensions must be 2 through 52');
   const area = width * height;
-  if (!Array.isArray(input.stones) || input.stones.length !== area)
-    throw new RangeError('Stones must contain exactly width * height cells');
-  const stones = Array.from(input.stones, (color) => {
+  const stones = list(input.stones, 'Stones', area, true).map((color) => {
     if (color !== null && color !== 'black' && color !== 'white')
       throw new TypeError('Invalid stone color');
     return color;
