@@ -372,6 +372,12 @@ its registration and rethrows the original value. Notifications skip observers
 removed before their turn and stop after disposal. These rules also cover rename
 and close notifications; outgoing-session preparation hooks retain their existing
 fail-fast behavior and order.
+Reentrant controller-state publications drain synchronously without nesting their
+batches. A nested switch supersedes the remaining stale batch; later observers
+receive the current board after workspace-change observers. The source's initial
+subscription only captures state: its unsubscribe handle is installed before
+publishing, so a switch from an observer cannot overwrite the new tab's handle
+or let an inactive controller change the active draft owner or generation.
 Below 1001px the rail reflows above the board to preserve usable board width.
 SVG and PNG export buttons stay visible together on one row in the workspace rail,
 below display sizing and above the tabs. Compact format labels retain localized

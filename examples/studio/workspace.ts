@@ -12,9 +12,11 @@ export interface StudioBoard {
 function notify<Args extends unknown[]>(
   listeners: ReadonlySet<(...args: Args) => void>,
   kind: 'change' | 'state',
-  ...args: Args
+  args: Args,
+  current?: () => boolean,
 ): void {
   for (const listener of [...listeners]) {
+    if (current && !current()) return;
     if (!listeners.has(listener)) continue;
     try {
       listener(...args);
@@ -39,6 +41,8 @@ export class StudioWorkspace {
   #before = new Set<() => void>();
   #unsubscribe: () => void;
   #disposed = false;
+  #publishing = false;
+  #pending = false;
 
   constructor() {
     this.#active = this.#create(19);
@@ -75,6 +79,7 @@ export class StudioWorkspace {
       },
     });
     this.#unsubscribe = this.#attach();
+    this.#publish();
   }
   #assertLive() {
     if (this.#disposed) throw Error('Studio workspace is disposed');
@@ -105,7 +110,8 @@ export class StudioWorkspace {
   }
   #attach(): () => void {
     this.#nativeGeneration = this.#active.controller.getState().recordGeneration;
-    return this.#active.controller.subscribe((state) => {
+    let initial = true;
+    const unsubscribe = this.#active.controller.subscribe((state) => {
       if (state.recordGeneration !== this.#nativeGeneration) {
         this.#nativeGeneration = state.recordGeneration;
         this.#generation++;
@@ -113,8 +119,10 @@ export class StudioWorkspace {
       }
       this.#raw = state;
       this.#snapshot = undefined;
-      this.#publish();
+      if (!initial) this.#publish();
     });
+    initial = false;
+    return unsubscribe;
   }
   getState(): ControllerState {
     this.#assertLive();
@@ -126,10 +134,20 @@ export class StudioWorkspace {
     return this.#snapshot;
   }
   #publish() {
-    notify(this.#changes, 'change');
     if (this.#disposed) return;
-    const state = this.getState();
-    notify(this.#listeners, 'state', state);
+    this.#pending = true;
+    if (this.#publishing) return;
+    this.#publishing = true;
+    try {
+      while (this.#pending && !this.#disposed) {
+        this.#pending = false;
+        const current = () => !this.#pending && !this.#disposed;
+        notify(this.#changes, 'change', [], current);
+        if (current()) notify(this.#listeners, 'state', [this.getState()], current);
+      }
+    } finally {
+      this.#publishing = false;
+    }
   }
   subscribe(listener: () => void): () => void {
     this.#assertLive();
@@ -160,6 +178,7 @@ export class StudioWorkspace {
     this.#raw = undefined;
     this.#snapshot = undefined;
     this.#unsubscribe = this.#attach();
+    this.#publish();
   }
   add(size = 19): StudioBoard {
     this.#assertLive();
@@ -169,7 +188,7 @@ export class StudioWorkspace {
   }
   rename(filename: string): void {
     this.active.filename = filename;
-    notify(this.#changes, 'change');
+    notify(this.#changes, 'change', []);
   }
   /** A dirty board requires an explicit owner-approved discard or successful export. */
   close(id: number, discard = false): boolean {
@@ -183,7 +202,7 @@ export class StudioWorkspace {
     }
     this.#boards.splice(index, 1);
     board.controller.dispose();
-    notify(this.#changes, 'change');
+    notify(this.#changes, 'change', []);
     return true;
   }
   dispose(): void {

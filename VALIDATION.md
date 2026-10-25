@@ -1,5 +1,46 @@
 # Validation
 
+## Single-Priority Refactor: Reentrant Workspace Publication Ownership
+
+Baseline 2f6b9c2 recursively published from observers and from a source's
+immediate subscription callback before its unsubscribe handle was installed.
+A nested tab switch delivered widths [19, 9, 19] although the active board was
+9 lines. Another switch during attachment overwrote the new source's handle;
+importing into that now-inactive source changed the active board's draft owner
+and generation. Four regressions failed against the copied tracked baseline,
+including both notification channels' 20-board chains at callback depth 19.
+
+State publications now drain synchronously using two boolean flags and stop a
+superseded batch before its next observer. Changes still precede state observers
+for each current batch. Initial source subscription captures state without
+publishing until the caller installs the unsubscribe handle. Nested publication
+uses O(1) coordinator state without an event-history queue; fan-out remains O(L)
+per batch for L observers, while observer call-stack depth no longer grows with
+the number of nested switches. Failure redaction/isolation, initial subscription
+cleanup, removal/disposal guards and fail-fast preparation hooks are preserved.
+
+The same regressions now pass: the width trace ends [19, 9], inactive edits/imports
+deliver no active notifications or owner/generation changes, and both 20-board
+chains have maximum callback depth 1. This is deterministic state/ownership/stack
+evidence, not a latency or heap-byte measurement. Existing outgoing autosave,
+debounce, serial ownership and revision checks also pass. No SDK public API,
+DB/schema, dependencies, hygiene or runner commands changed. The owning contract
+is docs/product/02-spec.md; no automatic version bump/publication is configured.
+
+Passed on Windows/Bun 1.4.3: SDK plus Studio workspace/draft session/store tests
+(328 tests / 17,466 assertions across 47 files), typecheck, lint, format,
+boundaries (zero size review candidates), docs (147 documents / 750 links),
+production SDK/adapters/examples build and whitespace checks. Chrome 155 focused
+--workspace-only and --recovery-only smokes passed, including independent tab
+history/export guards, playback, locales/mobile layouts, real IndexedDB, reload,
+two-tab ownership, quotas/cap, backups, deletion and replacement guards.
+Unrelated operations/release/CLI suites, packed package consumers, adapter SSR,
+the full browser matrix, Firefox/WebKit and hosted CI were skipped for this
+Studio-only change. Native smoke covers existing end-to-end workflows; nested
+callback injection is established by the deterministic unit regressions.
+Applied skills: refactor, bugfix, sdk, test-hardening and Playwright.
+All changes remain local; no push or deployment.
+
 ## Single-Priority Refactor: Fresh Source Capture Before Autosave Flush
 
 Baseline 1bbec9e relied on the autosave observer having marked a source change

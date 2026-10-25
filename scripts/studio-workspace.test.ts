@@ -2,6 +2,104 @@ import { describe, expect, spyOn, test } from 'bun:test';
 import { RecordController } from '@0disoft/banora';
 import { StudioWorkspace } from '../examples/studio/workspace.js';
 
+test('a nested tab switch cannot deliver the previous board after the selected board', () => {
+  const workspace = new StudioWorkspace();
+  const first = workspace.active;
+  const second = workspace.add(9);
+  workspace.select(first.id);
+  let armed = false;
+  workspace.controller.subscribe(() => {
+    if (!armed) return;
+    armed = false;
+    workspace.select(second.id);
+  });
+  const widths: number[] = [];
+  workspace.controller.subscribe((state) => widths.push(state.position.width));
+  try {
+    armed = true;
+    expect(workspace.controller.setComment('outgoing edit').ok).toBe(true);
+    expect(workspace.active.id).toBe(second.id);
+    expect(widths).toEqual([19, 9]);
+    expect(widths.at(-1)).toBe(workspace.controller.getState().position.width);
+  } finally {
+    workspace.dispose();
+  }
+});
+
+test('a switch during immediate attachment cannot retain the wrong board subscription', () => {
+  const workspace = new StudioWorkspace();
+  const first = workspace.active;
+  const second = workspace.add(9);
+  const third = workspace.add(13);
+  workspace.select(first.id);
+  let armed = false;
+  workspace.controller.subscribe((state) => {
+    if (!armed || state.position.width !== 9) return;
+    armed = false;
+    workspace.select(third.id);
+  });
+  const widths: number[] = [];
+  workspace.controller.subscribe((state) => widths.push(state.position.width));
+  try {
+    armed = true;
+    workspace.select(second.id);
+    expect(workspace.active.id).toBe(third.id);
+    const switchedWidths = [...widths];
+    workspace.select(first.id);
+    const count = widths.length;
+    expect(third.controller.setComment('inactive edit').ok).toBe(true);
+    const owner = first.draftOwner;
+    const generation = workspace.controller.getState().recordGeneration;
+    expect(third.controller.loadSgf('(;SZ[13];B[aa])', { discardChanges: true }).ok).toBe(true);
+    expect(first.draftOwner).toBe(owner);
+    expect(workspace.controller.getState().recordGeneration).toBe(generation);
+    expect(widths).toHaveLength(count);
+    expect(switchedWidths).toEqual([19, 13]);
+    expect(workspace.controller.setComment('active edit').ok).toBe(true);
+    expect(widths).toHaveLength(count + 1);
+    expect(workspace.controller.getState().position.width).toBe(19);
+  } finally {
+    workspace.dispose();
+  }
+});
+
+for (const channel of ['workspace', 'controller'] as const)
+  test(`${channel} nested switches drain synchronously without recursive observer calls`, () => {
+    const workspace = new StudioWorkspace();
+    const first = workspace.active;
+    for (let index = 1; index < 20; index++) workspace.add(index % 2 ? 9 : 13);
+    const boards = workspace.boards;
+    workspace.select(first.id);
+    let armed = false;
+    let depth = 0;
+    let maximum = 0;
+    const switchNext = () => {
+      if (!armed) return;
+      const next = boards.findIndex((board) => board.id === workspace.active.id) + 1;
+      if (next >= boards.length) return;
+      depth++;
+      maximum = Math.max(maximum, depth);
+      try {
+        workspace.select(boards[next]!.id);
+      } finally {
+        depth--;
+      }
+    };
+    if (channel === 'workspace') workspace.subscribe(switchNext);
+    else workspace.controller.subscribe(switchNext);
+    const observed: number[] = [];
+    workspace.controller.subscribe((state) => observed.push(state.position.width));
+    try {
+      armed = true;
+      expect(workspace.controller.setComment('start').ok).toBe(true);
+      expect(workspace.active.id).toBe(boards.at(-1)!.id);
+      expect(maximum).toBe(1);
+      expect(observed).toEqual([19, 9]);
+    } finally {
+      workspace.dispose();
+    }
+  });
+
 for (const channel of ['workspace', 'controller'] as const) {
   test(`${channel} initial failure removes the registration and preserves the thrown value`, () => {
     const workspace = new StudioWorkspace();
