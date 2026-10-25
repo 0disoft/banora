@@ -1,6 +1,109 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { RecordController } from '@0disoft/banora';
 import { StudioWorkspace } from '../examples/studio/workspace.js';
+
+for (const channel of ['workspace', 'controller'] as const) {
+  test(`${channel} initial failure removes the registration and preserves the thrown value`, () => {
+    const workspace = new StudioWorkspace();
+    const subscribe =
+      channel === 'workspace'
+        ? workspace.subscribe.bind(workspace)
+        : workspace.controller.subscribe.bind(workspace.controller);
+    const failure = { private: 'Never inspect or log this thrown value' };
+    let calls = 0;
+    try {
+      let caught: unknown;
+      try {
+        subscribe(() => {
+          calls++;
+          throw failure;
+        });
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBe(failure);
+      expect(workspace.controller.setComment('edit').ok).toBe(true);
+      expect(() => workspace.rename('renamed.sgf')).not.toThrow();
+      expect(calls).toBe(1);
+    } finally {
+      workspace.dispose();
+    }
+  });
+
+  test(`${channel} notification skips observers removed during delivery`, () => {
+    const workspace = new StudioWorkspace();
+    const subscribe =
+      channel === 'workspace'
+        ? workspace.subscribe.bind(workspace)
+        : workspace.controller.subscribe.bind(workspace.controller);
+    let armed = false;
+    let stop = () => {};
+    let calls = 0;
+    subscribe(() => {
+      if (armed) stop();
+    });
+    stop = subscribe(() => calls++);
+    try {
+      armed = true;
+      expect(workspace.controller.setComment('edit').ok).toBe(true);
+      expect(calls).toBe(1);
+    } finally {
+      workspace.dispose();
+    }
+  });
+}
+
+test('workspace change failures cannot interrupt rename, switching, close or later state observers', () => {
+  const workspace = new StudioWorkspace();
+  const log = spyOn(console, 'error').mockImplementation(() => {});
+  const first = workspace.active;
+  let armed = false;
+  let changes = 0;
+  const widths: number[] = [];
+  workspace.subscribe(() => {
+    if (armed) throw { secret: 'Private callback data' };
+  });
+  workspace.subscribe(() => changes++);
+  workspace.controller.subscribe((state) => widths.push(state.position.width));
+  try {
+    armed = true;
+    expect(() => workspace.rename('renamed.sgf')).not.toThrow();
+    expect(first.filename).toBe('renamed.sgf');
+    const second = workspace.add(9);
+    expect(workspace.active.id).toBe(second.id);
+    expect(workspace.close(first.id)).toBe(true);
+    expect(workspace.boards).toHaveLength(1);
+    expect(() => first.controller.getState()).toThrow('disposed');
+    expect(changes).toBe(4);
+    expect(widths).toEqual([19, 9]);
+    expect(log.mock.calls).toEqual(
+      Array.from({ length: 3 }, () => ['Banora workspace change listener failed']),
+    );
+  } finally {
+    workspace.dispose();
+    log.mockRestore();
+  }
+});
+
+test('disposal during a change notification stops remaining delivery without reading disposed state', () => {
+  const workspace = new StudioWorkspace();
+  const log = spyOn(console, 'error').mockImplementation(() => {});
+  let armed = false;
+  let calls = 0;
+  workspace.subscribe(() => {
+    if (armed) workspace.dispose();
+  });
+  workspace.controller.subscribe(() => calls++);
+  try {
+    armed = true;
+    expect(workspace.controller.setComment('edit').ok).toBe(true);
+    expect(calls).toBe(1);
+    expect(log.mock.calls).toEqual([]);
+  } finally {
+    workspace.dispose();
+    log.mockRestore();
+  }
+});
 
 describe('Studio multi-board sessions', () => {
   test('closing the initial and later tabs preserves the facade and detached snapshots', () => {

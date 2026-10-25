@@ -6,6 +6,52 @@ import type { StudioDraft } from '../examples/studio/draft-store.js';
 import { StudioWorkspace } from '../examples/studio/workspace.js';
 import { TestScheduler } from './test-scheduler.js';
 
+for (const channel of ['workspace', 'controller'] as const)
+  test(`${channel} listener failure cannot suppress a committed edit's autosave`, async () => {
+    const workspace = new StudioWorkspace();
+    const scheduler = new TestScheduler();
+    const saved: StudioDraft[] = [];
+    const logs = spyOn(console, 'error').mockImplementation(() => {});
+    let armed = false;
+    const listener = () => {
+      if (armed) throw Error('Private observer failure');
+    };
+    const stop =
+      channel === 'workspace'
+        ? workspace.subscribe(listener)
+        : workspace.controller.subscribe(listener);
+    const autosave = new DraftAutosave(
+      workspace.controller,
+      () => workspace.active.filename,
+      {
+        save: async (draft) => {
+          saved.push(draft);
+        },
+      },
+      true,
+      () => {},
+      undefined,
+      { now: () => 1234, createId: () => 'observer-test', scheduler },
+    );
+    try {
+      armed = true;
+      expect(workspace.controller.setComment('Must reach autosave').ok).toBe(true);
+      scheduler.advance(500);
+      await autosave.idle();
+      expect(saved).toHaveLength(1);
+      expect(saved[0]!.checkpoint.sgf).toContain('Must reach autosave');
+      expect(autosave.getStatus()).toBe('saved');
+      expect(logs.mock.calls).toEqual([
+        [`Banora workspace ${channel === 'workspace' ? 'change' : 'state'} listener failed`],
+      ]);
+    } finally {
+      stop();
+      await autosave.close();
+      workspace.dispose();
+      logs.mockRestore();
+    }
+  });
+
 test('debounce boundaries and status failures preserve actual saves and committed revisions', async () => {
   const controller = new RecordController({ size: 9 });
   const scheduler = new TestScheduler();

@@ -365,6 +365,13 @@ the SDK prototype but owns no tab controller, so closing the initial tab release
 its record/history references just like closing subsequent tabs. These in-memory sessions are not restored
 automatically on reload. Local draft autosave flushes outgoing sessions and keeps
 independent, revision-checked owners, including rapid switches with queued writes.
+Workspace change observers run before controller-state observers. A synchronous exception in
+one notification cannot suppress later observers or autosave; only a fixed channel
+label is logged, without the thrown value. A failed immediate subscription removes
+its registration and rethrows the original value. Notifications skip observers
+removed before their turn and stop after disposal. These rules also cover rename
+and close notifications; outgoing-session preparation hooks retain their existing
+fail-fast behavior and order.
 Below 1001px the rail reflows above the board to preserve usable board width.
 SVG and PNG export buttons stay visible together on one row in the workspace rail,
 below display sizing and above the tabs. Compact format labels retain localized

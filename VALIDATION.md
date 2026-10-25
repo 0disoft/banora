@@ -3,6 +3,53 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Workspace Notification Failure Isolation
+
+The Studio workspace facade forwarded change/state observers without isolating
+synchronous exceptions. An earlier failed view observer stopped all later observers, including
+DraftAutosave, despite the SDK edit itself succeeding. Both immediate subscription
+paths also retained registrations when the initial callback threw, unlike the
+underlying SDK controller contract. Rename and close repeated the unsafe change
+fan-out. One internal notifier now delivers to independent observers, skips those
+removed during delivery and logs only a fixed change/state channel label. Initial
+callback errors remove the failed registration and rethrow the original value.
+Disposal during a change callback stops subsequent state access. Existing
+change-before-state order and fail-fast outgoing-session hooks remain unchanged.
+The owning contract is docs/product/02-spec.md. Public SDK signatures/exports, DB
+schema, dependencies, repository hygiene, runners and CI are unchanged. Existing
+tests gain eight regressions; no timer threshold or automatic retry was added.
+
+Reproduced against 3e5623e on Windows/Bun 1.4.3 with real StudioWorkspace and
+DraftAutosave instances, an injected deterministic scheduler and an in-memory save
+sink. For each observer channel separately, an earlier observer throws after
+registration, setComment succeeds, then the scheduler advances the existing 500 ms
+debounce. Before: zero save calls and no checkpoint; both new assertions failed.
+After: exactly one save call with the edited SGF, revisioned checkpoint and saved
+status. This demonstrates delivery to the existing persistence boundary, not
+native IndexedDB durability, power-loss recovery or a latency improvement. Fan-out
+remains O(number of observers), with one listener-list snapshot and no retained
+error, retry loop, timer or event-history queue.
+
+Regressions cover both channels' autosave delivery and fixed-label logging,
+failed-initial subscription cleanup/original thrown-value identity, observers
+removed during delivery, rename/switch/close continuation, disposed tab controllers
+and disposal during notification without a late read/error. Existing multi-board,
+draft ownership, debounce, failure and revision tests remain intact.
+
+Passed on Windows/Bun 1.4.3: SDK plus Studio workspace/draft session/store tests
+(322 tests / 17,427 assertions across 47 files), root typecheck, lint, format,
+boundaries (zero size review candidates), docs (147 documents / 750 links),
+production SDK/adapters/examples build, diff whitespace and Chrome 155
+--workspace-only smoke (independent tabs/history, close/export guards, playback,
+locales and narrow layouts). Existing assertions checked both downloaded SGF
+files retain their independent comments/content. No push or deployment.
+Full unrelated operations/release/CLI suites, packed package consumers, adapter
+SSR, the complete browser matrix, Firefox/WebKit and hosted CI were skipped for
+this Studio-only notification fix; SDK source and package surfaces are unchanged.
+Native storage failure/durability and asynchronous observer promise rejection are
+not established by the injected failure regressions. Applied skills: refactor,
+bugfix, sdk, test-hardening and Playwright. No automatic version bump/publication.
+
 ## Single-Priority Refactor: Stable Pinned Board Paint Retention
 
 Pinned boards previously inspected and repainted their entire SVG on every

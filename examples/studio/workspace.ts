@@ -8,6 +8,22 @@ export interface StudioBoard {
   draftOwner: object;
 }
 
+/** Notify independent observers without allowing one failure to suppress saving. */
+function notify<Args extends unknown[]>(
+  listeners: ReadonlySet<(...args: Args) => void>,
+  kind: 'change' | 'state',
+  ...args: Args
+): void {
+  for (const listener of [...listeners]) {
+    if (!listeners.has(listener)) continue;
+    try {
+      listener(...args);
+    } catch {
+      console.error(`Banora workspace ${kind} listener failed`);
+    }
+  }
+}
+
 /** Consumer-owned sessions; SDK controllers and their complete edit histories stay intact. */
 export class StudioWorkspace {
   readonly controller: RecordController;
@@ -37,7 +53,12 @@ export class StudioWorkspace {
           return (listener: (state: ControllerState) => void) => {
             this.#assertLive();
             this.#listeners.add(listener);
-            listener(this.getState());
+            try {
+              listener(this.getState());
+            } catch (error) {
+              this.#listeners.delete(listener);
+              throw error;
+            }
             return () => this.#listeners.delete(listener);
           };
         if (key === 'dispose') return () => this.dispose();
@@ -105,14 +126,20 @@ export class StudioWorkspace {
     return this.#snapshot;
   }
   #publish() {
-    for (const listener of [...this.#changes]) listener();
+    notify(this.#changes, 'change');
+    if (this.#disposed) return;
     const state = this.getState();
-    for (const listener of [...this.#listeners]) listener(state);
+    notify(this.#listeners, 'state', state);
   }
   subscribe(listener: () => void): () => void {
     this.#assertLive();
     this.#changes.add(listener);
-    listener();
+    try {
+      listener();
+    } catch (error) {
+      this.#changes.delete(listener);
+      throw error;
+    }
     return () => this.#changes.delete(listener);
   }
   beforeSwitch(listener: () => void): () => void {
@@ -142,7 +169,7 @@ export class StudioWorkspace {
   }
   rename(filename: string): void {
     this.active.filename = filename;
-    for (const listener of [...this.#changes]) listener();
+    notify(this.#changes, 'change');
   }
   /** A dirty board requires an explicit owner-approved discard or successful export. */
   close(id: number, discard = false): boolean {
@@ -156,7 +183,7 @@ export class StudioWorkspace {
     }
     this.#boards.splice(index, 1);
     board.controller.dispose();
-    for (const listener of [...this.#changes]) listener();
+    notify(this.#changes, 'change');
     return true;
   }
   dispose(): void {
