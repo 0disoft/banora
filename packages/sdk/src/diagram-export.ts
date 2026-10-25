@@ -44,7 +44,21 @@ const xmlText = (text: string) =>
   // oxlint-disable-next-line eslint/no-control-regex -- Replace characters forbidden in XML 1.0.
   text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF\p{Cs}]/gu, '\uFFFD');
 
-function paintFor(value: string, svg: SVGSVGElement): string {
+type PatternLookup = (id: string) => Element | undefined;
+/** Lazy and export-local: preserve the first DOM match and never retain stale definitions. */
+function patternLookup(svg: SVGSVGElement): PatternLookup {
+  let patterns: Map<string, Element> | undefined;
+  return (id) => {
+    if (!patterns) {
+      patterns = new Map();
+      for (const node of svg.querySelectorAll('defs > pattern'))
+        if (!patterns.has(node.id)) patterns.set(node.id, node);
+    }
+    return patterns.get(id);
+  };
+}
+
+function paintFor(value: string, svg: SVGSVGElement, lookup: PatternLookup): string {
   if (!/url\s*\(/i.test(value)) return value;
   const match = /^url\(["']?([^"'()]+)["']?\)$/.exec(value);
   if (!match) throw new Error('External or inherited paint references cannot be exported');
@@ -60,7 +74,7 @@ function paintFor(value: string, svg: SVGSVGElement): string {
     if (url.href !== page.href)
       throw new Error('External or inherited paint references cannot be exported');
   }
-  const pattern = [...svg.querySelectorAll('defs > pattern')].find((node) => node.id === id);
+  const pattern = lookup(id);
   if (
     !pattern ||
     !/^banora-texture-\d+-(black|white)$/.test(id) ||
@@ -93,6 +107,7 @@ export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOption
   const copy = svg.cloneNode(true) as SVGSVGElement;
   const originals = [svg, ...svg.querySelectorAll('*')];
   const copies = [copy, ...copy.querySelectorAll('*')];
+  const lookup = patternLookup(svg);
   for (let index = 0; index < originals.length; index++) {
     const original = originals[index]!,
       cloned = copies[index]!;
@@ -120,7 +135,7 @@ export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOption
     }
     const computed = window.getComputedStyle(original);
     for (const key of styles) {
-      const value = paintFor(computed.getPropertyValue(key), svg);
+      const value = paintFor(computed.getPropertyValue(key), svg, lookup);
       if (value) cloned.setAttribute(key, value);
     }
   }

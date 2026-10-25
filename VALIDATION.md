@@ -3,6 +3,48 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Export-Local Texture Paint Lookup
+
+Diagram serialization previously queried all defs > pattern descendants and
+allocated/searched their array for every texture paint. It now creates one lazy,
+invocation-local ID index, preserving the first document-order element for duplicate
+IDs. Pattern ID/child structure and absolute/local external-reference validation
+still run for every referenced paint; no index survives export. A plain-color
+diagram never scans texture definitions. The Position Diagrams public contract
+documents this policy; no public signature/options/schema, DB, dependencies,
+repository hygiene or runner policy changed.
+
+On Windows Chrome 155, a mounted 52x52 controlled board with 2,704 alternating
+textured stones and 3,023 SVG descendants issues 2,704 definition queries at
+baseline `9fbdff4`, versus one after the change. Counters are restored before
+timing. With two excluded warmups and five full exportSvg samples, median execution
+changes from 251.7 to 91.2 ms. Baseline samples are 210.9/240.1/251.7/262.0/265.3 ms;
+changed samples are 86.7/89.2/91.2/99.5/109.6 ms. These are production-browser
+measurements of complete SVG serialization, not PNG encoding, download/transport,
+release guarantees or estimates for all board sizes.
+
+For S paint references and P pattern definitions, the old code executes S DOM
+queries plus O(S*P) array search/copy work. The new code executes one query plus
+O(P+S) expected Map work and O(P) extra index storage. There is no persistent cache.
+Computed-style inspection, SVG cloning/sanitization and raster validation remain.
+
+The permanent 19x19 regression runs in focused texture and full browser smoke,
+without repeated timing loops or timing assertions. It checks all 361 textured
+stones, one scan per export, fresh lookup after a definition is replaced, first
+match rejection for invalid duplicate IDs, external paint rejection without network
+I/O, and zero scans after textures are disabled. Existing texture smoke checks real
+PNG pixels, eight transforms, captured PNG state, cleanup and four consumers.
+
+Passed locally: production SDK/adapters/examples builds, Chrome focused texture
+smoke (new paint lookup regression and existing SDK/vanilla/React/Vue/Svelte cases),
+SDK tests (268 / 16,227 assertions), packed public SDK/classic-global/declaration
+consumers, typecheck, lint, format, module boundaries and docs. Firefox/WebKit,
+the full browser/operations suites and hosted CI were skipped in favor of affected
+export/texture paths. No equivalent timing claim is made for untextured/smaller
+boards. The existing browser runner gains only the focused/full regression call;
+no new scope, timing assertion, benchmark loop or runner dependency remains.
+No push, release or deployment ran.
+
 ## Single-Priority Refactor: Allocation-Free SGF Dimension Validation
 
 SGF size projection previously called createPosition solely to validate two

@@ -568,6 +568,7 @@ try {
     await animationConsumers();
     console.log('Focused animation smoke passed.');
   } else if (scope === '--texture-only') {
+    await scenario('diagram-paint', 'banora-diagram-paint-complete');
     await scenario('texture', 'banora-textures-complete: SDK');
     await textureConsumers();
     console.log('Focused texture smoke passed.');
@@ -636,6 +637,7 @@ try {
       'Presentation smoke passed: eight rectangular/cropped transforms, logical mouse input, screen keyboard axes, upright labels and atomic configuration.',
     );
     await cli('snapshot');
+    await scenario('diagram-paint', 'banora-diagram-paint-complete');
     await diagramSmoke();
     console.log(
       'Diagram smoke passed: Studio and three adapters export real SVG/PNG; bounded standalone styles, failure and disposal handling preserve SGF dirty state.',
