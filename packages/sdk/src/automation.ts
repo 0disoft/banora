@@ -12,7 +12,7 @@ import type { RecordCheckpoint } from './checkpoint.js';
 import { isAutomationRequest } from './automation-schema.js';
 import type { RecordSearchOptions } from './record-search.js';
 import { AUTOMATION_LIMITS } from './automation-limits.js';
-import { executeOperation } from './automation-operations.js';
+import { createLegalPointQuery, executeOperation } from './automation-operations.js';
 import type { OperationBudget } from './automation-operations.js';
 import { DiagnosticJournal, describeDiagnosticFailure } from './diagnostics.js';
 import type {
@@ -252,12 +252,13 @@ function runAutomation(input: unknown, journal?: DiagnosticJournal) {
       legalPointCells: AUTOMATION_LIMITS.legalPointCells,
       recordToolCalls: AUTOMATION_LIMITS.recordToolCalls,
     };
+    const queryLegalPoints = createLegalPointQuery();
     for (const [index, operation] of (request.operations ?? []).entries()) {
       operationIndex = index;
       phase = Object.hasOwn(diagnosticOperations, operation.op)
         ? diagnosticOperations[operation.op]
         : 'edit';
-      const execution = executeOperation(controller, operation, index, budget);
+      const execution = executeOperation(controller, operation, index, budget, queryLegalPoints);
       if (!execution.ok) return reject(execution.error, execution.descriptor);
       budget = execution.budget;
       if (execution.output !== undefined) results.push(execution.output);

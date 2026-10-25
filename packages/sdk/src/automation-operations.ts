@@ -137,10 +137,24 @@ function legalPoints(position: Position): Point[] {
     for (let x = 0; x < position.width; x++) if (play(position, { x, y }).ok) points.push({ x, y });
   return points;
 }
+type LegalPointQuery = (position: Position) => Point[];
+/** One request owns one memo entry; each output keeps independently mutable points. */
+export function createLegalPointQuery(): LegalPointQuery {
+  let previous: Position | undefined;
+  let points: readonly Readonly<Point>[] = [];
+  return (position) => {
+    if (position !== previous) {
+      points = legalPoints(position);
+      previous = position;
+    }
+    return points.map((point) => ({ ...point }));
+  };
+}
 function scanLegalPoints(
   controller: RecordController,
   index: number,
   budget: OperationBudget,
+  query: LegalPointQuery,
 ): OperationExecution {
   const position = controller.getState().position;
   const remaining = {
@@ -160,7 +174,7 @@ function scanLegalPoints(
     output: {
       operationIndex: index,
       op: 'legal-points',
-      points: legalPoints(position),
+      points: query(position),
       pass: true,
     },
   };
@@ -172,6 +186,7 @@ export function executeOperation(
   operation: AutomationOperation,
   index: number,
   budget: OperationBudget,
+  queryLegalPoints: LegalPointQuery = legalPoints,
 ): OperationExecution {
   const remaining =
     operation.op === 'search' || operation.op === 'comment-batch'
@@ -193,7 +208,7 @@ export function executeOperation(
     case 'score':
       return score(controller, operation, index, remaining);
     case 'legal-points':
-      return scanLegalPoints(controller, index, remaining);
+      return scanLegalPoints(controller, index, remaining, queryLegalPoints);
     case 'play':
       command = controller.play(operation.point);
       break;

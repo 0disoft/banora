@@ -34,6 +34,13 @@ stops execution. Comment batches check the expected SGF before resolving targets
 Splitting command handlers and response projection does not change these checks,
 error fields/messages, diagnostic stages or controller disposal.
 
+Repeated `legal-points` queries reuse one request-local result only while the
+selected immutable Position is identical. The identity includes the actual turn,
+ko and rule history; matching board cells alone is insufficient. Each response
+still receives its own array and point objects. Every query, including a reuse,
+consumes the same board-area cell budget before any semantic work. The memo has
+one entry, is never shared across requests and expires with the request.
+
 ```ts
 import {executeAutomation} from '@0disoft/banora/automation';
 const result = executeAutomation({

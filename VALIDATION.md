@@ -3,6 +3,42 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Request-Local Legal-Point Reuse
+
+Record automation now owns a single-entry legal-point memo for the duration of
+one isolated request. Only the same immutable Position reuses core validation;
+changed turn, ko/history or replayed position recomputes. Every query still charges
+its full board-area budget before semantic work. Per-query arrays and point objects
+remain separate and mutable; no cache, controller or Position escapes in results.
+The Automation SDK guide and ADR 0013 document this execution policy. There is no
+public signature/schema, DB, dependency, repository hygiene or runner-policy change.
+
+On this Windows/Bun 1.4.3 machine, a 9x9 empty record with 100 consecutive queries
+uses 81 core play calls, versus 8,100 at baseline `03bad13` (99% fewer). With spy
+instrumentation removed, two excluded warmups and five sorted whole-API execution
+samples, the median changes from 195.4357 ms to 3.8348 ms. Baseline samples were
+194.3665/194.8243/195.4357/196.0766/196.2570 ms; changed samples were
+3.6265/3.7917/3.8348/4.8205/8.9910 ms. These are developer-machine headless API
+measurements, excluding CLI startup, transport/JSON serialization, browser and
+release timing. They are not latency guarantees or timing assertions.
+
+For q queries of one unchanged B-cell Position with L legal points and per-play
+cost C, core validation falls from q*B calls to B calls; execution is O(B*C + q*L)
+instead of O(q*B*C). The extra memo holds at most B points and one Position reference;
+output copying remains O(q*L). Position changes intentionally invalidate reuse.
+
+Five regression tests cover exact call counts, row order, independent output
+mutation, separate requests, comment-only reuse, same-board pass/turn changes,
+Undo, failed-request isolation and the unchanged 8,192-cell cutoff (102 queries
+on 9x9 still fail at operation index 101 without partial SGF/results).
+
+Passed locally: SDK tests (264 tests, 16,043 assertions), typecheck, lint, format,
+repository boundaries, docs links, production SDK/CLI builds, installed packed CLI
+(298 checks), and packed public SDK/classic-global/declaration consumers. Browser,
+adapter UI and unrelated operations suites were skipped for this headless-only
+change. Cache reuse is deliberately limited to exact identity, not every equivalent
+position. No hosted CI, push or deployment was run.
+
 ## Single-Priority Refactor: Provider Result Array Validation
 
 Analysis result normalization now decodes candidate/PV/ownership arrays with one

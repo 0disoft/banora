@@ -17,6 +17,11 @@ selected snapshot, navigation/annotation data and SGF. Node IDs and Undo/Redo ar
 request-local; game index and child-index paths are portable against the supplied
 record. Optional scoring and legal-point queries use the actual replayed history.
 
+Legal-point execution may reuse the last immutable Position's computed points
+inside one request. Never key this reuse by board cells alone: turn, ko and rule
+history affect legality. Keep query budgets independent of reuse, copy output
+arrays/points per operation and retain no memo across request completion/failure.
+
 External snapshot requests only validate/copy presentation state. Neither the CLI
 nor the SDK automation layer applies intentions to externally owned games or
 silently controls an already mounted application. Hosts may explicitly bind this
