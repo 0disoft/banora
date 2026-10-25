@@ -205,6 +205,7 @@ export function mountBoardSurface(
       });
   }
   function render(state: BoardFrame): void {
+    hoverLayer = undefined;
     if (readOnly() || options.drawing) hover = null;
     if (options.nodeId) {
       const pinned =
@@ -770,6 +771,20 @@ export function mountBoardSurface(
   );
   cropFor(current);
   const unsubscribe = controller.subscribe((state) => {
+    // The immutable record proves both pinned nodes still have the same display.
+    // Require a completed paint so the immediate subscription still mounts it.
+    if (
+      options.nodeId &&
+      current.recordState &&
+      hoverLayer &&
+      available &&
+      current.nodeId === options.nodeId &&
+      state.identity === current.identity &&
+      state.recordGeneration === nodeGeneration
+    ) {
+      announce(current);
+      return;
+    }
     if (state.identity !== current.identity || state.nodeId !== current.nodeId) {
       cancelInk();
       cancelTouch();

@@ -583,6 +583,7 @@ try {
     await scenario('framework', 'banora-frameworks-complete');
     console.log('Focused framework lifecycle and variation options smoke passed.');
   } else if (scope === '--comparison-only') {
+    await scenario('pinned-board', 'banora-pinned-board-complete');
     await scenario('comparison-options', 'banora-comparison-options-complete');
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
@@ -658,6 +659,7 @@ try {
     console.log(
       'Comparison smoke passed: pinned branches, highlighted differences, exports, generation/deletion handling and lifecycle.',
     );
+    await scenario('pinned-board', 'banora-pinned-board-complete');
     await scenario('comparison-options', 'banora-comparison-options-complete');
     await cli('snapshot');
     await shareSmoke();

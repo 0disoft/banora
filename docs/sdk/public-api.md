@@ -824,6 +824,16 @@ copied separately from returned frame maps. Existing frames remain independent.
 Pinned boards never issue their own play/ink/touch-aim commands or Page Up/Down
 navigation; optional `onPoint` remains a host-owned inspection callback.
 
+After the first complete paint, a pinned record board retains its SVG children
+across cursor-only controller notifications when the immutable record, pinned ID
+and captured import generation are unchanged. Its accessibility announcement still
+refreshes. Record edits, branch deletion/Undo, import replacement and explicit
+`update` calls retain the normal render path; keyboard focus/cursor handlers still
+render their interaction changes. Unpinned and controlled boards keep their
+existing notification behavior. This uses the already held frame/paint layer,
+without another cache of records or positions; presentation changes use `update`.
+A failed full paint clears its completion marker so a later notification retries.
+
 References capture the controller's import generation when mounted or when an ID
 changes. `referenceGeneration` explicitly scopes/rebinds both IDs; use the snapshot's
 `recordGeneration` when rebinding reused IDs after import. Repeating an unchanged

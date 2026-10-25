@@ -3,6 +3,57 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Stable Pinned Board Paint Retention
+
+Pinned boards previously inspected and repainted their entire SVG on every
+controller cursor notification, even when both comparison nodes were unchanged.
+The board surface now skips that render only for an available, already-painted
+record pin with the same immutable record identity, pinned ID and captured import
+generation. Accessibility announcement still runs. Requiring the existing paint
+layer prevents skipping the immediate subscription's first paint; starting a full
+render clears that layer marker so failed paint is retried on a later notification.
+All record edits,
+missing pins, import generations and explicit presentation updates retain their
+normal render path, as do focus/keyboard handlers and all unpinned/controlled
+boards. No additional frame, record or position cache is introduced. The owning
+contract is docs/sdk/public-api.md. No public signatures/exports, DB, dependencies
+or repository hygiene changed. The existing focused/full browser runner includes
+one new regression scenario; no new command flag, CI matrix or timing test was
+added. SDK version stays unchanged under the existing local-patch release policy.
+
+Measured on Windows Chrome 155/Bun 1.4.3 against ee676ce, with a mounted 19x19
+comparison, two early pinned move nodes and 499 following annotation nodes.
+One controller.next notification created 265 SVG elements before and zero after.
+The createElementNS counter was restored before timing. Two untimed warmup batches
+preceded five batches of ten synchronous next calls. Sorted batch samples were
+39.3, 39.4, 43.0, 51.5, 63.4 ms before and 21.3, 22.1, 22.1, 24.0, 24.9 ms after;
+the median fell from 43.0 to 22.1 ms (about 49%). This measures complete synchronous
+command/render work, not browser frame paint, peak memory, cold import or every
+device/record. Comparison row projection, summary and announcements still run.
+For unchanged pins the SVG paint changes from O(rendered board elements) to zero
+element creation/replacement; the complete command retains its other costs.
+The profiling callback returned metrics instead of the normal scenario marker,
+intentionally stopping the focused runner after capture. The committed scenario
+uses the normal marker and has no timing loop/assertion.
+
+The new browser scenario covers initial paint, stable SVG child identity and zero
+allocations through forward/backward/root navigation, focus and keyboard cursor,
+unchanged diagram export, transform/locale updates, fresh comments, ancestor setup
+edits/Undo (including an injected SVG paint failure and subsequent retry), removed
+pin/reference and Undo, unpinned selection/import behavior,
+same-ID import invalidation and explicit generation rebind, plus disposal.
+
+Passed on Windows/Bun 1.4.3: SDK suite (300 tests / 17,286 assertions across 44
+files), root typecheck, lint, format, boundaries (zero size review candidates),
+docs (147 documents / 750 links), production SDK/adapters/examples build, packed
+public SDK/classic-global/ambient declaration consumers, diff whitespace and
+Chrome 155 --comparison-only smoke (new paint-retention scenario plus existing
+option-retention/comparison coverage). No push or deployment was performed.
+Firefox/WebKit, unrelated operations/release/CLI suites, the complete browser
+matrix, adapter SSR and hosted CI were skipped to keep this private rendering
+change focused. Those platforms and actual frame-paint/peak-memory gains remain
+unmeasured. Applied skills: refactor, sdk, test-hardening and Playwright.
+
 ## Single-Priority Refactor: Requested Replay Position Retention
 
 The controller's single FIFO replay cache admitted every intermediate position.
