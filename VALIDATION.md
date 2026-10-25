@@ -3,6 +3,40 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Controlled-Board Source and Disposal Ownership
+
+Controlled-board configuration now keeps the checked snapshot instead of the raw
+host input. Disposal replaces wrapper state/frame with a private 2x2 empty display
+and drops configuration callbacks before surface cleanup. Existing operation guards,
+idempotence, atomic update rollback and externally owned state/callbacks remain
+unchanged. The Controlled Board API guide and ADR 0012 own this lifecycle policy.
+No public API/schema, DB, dependency, hygiene or runner-policy change is introduced.
+
+A Chrome 155 production-browser regression keeps eight view handles alive: four
+live views with otherwise unreferenced source inputs and four disposed views with
+host callbacks. Each source/callback owner carries a synthetic 4 MiB ArrayBuffer
+(32 MiB total). Four CDP forced-GC turns separated by JS tasks leave eight live-input
+weak targets and 20 closed-view weak targets reachable at baseline `12ea241`;
+the corrected source leaves zero in both categories. The 28 targets count input
+objects, buffers, callbacks, owners and normalized snapshots, not heap bytes.
+The buffer objects become collectible; no process RSS/peak-memory claim is made.
+Hosts deliberately retaining their own snapshots or callbacks keep them usable.
+
+The regression checks continued live rendering/intention keys after input collection,
+all post-disposal guards, duplicate disposal and disposal from within an intention.
+It runs in Chromium focused controlled smoke and the existing memory scope; other
+engines retain their functional coverage without requiring CDP. No new CLI option,
+test runner, background process or dependency was added.
+
+Passed locally: SDK tests (264 tests / 16,043 assertions), production SDK/adapters/
+examples builds, Chrome focused controlled smoke (new GC regression plus common
+surface and vanilla/React/Vue/Svelte consumers), packed SDK/classic-global/types,
+packed React/Vue/Svelte types and SSR, typecheck, lint, format, boundaries and docs.
+Firefox/WebKit, full memory/operations suites and hosted CI were skipped in favor
+of the affected Chromium ownership/consumer paths. Remaining measurement limit:
+GC reachability does not establish process RSS or total detached-DOM memory.
+No push, release or deployment was performed.
+
 ## Single-Priority Refactor: Request-Local Legal-Point Reuse
 
 Record automation now owns a single-entry legal-point memo for the duration of

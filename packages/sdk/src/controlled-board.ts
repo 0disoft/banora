@@ -84,7 +84,8 @@ export function mountControlledBoard(
 ): ControlledBoardView {
   let state = createBoardSnapshot(initial.state),
     frame = snapshotFrame(state);
-  let config = configCopy(initial),
+  // Keep the owned snapshot in configuration, not the caller's source graph.
+  let config = configCopy({ ...initial, state }),
     disposed = false;
   type Payload = BoardIntent extends infer T
     ? T extends BoardIntent
@@ -169,6 +170,15 @@ export function mountControlledBoard(
     dispose() {
       if (disposed) return;
       disposed = true;
+      // A retained handle must not retain the host callback or last snapshot/frame.
+      state = createBoardSnapshot({
+        key: 'disposed',
+        width: 2,
+        height: 2,
+        stones: [null, null, null, null],
+      });
+      frame = snapshotFrame(state);
+      config = { state };
       surface.dispose();
     },
   });

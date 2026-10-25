@@ -440,6 +440,7 @@ try {
     await browserZoom(root, address);
   } else if (scope === '--memory-only') {
     if (release) throw Error('Browser memory measures the current built checkout only.');
+    await scenario('controlled-disposal', 'banora-controlled-disposal-complete');
     await scenario('viewer-disposal', 'banora-viewer-disposal-complete');
     await scenario('analysis-disposal', 'banora-analysis-disposal-complete');
     await scenario('katago-disposal', 'banora-katago-disposal-complete');
@@ -529,6 +530,8 @@ try {
       'Playback smoke passed: speed/pause/end, keyboard guards, import, SGF preservation and six consumer lifecycles.',
     );
   } else if (scope === '--controlled-only') {
+    if (engine === 'chromium')
+      await scenario('controlled-disposal', 'banora-controlled-disposal-complete');
     await scenario('controlled', 'banora-controlled-complete');
     await controlledConsumers();
     console.log(

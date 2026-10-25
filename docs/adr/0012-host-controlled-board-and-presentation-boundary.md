@@ -32,6 +32,10 @@ authoritative server. No actual adoption or changes in another repository are pa
 of this delivery. Generic examples and installed consumers establish the boundary.
 Snapshot validation precedes UI mutation. Replacements cancel pending gestures;
 views dispose their own resources and never dispose host state or a host engine.
+Keep the checked snapshot in view configuration instead of the original host
+input graph. Disposal drops the view's snapshot/frame and intention callback
+references even when a host retains its terminal handle; host-owned snapshots and
+callbacks remain usable independently.
 Record adjacency animation remains a record-board feature; controlled snapshots
 do not invent a game history. Server imports are safe, while rendering is client-only.
 Validate rejected updates, immutable snapshots, unchanged input state, stale

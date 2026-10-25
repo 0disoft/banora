@@ -77,8 +77,11 @@ localization. `announce(text)` lets a host report rejection without changing sta
 `exportSvg` and asynchronous `exportPng` use the shared standalone-diagram path,
 including supplied annotations/masks/overlays and excluding transient cursors/ink/
 touch previews. Export never writes a record. `dispose()` is idempotent, aborts
-pending image work and removes view listeners, DOM and lens UI; it never releases
-host state/engines. Other operations reject a disposed view. Record adjacency
+pending image work and removes view listeners, DOM and lens UI. Configuration keeps
+only the checked snapshot, not its original host input. A retained disposed handle
+releases the last snapshot/frame and host intention callback; private empty display
+data supports terminal guards. This does not mutate or dispose host state/engines
+or invalidate snapshots explicitly retained by the host. Other operations reject a disposed view. Record adjacency
 animation, SGF navigation/comparison and complete Viewer UI remain record APIs.
 
 ## Native Components
