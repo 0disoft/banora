@@ -33,6 +33,9 @@ runtime boundary before source implementation begins.
    variation and changing comments or markers are undoable edits; navigation adds
    no edit history entry. Group a comment editing session as one undo unit. Branch
    navigation still reconstructs the correct rule-relevant position history.
+   Core creation and SGF dimension projection share a pure internal dimension
+   policy. Header validation/content comparison must not create throwaway boards;
+   actual replay continues to create its required immutable rule positions.
 4. Before replacing or closing a dirty record in Studio, offer Export, Discard
    or Cancel. Dirty state compares semantic record content with its export baseline;
    Undo returning to that baseline clears it. Import initializes a clean baseline

@@ -3,6 +3,49 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Allocation-Free SGF Dimension Validation
+
+SGF size projection previously called createPosition solely to validate two
+dimensions. Every header inspection allocated/froze a board, counters and rule
+state. The core constructor and SGF projection now share a private pure integer
+dimension check; existing defaults, validation order, RangeError/SGF diagnostics
+and actual replay position creation stay unchanged. The Public API and ADR 0005
+record this ownership split. No public signatures/exports, schema, DB, dependencies,
+repository hygiene or runner policy changed.
+
+The module-boundary registry classifies the new internal dimension policy as core;
+existing core/headless/browser dependency restrictions remain enforced.
+
+Windows/Bun 1.4.3 measurements use 10,000 valid 19x19 root-only games (90,000 input
+characters). A C-only candidate replaces the first root and shares all other roots.
+At baseline `01dcd9b`, parsing creates 10,000 throwaway Positions (3,610,000 board
+cells), and exact dirty comparison creates 20,000 (7,220,000 cells); both counts
+are zero after the change. Real initialRecordPosition still constructs one position.
+Dimension validation after numeric decoding changes from O(B) work/temporary space
+to O(1), for B board cells; header-string decoding, parser semantics and the rest
+of dirty comparison remain necessary. Cell counts describe cumulative allocation,
+not peak heap or retained/RSS memory.
+
+With call spies removed, two excluded warmups and five timed samples per operation,
+parse median changes from 995.9191 to 68.3491 ms; dirty comparison from 1769.1402 to
+5.3295 ms. Baseline parse samples: 967.1681/983.7573/995.9191/998.5333/1075.7845 ms;
+changed: 64.4603/67.1339/68.3491/71.9632/73.5783 ms. Baseline comparison samples:
+1764.2281/1768.7634/1769.1402/1777.0316/1778.1577 ms; changed:
+4.7487/4.8446/5.3295/5.5723/6.0852 ms. These are local headless source measurements,
+not browser, CLI startup, transport or release latency guarantees.
+
+Four regressions cover 64 square/rectangle boundary pairs, default/leading-zero
+sizes, core invalid-number and validation-order checks, exact invalid SZ diagnostics,
+the 2,704-point expansion limit, zero temporary construction during collection
+parse/shared-root comparison, and preservation of real replay board construction.
+
+Passed locally: SDK tests (268 tests / 16,227 assertions), production SDK/CLI builds,
+installed packed CLI (298 checks), packed public SDK/classic-global/declaration
+consumers, typecheck, lint, format, module boundaries and docs. Browser, adapter UI,
+unrelated operational suites and hosted CI were skipped for this headless-only
+change. Large multi-game collections are the measured workload; no comparable
+speedup is claimed for ordinary single-game files. No push/release/deployment ran.
+
 ## Single-Priority Refactor: Controlled-Board Source and Disposal Ownership
 
 Controlled-board configuration now keeps the checked snapshot instead of the raw

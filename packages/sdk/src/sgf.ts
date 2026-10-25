@@ -1,4 +1,5 @@
-import { createPosition, isOnBoard } from './core.js';
+import { isOnBoard } from './core.js';
+import { validBoardDimensions } from './board-dimensions.js';
 import type { Point } from './core.js';
 import { decodeStrokes } from './annotations.js';
 
@@ -211,11 +212,8 @@ export function sgfBoardSize(root: SgfNode): { width: number; height: number } {
   if (!/^\d+(?::\d+)?$/.test(text)) fail('property', 'Invalid SZ property');
   const [width, suppliedHeight] = text.split(':').map(Number);
   const height = suppliedHeight ?? width!;
-  try {
-    createPosition({ width: width!, height });
-  } catch {
+  if (!validBoardDimensions(width!, height))
     fail('property', 'SGF board dimensions must be from 2 to 52');
-  }
   return { width: width!, height };
 }
 

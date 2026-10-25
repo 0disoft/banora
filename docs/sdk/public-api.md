@@ -335,6 +335,11 @@ point-list areas across every property, node and game. Compressed rectangles cou
 their full area; permitted empty lists count zero. Exceeding it returns `limit`.
 See [compatibility](compatibility.md#record-compatibility) for the supported subset.
 
+SGF size projection and core position creation share the same internal 2-through-52
+integer check. Inspecting dimensions does not allocate an empty Position or board;
+selected-path replay still creates its real position. Square/rectangular defaults,
+size diagnostics and all parser/expanded-point budgets remain unchanged.
+
 Byte decoding reuses its already validated probe only when its captured immutable
 text is identical to the declared decoding: supported ASCII input, or direct
 Latin-1 without a conflicting BOM. Both decoded input size and the original strict

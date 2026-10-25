@@ -1,4 +1,5 @@
 import { boardKey, hasSituation, rememberSituation } from './repetition-history.js';
+import { validBoardDimensions } from './board-dimensions.js';
 import type { RepetitionHistory } from './repetition-history.js';
 export type { RepetitionHistory } from './repetition-history.js';
 
@@ -85,7 +86,7 @@ function seal(position: Position, ownedBoard = false): Position {
 export function createPosition(options: PositionOptions = {}): Position {
   const width = options.width ?? 19;
   const height = options.height ?? width;
-  if (![width, height].every((value) => Number.isInteger(value) && value >= 2 && value <= 52)) {
+  if (!validBoardDimensions(width, height)) {
     throw new RangeError('Board dimensions must be integers from 2 to 52');
   }
   const rules: RulePolicy = {
