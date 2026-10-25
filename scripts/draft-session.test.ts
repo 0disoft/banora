@@ -6,6 +6,69 @@ import type { StudioDraft } from '../examples/studio/draft-store.js';
 import { StudioWorkspace } from '../examples/studio/workspace.js';
 import { TestScheduler } from './test-scheduler.js';
 
+for (const action of ['switch', 'close'] as const)
+  test(`explicit ${action} captures edits before the autosave observer receives them`, async () => {
+    const workspace = new StudioWorkspace();
+    const first = workspace.active;
+    const second = workspace.add(9);
+    workspace.select(first.id);
+    const scheduler = new TestScheduler();
+    const saved: StudioDraft[] = [];
+    let armed = false;
+    let closing: Promise<void> | undefined;
+    let autosave: DraftAutosave;
+    let sequence = 0;
+    const stop = workspace.controller.subscribe((state) => {
+      if (!armed || !state.dirty) return;
+      armed = false;
+      if (action === 'switch') workspace.select(second.id);
+      else closing = autosave.close();
+    });
+    autosave = new DraftAutosave(
+      workspace.controller,
+      () => workspace.active.filename,
+      {
+        save: async (draft) => {
+          saved.push(draft);
+        },
+      },
+      true,
+      () => {},
+      { ownerKey: () => workspace.active.draftOwner },
+      { now: () => 1234, createId: () => `capture-${++sequence}`, scheduler },
+    );
+    const stopSwitch = workspace.beforeSwitch(() => {
+      void autosave.flush();
+    });
+    try {
+      armed = true;
+      expect(workspace.controller.setComment('Latest outgoing edit').ok).toBe(true);
+      await (closing ?? autosave.idle());
+      expect(saved).toHaveLength(1);
+      expect(saved[0]!.filename).toBe(first.filename);
+      expect(saved[0]!.checkpoint.sgf).toContain('Latest outgoing edit');
+      expect(saved[0]!.revision).toBe(1);
+      if (action === 'switch') {
+        scheduler.advance(500);
+        await autosave.idle();
+        expect(saved).toHaveLength(2);
+        expect(saved[1]!.filename).toBe(second.filename);
+        expect(saved[1]!.id).not.toBe(saved[0]!.id);
+        expect(saved[1]!.checkpoint.sgf).toContain('SZ[9]');
+        expect(saved[1]!.checkpoint.sgf).not.toContain('Latest outgoing edit');
+      } else {
+        scheduler.advance(500);
+        expect(saved).toHaveLength(1);
+        expect(scheduler.pending).toBe(0);
+      }
+    } finally {
+      stop();
+      stopSwitch();
+      await autosave.close();
+      workspace.dispose();
+    }
+  });
+
 for (const channel of ['workspace', 'controller'] as const)
   test(`${channel} listener failure cannot suppress a committed edit's autosave`, async () => {
     const workspace = new StudioWorkspace();

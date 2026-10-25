@@ -91,6 +91,10 @@ without replacing globals. Status-rendering exceptions are isolated behind a fix
 diagnostic label, so they cannot suppress a save or turn a committed write into a
 storage failure. Closing still flushes the last checkpoint and waits for queued
 writes; it does not cancel an already-started save.
+Explicit flush/close reads the current source and session owner before deciding
+there is nothing new to save. Thus a preceding observer can switch a tab or close
+the coordinator after a committed edit without depending on autosave's observer
+having run first. Delayed notification snapshots cannot rewind its source view.
 Restore retains the original and creates a new session copy, so two tabs never
 take over each other's writing key. Dirty replacement offers Export / Discard /
 Cancel, and recovered edits remain dirty until SGF export.

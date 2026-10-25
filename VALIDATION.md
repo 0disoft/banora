@@ -1,5 +1,41 @@
 # Validation
 
+## Single-Priority Refactor: Fresh Source Capture Before Autosave Flush
+
+Baseline 1bbec9e relied on the autosave observer having marked a source change
+before an explicit flush/close. A preceding controller observer can switch tabs
+or close the coordinator during the same committed-edit notification. The old
+early return then skipped that outgoing checkpoint. Both deterministic regressions
+failed with zero saves, despite a successful edit, before the runtime change.
+
+The coordinator now shares one live source/owner synchronization helper between
+its subscriber and explicit flush. Flush performs that O(1) snapshot identity
+check before its unchanged-capture guard; queued immutable checkpoints, owner
+revisions, serial writes and the normal 500ms debounce remain unchanged. Reading
+the live facade also avoids adopting a stale notification after a nested switch.
+An unchanged source still creates no checkpoint and performs no storage write.
+No public signatures/exports, schema, DB, dependencies, repository hygiene or
+runner commands changed. The owning contract is docs/sdk/recovery.md; SDK version
+remains unchanged under the existing local-patch release policy.
+
+After the fix both outgoing edits reach the injected save sink exactly once;
+the switched-to record subsequently saves under a distinct ID without the other
+record's comment. Closing cancels the timer and does not produce a duplicate
+write. These regressions use the actual workspace/controller/autosave classes
+with an injected scheduler and save sink; they do not establish native disk
+durability, browser-process termination guarantees or a latency improvement.
+
+Passed on Windows/Bun 1.4.3: SDK plus Studio workspace/draft session/store tests
+(324 tests / 17,444 assertions across 47 files), root typecheck, lint, format,
+boundaries (zero size review candidates), docs (147 documents / 750 links),
+production SDK/adapters/examples build and diff whitespace. Chrome 155 focused
+--recovery-only smoke passed with real IndexedDB, reload, two-tab ownership,
+quotas/cap, backups, replacement guards, deletion and locale/mobile controls.
+No push or deployment. Unrelated operations/release/CLI suites, packed package
+consumers, adapter SSR, the complete browser matrix, Firefox/WebKit and hosted CI
+were skipped for this Studio-only coordinator fix. Applied skills: refactor,
+bugfix, sdk, test-hardening and Playwright. No automatic version bump/publication.
+
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 

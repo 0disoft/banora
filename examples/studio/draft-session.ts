@@ -45,19 +45,25 @@ export class DraftAutosave {
     this.#ownerKey = session?.ownerKey();
     if (this.#ownerKey) this.#owners.set(this.#ownerKey, this.#owner);
     this.#status = enabled ? 'idle' : 'off';
-    this.#unsubscribe = controller.subscribe((state) => {
-      if (state === this.#seen || this.#closed) return;
-      this.#seen = state;
-      const key = this.session?.ownerKey();
-      if (key && key !== this.#ownerKey) {
-        this.#ownerKey = key;
-        this.#owner = this.#owners.get(key) ?? this.#newOwner(state.recordGeneration);
-        this.#owners.set(key, this.#owner);
-      } else if (!key && state.recordGeneration !== this.#owner.generation)
-        this.#owner = this.#newOwner(state.recordGeneration);
-      this.#epoch++;
-      this.#schedule();
+    this.#unsubscribe = controller.subscribe(() => {
+      if (this.#syncSource()) this.#schedule();
     });
+  }
+  /** Read live source/owner together; notification snapshots can arrive after a switch. */
+  #syncSource(): boolean {
+    if (this.#closed) return false;
+    const state = this.controller.getState();
+    if (state === this.#seen) return false;
+    this.#seen = state;
+    const key = this.session?.ownerKey();
+    if (key && key !== this.#ownerKey) {
+      this.#ownerKey = key;
+      this.#owner = this.#owners.get(key) ?? this.#newOwner(state.recordGeneration);
+      this.#owners.set(key, this.#owner);
+    } else if (!key && state.recordGeneration !== this.#owner.generation)
+      this.#owner = this.#newOwner(state.recordGeneration);
+    this.#epoch++;
+    return true;
   }
   #newOwner(generation: number): Owner {
     return { id: this.runtime.createId?.() ?? crypto.randomUUID(), generation, revision: 0 };
@@ -129,9 +135,11 @@ export class DraftAutosave {
   /** Capture now so disposal can let this queued immutable checkpoint finish. */
   flush(): Promise<void> {
     this.#cancelTimer();
-    if (this.#closed || !this.enabled || !this.#needsSave || this.#capturedEpoch === this.#epoch)
-      return this.#running ?? Promise.resolve();
+    if (this.#closed || !this.enabled) return this.#running ?? Promise.resolve();
     try {
+      if (this.#syncSource()) this.#needsSave = true;
+      if (!this.#needsSave || this.#capturedEpoch === this.#epoch)
+        return this.#running ?? Promise.resolve();
       this.#queued.set(this.#owner, {
         epoch: this.#epoch,
         draft: {
