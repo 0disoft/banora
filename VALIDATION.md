@@ -1,5 +1,45 @@
 # Validation
 
+## Single-Priority Refactor: Forced Draft Connection Closure Recovery
+
+Baseline 61d8a1c cached a resolved IndexedDB connection promise until versionchange,
+but did not invalidate it when the browser forcibly closed the connection.
+An actual Chrome 155 Storage.clearDataForOrigin operation emitted the database's
+close event; the following Studio Refresh failed and left the deleted draft's
+old option visible. Later requests reused the same closed database rather than
+opening a connection. This is an observed recovery failure, not a timing claim.
+
+Successful opening now installs a close handler that invalidates only its own
+cached promise. Versionchange shares that identity guard, so a stale old event
+cannot evict a newer connection. No event handler opens a connection or retries
+an operation: the next explicit storage request opens once and reuses that
+connection normally. CAS revision checks, transaction boundaries, limits, schema
+and failure codes are unchanged. Reopening does not recover deleted disk data.
+The owning contract is docs/sdk/recovery.md; SDK public API, DB/schema, dependency
+versions and repository hygiene are unchanged. No automatic version bump applies.
+
+The existing recovery browser scenario now adds a Chromium-only native forced
+closure check in an isolated browser context, with CDP/context cleanup in finally.
+The app's opening count is exactly two after initial save plus explicit refresh;
+the stale listing becomes empty, current comment/dirty work is retained, and the
+next edit still fails CAS after database deletion. Explicit Retry then writes
+exactly one draft containing the continued edit. Other browser scenarios and
+existing recovery coverage remain intact; no new runner flag or CI job was added.
+A unit connection fixture also verifies retained reads after closure, no automatic
+reopen, reuse after late old events, normal versionchange and terminal store close.
+The fixture alone is not native-storage evidence; the Chrome scenario supplies it.
+
+Passed on Windows/Bun 1.4.3: SDK plus Studio workspace/draft session/store tests
+(329 tests / 17,477 assertions across 47 files), typecheck, lint, format,
+boundaries (zero size review candidates), docs (147 documents / 750 links),
+production SDK/adapters/examples build and whitespace checks. Chrome 155 focused
+--recovery-only smoke passed all existing IndexedDB, reload, two-tab, quota/cap,
+backup, replacement/deletion and locale/mobile cases plus the new closure case.
+Unrelated operations/release/CLI suites, packed consumers, adapter SSR, the complete
+browser matrix, Firefox/WebKit and hosted CI were skipped for this Studio-only
+connection fix. OS/disk failure durability remains unverified. Applied skills:
+refactor, bugfix, sdk, test-hardening and Playwright. No push or deployment.
+
 ## Single-Priority Refactor: Reentrant Workspace Publication Ownership
 
 Baseline 2f6b9c2 recursively published from observers and from a source's

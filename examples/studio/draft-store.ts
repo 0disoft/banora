@@ -106,9 +106,14 @@ export class DraftStore {
         }
         settled = true;
         clearTimeout(timer);
+        const opening = this.#opening;
+        const forget = () => {
+          if (this.#opening === opening) this.#opening = undefined;
+        };
+        db.onclose = forget;
         db.onversionchange = () => {
           db.close();
-          this.#opening = undefined;
+          forget();
         };
         resolve(db);
       };

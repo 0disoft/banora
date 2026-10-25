@@ -618,6 +618,71 @@ async (rootPage, studioControl) => {
     await lifecycleContext.close();
   }
 
+  if (rootPage.context().browser().browserType().name() === 'chromium') {
+    const closedContext = await rootPage.context().browser().newContext({ locale: 'en-US' });
+    const closedPage = await closedContext.newPage();
+    let protocol;
+    try {
+      await closedPage.addInitScript(() => {
+        window.draftOpens = 0;
+        window.draftCloses = 0;
+        const open = IDBFactory.prototype.open;
+        IDBFactory.prototype.open = function (...args) {
+          const request = open.apply(this, args);
+          if (args[0] === 'banora.studio.drafts') {
+            window.draftOpens++;
+            request.addEventListener('success', () => {
+              request.result.addEventListener('close', () => window.draftCloses++);
+            });
+          }
+          return request;
+        };
+      });
+      await closedPage.goto(`${address}/studio/`);
+      await closedPage.locator('#comment').fill('Keep editable work after storage closure');
+      await closedPage.locator('#comment').blur();
+      await expect(closedPage.locator('#draft-status')).toHaveText('Draft saved');
+      await openDrafts(closedPage);
+      protocol = await closedContext.newCDPSession(closedPage);
+      await protocol.send('Storage.clearDataForOrigin', {
+        origin: address,
+        storageTypes: 'indexeddb',
+      });
+      await closedPage.waitForFunction(() => window.draftCloses === 1);
+      await closedPage.locator('#draft-refresh').click();
+      await expect(closedPage.locator('#draft-list')).toHaveText('No saved drafts');
+      if ((await closedPage.evaluate(() => window.draftOpens)) !== 2)
+        throw Error('Explicit refresh did not reopen the forcibly closed draft connection');
+      await expect(closedPage.locator('#comment')).toHaveValue(
+        'Keep editable work after storage closure',
+      );
+      await expect(closedPage.locator('#dirty')).toHaveText('Unsaved changes');
+      await closedPage.locator('#draft-close').click();
+      await closedPage
+        .locator('#comment')
+        .fill('Keep editable work after storage closure; continued editing');
+      await closedPage.locator('#comment').blur();
+      await expect(closedPage.locator('#draft-status')).toHaveText(
+        'Draft changed. Refresh or retry.',
+      );
+      await openDrafts(closedPage);
+      await closedPage.locator('#draft-retry').click();
+      await expect(closedPage.locator('#draft-status')).toHaveText('Draft saved');
+      const resumed = await records(closedPage);
+      if (
+        resumed.entries.length !== 1 ||
+        resumed.drafts.length !== 1 ||
+        !resumed.drafts[0].checkpoint.sgf.includes(
+          'Keep editable work after storage closure; continued editing',
+        )
+      )
+        throw Error('Explicit retry did not preserve current work after database deletion');
+    } finally {
+      await protocol?.detach();
+      await closedContext.close();
+    }
+  }
+
   const denied = await page.context().newPage();
   denied.on('dialog', (dialog) => dialog.accept());
   await denied.addInitScript(() => {

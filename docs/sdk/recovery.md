@@ -125,6 +125,13 @@ revisions require refreshing before deletion. Corrupt entries remain available
 for explicit backup/deletion. [ADR 0017](../adr/0017-studio-local-draft-storage.md)
 owns schema/time bounds and session ownership.
 
+A browser-forced database connection close invalidates the cached connection;
+the next explicit storage request opens it again. Late events from an older
+connection cannot invalidate a newer one. Interrupted writes are not replayed
+automatically. Reopening cannot restore data cleared by the browser; existing
+revision checks still reject a missing draft until the user's explicit retry
+creates a new owner. Current in-memory work remains editable and exportable.
+
 Autosave is local to this origin/browser and survives ordinary reopen. It provides
 no upload, cloud backup or cross-device synchronization. Browser storage can be
 cleared/unavailable; abrupt exit can lose a pending debounce/transaction window.
