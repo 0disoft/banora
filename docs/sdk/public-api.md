@@ -851,6 +851,12 @@ An exact 500-node record has no truncation notice; extra nodes do. Explicitly ch
 nodes outside the prefix still use ordinary controller inspection and are appended
 to both selectors. Authored names, coordinates, legacy passes and locale labels
 retain their existing behavior.
+Both selectors retain their option elements while the ordered IDs and rendered
+labels remain unchanged, including cursor navigation, comment-only edits and
+presentation changes. Selected values, notes, accessibility, differences and
+truncation text still refresh. Changed labels/order/membership or availability of
+outside-prefix pins rebuild both lists. Only the last bounded presentation is
+retained and disposal clears it; no record history is cached for this reuse.
 
 ## Embedded Share Links
 

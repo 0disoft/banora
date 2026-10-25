@@ -3,6 +3,50 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Retained Comparison Selector Options
+
+Every comparison render previously created/replaced both bounded option lists even
+when their visible rows were unchanged. The view now compares the complete ordered
+ID/label presentation, including selected/unavailable fallback entries beyond the
+500-node prefix, before replacing options. Selected values, notes, accessibility,
+position differences and truncation text still refresh every render. Only the last
+bounded row model (at most 502 string pairs) is retained and cleared at disposal;
+no record/state/history cache is added. The Position Comparison public contract
+records this ownership. No public signatures/exports, DB, dependencies or hygiene
+changed. The existing focused/full browser runner adds one regression scenario;
+no new CLI flag, CI matrix, dependency or timing assertion was introduced.
+
+Measured on Windows Chrome 155/Bun 1.4.3, with a mounted 5x5 comparison of a 500-node
+linear annotation record, two pinned early nodes and 500 options per pane. The
+baseline runtime was df187ee. One controller.next notification created 1,000 option
+elements before, zero after. createElement counting was removed before timing.
+Two excluded warmup batches preceded five batches of ten synchronous next calls;
+medians were 96.2 ms before and 27.5 ms after (about 71% lower). Sorted batch samples:
+before 85.0, 94.2, 96.2, 105.6, 116.7 ms; after 21.8, 23.5, 27.5, 28.4, 29.4 ms.
+These are complete synchronous command/render batches, not frame-paint latency,
+large-board/all-device performance, peak memory or a hosted benchmark. The capture
+fixture returned metrics instead of the expected completion marker, intentionally
+stopping the focused runner after measurement; final regression execution below
+uses the normal completion marker and contains no profiling loop or report.
+
+Row projection/comparison remains O(P) for bounded prefix P. Unchanged presentations
+now perform zero option creation/replacement rather than 2P DOM allocations; changed
+lists preserve their O(P) rebuild. Permanent browser assertions verify node identity
+and focus across navigation, repinning, comment-only record edits and board styling;
+locale/message changes, selected values/comments, branch removal/Undo, same-ID
+available/unavailable fallback labels, outside-prefix pins, and import reset/disposal.
+
+Passed on Windows/Bun 1.4.3: SDK suite (296 tests / 16,444 assertions), root types,
+lint, format, boundaries (no size review candidates), docs (147 documents / 750
+links), production SDK/adapters/examples build, packed public SDK/classic-global/
+ambient declaration consumers and diff whitespace checks. Focused --comparison-only
+passed on Chrome 155, including the new retained-option scenario and the existing
+comparison scenarios for pins, highlights, transforms, SVG/PNG, generation/deletion,
+locale, lifecycle and framework consumers. Full operations/CLI/unrelated browser
+suites, Firefox/WebKit, adapter SSR and hosted CI were skipped for this comparison
+DOM-only optimization; no wider latency/browser/device coverage is inferred.
+No push, release or deployment ran.
+
 ## Single-Priority Refactor: Bounded Indexed Board Snapshot Collections
 
 createBoardSnapshot previously checked host array length and then copied using

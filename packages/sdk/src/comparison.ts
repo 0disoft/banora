@@ -117,6 +117,8 @@ export function mountComparison(
   }
   const limit = document.createElement('p');
   limit.setAttribute('data-limit', '');
+  // Retain only the last bounded presentation, never record/state objects.
+  let selectorRows: { id: string; label: string }[] = [];
   root.append(style, summary, grid, limit);
   container.append(root);
   function render(): void {
@@ -142,25 +144,32 @@ export function mountComparison(
         });
         selected.add(id);
       }
+    const changed =
+      selectorRows.length !== rows.length ||
+      selectorRows.some(
+        (row, index) => row.id !== rows[index]!.id || row.label !== rows[index]!.label,
+      );
     for (const side of ['left', 'right'] as const) {
       const pane = panes[side],
         id = side === 'left' ? left : right,
         snapshot = controller.inspectNode(id);
       pane.label.data = side === 'left' ? ui.leftPosition : ui.rightPosition;
       pane.select.setAttribute('aria-label', pane.label.data);
-      pane.select.replaceChildren(
-        ...rows.map((row) => {
-          const option = document.createElement('option');
-          option.value = row.id;
-          option.textContent = row.label;
-          return option;
-        }),
-      );
+      if (changed)
+        pane.select.replaceChildren(
+          ...rows.map((row) => {
+            const option = document.createElement('option');
+            option.value = row.id;
+            option.textContent = row.label;
+            return option;
+          }),
+        );
       pane.select.value = id;
       pane.notes.textContent =
         snapshot?.node.properties.C?.[0] ??
         (snapshot ? ui.noComments : ui.comparisonNodeUnavailable);
     }
+    selectorRows = rows;
     const first = controller.inspectNode(left),
       second = controller.inspectNode(right);
     if (!first || !second) summary.textContent = ui.comparisonUnavailable;
@@ -272,6 +281,7 @@ export function mountComparison(
       unsubscribe?.();
       views.left.dispose();
       views.right.dispose();
+      selectorRows = [];
       root.remove();
     },
   });
