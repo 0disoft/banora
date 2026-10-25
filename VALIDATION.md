@@ -3,6 +3,50 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Requested Replay Position Retention
+
+The controller's single FIFO replay cache admitted every intermediate position.
+Alternating two distant inspection endpoints therefore evicted each other's
+completed positions, even without an edit or navigation. Its existing 128-entry
+budget is now split into eight recently requested final positions (refreshed on
+direct hits) and at most 120 intermediate positions. Ancestor lookup considers
+both caches. Cold replay and all validation remain unchanged. Both caches clear
+through the existing index/rule replacement and disposal paths; validated
+comment-only edits may retain rule-relevant positions. The owning contract is
+docs/sdk/public-api.md. Public signatures, exports, DB, dependencies, repository
+hygiene, runners and CI are unchanged; this is a local improvement without an
+automatic version bump or publication.
+
+Measured on Windows/Bun 1.4.3 against baseline 87a62c4 using a synthetic 19x19
+record with two 2,000-pass branches. Parsing and the first inspection of both
+endpoints were excluded. One batch alternated endpoints four times (eight
+inspectNode calls): applyRecordNode calls fell from 16,008 to zero. Counting was
+removed before timing. After two excluded warmup batches, five sorted batch
+samples were 36.8986, 39.0587, 42.4435, 52.4740, 56.8658 ms before and 6.6683,
+6.7294, 7.1070, 7.1605, 7.6305 ms after. The median fell from 42.4435 to 7.1070 ms
+(about 83%). These are complete SDK inspections in Bun, not browser paint, cold
+import, peak memory or all-device results. The synthetic pass-heavy workload does
+not establish latency for tournament records. Across K warm alternating lookups,
+rule replay falls from O(K * depth) to zero while full path construction remains
+O(K * depth). Cache retention remains bounded independently of record length;
+evicted endpoints retain the original cold replay cost.
+
+Four permanent regression tests cover differently occupied deep branches, zero
+warm replay/no navigation or notification, the combined 128-entry limit throughout
+400 moves and complete disposal, setup edits/Undo/Redo/same-ID import,
+comment-only position reuse with fresh metadata, and checkpoint rule replacement.
+
+Passed on Windows/Bun 1.4.3: SDK suite (300 tests / 17,286 assertions across 44
+files), root typecheck, lint, format, boundaries (zero size review candidates),
+docs (147 documents / 750 links), production SDK/adapters/examples build, packed
+public SDK/classic-global/ambient declaration consumers and diff whitespace checks.
+Existing Chrome 155 --comparison-only smoke passed, including the retained-option
+regression. No browser runner or timing assertion was added. Firefox/WebKit, full
+unrelated operations/release/CLI suites, the complete browser matrix, adapter SSR
+and hosted CI were skipped because this change only affects private controller
+position retention. Those platforms and cold/evicted real-record latency remain
+unmeasured. Changes are committed locally on main; no push or deployment.
+
 ## Single-Priority Refactor: Retained Comparison Selector Options
 
 Every comparison render previously created/replaced both bounded option lists even

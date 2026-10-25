@@ -128,6 +128,8 @@ const markerProperties: Readonly<Record<MarkerKind, string>> = {
 
 // No authored data is retained by a closed handle; live access is guarded below.
 const disposedRecord: SgfRecord = Object.freeze({ games: Object.freeze([]) });
+const POSITION_CACHE_LIMIT = 128;
+const REQUESTED_POSITION_LIMIT = 8;
 
 export class RecordController {
   #record: SgfRecord;
@@ -135,6 +137,7 @@ export class RecordController {
   #selected: string;
   #index: RecordIndex;
   #positionCache = new Map<string, Position>();
+  #requestedPositions = new Map<string, Position>();
   #paths = new WeakMap<
     RecordIndex['parents'],
     { id: string; path: string[]; snapshot: readonly string[] }
@@ -210,10 +213,16 @@ export class RecordController {
     return frozen;
   }
   #position(path: readonly string[]): Position {
-    let position: Position | undefined;
+    const id = path.at(-1)!;
+    let position = this.#requestedPositions.get(id);
+    if (position) {
+      this.#requestedPositions.delete(id);
+      this.#requestedPositions.set(id, position);
+      return position;
+    }
     let start = 0;
     for (let i = path.length - 1; i >= 0; i--) {
-      const cached = this.#positionCache.get(path[i]!);
+      const cached = this.#requestedPositions.get(path[i]!) ?? this.#positionCache.get(path[i]!);
       if (cached) {
         position = cached;
         start = i + 1;
@@ -224,9 +233,13 @@ export class RecordController {
     for (let i = start; i < path.length; i++) {
       position = applyRecordNode(position, this.#index.nodes.get(path[i]!)!);
       this.#positionCache.set(path[i]!, position);
-      if (this.#positionCache.size > 128)
+      if (this.#positionCache.size > POSITION_CACHE_LIMIT - REQUESTED_POSITION_LIMIT)
         this.#positionCache.delete(this.#positionCache.keys().next().value!);
     }
+    // Intermediate replay must not evict the other pane's completed position.
+    this.#requestedPositions.set(id, position);
+    if (this.#requestedPositions.size > REQUESTED_POSITION_LIMIT)
+      this.#requestedPositions.delete(this.#requestedPositions.keys().next().value!);
     return position;
   }
   getState(): ControllerState {
@@ -329,6 +342,7 @@ export class RecordController {
     else {
       this.#index = indexRecord(this.#record);
       this.#positionCache.clear();
+      this.#requestedPositions.clear();
     }
   }
   #refreshDirty(): void {
@@ -992,6 +1006,7 @@ export class RecordController {
     this.#tickets.clear();
     this.#importPreviews = new WeakMap();
     this.#positionCache.clear();
+    this.#requestedPositions.clear();
     this.#baselineContent = new WeakMap();
     this.#paths = new WeakMap();
     this.#serialized.clear();

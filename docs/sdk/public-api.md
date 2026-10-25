@@ -508,6 +508,16 @@ on record/rule replacement or edits. See the
 [measured SDK evidence](../engineering/14-sdk-performance-evidence.md); it changes
 neither public snapshot ownership nor rules/dirty/Undo behavior.
 
+Within that same budget, at most eight recently requested final positions are
+retained separately from at most 120 intermediate replay positions. Replaying a
+long alternate branch cannot evict a recently requested comparison endpoint from
+the intermediate cache alone. A warm final-position lookup reuses its immutable
+position without replay; constructing its complete published path can still cost
+O(depth). Cold or evicted positions follow the same validated replay as before.
+Both caches clear on topology/rule replacement, ordinary edits and disposal;
+validated comment-only edits may retain rule-relevant positions. No public cache
+controls or record/history ownership changes are introduced.
+
 One private path checkpoint is weakly keyed by the parent index. Adjacent forward
 and backward selection append or remove one ID from its private working array;
 each different path publishes a separate frozen copy. Repeated inspection of the
