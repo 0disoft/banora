@@ -3,6 +3,41 @@
 Status: actual desktop Chromium Studio measurement; not a universal timing,
 physical-device, paint-latency or memory-durability guarantee.
 
+## Studio Parent Lookup: Isolated Source Comparison (October 25, 2026)
+
+This subsection is a Windows/Bun 1.4.3 source microbenchmark, not a browser frame or
+end-to-end navigation measurement. Baseline `d888a81` called `findNode` on every
+Studio state notification to enable the branch-promotion button. Its LIFO DFS
+could scan a large unrelated subtree before finding a shallow selected parent.
+The replacement follows only the snapshot's selected game/path, without board
+replay, record mutation or an additional whole-record index/cache.
+
+The valid 50,000-node fixture is:
+
+```js
+'(;SZ[9]' + '(;N[parent];B[aa])' + '(;N[unrelated]' + ';W[];B[]'.repeat(24998) + '))';
+```
+
+The selected node is the first branch's leaf (path length 3). The original lookup
+visits 49,999 nodes; the replacement compares the root ID and its first child's ID
+(2 comparisons). The original function was extracted from the baseline's exact
+Studio source and compared with the new helper using the same controller snapshot.
+After 15 excluded warmups per function, seven batches used 100 old or 10,000 new
+queries each; reported time is median batch duration divided by query count.
+The repeated run measured 9.99969 ms before and 0.00012839 ms after per lookup
+(report the very short new duration as less than 0.001 ms). Fixture construction,
+controller replay and UI rendering are excluded. This does not establish a whole
+Studio speedup, mobile-device latency or a universal timing threshold.
+
+DFS costs O(N) node visits in the worst case. The new lookup costs O(D + sum F),
+where D is selected ancestry depth and F the sibling IDs examined at each ancestor;
+unrelated descendants are excluded. Very wide selected ancestry can still require
+O(N) comparisons. Its traversal workspace is O(1), with no retained index.
+Unit coverage protects game/root boundaries, unrelated-subtree exclusion, immutable
+edits/undo/reordering and a 10,001-node linear path. Existing Chromium tree smoke
+also checks promotion disabled at the root/main continuation/primary branch and
+enabled on the secondary branch. No timing threshold or new runner/CI job was added.
+
 ## Reproduce
 
 Run `bun run perf:browser`. It rebuilds production SDK/adapters/examples, serves

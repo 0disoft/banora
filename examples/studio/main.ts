@@ -24,7 +24,6 @@ import type {
   Point,
   RecordLocator,
   RecordCheckpoint,
-  SgfNode,
   SgfRecord,
   StoneTextures,
   TouchOptions,
@@ -35,6 +34,7 @@ import { mountTextureControls } from '../texture-controls.js';
 import { mountScoringControls } from '../scoring-controls.js';
 import { mountBoardMenu } from './board-menu.js';
 import { recordedMoveAt } from './recorded-move.js';
+import { recordParent } from './record-parent.js';
 import { mountRecoveryControls } from './recovery-controls.js';
 import { safeDraftFilename } from './draft-store.js';
 import { defaultPreferences, PreferenceStore } from './preferences.js';
@@ -272,10 +272,7 @@ const renderState = (state: ControllerState) => {
   find<HTMLButtonElement>('next').disabled = state.node.children.length === 0;
   find<HTMLButtonElement>('last').disabled = state.node.children.length === 0;
   find<HTMLButtonElement>('remove-branch').disabled = state.path.length <= 1;
-  const parent =
-    state.path.length > 1
-      ? findNode(state.record.games[state.gameIndex]!, state.path.at(-2)!)
-      : undefined;
+  const parent = state.path.length > 1 ? recordParent(state) : undefined;
   find<HTMLButtonElement>('promote-branch').disabled =
     !parent || parent.children[0]?.id === state.node.id;
   find<HTMLSelectElement>('next-player').value = state.position.toPlay;
@@ -304,15 +301,6 @@ const renderState = (state: ControllerState) => {
   variationTree.render(state, ui);
 };
 const unsubscribe = controller.subscribe(renderState);
-
-function findNode(root: SgfNode, id: string): SgfNode | undefined {
-  const pending = [root];
-  while (pending.length) {
-    const node = pending.pop()!;
-    if (node.id === id) return node;
-    pending.push(...node.children);
-  }
-}
 
 function exportRecord(): boolean {
   const complete = diagnostics.begin('export');

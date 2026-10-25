@@ -3,6 +3,35 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Studio Selected-Parent Lookup
+
+Studio now resolves the promotion button's parent from the selected immutable
+game/path instead of a full-tree DFS on every state notification. It does not
+replay boards, mutate records or retain a second index/cache. SDK signatures and
+rules are unchanged. The owning consumer boundary is clarified in ADR 0003;
+fixture/method/limits are in `docs/engineering/17-browser-performance-evidence.md`.
+
+Against `d888a81`, a valid 50,000-node fixture with a depth-3 selection and a large
+unrelated branch required 49,999 DFS node visits versus 2 selected-ancestry ID
+comparisons. Windows/Bun source lookup medians were 9.99969 ms versus 0.00012839 ms
+(less than 0.001 ms). Seven batches followed 15 excluded warmups; old/new batches
+contained 100/10,000 queries. This excludes controller construction/replay and UI
+work; it is not an end-to-end browser latency claim or a timing assertion.
+
+Parent/assessment/workspace unit tests passed: 13 tests / 77 assertions, covering
+root/game/fork boundaries, no unrelated traversal or board replay, current record
+after edits/undo/reorder, and 10,001-node iterative ancestry. Production SDK/adapters/
+examples build and Chromium variation-tree smoke passed, including the new root,
+primary/secondary branch and continuation promotion-button assertions. Typecheck,
+lint, format and repository boundaries passed; documentation links were checked.
+Other engines and the full release/CLI/memory/performance matrices are skipped:
+this change only derives one Studio button state and narrow coverage exercises it.
+Remaining risk: wide selected sibling lists still take linear comparisons, and
+source microbenchmarks do not predict whole-browser latency. Public API, DB,
+dependencies, version and repository hygiene are unchanged. An existing browser
+scenario gains functional assertions; runner flags, CI jobs and timing gates do not
+change. No remote operations.
+
 ## Single-Priority Refactor: Puzzle View Definition and State Ownership
 
 Puzzle presentation now selects locale/messages, board options and the event

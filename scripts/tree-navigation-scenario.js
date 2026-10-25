@@ -31,6 +31,7 @@ async (rootPage, studioControl) => {
       ),
     });
     await selected('0 · Start position', 0, 500);
+    check(await page.locator('#promote-branch').isDisabled(), 'Root offered branch promotion');
     const first = page.locator('#tree button').first();
     await first.focus();
     await page.keyboard.press('ArrowRight');
@@ -190,6 +191,7 @@ async (rootPage, studioControl) => {
     const treeMove = (label) => page.locator('#tree button').filter({ hasText: label });
     for (const label of ['3 · Black D10', '4 · White H10', '5 · Black J10'])
       await treeMove(label).click();
+    check(await page.locator('#promote-branch').isEnabled(), 'Secondary branch lost promotion');
     const dotX = (label) =>
       treeMove(label)
         .locator('.tree-dot')
@@ -213,10 +215,15 @@ async (rootPage, studioControl) => {
     );
     await treeMove('6 · White H11').click();
     check(
+      await page.locator('#promote-branch').isDisabled(),
+      'Main continuation offered promotion',
+    );
+    check(
       (await dotX('6 · White H11')) === branchX && (await dotX('7 · Black H9')) === branchX,
       'Reused continuation rows lost branch alignment',
     );
     await treeMove('5 · Black L12').click();
+    check(await page.locator('#promote-branch').isDisabled(), 'Primary branch offered promotion');
     check(
       (await treeMove('6 · White H11').count()) === 0 &&
         (await treeMove('7 · Black H9').count()) === 0 &&

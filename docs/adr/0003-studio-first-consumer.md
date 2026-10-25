@@ -28,6 +28,10 @@ files, add demo-only SDK hooks, or implement a competing rules/state engine.
 A second, minimal read-only embedding example exercises a simpler consumer flow.
 The first release also verifies headless package imports.
 
+Studio derives the selected parent for branch controls from the current immutable
+snapshot's game/path. It does not search unrelated descendants, replay a board or
+build a second whole-record index just to enable a promotion button.
+
 M1 includes basic continuation, comment and marker editing needed by Studio.
 Extended branch management, teaching tools, React integration and browser script
 distribution follow in M2. Accounts, cloud storage and external AI are outside
