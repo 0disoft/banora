@@ -76,6 +76,97 @@ async (page, studioControl) => {
       for (const target of targets.slice(1)) await touch('touchMove', target);
       return targets;
     }
+    await mobile.evaluate(() => {
+      const f = window.banoraTouchCheck;
+      if (!f.controller.loadSgf('(;SZ[19]AB[aa:ss])').ok)
+        throw Error('Dense touch fixture did not load');
+    });
+    const stationary = (await start([{ x: 9, y: 9 }]))[0];
+    await mobile.evaluate(() => {
+      const svg = document.querySelector('#touch-fixture svg[role="application"]');
+      const lens = [...document.querySelectorAll('[data-touch-lens]')].at(-1);
+      const create = document.createElementNS;
+      const clone = Node.prototype.cloneNode;
+      const first = svg.firstElementChild;
+      const patch = lens.firstElementChild;
+      const left = lens.style.left;
+      const state = window.banoraTouchCheck.controller.getState();
+      let created = 0,
+        cloned = 0,
+        moves = 0;
+      const count = () => moves++;
+      svg.addEventListener('pointermove', count);
+      document.createElementNS = function (...args) {
+        created++;
+        return create.apply(this, args);
+      };
+      Node.prototype.cloneNode = function (...args) {
+        cloned += this.nodeType === 1 && args[0] ? this.querySelectorAll('*').length + 1 : 1;
+        return clone.apply(this, args);
+      };
+      window.finishStationaryTouch = () => {
+        document.createElementNS = create;
+        Node.prototype.cloneNode = clone;
+        svg.removeEventListener('pointermove', count);
+        return {
+          created,
+          cloned,
+          moves,
+          boardRetained: first === svg.firstElementChild,
+          lensRetained: patch === lens.firstElementChild,
+          lensMoved: left !== lens.style.left,
+          unchanged: state === window.banoraTouchCheck.controller.getState(),
+          target: svg.querySelector('[data-preview="touch"]')?.getAttribute('data-target'),
+        };
+      };
+    });
+    let stationaryMetrics;
+    try {
+      for (let index = 0; index < 20; index++)
+        await touch('touchMove', {
+          x: stationary.x + (index % 2 ? 0.75 : -0.75),
+          y: stationary.y,
+        });
+    } finally {
+      stationaryMetrics = await mobile.evaluate(() => window.finishStationaryTouch());
+      await touch('touchCancel');
+    }
+    verify(
+      stationaryMetrics.moves === 20 &&
+        stationaryMetrics.created === 0 &&
+        stationaryMetrics.cloned === 0 &&
+        stationaryMetrics.boardRetained &&
+        stationaryMetrics.lensRetained &&
+        stationaryMetrics.lensMoved &&
+        stationaryMetrics.unchanged &&
+        stationaryMetrics.target === '9,9',
+      `Stationary touch rebuilt unchanged board/lens: ${JSON.stringify(stationaryMetrics)}`,
+    );
+    console.log(`Stationary touch: ${JSON.stringify(stationaryMetrics)}`);
+    await start([{ x: 9, y: 9 }]);
+    verify(
+      await mobile.evaluate(() => {
+        const f = window.banoraTouchCheck;
+        const lens = [...document.querySelectorAll('[data-touch-lens]')].at(-1);
+        const patch = lens.firstElementChild;
+        f.host.querySelector('svg[role="application"]').dispatchEvent(new FocusEvent('focus'));
+        const repainted =
+          patch !== lens.firstElementChild &&
+          lens.style.display === 'block' &&
+          f.host.querySelector('[data-preview="touch"]')?.getAttribute('data-target') === '9,9';
+        f.controller.setComment('Same-node frame refresh');
+        return repainted && lens.style.display === 'none' && lens.firstElementChild === null;
+      }),
+      'Focus redraw or same-node edit retained an obsolete magnifier patch',
+    );
+    await touch('touchCancel');
+    await mobile.evaluate(() => {
+      const f = window.banoraTouchCheck;
+      if (!f.controller.loadSgf('(;SZ[5:9]AB[bc]LB[bc:A];B[aa])', { discardChanges: true }).ok)
+        throw Error('Common touch fixture did not reset');
+      f.before = f.controller.getState();
+      delete window.finishStationaryTouch;
+    });
     const locales = await mobile.evaluate(
       async () => (await import('/sdk/locale.js')).SUPPORTED_LOCALES,
     );
@@ -99,7 +190,7 @@ async (page, studioControl) => {
       await start([{ x: 2, y: 3 }]);
       verify(
         (await mobile.locator('#touch-fixture > [aria-live]').textContent()) === expected.aiming,
-        `Touch aiming notice not localized: ${locale}`,
+        `Touch aiming notice not localized: ${locale}; actual=${await mobile.locator('#touch-fixture > [aria-live]').textContent()}; expected=${expected.aiming}`,
       );
       await touch('touchEnd');
       verify(

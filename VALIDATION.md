@@ -1,5 +1,40 @@
 # Validation
 
+## Single-Priority Refactor: Reuse Unchanged Touch Aim Content
+
+Baseline ca4c0ca repainted the entire board and cloned a new magnifier patch on
+every touch pointermove, even when the rounded intersection remained unchanged.
+In actual Chrome 155 mobile emulation, a 19x19 setup with 361 stones and 20 native
+touch moves within the center intersection created 8,300 SVG elements and cloned
+8,200 elements. Both board and lens content identities changed. These are DOM
+operation counts, not a real-device latency or memory measurement.
+
+The pointer handler now repaints only when the logical target changes; other
+movement refreshes the existing touch UI. The lens reuses exactly one patch when
+the rendered board's first-child identity and displayed target match. Full paints
+replace that child, invalidating the patch even for a focus-only redraw.
+Screen position and inherited colors still refresh. Hiding/disposal clears the
+cache; target changes, cancellation, confirmation and record edits retain their
+existing paths. This does not optimize full paints when the intersection changes.
+
+The existing touch browser scenario adds the measured case, checks exactly 20
+pointermoves with zero SVG creations/cloned elements, stable board/lens content,
+moving lens position, unchanged controller state and correct target. A same-node
+edit must cancel the gesture and clear the patch; a focus event must rebuild it.
+Existing locale, crop/transform, cancellation, export, Studio and framework adapter cases
+remain in the same scenario. No new runner flag, CI job or dependency was added.
+The owning contract is docs/sdk/public-api.md. Public API signatures, DB/schema,
+repository hygiene and package versions are unchanged; no automatic bump applies.
+
+Passed on Windows/Bun 1.4.3: SDK plus Studio workspace/draft session/store tests
+(329 tests / 17,477 assertions), typecheck, lint, format, boundaries, docs
+(147 documents / 750 links), security file/permission signals (520 files),
+example/framework builds, packed SDK consumer/declarations/classic-global smoke,
+focused Chrome touch smoke and git diff --check. The browser case also verifies
+that restoring the shared fixture explicitly discards its authored test comment.
+The full browser matrix, physical touch devices and other engines were not rerun;
+this is measured SVG allocation avoidance, not an end-user latency claim.
+
 ## Single-Priority Refactor: Forced Draft Connection Closure Recovery
 
 Baseline 61d8a1c cached a resolved IndexedDB connection promise until versionchange,

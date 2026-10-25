@@ -64,6 +64,8 @@ export function mountTouchUI(
     { signal },
   );
 
+  // Full board paints replace all root children, invalidating this single-frame cache.
+  let cached: { source: Element | null; x: number; y: number } | null = null;
   return {
     render(
       point: Point | null,
@@ -87,11 +89,17 @@ export function mountTouchUI(
       if (!point || !screen || awaiting || !magnifier) {
         lens.style.display = 'none';
         lens.replaceChildren();
+        cached = null;
         return;
       }
       const window = document.defaultView!;
       const inherited = window.getComputedStyle(svg);
-      const background = [...svg.children].find((child) => child.tagName === 'rect');
+      let background: Element | undefined;
+      for (const child of svg.children) {
+        if (child.tagName !== 'rect') continue;
+        background = child;
+        break;
+      }
       if (background) lens.style.background = window.getComputedStyle(background).fill;
       for (const name of ['board', 'grid', 'black', 'white', 'annotation']) {
         const key = `--banora-${name}`,
@@ -105,6 +113,8 @@ export function mountTouchUI(
       lens.style.left = `${Math.max(8, Math.min(window.innerWidth - size - 8, screen.x - size / 2))}px`;
       lens.style.top = `${Math.max(8, Math.min(window.innerHeight - size - 8, top))}px`;
       lens.style.display = 'block';
+      if (cached?.source === svg.firstElementChild && cached.x === point.x && cached.y === point.y)
+        return;
       const patch = document.createElementNS(namespace, 'svg');
       patch.setAttribute('viewBox', `${point.x - 1.6} ${point.y - 1.6} 3.2 3.2`);
       patch.setAttribute('width', '100%');
@@ -124,8 +134,11 @@ export function mountTouchUI(
         aim.setAttribute(key, String(value));
       patch.append(aim);
       lens.replaceChildren(patch);
+      cached = { source: svg.firstElementChild, x: point.x, y: point.y };
     },
     dispose() {
+      cached = null;
+      lens.replaceChildren();
       lens.remove();
       panel.remove();
     },

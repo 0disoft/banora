@@ -330,6 +330,9 @@ export function mountBoardSurface(
     });
     if (state.recordState) placement.sync(state.recordState, options, animationOptions);
     else placement.cancel();
+    renderTouch();
+  }
+  function renderTouch(): void {
     touchUI.render(
       touchAim?.point ? displayPoint(touchAim.point) : null,
       touchAim?.screen ?? null,
@@ -529,9 +532,12 @@ export function mountBoardSurface(
     (event) => {
       if (touchAim?.pointer === event.pointerId) {
         event.preventDefault();
-        touchAim.point = pointerPoint(event);
+        const point = pointerPoint(event);
+        const changed = point?.x !== touchAim.point?.x || point?.y !== touchAim.point?.y;
+        touchAim.point = point;
         touchAim.screen = { x: event.clientX, y: event.clientY };
-        render(current);
+        if (changed) render(current);
+        else renderTouch();
         if (touchAim.point) {
           const selected = coordinate(touchAim.point);
           say(() =>
