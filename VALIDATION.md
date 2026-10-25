@@ -3,6 +3,43 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: KataGo Pending Request Ownership
+
+KataGoProvider previously validated/encoded a request snapshot but retained the
+host request wrapper in its pending lease. Changing its ID after send made take()
+look under a different map key; final/error/cancellation/disconnect/disposal paths
+could not release the lease, settle its promise or unsubscribe cancellation. A
+maxPending=1 provider then had no usable capacity, even after explicit cancellation.
+The provider now captures identity, exact SDK-issued immutable context and scalar
+limits before host cancellation/transport callbacks. Encoding, routing, decoding,
+cleanup and scoped termination share this frozen SDK-owned snapshot. The protocol
+encoder/decoder reuse the same internal capture helper; caller objects are not
+frozen. The KataGo integration contract records this lifetime ownership. No public
+signature/entrypoint, DB, dependencies, hygiene or runner policy changed.
+
+The new six independently reported regression cases were run against the actual
+8162718 runtime: all six failed (final response rejected; the other five retained
+one cancellation listener after their terminal event). Restoring the fix makes
+all six pass, verifies promise settlement and zero retained cancellation listeners,
+checks original-ID/turn termination, and reuses the sole pending slot and original
+ID after each non-disposal terminal path. No elapsed-time assertion or timeout
+increase was introduced. Separate subscription/transport reentrancy cases make
+host accessors throw after the callback and verify all seven request/limit fields
+are read exactly once. One constant-size wrapper and limits copy per submission
+replace host-owned references; the immutable context graph is shared, not cloned.
+This is resource/correctness evidence, not a latency or RSS benchmark.
+
+Passed on Windows/Bun 1.4.3: all 23 KataGo tests (278 assertions), the full SDK
+suite (276 tests / 16,291 assertions), typecheck, lint, format, boundaries (no size
+review candidates), docs (147 documents / 750 links), production SDK/classic build,
+packed public SDK/classic-global/ambient declaration consumers and diff whitespace
+checks. The new eight cases use explicit callbacks/promises, not real timers or
+an engine. Full operations/CLI/adapter/browser suites, actual KataGo execution and
+hosted CI were skipped for this headless request-ownership change; wire fields,
+transport ownership and host-owned deadline policy are unchanged. Existing live
+engine evidence is historical, not a claim that this round executed it. Broader
+physical-transport scheduling is not measured. No push, release or deployment ran.
+
 ## Single-Priority Refactor: Export-Local Texture Paint Lookup
 
 Diagram serialization previously queried all defs > pattern descendants and

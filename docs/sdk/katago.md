@@ -53,6 +53,12 @@ defaults to eight and may be 1..64. Creating the provider/session sends nothing.
 Requests from multiple sessions may share one provider. Final responses can arrive
 in a different order. Match exact ID, active epoch move count and current player;
 ignore unrelated IDs, termination acknowledgements and matching interim reports.
+Before cancellation subscription or transport callbacks run, each submission copies
+the request identity, SDK-issued immutable context reference and scalar limits into
+an SDK-owned frozen snapshot. Encoding, pending lookup, final decoding and every
+cleanup/termination path use those same captured values. Later host mutation or
+accessor changes cannot strand pending capacity or change the selected turn. The
+host request and its limits are neither frozen nor retained by the provider.
 Reject engine errors, `noResults` and every query warning, including converted rules.
 Cancellation/staleness/disposal sends a uniquely identified `terminate` action for
 the original ID and selected turn after immediately removing that pending lease.

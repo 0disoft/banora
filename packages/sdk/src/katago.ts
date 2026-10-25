@@ -5,7 +5,12 @@ import type {
   AnalysisProvider,
   AnalysisRequest,
 } from './analysis-types.js';
-import { createKataGoQuery, decodeKataGoResult, kataGoOptions } from './katago-protocol.js';
+import {
+  createKataGoQuery,
+  decodeKataGoResult,
+  kataGoOptions,
+  snapshotKataGoRequest,
+} from './katago-protocol.js';
 import type { KataGoOptions } from './katago-protocol.js';
 export { createKataGoQuery, decodeKataGoResult } from './katago-protocol.js';
 export type { KataGoOptions, KataGoPerspective, KataGoQuery } from './katago-protocol.js';
@@ -71,6 +76,7 @@ export class KataGoProvider implements AnalysisProvider {
         throw new AnalysisError('disposed', 'KataGo provider is disposed.');
       if (cancellation.cancelled)
         throw new AnalysisError('cancelled', 'KataGo request was cancelled.');
+      request = snapshotKataGoRequest(request);
       const query = createKataGoQuery(request, this.#options),
         line = JSON.stringify(query);
       if (line.length > MAX_LINE)

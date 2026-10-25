@@ -96,19 +96,24 @@ function numeric(value: unknown, min: number, max: number, integer = false): num
     fail('Invalid KataGo metric.');
   return value;
 }
-function validRequest(request: AnalysisRequest): AnalysisRequest {
-  // Read caller-owned accessors once, then validate the exact values used below.
+/** Internal boundary copy; never freeze or retain caller-owned request wrappers. */
+export function snapshotKataGoRequest(request: AnalysisRequest): AnalysisRequest {
   const limits = request?.limits;
-  const snapshot = {
+  return Object.freeze({
     id: request?.id,
     providerId: request?.providerId,
     context: request?.context,
-    limits: limits && {
-      maxVisits: limits.maxVisits,
-      maxPvLength: limits.maxPvLength,
-      includeOwnership: limits.includeOwnership,
-    },
-  };
+    limits:
+      limits &&
+      Object.freeze({
+        maxVisits: limits.maxVisits,
+        maxPvLength: limits.maxPvLength,
+        includeOwnership: limits.includeOwnership,
+      }),
+  });
+}
+function validRequest(request: AnalysisRequest): AnalysisRequest {
+  const snapshot = snapshotKataGoRequest(request);
   const result = normalizeAnalysisResult(snapshot, {
     requestId: snapshot.id,
     contextKey: snapshot.context?.key,

@@ -387,6 +387,163 @@ test('provider accepts out-of-order finals while ignoring unrelated IDs, action 
   secondRecord.dispose();
   provider.dispose();
 });
+test.each(['final', 'cancel', 'disconnect', 'dispose', 'write-rejection', 'malformed'])(
+  'provider owns submitted request identity and limits through %s',
+  async (terminal) => {
+    const controller = new RecordController({ size: 5 }),
+      original = request(controller),
+      current = { ...original, limits: { ...original.limits } },
+      control = token(),
+      sent: string[] = [];
+    let rejectWrite: (error: Error) => void = () => {};
+    const provider = new KataGoProvider(
+      {
+        sendLine(line) {
+          sent.push(line);
+          if (terminal === 'write-rejection' && sent.length === 1)
+            return new Promise<void>((_resolve, reject) => {
+              rejectWrite = reject;
+            });
+        },
+      },
+      { perspective: 'black', maxPending: 1 },
+    );
+    const pending = provider.analyze(current, control.cancellation).then(
+      (value) => ({ ok: true, value }),
+      (error) => ({ ok: false, reason: error.reason }),
+    );
+    try {
+      controller.play({ x: 0, y: 0 });
+      current.id = 'changed-after-send';
+      current.providerId = 'other';
+      current.context = request(controller).context;
+      current.limits.maxPvLength = 0;
+      current.limits.includeOwnership = false;
+      expect(Object.isFrozen(current)).toBe(false);
+      expect(Object.isFrozen(current.limits)).toBe(false);
+      if (terminal === 'final')
+        expect(provider.receiveLine(JSON.stringify(report(original.id))).ok).toBe(true);
+      else if (terminal === 'cancel') control.cancel();
+      else if (terminal === 'disconnect') provider.fail();
+      else if (terminal === 'dispose') provider.dispose();
+      else if (terminal === 'write-rejection') rejectWrite(new Error('private transport data'));
+      else expect(provider.receiveLine('{').ok).toBe(false);
+      await Promise.resolve();
+      // Assert cleanup before awaiting completion so a regression fails without a timeout.
+      expect(control.listeners.size).toBe(0);
+      const completed = await pending;
+      if (terminal === 'final')
+        expect(completed).toMatchObject({
+          ok: true,
+          value: { requestId: original.id, contextKey: original.context.key },
+        });
+      else
+        expect(completed).toMatchObject({
+          ok: false,
+          reason:
+            terminal === 'cancel'
+              ? 'cancelled'
+              : terminal === 'dispose'
+                ? 'disposed'
+                : terminal === 'malformed'
+                  ? 'invalid-result'
+                  : 'provider',
+        });
+      const terminations = sent
+        .map((line) => JSON.parse(line))
+        .filter((line) => line.action === 'terminate');
+      expect(terminations).toEqual(
+        ['cancel', 'dispose', 'malformed'].includes(terminal)
+          ? [expect.objectContaining({ terminateId: original.id, turnNumbers: [0] })]
+          : [],
+      );
+      if (terminal !== 'dispose') {
+        const next = token(),
+          completion = provider.analyze(original, next.cancellation);
+        expect(JSON.parse(sent.at(-1)!).id).toBe(original.id);
+        expect(provider.receiveLine(JSON.stringify(report(original.id))).ok).toBe(true);
+        expect(await completion).toMatchObject({ requestId: original.id });
+        expect(next.listeners.size).toBe(0);
+      }
+    } finally {
+      provider.dispose();
+      controller.dispose();
+    }
+  },
+);
+
+test.each(['subscription', 'transport'])(
+  'provider captures host accessors before %s reentrancy',
+  async (phase) => {
+    const controller = new RecordController({ size: 5 }),
+      original = request(controller),
+      control = token();
+    const reads = new Map<string, number>();
+    let changed = false;
+    const read = <T>(key: string, value: T): T => {
+      reads.set(key, (reads.get(key) ?? 0) + 1);
+      if (changed) throw Error('Host request changed during callback');
+      return value;
+    };
+    const limits = {
+      get maxVisits() {
+        return read('maxVisits', original.limits.maxVisits);
+      },
+      get maxPvLength() {
+        return read('maxPvLength', original.limits.maxPvLength);
+      },
+      get includeOwnership() {
+        return read('includeOwnership', original.limits.includeOwnership);
+      },
+    };
+    const current = {
+      get id() {
+        return read('id', original.id);
+      },
+      get providerId() {
+        return read('providerId', original.providerId);
+      },
+      get context() {
+        return read('context', original.context);
+      },
+      get limits() {
+        return read('limits', limits);
+      },
+    };
+    const sent: string[] = [],
+      provider = new KataGoProvider(
+        {
+          sendLine(line) {
+            sent.push(line);
+            if (phase === 'transport') changed = true;
+          },
+        },
+        { perspective: 'black' },
+      );
+    try {
+      const pending = provider.analyze(current, {
+        get cancelled() {
+          return control.cancellation.cancelled;
+        },
+        onCancel(listener) {
+          const unsubscribe = control.cancellation.onCancel(listener);
+          if (phase === 'subscription') changed = true;
+          return unsubscribe;
+        },
+      });
+      expect(sent).toHaveLength(1);
+      expect(provider.receiveLine(JSON.stringify(report(original.id))).ok).toBe(true);
+      expect(control.listeners.size).toBe(0);
+      expect(await pending).toMatchObject({ requestId: original.id });
+      expect(reads.size).toBe(7);
+      expect([...reads.values()]).toEqual(Array(7).fill(1));
+    } finally {
+      provider.dispose();
+      controller.dispose();
+    }
+  },
+);
+
 test('cancellation removes pending work, sends scoped termination and ignores late engine results', async () => {
   const sent: string[] = [],
     provider = new KataGoProvider(
