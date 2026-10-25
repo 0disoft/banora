@@ -3,6 +3,37 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Candidate / First-PV Transition Reuse
+
+Analysis result validation now reuses the legal candidate transition for an
+identical first PV move and validates only continuations from that state. The
+bounded PV is first copied by index into an SDK-owned dense array, without host
+map/iterator/species dispatch. Empty-PV candidate legality, first-move matching,
+metrics, identities, duplicate/size bounds, subsequent legality and frozen output
+remain checked. No position cache, source mutation or public payload changes.
+
+Against `8918430`, paired Bun 1.4.3 source measurements for 361 point candidates
+with one-move PVs reduced median normalization from 87.81360 to 47.24820 ms (46.2%).
+Core play calls/361-cell board allocations fall from 722 to 361, removing 130,321
+board-element copies. Longer and empty PV measurements, exact methodology and
+limits are in `docs/engineering/14-sdk-performance-evidence.md`. Empty PVs do not
+save transitions and were slightly slower in the local timing; no universal or
+browser/engine speedup is claimed. Ordinary-array before/after outputs matched.
+The validation/ownership contract is recorded in `docs/sdk/analysis.md`.
+
+The resource regression failed against baseline (722 instead of 361 plays).
+The new cases independently check rank/score output, immutability, host-input
+mutation, pass reuse, empty/multi-step/mismatched/occupied/ko PV boundaries, and
+rejection of illegal indexed moves hidden by a host-defined array map.
+SDK/adapters/examples build and Chromium Analysis smoke passed, preserving PV,
+ownership, keyboard/touch, locale, manual/stale result, source and lifecycle checks.
+SDK, browser-option and local KataGo process/shutdown tests passed: 277 tests,
+16,192 assertions. Typecheck, packed SDK/Node consumer, lint, formatting, repository
+boundaries and docs checks passed. Other engines,
+live KataGo, full release/CLI and the large memory matrix were skipped because the
+change is confined to the shared headless result-validation loop. No public API/DB,
+dependencies, hygiene, version, CI jobs or runner scopes changed. No remote operations.
+
 ## Single-Priority Refactor: Detached KataGo Write Failure Ownership
 
 KataGo transport write rejections now capture a detachable failure lease rather

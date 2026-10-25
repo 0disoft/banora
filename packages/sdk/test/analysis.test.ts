@@ -285,6 +285,156 @@ test('validated results use Black metrics and derive score loss for the actual p
   expect(controller.getState().dirty).toBe(false);
   controller.dispose();
 });
+test('candidate legality is reused for the identical first PV move without changing frozen output', () => {
+  const controller = new RecordController({ size: 19 });
+  const request: AnalysisRequest = {
+    id: 'one-step',
+    providerId: 'manual',
+    context: context(createAnalysisContext(controller.getState(), settings)),
+    limits: { maxVisits: 100, maxPvLength: 0, includeOwnership: false },
+  };
+  const metrics = { winProbabilityBlack: 0.5, scoreLeadBlack: 0, visits: 1 };
+  const candidates = Array.from({ length: 361 }, (_, index) => {
+    const move = { x: index % 19, y: Math.floor(index / 19) };
+    return { ...metrics, rank: 360 - index, move, principalVariation: [move] };
+  });
+  const input = {
+    requestId: request.id,
+    contextKey: request.context.key,
+    root: metrics,
+    candidates: [...candidates, { ...metrics, rank: 361, move: null, principalVariation: [null] }],
+  };
+  const state = controller.getState(),
+    play = spyOn(core, 'play'),
+    pass = spyOn(core, 'pass');
+  try {
+    const completed = normalizeAnalysisResult(request, input);
+    expect(completed.ok).toBe(true);
+    if (!completed.ok) throw Error(completed.message);
+    expect(play).toHaveBeenCalledTimes(361);
+    expect(pass).toHaveBeenCalledTimes(1);
+    expect(completed.result.candidates.map((candidate) => candidate.rank)).toEqual(
+      Array.from({ length: 362 }, (_, rank) => rank),
+    );
+    expect(completed.result.candidates[0]!.move).toEqual({ x: 18, y: 18 });
+    expect(completed.result.candidates.at(-1)!.principalVariation).toEqual([null]);
+    expect(completed.result.candidates.every((candidate) => candidate.scoreLoss === 0)).toBe(true);
+    for (const candidate of completed.result.candidates) {
+      expect(Object.isFrozen(candidate)).toBe(true);
+      expect(Object.isFrozen(candidate.principalVariation)).toBe(true);
+    }
+    candidates[0]!.move.x = 8;
+    expect(completed.result.candidates[360]!.move).toEqual({ x: 0, y: 0 });
+    expect(completed.result.candidates[360]!.principalVariation).toEqual([{ x: 0, y: 0 }]);
+    expect(controller.getState()).toBe(state);
+  } finally {
+    play.mockRestore();
+    pass.mockRestore();
+    controller.dispose();
+  }
+});
+
+test('PV snapshots preserve every indexed move without invoking host map, iterator or species', () => {
+  const controller = new RecordController({ size: 5 });
+  const request: AnalysisRequest = {
+    id: 'host-array',
+    providerId: 'manual',
+    context: context(createAnalysisContext(controller.getState(), settings)),
+    limits: { maxVisits: 100, maxPvLength: 16, includeOwnership: false },
+  };
+  const point = { x: 2, y: 2 };
+  let calls = 0;
+  const pv = [point, point];
+  Object.defineProperty(pv, 'map', {
+    value() {
+      calls++;
+      return [point];
+    },
+  });
+  Object.defineProperty(pv, Symbol.iterator, {
+    value() {
+      calls++;
+      throw Error('host iterator');
+    },
+  });
+  Object.defineProperty(pv, 'constructor', {
+    get() {
+      calls++;
+      throw Error('host species');
+    },
+  });
+  try {
+    const metrics = { winProbabilityBlack: 0.5, scoreLeadBlack: 0, visits: 1 };
+    const result = normalizeAnalysisResult(request, {
+      requestId: request.id,
+      contextKey: request.context.key,
+      root: metrics,
+      candidates: [{ ...metrics, rank: 0, move: point, principalVariation: pv }],
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      reason: 'invalid-result',
+      message: 'Principal variation is illegal: occupied.',
+    });
+    expect(calls).toBe(0);
+  } finally {
+    controller.dispose();
+  }
+});
+
+test('PV reuse preserves empty, multi-step, pass, occupied and ko validation boundaries', () => {
+  const point = { x: 1, y: 2 },
+    recapture = { x: 1, y: 1 };
+  for (const [sgf, move, pv, error, plays, passes] of [
+    ['(;SZ[5])', point, [], '', 1, 0],
+    ['(;SZ[5])', point, [point], '', 1, 0],
+    ['(;SZ[5])', point, [point, null, null], '', 1, 2],
+    ['(;SZ[5])', null, [], '', 0, 1],
+    ['(;SZ[5])', null, [null, point], '', 1, 1],
+    ['(;SZ[5])', point, [recapture], 'must start', 0, 0],
+    ['(;SZ[5])', point, [point, point], 'Principal variation is illegal: occupied.', 2, 0],
+    ['(;SZ[5]AB[bc])', point, [], 'Analysis candidate is illegal: occupied.', 1, 0],
+    [
+      '(;SZ[5]AW[bb][ac][cc][bd]AB[ab][ba][cb])',
+      point,
+      [point, recapture],
+      'Principal variation is illegal: ko.',
+      2,
+      0,
+    ],
+  ] as const) {
+    const controller = new RecordController({ sgf });
+    const request: AnalysisRequest = {
+      id: 'boundaries',
+      providerId: 'manual',
+      context: context(createAnalysisContext(controller.getState(), settings)),
+      limits: { maxVisits: 100, maxPvLength: 16, includeOwnership: false },
+    };
+    const play = spyOn(core, 'play'),
+      pass = spyOn(core, 'pass');
+    try {
+      const metrics = { winProbabilityBlack: 0.5, scoreLeadBlack: 0, visits: 1 };
+      const result = normalizeAnalysisResult(request, {
+        requestId: request.id,
+        contextKey: request.context.key,
+        root: metrics,
+        candidates: [{ ...metrics, rank: 0, move, principalVariation: pv }],
+      });
+      expect(result.ok).toBe(!error);
+      if (!result.ok) {
+        expect(result.reason).toBe('invalid-result');
+        expect(result.message).toContain(error);
+      } else expect(result.result.candidates[0]!.principalVariation).toEqual(pv);
+      expect(play).toHaveBeenCalledTimes(plays);
+      expect(pass).toHaveBeenCalledTimes(passes);
+    } finally {
+      play.mockRestore();
+      pass.mockRestore();
+      controller.dispose();
+    }
+  }
+});
+
 test('result trust boundary rejects identity, metrics, duplicates, illegal PVs and sparse/malformed ownership', () => {
   const controller = new RecordController({ size: 5 }),
     request: AnalysisRequest = {

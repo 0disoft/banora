@@ -95,20 +95,26 @@ export function normalizeAnalysisResult(
         fail('Analysis candidates contain duplicate moves or ranks.');
       moveKeys.add(key(point));
       ranks.add(rank);
+      const pvLength = Array.isArray(pv) ? pv.length : -1;
       if (
         !Array.isArray(pv) ||
-        pv.length > request.limits.maxPvLength + 1 ||
+        pvLength > request.limits.maxPvLength + 1 ||
         pv.includes(undefined) ||
-        (pvTotal += pv.length) > 8192
+        (pvTotal += pvLength) > 8192
       )
         fail('Principal variations exceed their bounds or contain missing moves.');
-      const principalVariation = pv.map(move);
+      // Own the bounded dense copy; do not invoke a host array's map/iterator/species.
+      const principalVariation = new Array<Point | null>(pvLength);
+      for (let index = 0; index < pvLength; index++) principalVariation[index] = move(pv[index]);
       if (principalVariation.length && key(principalVariation[0]!) !== key(point))
         fail('Principal variation must start with its candidate move.');
       const proposed = point === null ? pass(position) : play(position, point);
       if (!proposed.ok) fail(`Analysis candidate is illegal: ${proposed.reason}.`);
-      let current = position;
-      for (const step of principalVariation) {
+      // The first PV move was checked equal to the legal candidate above.
+      // Continue from that exact transition instead of playing it twice.
+      let current = proposed.position;
+      for (let index = 1; index < principalVariation.length; index++) {
+        const step = principalVariation[index]!;
         const result = step === null ? pass(current) : play(current, step);
         if (!result.ok) fail(`Principal variation is illegal: ${result.reason}.`);
         current = result.position;

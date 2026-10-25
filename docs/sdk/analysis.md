@@ -83,6 +83,14 @@ the current player. White reverses the Black-lead comparison. Ranking may reflec
 provider utility rather than score alone. The output adds provider identity and
 uses null for absent ownership. Unknown extra fields are not retained.
 
+PV validation takes a bounded dense SDK-owned copy by index, without invoking a
+host PV array's overridden map, iterator or species constructor. The first PV
+move, when present, must equal the candidate. Its already-validated candidate
+transition is reused and only subsequent PV moves are replayed. Empty PVs still
+require a legal candidate; mismatched first moves, illegal continuations, ko and
+all existing size/metric/identity bounds remain checked. The copy and published
+results remain immutable; no cross-request position cache is introduced.
+
 `getState()` exposes immutable status (`idle`, `loading`, `ready`, `error`, `cancelled`
 or `unavailable`), provider ID, context, request ID, result and structured error.
 `subscribe(listener)` immediately supplies state and returns unsubscribe. Public

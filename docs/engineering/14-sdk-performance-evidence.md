@@ -1,5 +1,57 @@
 # SDK Performance Evidence
 
+## 2026-10-25: Candidate / First-PV Transition Reuse
+
+Baseline `8918430` legally played every candidate once, then played the same first
+move again when replaying its nonempty PV from the source position. The validator
+already required that first move to equal the candidate. Validation now continues
+from the successful candidate transition at PV index one. Before reuse, it takes
+an indexed, length-bounded, dense SDK-owned PV copy, rather than invoking a host
+PV array's map/iterator/species. This also prevents an overridden map from hiding
+an illegal indexed continuation. Request/metric/duplicate/PV bounds, first-move
+matching, empty-PV legality and all later transitions remain validated. No cache,
+source mutation, payload shape or public signature changes.
+
+With C candidates, P total PV moves and E empty PVs, legal core transitions fall
+from C + P to P + E. The asymptotic worst-case board work remains O((C + P)A) for
+board area A; this removes one duplicate transition per nonempty PV, rather than
+claiming a new complexity class. At 361 point candidates with one-move PVs, play
+calls/361-cell board arrays fall from 722 to 361, removing 130,321 copied board
+elements. A pass candidate similarly falls from two pass transitions to one.
+Longer PVs save the same one transition each; empty PVs save none.
+
+Paired source measurements used Windows x64 Bun 1.4.3 against `8918430`. Each
+fixture had a fresh empty 19-by-19 controller/context, built outside the timer.
+The first C row-major points were distinct candidates, each PV consisting of L
+consecutive row-major points modulo 361, starting at its candidate. All ordinary
+array fixtures were legal and produced identical serialized before/after results.
+Ownership was absent. Three warm-ups preceded five alternating paired samples of
+five normalizations each, with GC before each sample. Values are medians of per-call
+sample averages. No other verification command ran during that final measurement;
+these are local timings, not an engine/network/browser-render throughput claim.
+
+| Candidates C | PV length L | Before (ms) | After (ms) |
+| -----------: | ----------: | ----------: | ---------: |
+|           25 |           1 |     6.31164 |    3.66296 |
+|          169 |           1 |    40.23152 |   21.56856 |
+|          361 |           1 |    87.81360 |   47.24820 |
+|           25 |          17 |    61.87864 |   52.45700 |
+|          169 |           4 |   133.93038 |   97.24418 |
+|          361 |           0 |    56.21002 |   56.44208 |
+
+The one-move / 361-candidate case fell by 46.2%. Empty PVs had no transition
+savings and were slightly slower in this measurement; no universal speedup is
+claimed. The deterministic regression failed on baseline with 722 play calls
+instead of 361, independently checks expected rank order/score loss, copies and
+immutability, and includes pass candidates. A boundary matrix covers empty and
+multi-step PVs, mismatches, occupied points and immediate ko; a host-method fixture
+tries to hide an illegal repeated move and must be rejected without invoking its
+map/iterator/species hooks. Reproduce semantic and resource checks with:
+
+```sh
+bun test packages/sdk/test/analysis.test.ts packages/sdk/test/katago.test.ts
+```
+
 ## 2026-10-25: KataGo Query History Proof Reuse
 
 Baseline `04addb1` replayed the complete analysis epoch with core `play`/`pass`
