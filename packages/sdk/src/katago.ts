@@ -24,6 +24,15 @@ interface Pending {
   readonly reject: (error: AnalysisError) => void;
   unsubscribe: () => void;
   sent: boolean;
+  readonly sendFailure: SendFailure;
+}
+interface SendFailure {
+  deliver?: () => void;
+}
+// The transport may retain an unsettled write forever. Its rejection handler
+// must capture only this detachable lease, never the provider or request scope.
+function sendFailure(lease: SendFailure): () => void {
+  return () => lease.deliver?.();
 }
 const MAX_LINE = 1048576;
 let sequence = 0;
@@ -74,7 +83,14 @@ export class KataGoProvider implements AnalysisProvider {
           'KataGo query ID is already pending or reserved.',
         );
       return new Promise((resolve, reject) => {
-        const pending: Pending = { request, resolve, reject, unsubscribe: () => {}, sent: false };
+        const pending: Pending = {
+          request,
+          resolve,
+          reject,
+          unsubscribe: () => {},
+          sent: false,
+          sendFailure: {},
+        };
         this.#pending.set(request.id, pending);
         try {
           const unsubscribe = cancellation.onCancel(() =>
@@ -98,9 +114,9 @@ export class KataGoProvider implements AnalysisProvider {
           return;
         }
         pending.sent = true;
-        this.#send(line, () =>
-          this.#finish(pending, new AnalysisError('provider', 'KataGo transport failed.'), false),
-        );
+        pending.sendFailure.deliver = () =>
+          this.#finish(pending, new AnalysisError('provider', 'KataGo transport failed.'), false);
+        this.#send(line, sendFailure(pending.sendFailure));
       });
     } catch (error) {
       return Promise.reject(
@@ -195,6 +211,7 @@ export class KataGoProvider implements AnalysisProvider {
   #take(pending: Pending): boolean {
     if (this.#pending.get(pending.request.id) !== pending) return false;
     this.#pending.delete(pending.request.id);
+    pending.sendFailure.deliver = undefined;
     try {
       pending.unsubscribe();
     } catch {

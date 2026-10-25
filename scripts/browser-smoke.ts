@@ -185,6 +185,7 @@ async function analysisSmoke(): Promise<void> {
   await scenario('analysis-locale', 'banora-analysis-locale-complete');
   if (engine === 'chromium')
     await scenario('analysis-disposal', 'banora-analysis-disposal-complete');
+  if (engine === 'chromium') await scenario('katago-disposal', 'banora-katago-disposal-complete');
   const before = await readFile(resolve(output, 'analysis-before.sgf'), 'utf8'),
     after = await readFile(resolve(output, 'analysis-after.sgf'), 'utf8');
   if (before !== after || !after.includes('XX[analysis-preserve]'))
@@ -440,6 +441,7 @@ try {
     if (release) throw Error('Browser memory measures the current built checkout only.');
     await scenario('viewer-disposal', 'banora-viewer-disposal-complete');
     await scenario('analysis-disposal', 'banora-analysis-disposal-complete');
+    await scenario('katago-disposal', 'banora-katago-disposal-complete');
     await browserMemory(root, () => scenario('browser-memory', 'banora-browser-memory-complete'));
   } else if (scope === '--viewer-disposal-only') {
     await scenario('viewer-disposal', 'banora-viewer-disposal-complete');

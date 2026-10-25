@@ -3,6 +3,38 @@
 - Status: Active local validation; hosted Linux root/consumer CI passed at `380c7a7`,
   full affected production browser CI passed at `7ecddf1`; executed scope below
 
+## Single-Priority Refactor: Detached KataGo Write Failure Ownership
+
+KataGo transport write rejections now capture a detachable failure lease rather
+than the provider/Pending request scope. The common request settlement path clears
+delivery before host unsubscribe, releasing completed requests and analysis contexts
+even when a host keeps write Promises unfinished indefinitely. Active failures,
+redaction, cancellation/termination and borrowed transport ownership are preserved.
+
+Paired baseline `86245d6` and working source in Headless Chrome 155 each completed
+four requests by cancellation, disconnect, final response and disposal. With six
+unfinished write Promises and the disposed provider handle still held, four forced
+GC turns reduced live requests and contexts from four each to zero each. A direct
+host-owned context remained live. This measures reachability rather than bytes or
+production GC timing. Method and limits are in
+`docs/engineering/22-browser-memory-lifecycle-evidence.md`; the lifecycle contract is
+recorded in `docs/sdk/katago.md`.
+
+SDK, browser-option and local KataGo process/shutdown tests passed: 274 tests,
+15,416 assertions. The new deterministic regression covers late write failure after
+all terminal paths, reused IDs, pending capacity and listener cleanup. Existing
+sync/async active failure, redaction and reentrant lifecycle tests remain.
+SDK/adapters/examples build and focused Chromium Analysis smoke passed, including
+the new four-terminal-path GC probe and existing Analysis/View lifecycle, PV,
+ownership, keyboard/touch, locale, stale/manual-result and source-preservation checks.
+Typecheck, packed SDK/Node consumer, lint, formatting, repository boundaries and
+docs checks passed. Other browser engines,
+live KataGo, full release/CLI and the older 135-cycle memory matrix were skipped:
+this changes SDK callback ownership only; engine/wire behavior is unchanged.
+No public API signatures/DB, dependencies, hygiene, version or CI jobs changed.
+Existing Chromium Analysis and opt-in memory scopes include the regression.
+No remote operations.
+
 ## Single-Priority Refactor: KataGo Query History Proof Reuse
 
 KataGo query construction now reuses the exact SDK-created immutable context's

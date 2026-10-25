@@ -73,6 +73,14 @@ bytes, removes cancelled unsent queries and shuts down its owned process after a
 fatal stream failure. See its [host ownership contract](../../examples/katago-cli/README.md#ownership-and-failure-handling).
 These example policies do not close a transport borrowed by the SDK provider.
 
+Settling a request also detaches its transport-write failure callback. Even if a
+host retains a write Promise that never settles, that callback no longer owns the
+provider, completed request or analysis context. Late write rejection cannot alter
+completed work or a subsequent request reusing the same ID. Active write rejection
+still fails the current request with the existing redacted diagnostic. The host
+continues to own transport lifetime, deadlines and the unfinished Promise itself;
+the SDK adds no timer, retry or transport close.
+
 ## Wire Conversion and Supported Contexts
 
 `createKataGoQuery(request,options)` returns a deeply immutable `KataGoQuery`,

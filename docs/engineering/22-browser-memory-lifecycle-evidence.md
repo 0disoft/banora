@@ -1,5 +1,54 @@
 # Browser Memory Lifecycle Evidence
 
+## Unfinished KataGo Writes After Request Settlement (October 25, 2026)
+
+Baseline `86245d6` passed an error callback closing over the provider and its full
+Pending request directly to a host-owned write Promise. Removing that request from
+the pending map did not remove the Promise reaction. Cancellation, successful
+response, disconnect and disposal could therefore leave completed requests and
+analysis contexts reachable indefinitely through an unfinished transport write.
+
+The rejection callback now captures only a detachable failure lease created in a
+separate function scope. The common take/settlement path clears its delivery field
+before invoking host cancellation cleanup. Active send failures retain their
+existing behavior; late failures become no-ops. No timer, retry, weak-reference
+runtime requirement or transport ownership change is introduced.
+
+Paired baseline/working source modules ran in the same Windows x64 Headless Chrome
+155.0.0.0 page. Each version issued four 19-by-19 root-position requests, completing
+one by cancellation, one by disconnect, one by a valid final response and one by
+provider disposal. Six host-owned write Promises (four queries, two termination
+actions) deliberately never settled and remained strongly held, as did the disposed
+provider handle. Four separate CDP forced-GC/event-loop turns preceded WeakRef
+inspection. A fifth context held directly by the host remained reachable.
+
+| Objects observed after request settlement | Before alive | After alive |
+| ----------------------------------------- | -----------: | ----------: |
+| Analysis requests                         |            4 |           0 |
+| Analysis contexts                         |            4 |           0 |
+| Unfinished host write Promises            |            6 |           6 |
+
+These are reachability counts, not heap-byte savings or a guarantee of production
+GC timing. For K completed requests with retained writes and context size S, the
+old callbacks could retain O(KS) request/context data; the replacement retains only
+O(K) empty leases/reactions, while live pending requests retain their existing bound.
+The SDK cannot settle or free Promise objects still held by the host.
+
+The committed Chromium regression runs with the existing Analysis and memory
+scopes, without a new CI job. A deterministic unit regression also checks cancelled,
+successful, disconnected, malformed-response and disposed requests, delayed write
+rejection, reused IDs, capacity release and cancellation-listener cleanup. Existing
+active sync/async failure and reentrant disposal checks remain. Reproduce with:
+
+```sh
+bun run build:examples
+bun scripts/browser-smoke.ts --analysis-only
+bun test packages/sdk/test/katago.test.ts
+```
+
+Other browser engines, the live engine and the older 135-cycle memory matrix were
+not rerun in this round. The wire conversion and engine behavior are unchanged.
+
 ## Retained Disposed Analysis View Handles (October 25, 2026)
 
 Against baseline `48f647d`, a retained closed Analysis view kept its borrowed source

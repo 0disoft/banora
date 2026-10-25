@@ -533,6 +533,77 @@ test('synchronous/asynchronous send failures and already-cancelled submissions n
   provider.dispose();
   controller.dispose();
 });
+test('late write failures cannot affect settled requests or reused IDs after any terminal path', async () => {
+  for (const mode of ['cancel', 'success', 'disconnect', 'invalid-result', 'dispose'] as const) {
+    const controller = new RecordController({ size: 5 }),
+      current = request(controller),
+      firstToken = token(),
+      writes: { reject(error: Error): void }[] = [];
+    const provider = new KataGoProvider(
+      {
+        sendLine(line) {
+          if (JSON.parse(line).action === 'terminate') return;
+          return new Promise<void>((_resolve, reject) => writes.push({ reject }));
+        },
+      },
+      { ...options, maxPending: 1 },
+    );
+    try {
+      const result = provider.analyze(current, firstToken.cancellation).then(
+        () => 'success',
+        (error: AnalysisError) => error.reason,
+      );
+      if (mode === 'cancel') firstToken.cancel();
+      else if (mode === 'success') provider.receiveLine(JSON.stringify(report(current.id)));
+      else if (mode === 'disconnect') provider.fail();
+      else if (mode === 'dispose') provider.dispose();
+      else provider.receiveLine('{}');
+      const expected = {
+        cancel: 'cancelled',
+        success: 'success',
+        disconnect: 'provider',
+        'invalid-result': 'invalid-result',
+        dispose: 'disposed',
+      };
+      expect(await result).toBe(expected[mode]);
+      expect(firstToken.listeners.size).toBe(0);
+      if (mode === 'dispose') {
+        writes[0]!.reject(Error('private late write failure'));
+        await Promise.resolve();
+        await expect(provider.analyze(current, token().cancellation)).rejects.toMatchObject({
+          reason: 'disposed',
+        });
+        continue;
+      }
+      const replacementToken = token();
+      let settled = false;
+      const replacement = provider.analyze(current, replacementToken.cancellation);
+      void replacement.then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        },
+      );
+      expect(replacementToken.listeners.size).toBe(1);
+      writes[0]!.reject(Error('private late write failure'));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(settled).toBe(false);
+      expect(replacementToken.listeners.size).toBe(1);
+      provider.receiveLine(JSON.stringify(report(current.id)));
+      await expect(replacement).resolves.toMatchObject({ requestId: current.id });
+      expect(replacementToken.listeners.size).toBe(0);
+      writes[1]!.reject(Error('private late successful write failure'));
+      await Promise.resolve();
+    } finally {
+      provider.dispose();
+      controller.dispose();
+    }
+  }
+});
+
 test('disposal blocks reentrant submissions and failed cancellation subscriptions do not occupy pending capacity', async () => {
   const controller = new RecordController({ size: 5 }),
     current = request(controller),
