@@ -65,7 +65,7 @@ export function mountTouchUI(
   );
 
   // Full board paints replace all root children, invalidating this single-frame cache.
-  let cached: { source: Element | null; x: number; y: number } | null = null;
+  let cached: { source: Element | null; patch: SVGSVGElement; aim: SVGCircleElement } | null = null;
   return {
     render(
       point: Point | null,
@@ -113,28 +113,28 @@ export function mountTouchUI(
       lens.style.left = `${Math.max(8, Math.min(window.innerWidth - size - 8, screen.x - size / 2))}px`;
       lens.style.top = `${Math.max(8, Math.min(window.innerHeight - size - 8, top))}px`;
       lens.style.display = 'block';
-      if (cached?.source === svg.firstElementChild && cached.x === point.x && cached.y === point.y)
-        return;
-      const patch = document.createElementNS(namespace, 'svg');
-      patch.setAttribute('viewBox', `${point.x - 1.6} ${point.y - 1.6} 3.2 3.2`);
-      patch.setAttribute('width', '100%');
-      patch.setAttribute('height', '100%');
-      for (const child of svg.children)
-        if (!child.hasAttribute('data-preview') && !child.hasAttribute('data-cursor'))
-          patch.append(child.cloneNode(true));
-      const aim = document.createElementNS(namespace, 'circle');
-      for (const [key, value] of Object.entries({
-        cx: point.x,
-        cy: point.y,
-        r: 0.49,
-        fill: 'none',
-        stroke: '#12674e',
-        'stroke-width': 0.08,
-      }))
-        aim.setAttribute(key, String(value));
-      patch.append(aim);
-      lens.replaceChildren(patch);
-      cached = { source: svg.firstElementChild, x: point.x, y: point.y };
+      if (!cached || cached.source !== svg.firstElementChild) {
+        const patch = document.createElementNS(namespace, 'svg');
+        patch.setAttribute('width', '100%');
+        patch.setAttribute('height', '100%');
+        for (const child of svg.children)
+          if (!child.hasAttribute('data-preview') && !child.hasAttribute('data-cursor'))
+            patch.append(child.cloneNode(true));
+        const aim = document.createElementNS(namespace, 'circle');
+        for (const [key, value] of Object.entries({
+          r: 0.49,
+          fill: 'none',
+          stroke: '#12674e',
+          'stroke-width': 0.08,
+        }))
+          aim.setAttribute(key, String(value));
+        patch.append(aim);
+        lens.replaceChildren(patch);
+        cached = { source: svg.firstElementChild, patch, aim };
+      }
+      cached.patch.setAttribute('viewBox', `${point.x - 1.6} ${point.y - 1.6} 3.2 3.2`);
+      cached.aim.setAttribute('cx', String(point.x));
+      cached.aim.setAttribute('cy', String(point.y));
     },
     dispose() {
       cached = null;

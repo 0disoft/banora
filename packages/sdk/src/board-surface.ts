@@ -21,7 +21,7 @@ import { mountTouchUI, normalizeTouchOptions } from './touch-aim.js';
 import { normalizeStoneTextures } from './stone-textures.js';
 import { mountPlacementAnimation, normalizePlacementAnimation } from './placement-animation.js';
 import { BOARD_PADDING } from './board-layout.js';
-import { paintBoard, paintBoardHover } from './board-paint.js';
+import { paintBoard, paintBoardHover, paintBoardTouch } from './board-paint.js';
 import { boardNotices, boardFailureLabelKeys } from './board-notices.js';
 import type { ControllerFailure } from './controller.js';
 const namespace = 'http://www.w3.org/2000/svg';
@@ -54,6 +54,7 @@ export function mountBoardSurface(
   let focus: Point = { x: 0, y: 0 };
   let hover: Point | null = null;
   let hoverLayer: SVGElement | undefined;
+  let touchLayer: SVGElement | undefined;
   let pendingStroke: { pointer: number | null; points: Point[] } | null = null;
   let cancelledPointer: number | null = null;
   let touchAim: { pointer: number | null; point: Point | null; screen: Point | null } | null = null;
@@ -206,6 +207,7 @@ export function mountBoardSurface(
   }
   function render(state: BoardFrame): void {
     hoverLayer = undefined;
+    touchLayer = undefined;
     if (readOnly() || options.drawing) hover = null;
     if (options.nodeId) {
       const pinned =
@@ -310,7 +312,7 @@ export function mountBoardSurface(
       options.compareTo && compareGeneration === state.recordGeneration
         ? controller.inspectNode(options.compareTo)
         : null;
-    hoverLayer = paintBoard({
+    const layers = paintBoard({
       document,
       svg,
       state,
@@ -328,11 +330,15 @@ export function mountBoardSurface(
       coordinate,
       readOnly,
     });
+    hoverLayer = layers.hover;
+    touchLayer = layers.touch;
     if (state.recordState) placement.sync(state.recordState, options, animationOptions);
     else placement.cancel();
     renderTouch();
   }
-  function renderTouch(): void {
+  function renderTouch(repaint = false): void {
+    if (repaint && touchLayer)
+      paintBoardTouch(touchLayer, { state: current, touchAim, displayPoint, element });
     touchUI.render(
       touchAim?.point ? displayPoint(touchAim.point) : null,
       touchAim?.screen ?? null,
@@ -536,8 +542,8 @@ export function mountBoardSurface(
         const changed = point?.x !== touchAim.point?.x || point?.y !== touchAim.point?.y;
         touchAim.point = point;
         touchAim.screen = { x: event.clientX, y: event.clientY };
-        if (changed) render(current);
-        else renderTouch();
+        if (changed && !touchLayer) render(current);
+        else renderTouch(changed);
         if (touchAim.point) {
           const selected = coordinate(touchAim.point);
           say(() =>
@@ -881,6 +887,7 @@ export function mountBoardSurface(
       unsubscribe();
       touchUI.dispose();
       hoverLayer = undefined;
+      touchLayer = undefined;
       lastAnnouncement = undefined;
       svg.remove();
       live.remove();

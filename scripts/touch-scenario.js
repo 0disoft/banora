@@ -82,44 +82,57 @@ async (page, studioControl) => {
         throw Error('Dense touch fixture did not load');
     });
     const stationary = (await start([{ x: 9, y: 9 }]))[0];
-    await mobile.evaluate(() => {
-      const svg = document.querySelector('#touch-fixture svg[role="application"]');
-      const lens = [...document.querySelectorAll('[data-touch-lens]')].at(-1);
-      const create = document.createElementNS;
-      const clone = Node.prototype.cloneNode;
-      const first = svg.firstElementChild;
-      const patch = lens.firstElementChild;
-      const left = lens.style.left;
-      const state = window.banoraTouchCheck.controller.getState();
-      let created = 0,
-        cloned = 0,
-        moves = 0;
-      const count = () => moves++;
-      svg.addEventListener('pointermove', count);
-      document.createElementNS = function (...args) {
-        created++;
-        return create.apply(this, args);
-      };
-      Node.prototype.cloneNode = function (...args) {
-        cloned += this.nodeType === 1 && args[0] ? this.querySelectorAll('*').length + 1 : 1;
-        return clone.apply(this, args);
-      };
-      window.finishStationaryTouch = () => {
-        document.createElementNS = create;
-        Node.prototype.cloneNode = clone;
-        svg.removeEventListener('pointermove', count);
-        return {
-          created,
-          cloned,
-          moves,
-          boardRetained: first === svg.firstElementChild,
-          lensRetained: patch === lens.firstElementChild,
-          lensMoved: left !== lens.style.left,
-          unchanged: state === window.banoraTouchCheck.controller.getState(),
-          target: svg.querySelector('[data-preview="touch"]')?.getAttribute('data-target'),
+    const beginTouchMeasurement = () =>
+      mobile.evaluate(() => {
+        const svg = document.querySelector('#touch-fixture svg[role="application"]');
+        const lens = [...document.querySelectorAll('[data-touch-lens]')].at(-1);
+        const create = document.createElementNS;
+        const clone = Node.prototype.cloneNode;
+        const first = svg.firstElementChild;
+        const patch = lens.firstElementChild;
+        const left = lens.style.left;
+        const state = window.banoraTouchCheck.controller.getState();
+        let created = 0,
+          cloned = 0,
+          moves = 0;
+        const count = () => moves++;
+        svg.addEventListener('pointermove', count);
+        document.createElementNS = function (...args) {
+          created++;
+          return create.apply(this, args);
         };
-      };
-    });
+        Node.prototype.cloneNode = function (...args) {
+          cloned += this.nodeType === 1 && args[0] ? this.querySelectorAll('*').length + 1 : 1;
+          return clone.apply(this, args);
+        };
+        window.finishStationaryTouch = () => {
+          document.createElementNS = create;
+          Node.prototype.cloneNode = clone;
+          svg.removeEventListener('pointermove', count);
+          const preview = svg.querySelector('[data-preview="touch"]');
+          const aim = lens.firstElementChild?.lastElementChild;
+          const box = lens.firstElementChild?.viewBox.baseVal;
+          const x = Number(preview?.getAttribute('cx')),
+            y = Number(preview?.getAttribute('cy'));
+          return {
+            created,
+            cloned,
+            moves,
+            boardRetained: first === svg.firstElementChild,
+            lensRetained: patch === lens.firstElementChild,
+            lensMoved: left !== lens.style.left,
+            unchanged: state === window.banoraTouchCheck.controller.getState(),
+            target: svg.querySelector('[data-preview="touch"]')?.getAttribute('data-target'),
+            aligned:
+              Number(aim?.getAttribute('cx')) === x &&
+              Number(aim?.getAttribute('cy')) === y &&
+              box &&
+              Math.abs(box.x + box.width / 2 - x) < 1e-5 &&
+              Math.abs(box.y + box.height / 2 - y) < 1e-5,
+          };
+        };
+      });
+    await beginTouchMeasurement();
     let stationaryMetrics;
     try {
       for (let index = 0; index < 20; index++)
@@ -143,6 +156,41 @@ async (page, studioControl) => {
       `Stationary touch rebuilt unchanged board/lens: ${JSON.stringify(stationaryMetrics)}`,
     );
     console.log(`Stationary touch: ${JSON.stringify(stationaryMetrics)}`);
+    await start([{ x: 9, y: 9 }]);
+    const crossed = await screen(
+      Array.from({ length: 20 }, (_, index) => ({
+        x: index % 19,
+        y: 9 + Math.floor(index / 19),
+      })),
+    );
+    await beginTouchMeasurement();
+    let crossingMetrics;
+    try {
+      for (const [index, point] of crossed.entries()) {
+        await touch('touchMove', point);
+        await mobile.waitForFunction(
+          (target) =>
+            document
+              .querySelector('#touch-fixture [data-preview="touch"]')
+              ?.getAttribute('data-target') === target,
+          `${index % 19},${9 + Math.floor(index / 19)}`,
+        );
+      }
+    } finally {
+      crossingMetrics = await mobile.evaluate(() => window.finishStationaryTouch());
+      await touch('touchCancel');
+    }
+    verify(
+      crossingMetrics.moves === 20 &&
+        crossingMetrics.created === 0 &&
+        crossingMetrics.cloned === 0 &&
+        crossingMetrics.boardRetained &&
+        crossingMetrics.lensRetained &&
+        crossingMetrics.aligned &&
+        crossingMetrics.unchanged &&
+        crossingMetrics.target === '0,10',
+      `Cross-target touch rebuilt the board/lens: ${JSON.stringify(crossingMetrics)}`,
+    );
     await start([{ x: 9, y: 9 }]);
     verify(
       await mobile.evaluate(() => {
@@ -248,6 +296,24 @@ async (page, studioControl) => {
         );
         const lens = mobile.locator('[data-touch-lens]').last();
         verify(await lens.isVisible(), 'Magnified touch lens missing');
+        verify(
+          await lens.evaluate((lens) => {
+            const preview = document.querySelector('#touch-fixture [data-preview="touch"]');
+            const patch = lens.firstElementChild;
+            const aim = patch.lastElementChild;
+            const box = patch.viewBox.baseVal;
+            const x = Number(preview.getAttribute('cx')),
+              y = Number(preview.getAttribute('cy'));
+            return (
+              Number(aim.getAttribute('cx')) === x &&
+              Number(aim.getAttribute('cy')) === y &&
+              Math.abs(box.x + box.width / 2 - x) < 1e-5 &&
+              Math.abs(box.y + box.height / 2 - y) < 1e-5 &&
+              !patch.querySelector('[data-preview]')
+            );
+          }),
+          'Transformed magnifier did not pan to the current target or copied a transient preview',
+        );
         verify(
           await lens.evaluate((lens) => {
             const rectangle = lens.getBoundingClientRect();

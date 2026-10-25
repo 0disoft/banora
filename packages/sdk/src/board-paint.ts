@@ -67,7 +67,42 @@ export function paintBoardHover(
     }),
   );
 }
-export function paintBoard(context: PaintContext): SVGElement {
+/** Touch aiming changes only this export-excluded layer, never the board contents. */
+export function paintBoardTouch(
+  layer: SVGElement,
+  {
+    state,
+    touchAim,
+    displayPoint,
+    element,
+  }: Pick<PaintContext, 'state' | 'touchAim' | 'displayPoint' | 'element'>,
+): void {
+  if (!touchAim?.point) {
+    layer.replaceChildren();
+    return;
+  }
+  let circle = layer.firstElementChild;
+  if (!circle) {
+    circle = element('circle', {
+      r: 0.46,
+      opacity: 0.65,
+      stroke: '#12674e',
+      'stroke-width': 0.07,
+      'data-preview': 'touch',
+    });
+    layer.append(circle);
+  }
+  const point = displayPoint(touchAim.point);
+  const occupied = state.position.board[touchAim.point.y * state.position.width + touchAim.point.x];
+  circle.setAttribute('cx', String(point.x));
+  circle.setAttribute('cy', String(point.y));
+  circle.setAttribute(
+    'fill',
+    occupied ? 'none' : state.position.toPlay === 'black' ? '#20272a' : '#fff',
+  );
+  circle.setAttribute('data-target', `${touchAim.point.x},${touchAim.point.y}`);
+}
+export function paintBoard(context: PaintContext): { hover: SVGElement; touch: SVGElement } {
   const {
     document,
     svg,
@@ -77,7 +112,6 @@ export function paintBoard(context: PaintContext): SVGElement {
     textureId,
     focus,
     pendingStroke,
-    touchAim,
     reference,
     element,
     displayPoint,
@@ -333,21 +367,9 @@ export function paintBoard(context: PaintContext): SVGElement {
       opacity: 0.7,
       'data-preview': 'ink',
     });
-  if (touchAim?.point) {
-    const point = displayPoint(touchAim.point),
-      occupied = board[touchAim.point.y * width + touchAim.point.x];
-    add('circle', {
-      cx: point.x,
-      cy: point.y,
-      r: 0.46,
-      fill: occupied ? 'none' : state.position.toPlay === 'black' ? '#20272a' : '#fff',
-      opacity: 0.65,
-      stroke: '#12674e',
-      'stroke-width': 0.07,
-      'data-preview': 'touch',
-      'data-target': `${touchAim.point.x},${touchAim.point.y}`,
-    });
-  }
+  const touchLayer = element('g', { 'data-preview': 'touch-layer' });
+  paintBoardTouch(touchLayer, context);
+  fragment.append(touchLayer);
   const compatible =
     reference && reference.position.width === width && reference.position.height === height;
   const differences = compatible ? frameDifferences(reference, state) : [];
@@ -500,5 +522,5 @@ export function paintBoard(context: PaintContext): SVGElement {
     fragment.append(group);
   }
   svg.replaceChildren(fragment);
-  return hoverLayer;
+  return { hover: hoverLayer, touch: touchLayer };
 }

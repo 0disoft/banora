@@ -789,9 +789,9 @@ the pending target along screen axes. `onPoint` receives only the final logical
 coordinate, using the same activation path as ordinary input. Default activation
 still uses controller legality checks, Undo and dirty tracking.
 
-Movement within the same rounded target preserves the board and magnifier SVG
-content while updating the lens's screen position and inherited colors. A changed
-target or newly painted board rebuilds the patch. Only the current patch is retained;
+Touch movement preserves the board and magnifier SVG content, updating only the
+transient aim circle, lens viewport, screen position and inherited colors. Changing
+the target pans the existing patch; a newly painted board rebuilds it. Only the current patch is retained;
 hiding the lens or disposing the view releases its cache.
 
 Releasing outside the board, pointer cancellation/capture loss, viewport resizing, active-drag focus

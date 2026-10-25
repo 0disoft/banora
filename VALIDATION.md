@@ -1,5 +1,43 @@
 # Validation
 
+## Single-Priority Refactor: Pan Touch Aim Without Repainting the Board
+
+Baseline 86a8aab reused SVG content within one rounded target, but still repainted
+the full board and cloned its magnifier whenever a drag crossed an intersection.
+In Chrome 155 mobile emulation, 20 distinct targets on a 19x19 board with 361 setup
+stones created 8,300 SVG elements and cloned 8,200 elements. Each native move was
+awaited through its displayed logical target before measuring completion, avoiding
+counting an accepted but not yet delivered CDP touch event as processed.
+
+The board painter now owns a transient touch layer at the original drawing order.
+The pointer handler updates its retained circle instead of painting the board.
+The magnifier retains one patch per fully painted frame, updating its viewBox and
+aim-circle center when the target changes. The preview layer is excluded from
+clones and diagram exports. Full frame changes still rebuild the patch; outside
+targets, cancellation, confirmation, focus, options and disposal keep their prior
+paths. A missing touch layer falls back to a full paint rather than reusing a
+partially failed render. Private layer references are cleared on repaint/disposal.
+
+The existing native touch scenario checks zero SVG creations and zero cloned
+elements across the same 20 target changes, retained board/lens DOM, an unchanged
+controller frame and the final target. Lens center/viewBox alignment and exclusion
+of transient previews are also checked across crop/rotation/reflection cases.
+This is SVG allocation evidence after initial aim, not a physical-device latency
+or total JavaScript-allocation measurement. No public API signature, DB/schema,
+dependency, version, repository hygiene, runner flag or CI job changes are needed.
+The owning contract is docs/sdk/public-api.md; SDK versioning has no automatic bump.
+
+Passed on Windows/Bun 1.4.3: SDK tests (300 tests / 17,286 assertions), typecheck,
+example/framework builds, packed SDK consumer/declarations/classic-global smoke,
+focused Chrome touch smoke, lint, format, boundaries, docs (147 documents / 750
+links), security file/permission signals (520 files) and git diff --check. The
+unchanged-target allocation regression, focus-frame invalidation, record-edit
+cancellation, localized confirmation, export isolation and framework touch cases
+also passed. Other engines, physical devices and the full browser matrix were not
+rerun for this bounded change. SVG construction/cloning for P target changes on a
+frame with N elements changes from O(P*N) to O(N+P), including initial aim creation;
+browser style/layout costs and total JavaScript allocations are not measured here.
+
 ## Single-Priority Refactor: Reuse Unchanged Touch Aim Content
 
 Baseline ca4c0ca repainted the entire board and cloned a new magnifier patch on
