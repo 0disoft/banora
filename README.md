@@ -7,8 +7,8 @@ editors, puzzles, and analysis interfaces.
 viewer/Studio, optional React/Vue/Svelte adapters, manual scoring, authored puzzles
 and external analysis integration/display are implemented within documented
 coverage. The five-package family is available through npm's default channel
-at `0.1.2`, with independent fresh-registry installation checks. See its
-[change and validation record](docs/engineering/32-notice-localization-release.md).
+at `0.1.3`, with independent fresh-registry installation checks. See its
+[change and validation record](docs/engineering/36-maintenance-release.md).
 The published `0.1.0-dev.1`
 remains available through `dev`. See the [release guide](docs/ops/release.md).
 See [implementation status](docs/engineering/08-implementation-status.md).
@@ -30,7 +30,7 @@ your application uses. Initial 0.x releases follow the documented compatibility
 matrix and do not promise a 1.0 API commitment; see the
 [release guide](docs/ops/release.md) for recorded publication and support limits.
 
-The [0.1.2 release](https://github.com/0disoft/banora/releases/tag/v0.1.2) retains
+The [0.1.3 release](https://github.com/0disoft/banora/releases/tag/v0.1.3) retains
 the exact reviewed prepared bundle and manifest.
 
 ## Local Development

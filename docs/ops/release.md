@@ -1,13 +1,16 @@
 # Release
 
-## 0.1.3 Publication Candidate
+## 0.1.3 Published Maintenance Release
 
-The owner authorized the compatible `0.1.3` release for all five packages on
-`latest`. Preparation, publication and installed-consumer health are pending;
-the last confirmed registry release remains `0.1.2`. See the
-[maintenance release record](../engineering/36-maintenance-release.md).
+All five packages are published at `0.1.3` on `latest`. Hosted preparation,
+protected OIDC publication, fresh-registry installed consumers and independently
+downloaded release recovery passed. The public
+[v0.1.3 release](https://github.com/0disoft/banora/releases/tag/v0.1.3) retains
+the exact reviewed bytes and receipts. `dev` remains `0.1.0-dev.1`.
+See the [maintenance release record](../engineering/36-maintenance-release.md)
+for source/hash binding, the initial preparation failure and final evidence.
 
-## Previously Confirmed Publication
+## 0.1.2 Publication (Historical)
 
 Status: five `0.1.2` packages published on `latest` through protected GitHub OIDC,
 with fresh registry-download/installed-consumer health and retained public
@@ -148,7 +151,7 @@ reviewed Banora checkout with `bun run setup` completed. Commit intended changes
 `bun run release prepare` requires an actual clean Git checkout and private
 `banora-workspace` root. The five packages must use the same intentional version.
 The selected source release version is `0.1.3`; there is no automatic bump.
-This authorized maintenance candidate retains the existing compatible SDK peer
+This authorized maintenance release retains the existing compatible SDK peer
 ranges. Preparation, publication and recovery outcomes belong in its
 [execution record](../engineering/36-maintenance-release.md); candidate selection
 alone does not establish publication.
