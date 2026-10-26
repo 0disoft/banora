@@ -1,5 +1,14 @@
 # Release
 
+## 0.1.3 Publication Candidate
+
+The owner authorized the compatible `0.1.3` release for all five packages on
+`latest`. Preparation, publication and installed-consumer health are pending;
+the last confirmed registry release remains `0.1.2`. See the
+[maintenance release record](../engineering/36-maintenance-release.md).
+
+## Previously Confirmed Publication
+
 Status: five `0.1.2` packages published on `latest` through protected GitHub OIDC,
 with fresh registry-download/installed-consumer health and retained public
 release recovery passed. Public source, GitHub Pages and private
@@ -138,10 +147,11 @@ Maintainers own source review, compatibility and artifact retention. Start in a
 reviewed Banora checkout with `bun run setup` completed. Commit intended changes;
 `bun run release prepare` requires an actual clean Git checkout and private
 `banora-workspace` root. The five packages must use the same intentional version.
-The selected source release version is `0.1.2`; there is no automatic bump.
-This authorized patch is published for the transient-notice and localized
-failure fixes, with preparation, publication and recovery recorded in the
-[execution record](../engineering/32-notice-localization-release.md).
+The selected source release version is `0.1.3`; there is no automatic bump.
+This authorized maintenance candidate retains the existing compatible SDK peer
+ranges. Preparation, publication and recovery outcomes belong in its
+[execution record](../engineering/36-maintenance-release.md); candidate selection
+alone does not establish publication.
 
 Preparation runs the root checks and private-file/dependency gates serially, builds
 production examples and packages SDK, CLI, React, Vue and Svelte with lifecycle

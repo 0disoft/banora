@@ -115,6 +115,8 @@ actual public-browser verification without a new npm release.
 [Browser review comparison](engineering/34-browser-review-comparison.md) records
 measured before/after closed-tab collection, move-number navigation and backup
 restoration, including unchanged/noisy navigation outcomes and local-only limits.
+[Maintenance release](engineering/36-maintenance-release.md) tracks the authorized
+`0.1.3` package candidate, publication gates and final recovery evidence.
 [Demo deployment](ops/demo-deployment.md) records the public source, GitHub private
 reporting and manually deployed Pages site. npm authority remains separate; these procedures
 do not establish hosted-service infrastructure or publication.
