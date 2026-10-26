@@ -1,182 +1,156 @@
 # Banora
 
-A modular TypeScript SDK for building Go (Baduk/Weiqi) boards, game viewers,
-editors, puzzles, and analysis interfaces.
+**Go boards, SGF editors, and analysis interfaces for TypeScript.**
 
-**Status: initial 0.1 release.** Headless rules/SGF/controller, SVG rendering,
-viewer/Studio, optional React/Vue/Svelte adapters, manual scoring, authored puzzles
-and external analysis integration/display are implemented within documented
-coverage. The five-package family is available through npm's default channel
-at `0.1.3`, with independent fresh-registry installation checks. See its
-[change and validation record](docs/engineering/36-maintenance-release.md).
-The published `0.1.0-dev.1`
-remains available through `dev`. See the [release guide](docs/ops/release.md).
-See [implementation status](docs/engineering/08-implementation-status.md).
-Try [Banora Studio](https://0disoft.github.io/banora/studio/) without installation.
-The [delivery audit](docs/engineering/10-delivery-audit.md) maps the complete M1-M4
-implementation, consumer evidence and remaining release/compatibility boundaries.
+Build a Go (Baduk / Weiqi) application with a framework-independent SDK:
+board rendering, game rules, records, and ready-to-mount widgets.
+Use it in the browser, on Node.js, or through optional React, Vue, and Svelte adapters.
 
-## Install
+[**Try Banora Studio**](https://0disoft.github.io/banora/studio/) ·
+[Quick start](#quick-start) · [Examples](#examples) ·
+[API documentation](docs/sdk/README.md) ·
+[Latest release: 0.1.3](https://github.com/0disoft/banora/releases/tag/v0.1.3)
 
-Use Node 24.x. Install the SDK with:
+[![Banora Studio showing a 19x19 opening study, numbered stones, two branch candidates, a variation tree, comments, and SGF/SVG/PNG controls.](docs/images/studio.png)](https://0disoft.github.io/banora/studio/)
+
+_Banora Studio: open a record, explore its branches, add notes, and save your work._
+
+## What can you build?
+
+| Build                  | Included                                                                                           | Try it / learn more                                    |
+| ---------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **SGF editor**         | Variations, comments, annotations, Undo/Redo, replay, local drafts, and SVG/PNG export.            | [Studio](https://0disoft.github.io/banora/studio/)     |
+| **Embedded viewer**    | A board, move navigation, variations, and comments in one mount. Optional editing.                 | [Viewer](https://0disoft.github.io/banora/viewer/)     |
+| **Custom board UI**    | Themes, textures, move numbers, transforms, keyboard/touch input, and host-owned state.            | [Controlled boards](docs/sdk/controlled-board.md)      |
+| **Teaching exercises** | Authored answer trees, responses, hints, restart, and outcome events.                              | [Puzzles](https://0disoft.github.io/banora/puzzle/)    |
+| **Analysis interface** | Candidate metrics, ownership, and isolated principal-variation previews from an external provider. | [Analysis](https://0disoft.github.io/banora/analysis/) |
+| **Headless tools**     | SGF operations, legal moves, scoring, and structured JSON automation.                              | [CLI guide](packages/cli/README.md)                    |
+
+The SDK includes SGF import/export, setup stones, captures, simple ko and optional
+superko policies. Manual agreed-position scoring supports Japanese, AGA, and
+Tromp-Taylor counting. [Rules and scoring boundaries](docs/sdk/public-api.md#manual-agreed-position-scoring)
+remain explicit; an analysis engine is an optional host integration.
+
+## Quick start
+
+Install the SDK in a browser project using Node 24.x:
 
 ```sh
 npm install @0disoft/banora
 ```
 
-Optional packages are `@0disoft/banora-cli`, `@0disoft/banora-react`,
-`@0disoft/banora-vue` and `@0disoft/banora-svelte`. Install only the adapters
-your application uses. Initial 0.x releases follow the documented compatibility
-matrix and do not promise a 1.0 API commitment; see the
-[release guide](docs/ops/release.md) for recorded publication and support limits.
+Add a container:
 
-The [0.1.3 release](https://github.com/0disoft/banora/releases/tag/v0.1.3) retains
-the exact reviewed prepared bundle and manifest.
-
-## Local Development
-
-For terminal/LLM workflows, see the [CLI guide](packages/cli/README.md) and
-[JSON automation contract](docs/sdk/automation.md). Build with `bun run build:cli`,
-then use `bun run cli schema` to discover exact commands. Agents can inspect/edit
-SGF, navigate branches, query legal points/score and inspect external snapshots
-without a browser or vision. `bun run smoke:cli` checks the installed executable.
-
-To start your own app, use the [standalone record editor](examples/standalone/README.md).
-It provides an independent TypeScript/Vite project with npm and local-tarball install
-instructions. `bun run smoke:starter` installs a copy
-with npm and checks its own types, production build and browser editing/reopen flow
-without workspace aliases. Browser checks require a compatible Playwright CLI browser.
-
-Use Bun 1.x and Node 24.x. [mise](https://mise.jdx.dev/getting-started) can install
-both from `mise.toml`: run `mise install`, then `mise exec -- bun run setup`.
-With compatible tools already available, run `bun run setup` directly.
-It validates the tools and installs the committed lockfile. `bun run doctor`
-diagnoses setup; `bun run commands` prints the actual scripts as JSON.
-Run `bun run check` for strict
-typechecking, behavior tests, documentation checks and an ESM/declaration build.
-Run `bun run dev` and open [Banora Studio](http://127.0.0.1:4317/studio/) or the
-[read-only embed](http://127.0.0.1:4317/readonly/). `bun run build:examples` creates
-static production examples. The [complete viewer](http://127.0.0.1:4317/viewer/)
-demonstrates the convenience mount and optional editing. `bun run smoke:browser`
-checks production browser flows, including the [React](http://127.0.0.1:4317/react/),
-[Vue](http://127.0.0.1:4317/vue/) and [Svelte](http://127.0.0.1:4317/svelte/) examples.
-Studio and the complete Viewers offer Play/Pause with 0.5–5 second replay intervals.
-Left/Right navigate outside text/select controls and the board; with board focus,
-use Alt+Left/Right to preserve cursor/ink keys. Replay stops at the end or on
-manual interaction/import and leaves SGF unchanged. See the
-[playback contract](docs/sdk/playback.md).
-The [classic browser example](http://127.0.0.1:4317/browser/) uses one built script
-and the same complete viewer without a framework or module loader.
-`bun run smoke:adapters` verifies independently installed adapter types and SSR.
-Browser checks run
-using Playwright CLI; a compatible browser installation is required.
-The common SDK lives at `packages/sdk`; current exports are documented in the
-[public API](docs/sdk/public-api.md). No framework or remote service is required.
-If an existing application owns game state, use the additive
-[host-controlled board API](docs/sdk/controlled-board.md) instead of creating a
-second record controller. The [four controlled consumers](examples/controlled/README.md)
-demonstrate plain snapshots, host-approved intentions and independent view lifecycle
-in Vanilla TypeScript, React, Vue and Svelte, without choosing a transport or engine.
-The build also creates `packages/sdk/dist/banora.global.js` for direct script use.
-Studio and the React/Vue/Svelte examples can create/open embedded record, node and
-static-position share links without a server. Record/node links include all games,
-metadata, comments and branches; position links omit history and game metadata.
-Links contain readable encoded data and have a length limit; use SGF export for
-larger records. See the [share contract](docs/sdk/public-api.md#embedded-share-links).
-The same examples offer local black/white stone texture selection and reset.
-Prepared textures are presentation settings; exported SVG/PNG diagrams embed them,
-while SGF and share links retain record data only. See the
-[texture contract](docs/sdk/public-api.md#custom-stone-textures).
-Placement motion is an optional Board/Viewer setting, with activation/duration
-controls in Studio and each framework example. It respects reduced-motion
-preferences; diagrams export final stone geometry. See the
-[motion contract](docs/sdk/public-api.md#placement-animation).
-Studio also offers **Score position** with temporary dead/seki group marking,
-explicit Japanese/AGA/Tromp-Taylor counting, editable komi/handicap/adjustments and
-component totals. Mouse, keyboard and touch use the same headless calculator;
-scoring preserves the original SGF. Status must be agreed manually. See the
-[scoring contract](docs/sdk/public-api.md#manual-agreed-position-scoring).
-The [curated puzzle example](http://127.0.0.1:4317/puzzle/) plays locally authored
-answer trees with explicit responses, hints, restart and outcome events. The common
-headless session and complete puzzle mount require no framework or analysis engine.
-See the [puzzle contract](docs/sdk/public-api.md#curated-puzzle-sessions).
-The [analysis example](http://127.0.0.1:4317/analysis/) displays candidate metrics,
-ownership and isolated legal PVs without changing source SGF. Offline mode uses
-explicitly authored illustrative data; manual KataGo JSON mode accepts your engine's
-responses without opening an automatic connection. See the
-[consumer guide](examples/analysis/README.md) and [view contract](docs/sdk/analysis-view.md).
-For an actual local CPU engine, the [KataGo CLI example](examples/katago-cli/README.md)
-bridges ordered stdio and performs one explicit analysis with a selected binary/model.
-
-## Direction
-
-Studio's **Local drafts** controls save interacted-with records on this browser,
-restore a chosen draft, download/open portable backups and explicitly delete stored
-work. Storage failures retain editing and SGF export. See the
-[recovery guide](docs/sdk/recovery.md) for privacy, retention and exit durability.
-
-Legal play can opt into positional or situational superko through the core or
-controller's `rules` option; simple ko remains the default. For example:
-
-```ts
-import {RecordController} from '@0disoft/banora';
-const controller = new RecordController({size:9, rules:{ko:'situational-superko'}});
+```html
+<div id="viewer"></div>
 ```
 
-Passes retain superko history, committed setup/PL starts a new epoch, and recorded
-SGF moves remain browsable even when legal play would reject them. See the
-[repetition contract](docs/sdk/public-api.md#repetition-policies) for exact semantics
-and the [named-profile/scoring boundaries](docs/adr/0007-manual-scoring-and-named-profile-coverage.md).
+Mount an editable viewer in your application's TypeScript entry point:
 
-Banora should make a simple game viewer easy to embed and let developers extend
-the same model into a complete Go application. It combines a customizable board,
-shared game rules, SGF records, and optional integrations through clear boundaries.
+```ts
+import { mountViewer } from '@0disoft/banora';
 
-- Framework-independent TypeScript core shared by browsers and servers.
-- SVG board with themes, annotations, keyboard input, and mobile placement tools.
-- SGF import/export, comments, variations, and an embeddable game viewer.
-- Manual agreed-position scoring, curated puzzles and explicit external analysis/display.
-- Optional React, Vue, and Svelte adapters, selective imports, and a browser script build.
+const viewer = mountViewer(document.getElementById('viewer')!, {
+  sgf: '(;FF[4]GM[1]SZ[9];B[cc];W[gg])',
+  editable: true,
+  variationMode: 'focused',
+});
 
-The first release is driven by **Banora Studio**, a browser-based SGF review and
-editing example at `examples/studio` in this repository. Its core flow
-is to open a record, navigate variations, create a continuation, add comments or
-markers, and download an SGF that can be reopened with those edits preserved.
+// Call viewer.dispose() when your application removes this view.
+```
 
-Studio is available locally and on [GitHub Pages](https://0disoft.github.io/banora/studio/). A
-read-only example at `examples/readonly` exercises a second workflow. Both import
-built public SDK exports without internal source access. See the
-[roadmap](docs/product/01-roadmap.md) for sequencing and unimplemented capabilities.
+The viewer owns its controller when one is not supplied. You can also share a
+`RecordController`, mount only a board, or use headless modules independently.
+See the [SDK quick start](packages/sdk/README.md) and
+[public API](docs/sdk/public-api.md).
 
-The shared browser SDK is framework-independent. React, Vue, and Svelte are all
-implemented optional adapters; none is required by the core or renderer. See the
-[framework support decision](docs/adr/0004-framework-independent-adapters.md).
+## Packages
 
-The repository contains one common SDK package plus three separate adapters.
-The [initial contracts](docs/adr/0005-initial-api-record-and-package-contracts.md)
-define controller ownership, SGF FF4/UTF-8 handling, edit Undo and unsaved-change
-behavior. Node 24 LTS, React 19, Vue 3 and Svelte 5 are initial compatibility
-targets. The current headless artifact is checked on Node 24.14.0 and browser
-flows on Headless Chrome 154. React 19.3.0, Vue 3.5.43 and Svelte 5.57.2 have separate
-browser and packed types/SSR evidence; broader compatibility is pending.
+Install the SDK plus the adapter your application uses. All five packages are
+published at **0.1.3** on npm's default channel.
 
-## Design Documents
+| Package                                                                          | Purpose                                                                                   | Guide                               |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------- |
+| [`@0disoft/banora`](https://www.npmjs.com/package/@0disoft/banora)               | Core rules, SGF, controller, SVG board, and widgets. No third-party runtime dependencies. | [SDK](packages/sdk/README.md)       |
+| [`@0disoft/banora-react`](https://www.npmjs.com/package/@0disoft/banora-react)   | React components and hooks.                                                               | [React](packages/react/README.md)   |
+| [`@0disoft/banora-vue`](https://www.npmjs.com/package/@0disoft/banora-vue)       | Vue components and composables.                                                           | [Vue](packages/vue/README.md)       |
+| [`@0disoft/banora-svelte`](https://www.npmjs.com/package/@0disoft/banora-svelte) | Svelte components and state integration.                                                  | [Svelte](packages/svelte/README.md) |
+| [`@0disoft/banora-cli`](https://www.npmjs.com/package/@0disoft/banora-cli)       | Terminal commands and JSON requests/responses.                                            | [CLI](packages/cli/README.md)       |
 
-- [Product brief](docs/product/00-product-brief.md): audience and differentiation.
-- [Product specification](docs/product/02-spec.md): capability scope and acceptance.
-- [Architecture](ARCHITECTURE.md): module boundaries and technology choices.
-- [SDK contract](docs/sdk/README.md): API, packaging, compatibility, and examples.
-- [Risk register](docs/product/03-risk-register.md): implementation uncertainties.
-- [Documentation index](docs/README.md): authoritative documents and reading order.
-- [Development](DEVELOPMENT.md): implementation approach and validation priorities.
+Current compatibility targets are **Node 24, React 19, Vue 3, and Svelte 5**.
+Compatible 0.1 updates preserve the public contract; breaking pre-1.0 changes
+require a new minor and migration notes. See the
+[compatibility matrix](docs/sdk/compatibility.md) and
+[release evidence](docs/engineering/36-maintenance-release.md).
 
-## Open Source Direction
+## Examples
 
-Original SDK code and documentation use the [MIT license](LICENSE). Current assets
-are authored in this repository; there are no bundled third-party textures or fonts.
-Framework consumer builds include their MIT-licensed runtime dependencies. Audit
-dependency notices and additional asset provenance before distribution.
+| Start with                  | Live example                                                                                                                                         | Source / guide                                                                                        |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Framework integration**   | [React](https://0disoft.github.io/banora/react/) · [Vue](https://0disoft.github.io/banora/vue/) · [Svelte](https://0disoft.github.io/banora/svelte/) | [React source](examples/react/) · [Vue source](examples/vue/) · [Svelte source](examples/svelte/)     |
+| **A script tag**            | [Classic browser build](https://0disoft.github.io/banora/browser/)                                                                                   | [Browser example](examples/browser/)                                                                  |
+| **A read-only embed**       | [Read-only board](https://0disoft.github.io/banora/readonly/)                                                                                        | [Read-only example](examples/readonly/)                                                               |
+| **Your own application**    | Run the independent starter locally.                                                                                                                 | [Standalone record editor](examples/standalone/README.md)                                             |
+| **An existing state model** | [Vanilla controlled board](https://0disoft.github.io/banora/controlled/)                                                                             | [Controlled Vanilla / React / Vue / Svelte](examples/controlled/README.md)                            |
+| **An external engine**      | [Analysis interface](https://0disoft.github.io/banora/analysis/)                                                                                     | [Manual KataGo JSON](examples/analysis/README.md) · [Local KataGo CLI](examples/katago-cli/README.md) |
 
-Hosted analysis, storage, and collaborative review are possible future services.
-The SDK's local board, rules, and record functionality should work independently
-of a hosted service.
+<details>
+<summary><strong>Preview the analysis interface</strong></summary>
+
+![Analysis example with the source record on the left and an isolated candidate continuation, metrics, and principal-variation controls on the right.](docs/images/analysis.png)
+
+The screenshot uses the example's **authored offline fixtures**, not engine-computed
+predictions. A real integration supplies its own engine and transport. Previewing
+a continuation preserves the source SGF, comments, and Undo history.
+
+</details>
+
+## Local work, sharing, and languages
+
+- **Local editing:** core board, rules, records, manual scoring, and authored puzzles
+  work without a hosted service. Studio can save drafts in this browser and
+  download portable backups. [Recovery and storage](docs/sdk/recovery.md).
+- **Sharing:** embedded record, node, and static-position links need no server.
+  Link data is readable, not private; export an SGF for larger records.
+  [Sharing semantics](docs/sdk/public-api.md#embedded-share-links).
+- **Twelve languages:** English, Chinese, Hindi, Spanish, French, Russian,
+  Indonesian, Japanese, Vietnamese, Korean, Thai, and Malay. UI localization
+  preserves authored comments, puzzle text, and provider messages.
+  [Localization guide](docs/sdk/localization.md).
+
+## Development
+
+Use **Bun 1.x** and **Node 24.x** in this repository:
+
+```sh
+bun run setup
+bun run dev
+```
+
+Open [localhost:4317/studio/](http://127.0.0.1:4317/studio/).
+
+| Command                  | Purpose                                                                     |
+| ------------------------ | --------------------------------------------------------------------------- |
+| `bun run check`          | Types, behavior tests, documentation, builds, and packed SDK/CLI consumers. |
+| `bun run smoke:browser`  | Production browser flows with Playwright CLI and a compatible browser.      |
+| `bun run smoke:adapters` | Independently installed adapter types and SSR.                              |
+| `bun run docs`           | Documentation links and command references.                                 |
+
+See [Development](DEVELOPMENT.md) for setup and validation details, or
+[Contributing](CONTRIBUTING.md) to work on the project.
+
+## Documentation and support
+
+- [SDK guides and API](docs/sdk/README.md) — modules, ownership, and consumer contracts.
+- [Architecture](ARCHITECTURE.md) — responsibilities and design decisions.
+- [Roadmap](docs/product/01-roadmap.md) — direction and unimplemented capabilities.
+- [Documentation index](docs/README.md) — complete contracts and execution evidence.
+- [Releases](https://github.com/0disoft/banora/releases) — exact prepared archives and manifests.
+- [Security policy](SECURITY.md) — private vulnerability reporting.
+
+## License
+
+Original SDK code and documentation are [MIT licensed](LICENSE).
+Studio and the framework examples include third-party fonts, icons, and runtime
+dependencies with their own licenses. See the
+[Studio asset notices](examples/studio/assets/README.md) before redistribution.
