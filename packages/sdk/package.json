@@ -11,6 +11,10 @@
   ],
   "sideEffects": false,
   "exports": {
+    "./diagram": {
+      "types": "./dist/diagram.d.ts",
+      "import": "./dist/diagram.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"

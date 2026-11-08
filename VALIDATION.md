@@ -1,5 +1,32 @@
 # Validation
 
+## DOM-free SVG API
+
+`renderDiagramSvg` is an additive root/classic/selective `diagram` export for a
+controller state, rules Position or controlled BoardSnapshot. The mounted and
+headless renderers share static primitives, dimming, move-number projection and
+export dimension policy. Snapshots retain their input limits, selected-path SGF
+budgets and an independent 8 MiB UTF-8 output cap. Authored XML text is escaped;
+no DOM shim, external asset, mutable global counter or retained record is added.
+
+Passed on Windows/Bun 1.4.4/Node 24.14.0: 36 focused tests / 421 assertions,
+typecheck, lint, module boundaries, SDK/framework/example production builds and
+installed SDK declarations/entrypoints/classic checks. The headless declaration
+consumer compiles without DOM libraries; runtime getters reject any document,
+window, DOMParser or XMLSerializer access. Chrome 156 `--diagram-only` preserves
+existing standalone SVG/PNG, texture, text, dimension, encoding-failure and
+cancellation checks, plus exact canvas pixel parity for rectangular rotated/
+reflected annotated positions with unrestricted, partial and empty visibility.
+Empty masks retain the background/edge coordinates, matching mounted boards.
+
+Owning contracts: product specification, public API and diagram guide. API and
+package export lists are additive; module classification gains pure primitives
+and diagram modules, and the existing browser runner gains one focused route.
+DB/storage, dependencies, version, repository hygiene and CI jobs are unchanged.
+Full test/browser/device matrices are not rerun for this bounded export addition;
+other engines and physical devices remain unverified. This one-position API does
+not claim batch pages, numbering resets or replay footnotes. No push/publication.
+
 ## Explicit Studio Scoring Result Confirmation
 
 Studio opts in to a consumer-owned confirmation that displays old/new RE, used

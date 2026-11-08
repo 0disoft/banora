@@ -350,6 +350,7 @@ async function editingSmoke(): Promise<void> {
 }
 async function diagramSmoke(): Promise<void> {
   await scenario('diagram', 'banora-diagrams-complete');
+  await scenario('headless-diagram', 'banora-headless-diagrams-complete');
   for (const name of ['studio', 'react', 'vue', 'svelte']) {
     const bytes = await readFile(resolve(output, `${name}-diagram.png`));
     if (bytes.toString('hex', 0, 8) !== '89504e470d0a1a0a')
@@ -540,6 +541,11 @@ try {
     await playbackSmoke();
     console.log(
       'Playback smoke passed: speed/pause/end, keyboard guards, import, SGF preservation and six consumer lifecycles.',
+    );
+  } else if (scope === '--diagram-only') {
+    await diagramSmoke();
+    console.log(
+      'Focused diagram smoke passed: existing SVG/PNG exports and headless XML/pixel parity.',
     );
   } else if (scope === '--controlled-only') {
     if (engine === 'chromium')

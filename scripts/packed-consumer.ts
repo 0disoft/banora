@@ -38,6 +38,17 @@ await writeFile(
 );
 run([process.execPath, 'install', '--ignore-scripts'], directory);
 const consumer = `import { RecordController, createPosition, play, stoneAt } from '@0disoft/banora';
+import {renderDiagramSvg, DIAGRAM_SVG_LIMITS} from '@0disoft/banora/diagram';
+import {renderDiagramSvg as rootDiagram} from '@0disoft/banora';
+import type {DiagramSource, DiagramSvgOptions} from '@0disoft/banora/diagram';
+const diagramSource:DiagramSource=createPosition({width:3,height:2});
+const diagramOptions:DiagramSvgOptions={width:450,title:'Packed <diagram>'};
+const forbiddenDomNames=['window','document','DOMParser','XMLSerializer'];
+for (const name of forbiddenDomNames) Object.defineProperty(globalThis,name,{configurable:true,get(){throw Error('Headless API touched DOM: '+name);}});
+try {
+  const svg=renderDiagramSvg(diagramSource,diagramOptions);
+  if (renderDiagramSvg!==rootDiagram || DIAGRAM_SVG_LIMITS.maxBytes!==8388608 || !svg.includes('width="450" height="350"') || !svg.includes('Packed &lt;diagram&gt;')) throw Error('Packed headless diagram failed');
+} finally { for (const name of forbiddenDomNames) Reflect.deleteProperty(globalThis,name); }
 import { parseSgf } from '@0disoft/banora/sgf';
 import { searchRecord } from '@0disoft/banora/record-search';
 import {DiagnosticJournal,describeDiagnosticFailure} from '@0disoft/banora/diagnostics';
@@ -149,6 +160,10 @@ await writeFile(
   `import {createPosition, play} from '@0disoft/banora/core';
 import {createBoardSnapshot} from '@0disoft/banora/board-state';
 const external=createBoardSnapshot({key:'headless/host',width:2,height:3,stones:Array(6).fill(null)});
+import {renderDiagramSvg} from '@0disoft/banora/diagram';
+import type {DiagramSvgOptions} from '@0disoft/banora/diagram';
+const pureDiagramOptions:DiagramSvgOptions={width:350};
+if (!renderDiagramSvg(external,pureDiagramOptions).includes('height="450"')) throw Error('DOM-free declaration/runtime diagram failed');
 import {executeAutomation, diagnoseAutomation as headlessDiagnose, AUTOMATION_SCHEMA} from '@0disoft/banora/automation';
 if (headlessDiagnose({}).ok) throw Error('Headless diagnostic execution failed');
 import {createUiMessages, createBoardLabels, formatUiMessage, formatUiFailure} from '@0disoft/banora/locale';
@@ -313,6 +328,7 @@ const executed=context.Banora.diagnoseAutomation({schemaVersion:'banora.automati
 if (executed.ok || executed.operationIndex!==1 || executed.diagnostics.events.at(-1).failure.code!=='occupied' || 'sgf' in executed) throw Error('Classic diagnostic execution failed');
 const model = new context.Banora.RecordController({size:9});
 if (!model.play({x:0,y:0}).ok || model.getState().position.moveNumber !== 1) throw Error('Classic artifact failed');
+if (!context.Banora.renderDiagramSvg(model.getState(),{moveNumbers:true}).includes('data-move-number="1"')) throw Error('Classic headless diagram failed');
 model.dispose(); console.log('Packed classic global and ambient declarations passed');
 `,
 );

@@ -1,30 +1,9 @@
+import { numberNode } from './record-numbers.js';
 import type { BoardFrame, BoardBinding } from './board-frame.js';
 import type { RecordController, ControllerState } from './controller.js';
-import { expandSgfPoints, pointFromSgf } from './sgf.js';
+import { pointFromSgf } from './sgf.js';
 import type { SgfNode, SgfRecord } from './sgf.js';
 import { variationCandidates } from './variations.js';
-
-/** Mutates only the fresh map being built for this frame. */
-function numberNode(
-  node: SgfNode,
-  numbers: Map<number, number>,
-  number: number,
-  width: number,
-  height: number,
-): number {
-  for (const key of ['AB', 'AW', 'AE'])
-    for (const value of node.properties[key] ?? [])
-      for (const point of expandSgfPoints(value, width, height))
-        numbers.delete(point.y * width + point.x);
-  const value = node.properties.B?.[0] ?? node.properties.W?.[0];
-  if (value !== undefined) number++;
-  if (node.properties.MN) number = Number(node.properties.MN[0]);
-  if (value && !(value === 'tt' && width <= 19 && height <= 19)) {
-    const point = pointFromSgf(value, width, height);
-    numbers.set(point.y * width + point.x, number);
-  }
-  return number;
-}
 
 /** A projection, not another record or rules engine. Number traversal stays lazy. */
 export function recordBoardBinding(controller: RecordController, owned: boolean): BoardBinding {

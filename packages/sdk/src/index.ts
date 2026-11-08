@@ -24,3 +24,5 @@ export * from './puzzle-view.js';
 export * from './analysis.js';
 export * from './katago.js';
 export * from './analysis-view.js';
+export { renderDiagramSvg, DIAGRAM_SVG_LIMITS } from './diagram.js';
+export type { DiagramSvgOptions, DiagramSource } from './diagram.js';

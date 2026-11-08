@@ -9,6 +9,11 @@ dependencies or external assets are included.
 
 ## Quick Start
 
+For Node/SSR without a DOM, import `renderDiagramSvg` from
+`@0disoft/banora/diagram` and pass a controller state, rules Position or controlled
+BoardSnapshot. It returns standalone SVG with bounded/escaped output; browser
+boards continue to support their mounted `exportSvg`/`exportPng` methods.
+
 Create a container such as `<div id="board"></div>`, then mount in browser code:
 
 ```ts

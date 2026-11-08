@@ -5,6 +5,14 @@
 - Architecture: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 - Initial contracts: [ADR 0005](../adr/0005-initial-api-record-and-package-contracts.md)
 
+## DOM-free diagram generation
+
+`renderDiagramSvg`, `DiagramSource`, `DiagramSvgOptions` and `DIAGRAM_SVG_LIMITS`
+are additive root/classic and `@0disoft/banora/diagram` exports. Rendering an
+existing controller state, rules Position or controlled BoardSnapshot requires
+no DOM, external asset or record mutation. See [diagrams](diagrams.md) for
+sources, options, input/output limits and the one-position boundary.
+
 ## Explicit Local Diagnostics
 
 Root and selective `@0disoft/banora/diagnostics` exports expose `DiagnosticJournal`,

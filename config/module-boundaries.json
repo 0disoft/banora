@@ -54,14 +54,19 @@
     "share",
     "stone-textures",
     "textures",
-    "variations"
+    "variations",
+    "board-content",
+    "board-overlays",
+    "record-numbers",
+    "diagram",
+    "diagram-state",
+    "diagram-shared"
   ],
   "browser": [
     "analysis-overlay",
     "analysis-view",
     "board",
     "board-frame",
-    "board-overlays",
     "board-paint",
     "board-record",
     "board-surface",

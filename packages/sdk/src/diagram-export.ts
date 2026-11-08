@@ -1,8 +1,6 @@
-export interface DiagramOptions {
-  readonly width?: number;
-  readonly height?: number;
-  readonly title?: string;
-}
+import { diagramDimensions, xmlText } from './diagram-shared.js';
+import type { DiagramOptions } from './diagram-shared.js';
+export type { DiagramOptions } from './diagram-shared.js';
 interface Diagram {
   readonly text: string;
   readonly width: number;
@@ -40,10 +38,6 @@ const styles = [
   'dominant-baseline',
   'opacity',
 ];
-const xmlText = (text: string) =>
-  // oxlint-disable-next-line eslint/no-control-regex -- Replace characters forbidden in XML 1.0.
-  text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF\p{Cs}]/gu, '\uFFFD');
-
 type PatternLookup = (id: string) => Element | undefined;
 /** Lazy and export-local: preserve the first DOM match and never retain stale definitions. */
 function patternLookup(svg: SVGSVGElement): PatternLookup {
@@ -88,20 +82,7 @@ function paintFor(value: string, svg: SVGSVGElement, lookup: PatternLookup): str
 /** Snapshot a mounted SDK drawing; no DOM access occurs during module import. */
 export function serializeBoardDiagram(svg: SVGSVGElement, options: DiagramOptions = {}): Diagram {
   const box = svg.viewBox.baseVal;
-  const ratio = box.width / box.height;
-  const width =
-    options.width ?? (options.height === undefined ? 1024 : Math.round(options.height * ratio));
-  const height = options.height ?? Math.round(width / ratio);
-  if (
-    ![width, height].every((value) => Number.isInteger(value) && value >= 1 && value <= 8192) ||
-    width * height > 16_777_216
-  )
-    throw new RangeError('Diagram dimensions must be 1 to 8192 pixels and at most 16 megapixels');
-  if (
-    options.title !== undefined &&
-    (typeof options.title !== 'string' || options.title.length > 1024)
-  )
-    throw new RangeError('Diagram title must be at most 1024 characters');
+  const { width, height } = diagramDimensions(box, options);
   const window = svg.ownerDocument.defaultView;
   if (!window) throw new Error('Diagram export requires a browser document');
   const copy = svg.cloneNode(true) as SVGSVGElement;

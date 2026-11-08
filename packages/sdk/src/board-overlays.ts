@@ -1,7 +1,7 @@
 import type { BoardOverlay } from './board-state.js';
 import type { Point } from './core.js';
 
-type Add = (name: string, attrs: Record<string, string | number>, text?: string) => SVGElement;
+type Add = (name: string, attrs: Record<string, string | number>, text?: string) => void;
 /** Checked data primitives only; the SDK owns element creation and export behavior. */
 export function paintBoardOverlays(
   overlays: readonly BoardOverlay[],
