@@ -1,6 +1,14 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const japaneseUi = {
+  'Save result to record': '計算結果を棋譜に保存',
+  'Save result to record?': '計算結果を棋譜に保存しますか？',
+  'Current result': '現在の結果',
+  'New result': '新しい結果',
+  'Confirm result': '結果を確定',
+  'Only the result (RE) is saved. Review the komi and scoring marks before confirming.':
+    '結果（RE）のみ保存します。確定前にコミと死石・セキの指定を確認してください。',
+  'Result saved.': '結果を保存しました。',
   'Game information': '対局情報',
   'Black player': '黒番の対局者',
   'White player': '白番の対局者',

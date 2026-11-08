@@ -1,5 +1,13 @@
 import type { koreanUi } from '../ui-korean.js';
 export const viUi = {
+  'Save result to record': 'Lưu kết quả vào kỳ phổ',
+  'Save result to record?': 'Lưu kết quả vào kỳ phổ?',
+  'Current result': 'Kết quả hiện tại',
+  'New result': 'Kết quả mới',
+  'Confirm result': 'Xác nhận kết quả',
+  'Only the result (RE) is saved. Review the komi and scoring marks before confirming.':
+    'Chỉ lưu kết quả (RE). Kiểm tra komi và các dấu đếm điểm trước khi xác nhận.',
+  'Result saved.': 'Đã lưu kết quả.',
   'Game information': 'Thông tin ván cờ',
   'Black player': 'Kỳ thủ đen',
   'White player': 'Kỳ thủ trắng',

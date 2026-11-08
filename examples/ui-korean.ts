@@ -1,4 +1,12 @@
 export const koreanUi = {
+  'Save result to record': '계가 결과 반영',
+  'Save result to record?': '계가 결과를 기보에 반영할까요?',
+  'Current result': '기존 결과',
+  'New result': '새 결과',
+  'Confirm result': '결과 확정',
+  'Only the result (RE) is saved. Review the komi and scoring marks before confirming.':
+    '결과(RE)만 저장합니다. 확정하기 전에 덤과 사석·빅 표시를 확인하세요.',
+  'Result saved.': '결과를 저장했습니다.',
   'Game information': '대국 정보',
   'Black player': '흑 대국자',
   'White player': '백 대국자',

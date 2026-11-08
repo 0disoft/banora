@@ -1,5 +1,13 @@
 import type { koreanUi } from '../ui-korean.js';
 export const esUi = {
+  'Save result to record': 'Guardar resultado en la partida',
+  'Save result to record?': '¿Guardar el resultado en la partida?',
+  'Current result': 'Resultado actual',
+  'New result': 'Nuevo resultado',
+  'Confirm result': 'Confirmar resultado',
+  'Only the result (RE) is saved. Review the komi and scoring marks before confirming.':
+    'Solo se guarda el resultado (RE). Revise el komi y las marcas de puntuación antes de confirmar.',
+  'Result saved.': 'Resultado guardado.',
   'Game information': 'Información de la partida',
   'Black player': 'Jugador negro',
   'White player': 'Jugador blanco',

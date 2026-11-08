@@ -835,7 +835,13 @@ const disposeSharing = mountSharing(find('sharing-host'), controller, {
       signal,
     ),
 });
-const disposeScoring = mountScoringControls(find('scoring-host'), controller);
+const disposeScoring = mountScoringControls(find('scoring-host'), controller, {
+  allowResultSave: true,
+  onAction: (result) => {
+    report(result, 'scoring');
+    if (result.ok) showStatus('Result saved.');
+  },
+});
 const disposeRecovery = mountRecoveryControls(find('drafts-host'), controller, {
   diagnostics,
   filename: () => workspace.active.filename,

@@ -8,6 +8,26 @@
 .scoring-card > p {
   margin: 10px 0;
 }
+#score-save-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-width: 520px;
+  max-height: calc(100dvh - 32px);
+  box-sizing: border-box;
+}
+#score-save-dialog dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px 16px;
+}
+#score-save-dialog dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  max-height: 6em;
+  overflow: auto;
+}
+#score-save-dialog .dialog-actions {
+  flex-wrap: wrap;
+}
 .score-controls {
   display: flex;
   flex-wrap: wrap;

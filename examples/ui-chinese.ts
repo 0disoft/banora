@@ -1,6 +1,14 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const chineseUi = {
+  'Save result to record': '保存数目结果',
+  'Save result to record?': '将数目结果写入棋谱？',
+  'Current result': '原结果',
+  'New result': '新结果',
+  'Confirm result': '确认结果',
+  'Only the result (RE) is saved. Review the komi and scoring marks before confirming.':
+    '仅保存结果（RE）。确认前请检查贴目及死活标记。',
+  'Result saved.': '结果已保存。',
   'Game information': '对局信息',
   'Black player': '黑方棋手',
   'White player': '白方棋手',

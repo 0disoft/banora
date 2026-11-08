@@ -1,5 +1,13 @@
 import type { koreanUi } from '../ui-korean.js';
 export const hiUi = {
+  'Save result to record': 'परिणाम रिकॉर्ड में सहेजें',
+  'Save result to record?': 'परिणाम रिकॉर्ड में सहेजें?',
+  'Current result': 'वर्तमान परिणाम',
+  'New result': 'नया परिणाम',
+  'Confirm result': 'परिणाम की पुष्टि करें',
+  'Only the result (RE) is saved. Review the komi and scoring marks before confirming.':
+    'केवल परिणाम (RE) सहेजा जाता है। पुष्टि से पहले कोमी और गिनती के चिह्न जाँचें।',
+  'Result saved.': 'परिणाम सहेजा गया।',
   'Game information': 'खेल की जानकारी',
   'Black player': 'काला खिलाड़ी',
   'White player': 'सफ़ेद खिलाड़ी',

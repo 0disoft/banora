@@ -1,5 +1,13 @@
 import type { koreanUi } from '../ui-korean.js';
 export const idUi = {
+  'Save result to record': 'Simpan hasil ke catatan',
+  'Save result to record?': 'Simpan hasil ke catatan?',
+  'Current result': 'Hasil saat ini',
+  'New result': 'Hasil baru',
+  'Confirm result': 'Konfirmasi hasil',
+  'Only the result (RE) is saved. Review the komi and scoring marks before confirming.':
+    'Hanya hasil (RE) yang disimpan. Periksa komi dan penandaan penghitungan sebelum mengonfirmasi.',
+  'Result saved.': 'Hasil disimpan.',
   'Game information': 'Informasi permainan',
   'Black player': 'Pemain hitam',
   'White player': 'Pemain putih',

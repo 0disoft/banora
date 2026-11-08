@@ -26,8 +26,8 @@ No push or public publication is authorized by this improvement task.
 4. Game information: add validated, undoable editing of players, game name,
    date, komi and result; integrate Studio and explicit confirmed scoring result
    persistence, preserving unknown SGF properties and export/reopen/checkpoints.
-   The typed atomic controller API and localized Studio editor are implemented
-   locally; explicit scoring confirmation still requires consumer implementation.
+   The typed atomic controller API, localized Studio editor and explicitly confirmed
+   scoring-result workflow are implemented locally; publication remains separate.
 5. Release readiness: align API documentation, examples, release notes and a
    versioned publication plan after implemented changes pass installed-consumer
    validation. Registry/npm publication and Pages deployment remain separate,
@@ -40,12 +40,18 @@ Streaming/bulk AI analysis, new compatibility targets and SGF conversion tools
 remain proposals for later product decisions. They are not prerequisites for
 the first usability delivery above, and are not claimed as implemented.
 
-## Puzzle Localization Increment
+## Game Information and Confirmed Scoring Increment
 
-Current game-information follow-up: the Studio editor is now implemented locally
-through the public atomic API, with twelve-locale fields, changed-only patches,
-stale-form revocation and verified export/Undo behavior. Historical pending notes
-below describe earlier increments; explicit scoring confirmation remains pending.
+The Studio editor is implemented locally through the public atomic API, with
+twelve-locale fields, changed-only patches and stale-form revocation. Studio alone
+opts in to a scoring-result confirmation showing old/new RE, used komi and status
+warnings. Acceptance changes only RE, with one-step Undo/Redo; cancelled, changed
+or replaced previews cannot authorize a later write. Default scoring consumers
+remain read-only previews. Both flows have browser evidence for language changes,
+narrow layouts, export preservation and late submissions. No push/publication is
+included. Historical pending notes below describe earlier increments.
+
+## Puzzle Localization Increment
 
 The puzzle view now has explicit twelve-locale controls, accessible names, board
 labels, progress, help and default/unlisted/rejected-action feedback. It exports

@@ -135,8 +135,13 @@ Studio's game-information dialog edits these six fields through the public API.
 Only fields changed from the opening snapshot are submitted; invalid input leaves
 the entire edit unapplied. Cancel/Escape and a changed record, game, tab or selected
 node revoke the form. Labels support all twelve locales without translating inputs.
-Explicitly confirmed scoring-result persistence remains separate consumer work;
-scoring never writes a result merely by opening or changing its preview.
+Studio also opts in to explicit scoring-result persistence. Its confirmation shows
+the existing RE, proposed RE, used komi and manual-status/pass warnings. Only RE is
+patched as one Undo unit; komi, live rules, dead/seki marks and other games stay
+unchanged. Cancel/Escape, source edits/navigation/replacement, tab/game changes and
+recalculated previews revoke approval. Draws save as RE[0]; finite fractional scores
+use ordinary SGF decimal notation. Default scoring consumers remain preview-only;
+opening or changing a preview never writes a result or establishes player agreement.
 Studio and the common Viewer keep variation outlines bounded to 500 rows. A
 selection beyond the initial prefix opens a nearby window with continuation and
 fork choices rather than appending an isolated selected row. Navigation within

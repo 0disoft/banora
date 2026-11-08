@@ -168,6 +168,14 @@ async function scoringSmoke(): Promise<void> {
   const after = await readFile(resolve(output, 'scoring-after.sgf'), 'utf8');
   if (before !== after || !after.includes('XX[score-preserve]'))
     throw new Error('Scoring changed the exported source record');
+  await scenario('scoring-result', 'banora-scoring-result-complete');
+  const resultBefore = await readFile(resolve(output, 'scoring-result-before.sgf'), 'utf8');
+  const resultAfter = await readFile(resolve(output, 'scoring-result-after.sgf'), 'utf8');
+  if (
+    !resultAfter.includes('RE[W+3.5]') ||
+    resultAfter.replace('RE[W+3.5]', 'RE[W+R]') !== resultBefore
+  )
+    throw Error('Confirmed scoring must change only the selected game RE');
 }
 async function puzzleSmoke(): Promise<void> {
   await scenario('puzzle', 'banora-puzzle-complete');
@@ -573,7 +581,7 @@ try {
   } else if (scope === '--scoring-only') {
     await scoringSmoke();
     console.log(
-      'Focused scoring smoke passed: groups, counting presets, adjustments, touch, lifecycle and unchanged SGF.',
+      'Focused scoring smoke passed: groups, presets, touch, unchanged previews and explicit undoable RE confirmation.',
     );
   } else if (scope === '--rules-only') {
     await scenario('rules', 'banora-rules-complete');

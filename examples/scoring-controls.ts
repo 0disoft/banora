@@ -16,6 +16,7 @@ import {
 } from '@0disoft/banora';
 import type {
   BoardView,
+  CommandResult,
   ControllerState,
   Point,
   Position,
@@ -27,9 +28,14 @@ import type { RuleProfileId } from '@0disoft/banora/rules';
 import { scorePosition } from '@0disoft/banora/scoring';
 import type { ScoreBreakdown, ScoreSummary } from '@0disoft/banora/scoring';
 import './scoring-controls.css';
+import { mountScoringResultControls } from './scoring-result-controls.js';
 
-/** Public-package reference consumer; scoring never edits the supplied record. */
-export function mountScoringControls(container: HTMLElement, source: RecordController): () => void {
+/** Preview-only by default; Studio may opt in to explicitly confirmed RE edits. */
+export function mountScoringControls(
+  container: HTMLElement,
+  source: RecordController,
+  options: { allowResultSave?: boolean; onAction?: (result: CommandResult) => void } = {},
+): () => void {
   const root = document.createElement('section');
   root.className = 'scoring';
   root.innerHTML = `<button id="score-open" class="button" type="button">Score position</button>
@@ -69,6 +75,14 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
     view: BoardView | undefined,
     report: ScoreSummary | undefined;
   let context = '';
+  const resultControls = options.allowResultSave
+    ? mountScoringResultControls(
+        panel,
+        source,
+        () => (report && bound ? { summary: report, state: bound } : undefined),
+        options.onAction,
+      )
+    : undefined;
   function scoringContext(state: ControllerState): string {
     let node = state.record.games[state.gameIndex]!;
     const properties = (node: SgfNode) =>
@@ -177,6 +191,7 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
   }
   const rejectScore = (reason: string) => {
     report = undefined;
+    resultControls?.refresh();
     clearView();
     find<HTMLTableElement>('score-breakdown').tBodies[0]!.replaceChildren();
     setUiText(warning, '');
@@ -215,6 +230,7 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
         });
       } else if (!display.loadSgf(sgf, { discardChanges: true }).ok)
         throw Error('Could not display scoring marks');
+      resultControls?.refresh();
     } catch {
       rejectScore('invalid-position');
     }
@@ -280,6 +296,9 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
       opened = false;
       panel.hidden = true;
       report = undefined;
+      bound = undefined;
+      context = '';
+      resultControls?.refresh();
       scoringPosition = undefined;
       dead = [];
       seki = [];
@@ -324,6 +343,10 @@ export function mountScoringControls(container: HTMLElement, source: RecordContr
     disposed = true;
     abort.abort();
     unsubscribe();
+    resultControls?.dispose();
+    bound = undefined;
+    report = undefined;
+    scoringPosition = undefined;
     clearView();
     disposeLanguage();
     disposeBoardLanguage();

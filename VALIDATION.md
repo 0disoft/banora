@@ -1,5 +1,31 @@
 # Validation
 
+## Explicit Studio Scoring Result Confirmation
+
+Studio opts in to a consumer-owned confirmation that displays old/new RE, used
+komi and manual-status/pass warnings. Only an accepted current preview calls the
+existing setGameInfo API with RE. Default callers remain preview-only; calculation,
+Cancel/Escape and stale native-close events cannot save. Changes to the source,
+selected game/node/tab or scoring options revoke approval. Temporary dead/seki
+marks, komi and live rules are not persisted. Closing/disposal releases preview
+snapshots and confirmation listeners. A pure result formatter preserves draws and
+finite tiny scores without exponent-form SGF numbers.
+
+Passed on Windows/Bun 1.4.4: typecheck, lint, the five focused unit files for
+game information/scoring/result formatting/locale/browser options (21 tests,
+729 assertions), example production build and existing Chrome 156 scoring smoke
+extended with a separate confirmation scenario. Original preview/group/preset,
+adjustment, touch, lifecycle and unchanged-source assertions remain intact.
+New browser checks cover old/new results, Cancel, atomic Undo/Redo, draws,
+unchanged stored komi, other-game/tab isolation, changed options, late approval,
+queued close/reopen, all twelve locales and the 390px Korean confirmation.
+Downloaded before/after SGF differs only in the selected game's RE. The Korean
+mobile confirmation was visually reviewed. Full browser/framework matrices and
+physical devices are outside this bounded consumer change. SDK API, DB/schema,
+dependency versions, repository hygiene and CI jobs are unchanged; the existing
+scoring runner scope includes the new scenario. No automatic version bump or
+publication is included. Owning contracts: product specification/public API guide.
+
 ## Studio Game Information Editor
 
 Studio's localized six-field dialog uses the existing public game-information

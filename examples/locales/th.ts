@@ -1,5 +1,13 @@
 import type { koreanUi } from '../ui-korean.js';
 export const thUi = {
+  'Save result to record': 'บันทึกผลลงในเกม',
+  'Save result to record?': 'บันทึกผลลงในเกมหรือไม่?',
+  'Current result': 'ผลปัจจุบัน',
+  'New result': 'ผลใหม่',
+  'Confirm result': 'ยืนยันผล',
+  'Only the result (RE) is saved. Review the komi and scoring marks before confirming.':
+    'บันทึกเฉพาะผล (RE) ตรวจสอบโคมิและเครื่องหมายการนับก่อนยืนยัน',
+  'Result saved.': 'บันทึกผลแล้ว',
   'Game information': 'ข้อมูลเกม',
   'Black player': 'ผู้เล่นดำ',
   'White player': 'ผู้เล่นขาว',
