@@ -5,6 +5,7 @@ import { CliError, json, readInput, saveOutput } from './io.js';
 import metadata from '../package.json';
 import { diagnose, diagnosticError } from './diagnostics.js';
 import { getRecipe, listRecipes } from './recipes.js';
+import { renderDiagramCommand } from './diagram.js';
 
 const commands = {
   schema: [],
@@ -16,6 +17,7 @@ const commands = {
   edit: ['input', 'operations', 'output', 'force', 'profile'],
   create: ['size', 'operations', 'output', 'force', 'profile'],
   snapshot: ['input', 'output', 'force'],
+  diagram: ['input', 'state', 'game', 'path', 'options', 'output', 'force'],
 } as const;
 const help = {
   schemaVersion: 'banora.cli/v1',
@@ -25,10 +27,12 @@ const help = {
     flags: flags.map((flag) => `--${flag}`),
   })),
   usage:
-    'banora schema | recipe [--name NAME] | run --request FILE | diagnose --request FILE | inspect --input SGF | search --input SGF --query TEXT | edit --input SGF --operations JSON | create --size N | snapshot --input JSON',
+    'banora schema | recipe [--name NAME] | run --request FILE | diagnose --request FILE | inspect --input SGF | search --input SGF --query TEXT | edit --input SGF --operations JSON | create --size N | snapshot --input JSON | diagram --input SGF [--output SVG]',
   stdin: 'Use - instead of a filename. run and diagnose default to stdin.',
   output:
-    'One JSON response on stdout. --output saves successful SGF or normalized snapshot JSON; existing files require --force. Inputs are never overwritten.',
+    'One JSON response on stdout. --output saves successful SGF, normalized snapshot JSON or SVG; existing files require --force. Inputs are never overwritten.',
+  diagram:
+    'Use exactly one of --input SGF or --state JSON. SGF defaults to the selected game mainline end; --game is zero-based, --path accepts root or comma-separated child indices. --options reads DiagramSvgOptions JSON. Without --output, JSON contains svg; with --output, JSON contains the saved path instead.',
   coordinates: 'Zero-based x,y from top left. Discover operation fields with banora schema.',
   diagnostics:
     'diagnose executes a request once on isolated state and returns banora.cli-diagnostics/v1 without authored data. --output saves this report even on SDK failure; no SGF is saved.',
@@ -79,6 +83,21 @@ async function main() {
     inputPaths.push(path);
     return readInput(path);
   };
+  if (command === 'diagram') {
+    const { svg, ...diagram } = await renderDiagramCommand(flags, read);
+    const result = {
+      schemaVersion: 'banora.cli/v1',
+      ok: true,
+      kind: 'diagram',
+      format: 'svg',
+      ...diagram,
+    };
+    if (typeof flags.output === 'string') {
+      const output = await saveOutput(flags.output, svg, inputPaths, flags.force === true);
+      return { ...result, output };
+    }
+    return { ...result, svg };
+  }
   if (command === 'diagnose') {
     let bytes: Buffer;
     try {

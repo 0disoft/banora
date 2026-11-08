@@ -1,5 +1,34 @@
 # Validation
 
+## CLI SVG Diagram Output
+
+The additive `diagram` command accepts exactly one bounded SGF or external
+snapshot input, optional SVG-options JSON and explicit game/child-path selection.
+SGF defaults to mainline end and imports once. Historical replay semantics remain
+the controller's, including self-capture and occupied-point replacement. A
+temporary controller is disposed in finally. Successful stdout is one JSON
+envelope containing SVG or an atomically saved output path; source/options files
+are protected even with force, and rejected rendering leaves no partial output.
+Invalid null/scalar SVG settings are rejected instead of silently defaulted.
+Missing optional SDK diagram capability reports safe guidance while existing CLI
+commands continue to run; no peer/version/publication claim is expanded.
+
+Passed on Windows/Bun 1.4.4/Node 24.14.0: 41 focused tests / 474 assertions,
+SDK/CLI builds, typecheck, lint, formatting, boundaries, docs (150 documents / 761
+relative links), and file/permission signals (539 files; not a full security scan).
+The installed Node CLI passed 441 checks, retaining prior command coverage and
+adding mainline/root/fork/collection selection, snapshot/SGF stdin, options/text,
+output replacement/input preservation, structured errors, byte-limit rejection
+and an isolated SDK export-capability downgrade with restoration. SDK installed
+declarations/SSR/classic and Chrome 156 SVG/PNG/pixel-parity evidence is recorded
+below. Full `check`, other engine/device matrices and publication were not run;
+focused checks cover the changed API, rendering, I/O and ownership boundaries.
+
+Owning contracts updated: product specification, public API/diagram/automation
+guides, package READMEs and SDK follow-up plan. The public SVG API, CLI command and
+focused browser route are additive. DB/storage, dependencies, versions, repository
+hygiene and CI jobs are unchanged. All commits remain local on main; no push.
+
 ## DOM-free SVG API
 
 `renderDiagramSvg` is an additive root/classic/selective `diagram` export for a

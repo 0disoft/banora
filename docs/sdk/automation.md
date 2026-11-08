@@ -171,3 +171,11 @@ search, preview, agreed scoring and an intentionally failed move. The
 approval, whole-record guards and one-step Undo across actual CLI requests.
 Hosts own scheduling, file overlap prevention, authorization and reviewed data
 replacement. The CLI starts no background worker or live-app session.
+
+## SVG diagram command
+
+`banora diagram` uses the DOM-free rendering API directly while preserving the
+CLI's one-JSON-stdout and atomic-output contract. SGF defaults to mainline end;
+explicit game/path selection and external snapshot JSON are supported. See
+[diagram sources, options, errors and examples](diagrams.md#cli). This presentation
+command does not add an automation operation or change `AUTOMATION_SCHEMA`.

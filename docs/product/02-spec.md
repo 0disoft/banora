@@ -400,6 +400,12 @@ Crop, rotation/reflection, visibility and dimming retain the geometry/controlled
 contracts. Batch page splitting, numbering resets and replay footnotes are not
 implemented by this one-position API. See [diagrams](../sdk/diagrams.md).
 
+The optional CLI exposes `diagram --input SGF` or `diagram --state JSON`, with
+bounded options JSON, game/child-path selection and mainline-end defaults. It
+returns one JSON response containing either SVG or an atomically saved output
+path, preserves every input file and disposes its temporary record controller.
+Existing CLI commands do not require the new optional SDK diagram capability.
+
 Studio's playback dock includes a localized placement-sound toggle. It defaults
 off and persists through the existing validated, per-field preferences. Enabling
 it permits a short locally synthesized Web Audio wood impact for a forward stone

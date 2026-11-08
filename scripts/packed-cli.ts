@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, readFile, writeFile, access, copyFile } from 'node:fs/p
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { releaseInput } from './release-artifacts.js';
+import { packedCliDiagrams } from './packed-cli-diagrams.js';
 
 const root = process.cwd();
 await mkdir(resolve(root, '.tmp'), { recursive: true });
@@ -748,6 +749,7 @@ check(
   'Unknown command accepted',
 );
 await readFile(resolve(directory, 'node_modules/@0disoft/banora-cli/LICENSE'));
+await packedCliDiagrams(directory, cli, check);
 check(
   (
     await readFile(resolve(directory, 'node_modules/@0disoft/banora-cli/README.md'), 'utf8')

@@ -42,6 +42,15 @@ export function renderDiagramSvg(source: DiagramSource, options: DiagramSvgOptio
     Object.keys(options).some((key) => !optionKeys.has(key))
   )
     throw new TypeError('Unknown or invalid SVG diagram options');
+  for (const key of ['width', 'height'] as const)
+    if (options[key] !== undefined && typeof options[key] !== 'number')
+      throw new TypeError(`Diagram ${key} must be numeric`);
+  for (const key of ['crop', 'transform'] as const)
+    if (
+      options[key] !== undefined &&
+      (!options[key] || typeof options[key] !== 'object' || Array.isArray(options[key]))
+    )
+      throw new TypeError(`Diagram ${key} must be an object`);
   if (options.theme !== undefined && options.theme !== 'wood' && options.theme !== 'flat')
     throw new TypeError('Diagram theme must be wood or flat');
   for (const key of ['coordinates', 'moveNumbers'] as const)

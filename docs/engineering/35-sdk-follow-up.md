@@ -32,8 +32,12 @@ No push or public publication is authorized by this improvement task.
    versioned publication plan after implemented changes pass installed-consumer
    validation. Registry/npm publication and Pages deployment remain separate,
    explicitly authorized actions.
-6. Subsequent content tooling: DOM-free SVG generation and CLI diagram output,
-   followed by explicit puzzle authoring/export from Studio's existing tree.
+6. Content tooling: DOM-free SVG generation and CLI diagram output are implemented
+   locally with selected-position/annotation support, shared vector primitives,
+   bounded XML and atomic source-preserving output. Installed Node, no-DOM types
+   and Chrome pixel parity are checked. Page splitting, numbering resets and
+   replay footnotes remain out of scope for this one-position export. Follow with
+   explicit puzzle authoring/export from Studio's existing tree.
    Keep presentation, solution semantics and source preservation separate.
 
 Streaming/bulk AI analysis, new compatibility targets and SGF conversion tools

@@ -165,6 +165,15 @@ test('diagram limits include exact pixel boundaries and reject invalid geometry 
   expect(renderDiagramSvg(source, { title: 'a'.repeat(1024) })).toContain('a'.repeat(1024));
   const invalid: unknown[] = [
     { width: 0 },
+    { width: null },
+    { height: null },
+    { width: '640' },
+    { height: true },
+    { crop: null },
+    { crop: [] },
+    { transform: null },
+    { transform: false },
+    { transform: [] },
     { width: 8193 },
     { width: Infinity },
     { width: 1.5 },

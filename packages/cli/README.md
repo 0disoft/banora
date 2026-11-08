@@ -25,6 +25,32 @@ install both with `npm install /absolute/path/sdk.tgz /absolute/path/cli.tgz`
 `npx --no-install banora --help`. SDK peer resolution is verified with npm.
 The tarball route uses exactly the artifacts you provide.
 
+## SVG diagrams without a DOM
+
+```sh
+banora diagram --input game.sgf --output final.svg
+banora diagram --input game.sgf --path 0,1 --options diagram-options.json --output branch.svg
+banora diagram --state board-snapshot.json --output position.svg
+```
+
+Use exactly one SGF `--input` or BoardSnapshot JSON `--state`; `-` reads stdin.
+SGF defaults to game 0's mainline end. `--game` is zero-based; `--path root` or
+comma-separated child indices select an exact node. `--options` reads
+DiagramSvgOptions JSON, such as `{"width":640,"moveNumbers":true,"theme":"flat"}`.
+Options include dimensions, title, coordinates, crop and rotation/reflection.
+Only one input can consume stdin. Snapshot input rejects SGF selection flags.
+The controller's historical replay semantics, including recorded self-capture
+and occupied-point replacement, remain unchanged.
+
+Stdout stays one JSON response: without `--output`, it contains `svg`; with
+`--output`, it contains the absolute saved path instead. Publication is atomic,
+existing outputs require `--force`, and source/options files are never overwritten.
+Malformed inputs/options and missing targets exit 2; output failures exit 4.
+SVG is limited to 8 MiB and contains escaped text and no external assets or active
+content. One selected position is exported; page splitting and replay footnotes
+are outside this command. It requires a matching SDK build with the `diagram`
+entrypoint. Existing commands remain usable with older SDK peers.
+
 ## Discover First
 
 `banora --help` returns command/flag discovery and exit codes as JSON.

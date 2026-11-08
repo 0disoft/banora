@@ -58,7 +58,8 @@ No entire-record reparse or serialization is needed to render an existing state.
 
 ## Errors and boundaries
 
-Invalid sources/options throw `TypeError` or `RangeError` synchronously. Unknown
+Invalid sources/options fail synchronously; snapshot/export-limit validation uses
+`TypeError` or `RangeError`. Unknown
 option names are rejected. Existing snapshot limits apply, including board sizes
 2–52, annotation/point counts, label lengths, finite values and checked colors.
 Selected-path traversal and setup expansion retain default SGF node/value/point
@@ -74,3 +75,48 @@ color and cancellation behavior; they share the static painter and export
 dimension policy with the headless API.
 
 This addition is implemented locally; registry publication is a separate action.
+
+## CLI
+
+```sh
+banora diagram --input game.sgf --output final.svg
+banora diagram --input game.sgf --game 0 --path 0,1 --options diagram-options.json --output branch.svg
+banora diagram --input game.sgf --path root
+banora diagram --state board-snapshot.json --output position.svg
+```
+
+Exactly one of `--input` (SGF) or `--state` (BoardSnapshot JSON) is required.
+Either source, or `--options`, may read `-` for stdin; only one stdin input is
+allowed. SGF is decoded/imported once with existing default SGF limits. The
+default selection is the last node of the selected game's first-child mainline;
+`--game` defaults to zero. `--path root` selects that game's root, and comma-
+separated zero-based child indices select an exact branch. Paths describe node
+edges, including comment/setup nodes; they are not displayed `MN` move numbers.
+Missing games/paths fail rather than falling back. Snapshot input rejects SGF
+selection flags instead of silently ignoring them.
+
+The controller's historical replay semantics remain unchanged, including recorded
+self-capture and replacement of occupied intersections. Historical playback does
+not enforce ordinary-play restrictions. Unreplayable sources fail without saving
+a partial diagram. Use a BoardSnapshot for a position supplied by another engine.
+
+`diagram-options.json` is a `DiagramSvgOptions` object, for example:
+
+```json
+{ "width": 640, "moveNumbers": true, "coordinates": true, "theme": "flat" }
+```
+
+Stdout always contains one JSON response with `schemaVersion: "banora.cli/v1"`,
+`ok`, `kind: "diagram"`, `format: "svg"`, `source`, and an SGF `selection` where
+applicable. Without `--output`, it includes the `svg` string. With `--output`, the
+SVG is atomically saved and JSON contains its absolute `output` path instead of
+duplicating the drawing. Existing files require `--force`. SGF, snapshot and
+options inputs cannot be overwritten, even with force; failed rendering leaves
+no partial output. The existing 8 MiB CLI input limit applies to each input.
+
+Usage/input/limit failures exit 2 with structured errors; output failures exit 4.
+Authored SGF/JSON is not echoed in error messages. The temporary controller is
+disposed on success or failure. The new command requires the matching SDK build
+with the `diagram` entrypoint; older SDK peers retain existing CLI commands and
+receive an explicit capability error for `diagram`. No package version or
+published-registry capability is implied by this local addition.
