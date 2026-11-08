@@ -26,8 +26,8 @@ No push or public publication is authorized by this improvement task.
 4. Game information: add validated, undoable editing of players, game name,
    date, komi and result; integrate Studio and explicit confirmed scoring result
    persistence, preserving unknown SGF properties and export/reopen/checkpoints.
-   The typed atomic controller API is implemented locally; the Studio editor and
-   explicit scoring confirmation still require consumer implementation.
+   The typed atomic controller API and localized Studio editor are implemented
+   locally; explicit scoring confirmation still requires consumer implementation.
 5. Release readiness: align API documentation, examples, release notes and a
    versioned publication plan after implemented changes pass installed-consumer
    validation. Registry/npm publication and Pages deployment remain separate,
@@ -41,6 +41,11 @@ remain proposals for later product decisions. They are not prerequisites for
 the first usability delivery above, and are not claimed as implemented.
 
 ## Puzzle Localization Increment
+
+Current game-information follow-up: the Studio editor is now implemented locally
+through the public atomic API, with twelve-locale fields, changed-only patches,
+stale-form revocation and verified export/Undo behavior. Historical pending notes
+below describe earlier increments; explicit scoring confirmation remains pending.
 
 The puzzle view now has explicit twelve-locale controls, accessible names, board
 labels, progress, help and default/unlisted/rejected-action feedback. It exports

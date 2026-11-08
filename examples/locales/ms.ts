@@ -1,5 +1,14 @@
 import type { koreanUi } from '../ui-korean.js';
 export const msUi = {
+  'Game information': 'Maklumat permainan',
+  'Black player': 'Pemain hitam',
+  'White player': 'Pemain putih',
+  'Game name': 'Nama permainan',
+  Date: 'Tarikh',
+  Result: 'Keputusan',
+  'Only changed fields are saved. Leave a field blank to remove it.':
+    'Hanya medan yang diubah disimpan. Kosongkan medan untuk memadamkannya.',
+  'Check the date, komi, and result formats.': 'Semak format tarikh, komi dan keputusan.',
   'Record & edit': 'Rekod dan sunting',
   'View & controls': 'Paparan dan kawalan',
   'All settings': 'Semua tetapan',

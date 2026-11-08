@@ -1,5 +1,14 @@
 import type { koreanUi } from '../ui-korean.js';
 export const hiUi = {
+  'Game information': 'खेल की जानकारी',
+  'Black player': 'काला खिलाड़ी',
+  'White player': 'सफ़ेद खिलाड़ी',
+  'Game name': 'खेल का नाम',
+  Date: 'तारीख',
+  Result: 'परिणाम',
+  'Only changed fields are saved. Leave a field blank to remove it.':
+    'केवल बदले गए फ़ील्ड सहेजे जाते हैं। जानकारी हटाने के लिए फ़ील्ड खाली करें।',
+  'Check the date, komi, and result formats.': 'तारीख, कोमी और परिणाम का प्रारूप जाँचें।',
   'Record & edit': 'रिकॉर्ड और संपादन',
   'View & controls': 'दृश्य और नियंत्रण',
   'All settings': 'सभी सेटिंग',

@@ -1,5 +1,26 @@
 # Validation
 
+## Studio Game Information Editor
+
+Studio's localized six-field dialog uses the existing public game-information
+API. Only fields changed from the opening snapshot are submitted; unchanged legacy
+dates/results and absent komi remain untouched. One successful save is one Undo
+unit. Cancel/Escape, record/game/tab replacement and selection changes revoke the
+snapshot, including native-close/tab-switch ordering before queued close events.
+Modal keyboard interaction cannot invoke Studio's global Undo shortcut.
+
+Passed: typecheck, SDK game-information/locale/browser-option tests (14 tests,
+638 assertions), SDK/adapters/example builds, focused Chrome 156
+`--game-info-only` smoke, lint, documentation links and repository boundaries.
+The browser scenario covers no-ops, invalid leap dates, atomic Undo/Redo, literal
+authored input in all twelve languages, export/reopen, other-game/unknown-property
+preservation, late submissions and a 390px Korean dialog (visually reviewed).
+Existing SDK tests cover checkpoint restoration. Full browser/framework matrices
+and physical devices were not rerun for this consumer-only increment. Public SDK
+API signatures, DB/schema, dependencies and CI jobs are unchanged; no version bump
+or publication is included. A focused runner scope was added to the existing
+browser harness. Owning contracts: product specification and public API guide.
+
 ## Single-Priority Refactor: Retain the Board During Ink Preview Updates
 
 Baseline b757185 rebuilt the entire SVG on every active drawing pointermove,

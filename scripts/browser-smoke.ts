@@ -362,6 +362,7 @@ async function fullscreenSmoke(): Promise<void> {
 async function desktopSmoke(address: string): Promise<void> {
   // Preserve each scenario and its artifact assertions; CDP input scopes stay in full smoke.
   const checks: readonly [string, () => Promise<void>][] = [
+    ['game-info', () => scenario('game-info', 'banora-game-info-complete')],
     ['workspace', () => scenario('workspace', 'banora-workspace-complete')],
     ['sound', () => scenario('sound', 'banora-sound-complete')],
     ['sizing', () => scenario('sizing', 'banora-sizing-complete')],
@@ -555,6 +556,20 @@ try {
     console.log(
       'Focused board menu smoke passed: direct dialogs, immediate tool settings, focus/keyboard, shared Undo, retained sessions and mobile zoom.',
     );
+  } else if (scope === '--game-info-only') {
+    await scenario('game-info', 'banora-game-info-complete');
+    const metadata = await readFile(resolve(output, 'game-info.sgf'), 'utf8');
+    for (const value of [
+      'XX[preserve]',
+      'GN[Other]',
+      'Original comment',
+      'PB[Black <tag>]',
+      'RE[B+R]',
+    ])
+      if (!metadata.includes(value)) throw Error(`Game information export lost ${value}`);
+    console.log(
+      'Game information smoke passed: atomic edits, legacy values, Undo/Redo, export/reopen, locales and stale ownership.',
+    );
   } else if (scope === '--scoring-only') {
     await scoringSmoke();
     console.log(
@@ -591,6 +606,7 @@ try {
     await scenario('comparison', 'banora-comparison-complete');
     console.log('Focused comparison smoke passed.');
   } else {
+    await scenario('game-info', 'banora-game-info-complete');
     await scenario('workspace', 'banora-workspace-complete');
     await scenario('sound', 'banora-sound-complete');
     await scenario('sizing', 'banora-sizing-complete');

@@ -1,6 +1,15 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const chineseUi = {
+  'Game information': '对局信息',
+  'Black player': '黑方棋手',
+  'White player': '白方棋手',
+  'Game name': '对局名称',
+  Date: '日期',
+  Result: '结果',
+  'Only changed fields are saved. Leave a field blank to remove it.':
+    '仅保存更改的字段。清空字段可删除该项信息。',
+  'Check the date, komi, and result formats.': '请检查日期、贴目和结果的格式。',
   'Record & edit': '棋谱与编辑',
   'View & controls': '显示与操作',
   'All settings': '全部设置',

@@ -1,6 +1,15 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const japaneseUi = {
+  'Game information': '対局情報',
+  'Black player': '黒番の対局者',
+  'White player': '白番の対局者',
+  'Game name': '対局名',
+  Date: '対局日',
+  Result: '結果',
+  'Only changed fields are saved. Leave a field blank to remove it.':
+    '変更した項目のみ保存します。入力を消すと、その情報を削除します。',
+  'Check the date, komi, and result formats.': '対局日、コミ、結果の入力形式を確認してください。',
   'Record & edit': '棋譜・編集',
   'View & controls': '表示・操作',
   'All settings': 'すべての設定',

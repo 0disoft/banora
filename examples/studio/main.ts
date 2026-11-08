@@ -40,6 +40,7 @@ import { safeDraftFilename } from './draft-store.js';
 import { defaultPreferences, PreferenceStore } from './preferences.js';
 import { applyPreferenceInputs, mountPreferenceControls } from './preference-controls.js';
 import { mountSearchControls } from './search-controls.js';
+import { mountGameInfoControls } from './game-info-controls.js';
 import { StudioDiagnostics } from './diagnostics.js';
 import { mountSupportControls } from './support-controls.js';
 import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
@@ -743,6 +744,7 @@ games.addEventListener('change', () =>
   report(controller.goTo(controller.getState().record.games[Number(games.value)]!.id), 'navigate'),
 );
 document.addEventListener('keydown', (event) => {
+  if (document.querySelector('dialog:modal')) return;
   if (event.key === 'Escape' && connectionStart) {
     connectionStart = undefined;
     showStatus('Connection cancelled.');
@@ -777,6 +779,7 @@ window.addEventListener('pagehide', (event) => {
     disposeSupport();
     diagnostics.dispose();
     disposeSearch();
+    disposeGameInfo();
     disposePreferences();
     disposePlaybackPreference();
     disposeLanguage();
@@ -849,6 +852,7 @@ const disposePreferences = mountPreferenceControls(find('preferences-host'), pre
   playbackControls.playback.pause();
 });
 const disposeSearch = mountSearchControls(find('search-host'), controller, diagnostics);
+const disposeGameInfo = mountGameInfoControls(document.querySelector('.metadata')!, controller);
 const disposeSupport = mountSupportControls(find('support-host'), diagnostics);
 const disposeBoardMenu = mountBoardMenu();
 

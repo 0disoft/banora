@@ -1,5 +1,14 @@
 import type { koreanUi } from '../ui-korean.js';
 export const viUi = {
+  'Game information': 'Thông tin ván cờ',
+  'Black player': 'Kỳ thủ đen',
+  'White player': 'Kỳ thủ trắng',
+  'Game name': 'Tên ván cờ',
+  Date: 'Ngày',
+  Result: 'Kết quả',
+  'Only changed fields are saved. Leave a field blank to remove it.':
+    'Chỉ lưu các mục đã thay đổi. Xóa nội dung để bỏ mục đó.',
+  'Check the date, komi, and result formats.': 'Kiểm tra định dạng ngày, komi và kết quả.',
   'Record & edit': 'Kỳ phổ và chỉnh sửa',
   'View & controls': 'Hiển thị và thao tác',
   'All settings': 'Tất cả cài đặt',

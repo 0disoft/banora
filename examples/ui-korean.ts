@@ -1,4 +1,13 @@
 export const koreanUi = {
+  'Game information': '대국 정보',
+  'Black player': '흑 대국자',
+  'White player': '백 대국자',
+  'Game name': '대국명',
+  Date: '대국일',
+  Result: '결과',
+  'Only changed fields are saved. Leave a field blank to remove it.':
+    '변경한 항목만 저장합니다. 입력값을 지우면 해당 정보를 삭제합니다.',
+  'Check the date, komi, and result formats.': '대국일, 덤, 결과의 입력 형식을 확인하세요.',
   'Record & edit': '기보·편집',
   'View & controls': '보기·조작',
   'All settings': '모든 설정',

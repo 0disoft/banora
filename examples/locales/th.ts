@@ -1,5 +1,14 @@
 import type { koreanUi } from '../ui-korean.js';
 export const thUi = {
+  'Game information': 'ข้อมูลเกม',
+  'Black player': 'ผู้เล่นดำ',
+  'White player': 'ผู้เล่นขาว',
+  'Game name': 'ชื่อเกม',
+  Date: 'วันที่',
+  Result: 'ผลการแข่งขัน',
+  'Only changed fields are saved. Leave a field blank to remove it.':
+    'บันทึกเฉพาะช่องที่แก้ไข ล้างช่องเพื่อลบข้อมูลนั้น',
+  'Check the date, komi, and result formats.': 'ตรวจสอบรูปแบบวันที่ แต้มต่อโคมิ และผลการแข่งขัน',
   'Record & edit': 'บันทึกและแก้ไข',
   'View & controls': 'มุมมองและการควบคุม',
   'All settings': 'การตั้งค่าทั้งหมด',

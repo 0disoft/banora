@@ -1,5 +1,14 @@
 import type { koreanUi } from '../ui-korean.js';
 export const ruUi = {
+  'Game information': 'Информация о партии',
+  'Black player': 'Игрок чёрными',
+  'White player': 'Игрок белыми',
+  'Game name': 'Название партии',
+  Date: 'Дата',
+  Result: 'Результат',
+  'Only changed fields are saved. Leave a field blank to remove it.':
+    'Сохраняются только изменённые поля. Очистите поле, чтобы удалить его.',
+  'Check the date, komi, and result formats.': 'Проверьте формат даты, коми и результата.',
   'Record & edit': 'Партия и правка',
   'View & controls': 'Вид и управление',
   'All settings': 'Все настройки',

@@ -131,9 +131,12 @@ names, game name, FF4 date, komi and result on the current game root. Unspecifie
 authored properties and other games remain untouched; unknown SGF properties and
 raw values survive export/reopen/checkpoints. New values are checked before the
 existing full candidate validation and commit. Missing/removed komi remains absent.
-Studio's information editor and explicitly confirmed scoring-result persistence
-remain separate consumer implementation work; scoring never writes a result merely
-by opening or changing its preview.
+Studio's game-information dialog edits these six fields through the public API.
+Only fields changed from the opening snapshot are submitted; invalid input leaves
+the entire edit unapplied. Cancel/Escape and a changed record, game, tab or selected
+node revoke the form. Labels support all twelve locales without translating inputs.
+Explicitly confirmed scoring-result persistence remains separate consumer work;
+scoring never writes a result merely by opening or changing its preview.
 Studio and the common Viewer keep variation outlines bounded to 500 rows. A
 selection beyond the initial prefix opens a nearby window with continuation and
 fork choices rather than appending an isolated selected row. Navigation within

@@ -474,8 +474,10 @@ dictionaries are accepted; unknown fields and accessors are rejected. Disposed
 controllers retain their existing rejection behavior. The complete candidate still
 passes the controller's existing SGF limits/semantic validation before commit;
 checkpoint/export reuse that exact checked serialization. This API does not save
-scoring results implicitly. Studio editing and explicit scoring confirmation are
-separate follow-up consumer work.
+scoring results implicitly. Studio's localized game-information dialog consumes this
+API, submitting only changed fields as one Undo unit and revoking stale forms on
+record/game/tab/selection changes. Explicit scoring confirmation remains follow-up
+consumer work.
 
 ### Export and Controller Lifetimes
 
