@@ -1,5 +1,30 @@
 # Validation
 
+## CLI Deep Tree Response and Output Ordering
+
+Compact CLI JSON now uses an explicit frame stack rather than recursive object
+serialization, preserving the nested `games` response and existing JSON field
+order/escaping/omission semantics. File-producing commands prepare their final
+response before atomic publication. The exact prepared response is then written
+to stdout; there is no second fallible tree traversal after the save. Diagnostic
+reports still save on SDK failure, and existing file/alias protection and exit
+codes remain unchanged. This does not promise transactional stdout delivery.
+Owning CLI contract: [CLI guide](packages/cli/README.md).
+
+Focused tests compare ordinary responses with native JSON.stringify, check shared
+references/cycles/BigInt, assert zero save calls on serialization failure, and run
+the current CLI source on Node with 2,000 moves and the 50,000-node SGF maximum.
+They inspect actual saved bytes, nested trees, force replacement, inspect --tree,
+default omitted trees, invalid SGF and input-file protection. Existing I/O cleanup,
+diagram checks passed. The SDK-wide/focused CLI run passed 330 tests / 17,547
+assertions; installed-package CLI passed 441 checks on Windows Node 24.14.0.
+CLI/SDK builds, root types, lint, formatting, boundaries, docs and security file
+signals passed. Full root `check`/framework consumer builds are not rerun for
+this parser/CLI scope; existing relevant validation was retained. No public SDK/API/DB,
+dependency, version, hygiene or runner configuration change; tests join the
+existing scripts test glob. Browser/physical-device checks do not cover this
+terminal-only change and are not rerun.
+
 ## SGF Rendered Annotation Bounds
 
 The existing collection-wide expanded-point budget now also charges each label

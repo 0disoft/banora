@@ -76,6 +76,18 @@ selection and all other options, use the full JSON `run` request. Default rules
 remain the SDK's simple-ko/suicide-forbidden policy. Choose a scoring profile
 explicitly when requesting a score.
 
+Tree responses retain the original nested `games` shape through the SGF node
+limit, including long linear records. CLI response serialization uses explicit
+frames rather than the JavaScript call stack. Compact JSON key order, escaping,
+omitted values and one-response-per-line stdout remain unchanged.
+
+For `--output`, the CLI prepares the complete final JSON response before
+publishing or force-replacing a file. Serialization failure therefore cannot
+save an SGF while returning an input failure. Existing atomic-file publication,
+input/alias protection, exit codes and diagnostic-report behavior remain intact.
+This does not make filesystem publication and delivery through a closed stdout
+pipe a single transaction.
+
 Example `request.json`:
 
 ```json

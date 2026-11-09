@@ -6,6 +6,7 @@ import metadata from '../package.json';
 import { diagnose, diagnosticError } from './diagnostics.js';
 import { getRecipe, listRecipes } from './recipes.js';
 import { renderDiagramCommand } from './diagram.js';
+import { saveResponse, stringifyResponse } from './json-response.js';
 
 const commands = {
   schema: [],
@@ -40,16 +41,20 @@ const help = {
   version: metadata.version,
 };
 
-async function main() {
+async function main(): Promise<string> {
   const argv = process.argv.slice(2),
     command = argv.shift();
   if (!command || command === '--help' || command === 'help') {
     if (argv.length) throw new CliError('usage', 'Help accepts no additional arguments.');
-    return help;
+    return stringifyResponse(help);
   }
   if (command === '--version') {
     if (argv.length) throw new CliError('usage', 'Version accepts no additional arguments.');
-    return { schemaVersion: 'banora.cli/v1', ok: true, version: metadata.version };
+    return stringifyResponse({
+      schemaVersion: 'banora.cli/v1',
+      ok: true,
+      version: metadata.version,
+    });
   }
   if (!Object.hasOwn(commands, command))
     throw new CliError('usage', 'Unknown command. Run banora --help.');
@@ -68,12 +73,12 @@ async function main() {
       flags[name] = value;
     }
   }
-  if (command === 'schema') return AUTOMATION_SCHEMA;
+  if (command === 'schema') return stringifyResponse(AUTOMATION_SCHEMA);
   if (command === 'recipe') {
-    if (typeof flags.name !== 'string') return listRecipes();
+    if (typeof flags.name !== 'string') return stringifyResponse(listRecipes());
     const request = getRecipe(flags.name);
     if (!request) throw new CliError('usage', 'Unknown recipe. Run banora recipe.');
-    return request;
+    return stringifyResponse(request);
   }
   if (flags.force && !flags.output) throw new CliError('usage', '--force requires --output.');
   const inputPaths: string[] = [];
@@ -93,10 +98,9 @@ async function main() {
       ...diagram,
     };
     if (typeof flags.output === 'string') {
-      const output = await saveOutput(flags.output, svg, inputPaths, flags.force === true);
-      return { ...result, output };
+      return saveResponse(flags.output, svg, result, inputPaths, flags.force === true);
     }
-    return { ...result, svg };
+    return stringifyResponse({ ...result, svg });
   }
   if (command === 'diagnose') {
     let bytes: Buffer;
@@ -104,16 +108,19 @@ async function main() {
       bytes = await read(typeof flags.request === 'string' ? flags.request : '-');
     } catch (error) {
       process.exitCode = 2;
-      return diagnosticError(error instanceof CliError ? error.code : 'input', 'io', 'read');
+      return stringifyResponse(
+        diagnosticError(error instanceof CliError ? error.code : 'input', 'io', 'read'),
+      );
     }
     let input: unknown;
     try {
       input = json(bytes);
     } catch {
       process.exitCode = 2;
-      return diagnosticError('input', 'automation', 'invalid-input');
+      return stringifyResponse(diagnosticError('input', 'automation', 'invalid-input'));
     }
     const result = diagnose(input);
+    const response = stringifyResponse(result);
     if (typeof flags.output === 'string') {
       try {
         await saveOutput(
@@ -124,11 +131,11 @@ async function main() {
         );
       } catch {
         process.exitCode = 4;
-        return diagnosticError('output', 'io', 'write', result);
+        return stringifyResponse(diagnosticError('output', 'io', 'write', result));
       }
     }
     if (!result.ok) process.exitCode = 3;
-    return result;
+    return response;
   }
   let request: unknown;
   if (command === 'run')
@@ -189,18 +196,17 @@ async function main() {
   const result = executeAutomation(request);
   if (!result.ok) {
     process.exitCode = 3;
-    return result;
+    return stringifyResponse(result);
   }
   if (typeof flags.output === 'string') {
     const content =
       result.kind === 'record' ? result.sgf : JSON.stringify(result.snapshot, null, 2) + '\n';
-    const output = await saveOutput(flags.output, content, inputPaths, flags.force === true);
-    return { ...result, output };
+    return saveResponse(flags.output, content, result, inputPaths, flags.force === true);
   }
-  return result;
+  return stringifyResponse(result);
 }
 try {
-  process.stdout.write(JSON.stringify(await main()) + '\n');
+  process.stdout.write((await main()) + '\n');
 } catch (error) {
   const known = error instanceof CliError;
   process.exitCode = known && error.code === 'output' ? 4 : 2;
