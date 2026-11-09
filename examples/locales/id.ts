@@ -1,5 +1,6 @@
 import type { koreanUi } from '../ui-korean.js';
 export const idUi = {
+  'Create puzzle': 'Buat soal hidup dan mati',
   'Save result to record': 'Simpan hasil ke catatan',
   'Save result to record?': 'Simpan hasil ke catatan?',
   'Current result': 'Hasil saat ini',

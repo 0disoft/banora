@@ -1,5 +1,6 @@
 import type { koreanUi } from '../ui-korean.js';
 export const thUi = {
+  'Create puzzle': 'สร้างโจทย์เป็นตาย',
   'Save result to record': 'บันทึกผลลงในเกม',
   'Save result to record?': 'บันทึกผลลงในเกมหรือไม่?',
   'Current result': 'ผลปัจจุบัน',

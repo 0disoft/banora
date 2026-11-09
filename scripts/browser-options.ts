@@ -22,6 +22,7 @@ export const browserSmokeScopes = Object.freeze([
   '--diagram-only',
   '--analysis-only',
   '--puzzle-only',
+  '--puzzle-author-only',
   '--menu-only',
   '--game-info-only',
   '--scoring-only',

@@ -1,5 +1,38 @@
 # Validation
 
+## Studio Puzzle Authoring Integration
+
+The board/header menu opens a localized authoring dialog directly. It owns a
+bounded draft, position preview and optional interactive puzzle widget. Explicit
+outcomes/replies, exclusions, text feedback/hints, trial restart and JSON download
+reuse the existing puzzle semantics. Closing/source replacement releases the
+draft and views; late submissions and older queued close events cannot affect a
+fresh draft. Export never acknowledges the source SGF dirty baseline.
+
+Owning contracts: [Studio puzzles](docs/sdk/studio-puzzles.md),
+[product specification](docs/product/02-spec.md),
+[public API](docs/sdk/public-api.md) and
+[follow-up plan](docs/engineering/35-sdk-follow-up.md).
+No SDK API, DB/storage schema, dependency, version, hygiene or CI workflow change.
+The existing browser runner gains a focused `--puzzle-author-only` route and
+includes the same scenario in desktop smoke. Source artifacts remain ignored.
+
+Focused unit/SDK puzzle/runner tests passed: 22 tests and 810 assertions.
+Root typecheck, lint, formatting, boundaries (no size candidates), documentation
+(151 documents / 768 links), security file signals and example builds passed.
+These cover conversion and every twelve-locale field/action/error.
+Windows Headless Chrome 156 checks direct discovery from both menus, explicit
+grades/replies without inference, correct/incorrect trials and restart, downloaded
+JSON playback through PuzzleSession, byte-identical source export, retained
+dirty status, all-locale authored-text/progress preservation, 390px layout,
+Escape/focus, stale-source revocation and close/reopen ordering.
+Desktop/mobile screenshots are inspected under `output/playwright/`.
+The existing menu smoke also passed with the added direct action, all twelve
+menu locales at 320/1440px, modal launch/close/focus and retained editing controls.
+Full `check`, packed-consumer, other engines and physical-device checks are not
+rerun for this Studio-only integration; SDK exports and package artifacts do not
+change. Existing focused SDK puzzle tests remain selected for semantic coverage.
+
 ## Studio Puzzle Draft Conversion
 
 The Studio consumer projects a selected immutable node and its descendants into

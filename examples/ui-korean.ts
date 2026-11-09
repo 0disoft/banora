@@ -1,4 +1,5 @@
 export const koreanUi = {
+  'Create puzzle': '사활 문제 만들기',
   'Save result to record': '계가 결과 반영',
   'Save result to record?': '계가 결과를 기보에 반영할까요?',
   'Current result': '기존 결과',

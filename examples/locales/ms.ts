@@ -1,5 +1,6 @@
 import type { koreanUi } from '../ui-korean.js';
 export const msUi = {
+  'Create puzzle': 'Cipta soalan hidup dan mati',
   'Save result to record': 'Simpan keputusan dalam rekod',
   'Save result to record?': 'Simpan keputusan dalam rekod?',
   'Current result': 'Keputusan semasa',

@@ -36,8 +36,10 @@ No push or public publication is authorized by this improvement task.
    locally with selected-position/annotation support, shared vector primitives,
    bounded XML and atomic source-preserving output. Installed Node, no-DOM types
    and Chrome pixel parity are checked. Page splitting, numbering resets and
-   replay footnotes remain out of scope for this one-position export. Follow with
-   explicit puzzle authoring/export from Studio's existing tree.
+   replay footnotes remain out of scope for this one-position export. Studio
+   puzzle authoring/export is also implemented locally: explicit grades/replies,
+   feedback/hints, interactive trial and canonical JSON, with twelve-locale UI,
+   strict validation and source-preserving ephemeral drafts.
    Keep presentation, solution semantics and source preservation separate.
 
 Streaming/bulk AI analysis, new compatibility targets and SGF conversion tools

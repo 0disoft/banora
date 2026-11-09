@@ -76,6 +76,12 @@ export function mountBoardMenu(): () => void {
       launch: { button: 'search-open', dialog: 'search-dialog' },
     },
     {
+      id: 'puzzle-author',
+      label: 'Create puzzle',
+      controls: [],
+      launch: { button: 'puzzle-author-open', dialog: 'puzzle-author-dialog' },
+    },
+    {
       id: 'support',
       label: 'Help',
       controls: [],
@@ -260,7 +266,7 @@ export function mountBoardMenu(): () => void {
       { signal },
     );
   }
-  for (const id of ['tools', 'search', 'comparison', 'scoring', 'share', 'drafts'])
+  for (const id of ['tools', 'search', 'puzzle-author', 'comparison', 'scoring', 'share', 'drafts'])
     choices.append(buttons.get(id)!);
   textureRow.append(buttons.get('textures')!);
   footer.append(buttons.get('support')!, buttons.get('preferences')!);

@@ -1,5 +1,6 @@
 import type { koreanUi } from '../ui-korean.js';
 export const frUi = {
+  'Create puzzle': 'Créer un problème de vie et de mort',
   'Save result to record': 'Enregistrer le résultat dans la partie',
   'Save result to record?': 'Enregistrer le résultat dans la partie ?',
   'Current result': 'Résultat actuel',

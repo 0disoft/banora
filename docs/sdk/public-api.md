@@ -205,6 +205,12 @@ the selected response policy. SGF quality annotations/comments are not inferred
 as puzzle grades. Terminal status expresses the author's result, not automatic
 verification of the Go objective. Client-bundled answers remain inspectable.
 
+Studio's **Create puzzle** dialog authors this existing definition from the
+selected position and its continuations, with explicit outcomes/replies, hints,
+trial play and JSON download. It introduces no new SDK format or headless API.
+See [Studio puzzle authoring](studio-puzzles.md) for the workflow, bounds and
+source/draft ownership contract.
+
 Construction validates and defensively copies all definitions. Invalid SGF,
 locators/rules, malformed shapes/text/points, duplicate IDs/sibling moves,
 cycles/reused node objects, illegal branches and absent response/solution paths

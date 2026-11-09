@@ -23,6 +23,7 @@ async (page) => {
     );
   };
   const dialogs = {
+    'puzzle-author': ['#puzzle-author-dialog', '#puzzle-author-close'],
     drafts: ['#drafts-dialog', '#draft-close'],
     search: ['#search-dialog', '#search-close'],
     support: ['#support-dialog', '#support-close'],
@@ -32,8 +33,21 @@ async (page) => {
   verify(await panel.locator('#animation').isVisible(), 'Animation required an extra menu step');
   verify(await panel.locator('#touch-mode').isVisible(), 'Touch required an extra menu step');
   verify(
-    (await panel.locator('.board-menu-choices button').count()) === 6,
-    'Action list was not consolidated',
+    JSON.stringify(
+      await panel
+        .locator('.board-menu-choices button')
+        .evaluateAll((buttons) => buttons.map((button) => button.dataset.boardMenuSection)),
+    ) ===
+      JSON.stringify([
+        'tools',
+        'search',
+        'puzzle-author',
+        'comparison',
+        'scoring',
+        'share',
+        'drafts',
+      ]),
+    'Action list omitted or duplicated a direct action',
   );
   const initialAnimation = await panel.locator('#animation').isChecked();
   await panel.locator('#animation').setChecked(!initialAnimation);
@@ -87,6 +101,7 @@ async (page) => {
       'share',
       'drafts',
       'search',
+      'puzzle-author',
       'support',
       'preferences',
       'scoring',

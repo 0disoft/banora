@@ -113,6 +113,16 @@ retain normal editing. Fullscreen is not persisted and changes no record state.
 4. Add or edit comments and labels/shape markers on the selected node.
 5. Download an SGF and reopen it with the supported changes preserved.
 
+Studio also authors manual life-and-death exercises through **Create puzzle**
+in either board menu. The selected position supplies the start and descendants
+supply answer moves. Authors explicitly select correct/incorrect endings and
+automatic opponent replies, may exclude branches and add feedback/hints, and
+can try the exercise before downloading the existing `banora.puzzle/v1` JSON.
+This does not objectively adjudicate life/death or change the original SGF.
+The twelve-locale dialog retains authored text and trial state across language
+changes; source changes revoke it. Closing discards its non-autosaved draft.
+See [Studio puzzle authoring](../sdk/studio-puzzles.md) for limits and ownership.
+
 The Studio UI uses public SDK package exports exclusively. It must not import
 internal source files or require demo-only SDK hooks. A second, minimal read-only
 embedding example verifies that the API also fits simpler consumers. Accounts,

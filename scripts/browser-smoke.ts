@@ -8,6 +8,7 @@ import { syntheticReview } from './performance.js';
 import { browserMemory } from './browser-memory.js';
 import { browserZoom } from './browser-zoom.js';
 import { parseBrowserOptions } from './browser-options.js';
+import { RecordController, PuzzleSession } from '@0disoft/banora';
 
 const root = process.cwd();
 const { browser, engine, scope } = parseBrowserOptions(process.argv.slice(2));
@@ -371,6 +372,7 @@ async function fullscreenSmoke(): Promise<void> {
 async function desktopSmoke(address: string): Promise<void> {
   // Preserve each scenario and its artifact assertions; CDP input scopes stay in full smoke.
   const checks: readonly [string, () => Promise<void>][] = [
+    ['puzzle-author', puzzleAuthorSmoke],
     ['game-info', () => scenario('game-info', 'banora-game-info-complete')],
     ['workspace', () => scenario('workspace', 'banora-workspace-complete')],
     ['sound', () => scenario('sound', 'banora-sound-complete')],
@@ -409,6 +411,48 @@ async function desktopSmoke(address: string): Promise<void> {
     console.log(`Desktop ${name} passed.`);
   }
   console.log(`Desktop browser smoke passed: ${checks.length} scopes on ${engine}.`);
+}
+async function puzzleAuthorSmoke(): Promise<void> {
+  await scenario('puzzle-author', 'banora-puzzle-author-complete');
+  const definition = JSON.parse(
+    await readFile(resolve(output, 'studio-authored.puzzle.json'), 'utf8'),
+  );
+  if (
+    definition.schemaVersion !== 'banora.puzzle/v1' ||
+    definition.title !== 'Correct' ||
+    definition.prompt !== 'Wrong move' ||
+    definition.sgf.includes('Private other game')
+  )
+    throw Error('Puzzle download changed authored metadata or leaked an unrelated game');
+  const session = new PuzzleSession(definition);
+  try {
+    if (
+      !session.play({ x: 0, y: 0 }).ok ||
+      !session.play({ x: 2, y: 2 }).ok ||
+      session.getState().status !== 'correct'
+    )
+      throw Error('Downloaded puzzle does not replay correctly');
+    session.restart();
+    session.play({ x: 0, y: 0 });
+    session.play({ x: 3, y: 3 });
+    if (session.getState().status !== 'incorrect')
+      throw Error('Downloaded puzzle lost its incorrect ending');
+  } finally {
+    session.dispose();
+  }
+  const model = new RecordController({
+    sgf: '(;FF[4]GM[1]SZ[5]GN[Correct]C[Wrong move]XX[preserve];B[aa]C[First];W[bb](;B[cc]TE[1]C[Correct])(;B[dd]BM[1]C[Incorrect]))(;SZ[5]GN[Private other game])',
+  });
+  try {
+    model.setComment('Dirty source');
+    if (
+      model.prepareExport().text !==
+      (await readFile(resolve(output, 'puzzle-author-source.sgf'), 'utf8'))
+    )
+      throw Error('Puzzle authoring changed the original SGF or other game');
+  } finally {
+    model.dispose();
+  }
 }
 async function supportSmoke() {
   await scenario('support', 'banora-support-complete');
@@ -559,6 +603,11 @@ try {
     await analysisSmoke();
     console.log(
       'Focused analysis smoke passed: candidate metrics/PVs/ownership, keyboard/touch, exact freshness, manual JSON, source preservation and lifecycle.',
+    );
+  } else if (scope === '--puzzle-author-only') {
+    await puzzleAuthorSmoke();
+    console.log(
+      'Focused puzzle authoring smoke passed: explicit grades/replies, trial play, JSON, source preservation, locales and lifecycle.',
     );
   } else if (scope === '--puzzle-only') {
     await puzzleSmoke();

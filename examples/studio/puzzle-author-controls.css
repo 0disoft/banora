@@ -1,0 +1,92 @@
+#puzzle-author-dialog {
+  width: min(1120px, calc(100vw - 24px));
+  max-width: 1120px;
+  max-height: calc(100dvh - 24px);
+  box-sizing: border-box;
+}
+.puzzle-author-fields {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 12px;
+}
+#puzzle-author-dialog label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.puzzle-author-question {
+  grid-column: 1 / -1;
+}
+#puzzle-author-dialog input,
+#puzzle-author-dialog textarea,
+#puzzle-author-dialog select {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+.puzzle-author-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 16px;
+  align-items: start;
+}
+#puzzle-author-dialog textarea {
+  font: inherit;
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 12px;
+  resize: vertical;
+}
+.puzzle-author-answers {
+  display: grid;
+  gap: 12px;
+}
+#puzzle-author-tree {
+  height: 210px;
+  padding: 4px;
+}
+#puzzle-author-tree option {
+  padding: 5px;
+}
+.puzzle-author-preview {
+  min-width: 0;
+  position: sticky;
+  top: 0;
+}
+.puzzle-author-preview h3 {
+  margin-top: 0;
+}
+#puzzle-author-player {
+  align-self: center;
+  padding: 10px 0;
+}
+#puzzle-author-dialog .dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: sticky;
+  bottom: -1px;
+  background: var(--surface, #faf8f5);
+  padding: 12px 0;
+}
+#puzzle-author-dialog .banora-puzzle {
+  padding: 10px;
+}
+@media (max-width: 700px) {
+  .puzzle-author-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .puzzle-author-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .puzzle-author-preview {
+    position: static;
+  }
+  #puzzle-author-dialog .dialog-actions button {
+    flex: 1 1 auto;
+  }
+}

@@ -1,5 +1,6 @@
 import type { koreanUi } from '../ui-korean.js';
 export const viUi = {
+  'Create puzzle': 'Tạo bài sống chết',
   'Save result to record': 'Lưu kết quả vào kỳ phổ',
   'Save result to record?': 'Lưu kết quả vào kỳ phổ?',
   'Current result': 'Kết quả hiện tại',

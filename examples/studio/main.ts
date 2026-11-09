@@ -41,6 +41,7 @@ import { defaultPreferences, PreferenceStore } from './preferences.js';
 import { applyPreferenceInputs, mountPreferenceControls } from './preference-controls.js';
 import { mountSearchControls } from './search-controls.js';
 import { mountGameInfoControls } from './game-info-controls.js';
+import { mountPuzzleAuthorControls } from './puzzle-author-controls.js';
 import { StudioDiagnostics } from './diagnostics.js';
 import { mountSupportControls } from './support-controls.js';
 import { describeDiagnosticFailure } from '@0disoft/banora/diagnostics';
@@ -780,6 +781,7 @@ window.addEventListener('pagehide', (event) => {
     diagnostics.dispose();
     disposeSearch();
     disposeGameInfo();
+    disposePuzzleAuthor();
     disposePreferences();
     disposePlaybackPreference();
     disposeLanguage();
@@ -859,6 +861,10 @@ const disposePreferences = mountPreferenceControls(find('preferences-host'), pre
 });
 const disposeSearch = mountSearchControls(find('search-host'), controller, diagnostics);
 const disposeGameInfo = mountGameInfoControls(document.querySelector('.metadata')!, controller);
+const disposePuzzleAuthor = mountPuzzleAuthorControls(
+  document.querySelector('.control-reservoir')!,
+  controller,
+);
 const disposeSupport = mountSupportControls(find('support-host'), diagnostics);
 const disposeBoardMenu = mountBoardMenu();
 

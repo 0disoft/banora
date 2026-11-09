@@ -1,5 +1,6 @@
 import type { koreanUi } from '../ui-korean.js';
 export const hiUi = {
+  'Create puzzle': 'जीवन-मृत्यु प्रश्न बनाएँ',
   'Save result to record': 'परिणाम रिकॉर्ड में सहेजें',
   'Save result to record?': 'परिणाम रिकॉर्ड में सहेजें?',
   'Current result': 'वर्तमान परिणाम',

@@ -4,6 +4,37 @@ Studio authoring uses the existing `banora.puzzle/v1` definition and canonical
 `PuzzleSession` validator. It does not add a new puzzle format or infer success
 from engine evaluation, SGF `TE`/`BM`, comments or the first variation.
 
+## Write, try and download
+
+1. In Studio, arrange the starting stones, choose the side to play and create
+   alternative continuations with the existing board and variation tools.
+2. Select the position immediately before the first answer move. Open the board
+   or header menu and choose **Create puzzle**; this opens the authoring dialog directly.
+3. Enter an ASCII puzzle ID, title and question. Select answer rows to inspect the
+   resulting board, set explicit correct/incorrect endings, add feedback and one
+   text hint per position, or exclude unwanted branches. On a continuing opponent
+   turn, choose its automatic reply explicitly.
+4. Choose **Test puzzle** and play the resulting exercise. Unlisted moves, hints,
+   automatic replies, correct/incorrect outcomes and restart use the existing
+   puzzle widget. **Edit answers** restores the authoring board. Changing a
+   draft field invalidates the trial rather than leaving an outdated preview.
+5. Choose **Download puzzle JSON** for `<id>.puzzle.json`. Loading this definition
+   into `PuzzleSession` or `mountPuzzle` needs no conversion and no DOM for headless use.
+
+All twelve Studio languages cover controls and validation. Language changes retain
+exact authored title/question/feedback/hint text, choices and trial progress.
+The selected game's name and selected comment seed the title and question;
+move comments seed answer feedback but never determine answer correctness.
+
+The dialog owns an ephemeral draft and preview, not a second editable record.
+Authoring, trying and downloading never modify the source SGF, selection, undo
+history or dirty/export baseline. Closing/Escape discards the draft. Any source
+edit, navigation, import, board switch or board closure revokes the snapshot and
+closes the dialog; late submissions cannot export a stale definition. Reopening
+starts a fresh draft. Drafts are not autosaved or restored from puzzle JSON.
+Owned views, subscriptions and pending download URLs/timers are disposed on close
+and page teardown. The original controller remains borrowed and untouched.
+
 ## Draft conversion
 
 The selected node becomes the starting position; its descendants become draft

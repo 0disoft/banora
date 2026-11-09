@@ -1,6 +1,7 @@
 import type { koreanUi } from './ui-korean.js';
 
 export const chineseUi = {
+  'Create puzzle': '创建死活题',
   'Save result to record': '保存数目结果',
   'Save result to record?': '将数目结果写入棋谱？',
   'Current result': '原结果',
