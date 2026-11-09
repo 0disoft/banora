@@ -1,5 +1,22 @@
 # Validation
 
+## Studio Puzzle Draft Conversion
+
+The Studio consumer projects a selected immutable node and its descendants into
+the existing puzzle format, with owned explicit grades/replies and a pruned SGF
+prefix that preserves the selected game's history and unknown properties.
+Annotation-only nodes are not passes, setup branches are blocked unless excluded,
+and canonical PuzzleSession validation retains strict legality and reachability.
+Input tree/metadata/text/output bounds reject rather than truncate. No public SDK
+API, controller history, DB/schema, dependency, version, hygiene or CI change.
+Owning conversion contract: [Studio puzzles](docs/sdk/studio-puzzles.md).
+
+Focused tests cover JSON/session replay, correct/incorrect paths, explicit reply
+reachability, terminal pruning, annotation/setup handling, historical illegal
+colors/occupied points, passes, other-game selection, source identity/SGF
+preservation, preview positions and limits. The authoring UI/browser evidence
+will be recorded with its separate integration increment.
+
 ## CLI SVG Diagram Output
 
 The additive `diagram` command accepts exactly one bounded SGF or external
