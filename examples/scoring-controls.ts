@@ -11,7 +11,6 @@ import {
   createSgfNode,
   mountBoard,
   pointToSgf,
-  recordNodeAt,
   serializeSgf,
 } from '@0disoft/banora';
 import type {
@@ -20,15 +19,15 @@ import type {
   ControllerState,
   Point,
   Position,
-  RecordLocator,
   SgfNode,
 } from '@0disoft/banora';
-import { RULE_PROFILES, getRuleProfile } from '@0disoft/banora/rules';
+import { RULE_PROFILES } from '@0disoft/banora/rules';
 import type { RuleProfileId } from '@0disoft/banora/rules';
 import { scorePosition } from '@0disoft/banora/scoring';
 import type { ScoreBreakdown, ScoreSummary } from '@0disoft/banora/scoring';
 import './scoring-controls.css';
 import { mountScoringResultControls } from './scoring-result-controls.js';
+import { deriveScoringPosition } from './scoring-position.js';
 
 /** Preview-only by default; Studio may opt in to explicitly confirmed RE edits. */
 export function mountScoringControls(
@@ -101,30 +100,6 @@ export function mountScoringControls(
     display?.dispose();
     view = undefined;
     display = undefined;
-  }
-  function derivePosition(state: ControllerState): Position {
-    const path: number[] = [];
-    let node = state.record.games[state.gameIndex]!;
-    for (const id of state.path.slice(1)) {
-      const index = node.children.findIndex((child) => child.id === id);
-      if (index < 0) throw Error('Position is unavailable');
-      path.push(index);
-      node = node.children[index]!;
-    }
-    // Only the counting ledger is needed. Recorded moves bypass legal rejection;
-    // omit the unused superko index rather than retaining a second large history.
-    const model = new RecordController({
-      sgf: serializeSgf(state.record),
-      rules: { ...getRuleProfile(preset.value as RuleProfileId).play, ko: 'none' },
-    });
-    try {
-      const locator: RecordLocator = { gameIndex: state.gameIndex, path },
-        target = recordNodeAt(model.getState().record, locator);
-      if (!target) throw Error('Position is unavailable');
-      return model.inspectNode(target.id)!.position;
-    } finally {
-      model.dispose();
-    }
   }
   function displayRecord(value: ScoreSummary): string {
     const properties: Record<string, string[]> = { SZ: [`${value.width}:${value.height}`] };
@@ -201,7 +176,7 @@ export function mountScoringControls(
   function calculate() {
     if (!opened || disposed || !bound) return;
     try {
-      scoringPosition ??= derivePosition(bound);
+      scoringPosition ??= deriveScoringPosition(bound, preset.value as RuleProfileId);
       const scored = scorePosition(scoringPosition, {
         profile: preset.value as RuleProfileId,
         komi: number('score-komi'),

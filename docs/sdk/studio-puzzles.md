@@ -38,7 +38,8 @@ and page teardown. The original controller remains borrowed and untouched.
 ## Draft conversion
 
 The selected node becomes the starting position; its descendants become draft
-answers. Export preserves only that game's selected ancestor path, including
+answers. A shared example prefix builder is also used by manual scoring.
+Export preserves only that game's selected ancestor path, including
 metadata, comments, unknown properties and recorded move history. Other games
 and unrelated branches are omitted. The initial portable locator is rewritten
 against that pruned prefix. Position rules and solver color come from the

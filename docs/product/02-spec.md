@@ -535,6 +535,14 @@ dead stones. Document treatment of seki and rule-specific edge cases.
 Studio preserves manual scoring marks and adjustments across comment/annotation
 edits and their Undo. Navigation, import, move/setup history, board dimensions or
 komi/handicap metadata changes rebind scoring to the current position.
+Counting-position reconstruction serializes and validates only the selected
+game's root-to-cursor path, preserving ancestor setup/turn/properties and recorded
+history. Other games, sibling branches and later moves are excluded. The source
+collection remains validated at adoption, and the temporary prefix still passes
+ordinary SGF validation before replay under the counting preset. AGA pass prisoners
+are recomputed; the live move-policy Position is never substituted. Source data,
+selection, edit history, scoring cache invalidation and result confirmation remain
+unchanged. Temporary replay controllers are disposed even when inspection fails.
 
 AI computation is supplied by an external engine/service. Display overlays are
 SDK features; they do not mean the SDK can independently find strong moves.

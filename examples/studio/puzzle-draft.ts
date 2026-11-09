@@ -1,10 +1,11 @@
-import { createSgfNode, DEFAULT_SGF_LIMITS, pointFromSgf, serializeSgf } from '@0disoft/banora/sgf';
-import type { RecordLocator, SgfNode } from '@0disoft/banora/sgf';
+import { DEFAULT_SGF_LIMITS, pointFromSgf, serializeSgf } from '@0disoft/banora/sgf';
+import type { RecordLocator } from '@0disoft/banora/sgf';
 import { pass, play } from '@0disoft/banora/core';
 import type { Color, Point, Position } from '@0disoft/banora/core';
 import type { ControllerState } from '@0disoft/banora/controller';
 import { PuzzleSession } from '@0disoft/banora/puzzle';
 import type { PuzzleDefinition, PuzzleNode } from '@0disoft/banora/puzzle';
+import { selectedRecordPrefix } from '../record-prefix.js';
 
 export const PUZZLE_DRAFT_LIMITS = Object.freeze({ nodes: 1000, depth: 128, bytes: 8_388_608 });
 export const puzzleDraftErrors = {
@@ -55,25 +56,11 @@ export interface PuzzleMetadata {
 
 /** Preserve the selected game's exact history while dropping unrelated games and branches. */
 function prefix(state: ControllerState): string {
-  const path: SgfNode[] = [];
-  let node = state.record.games[state.gameIndex]!;
-  for (let index = 0; index < state.path.length; index++) {
-    if (index) node = node.children.find((child) => child.id === state.path[index])!;
-    if (!node || node.id !== state.path[index]) throw new PuzzleDraftError('invalid');
-    path.push(node);
+  try {
+    return serializeSgf(selectedRecordPrefix(state));
+  } catch {
+    throw new PuzzleDraftError('invalid');
   }
-  if (path.at(-1) !== state.node) throw new PuzzleDraftError('invalid');
-  let result: SgfNode | undefined;
-  for (let index = path.length - 1; index >= 0; index--) {
-    const current = path[index]!;
-    result = createSgfNode(
-      current.id,
-      current.properties,
-      result ? [result] : [],
-      current.rawProperties,
-    );
-  }
-  return serializeSgf({ games: [result!] });
 }
 
 /** Project owned, bounded authoring data. SGF annotations never imply answer grades. */

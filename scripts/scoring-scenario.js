@@ -45,7 +45,49 @@ async (page, studioControl) => {
   let mobileContext;
   try {
     await page.goto(`${origin}/studio/`);
+    await open(
+      page,
+      '(;SZ[5]GN[Short game]KM[6.5];B[aa];W[bb])(;SZ[5]GN[Unrelated passes]' +
+        ';B[];W[]'.repeat(10000) +
+        ')',
+      'large-collection.sgf',
+    );
+    await page.waitForFunction(
+      () => document.querySelector('#game-name').textContent === 'Short game',
+    );
+    await page.locator('#last').click();
+    await studioControl(page, '#score-open', 'scoring', () => page.locator('#score-open').click());
+    for (const profile of ['japanese-territory', 'aga-territory', 'aga-area', 'tromp-taylor']) {
+      await studioControl(page, '#score-profile', 'scoring', () =>
+        page.locator('#score-profile').selectOption(profile),
+      );
+      const area = profile === 'aga-area' || profile === 'tromp-taylor';
+      verify(
+        (await page.locator('#score-board [data-stone]').count()) === 2 &&
+          (await component('total')) === (area ? 1 : 0) &&
+          (await component('total', 'white')) === (area ? 7.5 : 6.5),
+        'A large unrelated game changed the selected short-game score',
+      );
+      verify(
+        (await component('passPrisoners')) === 0 &&
+          (await component('passPrisoners', 'white')) === 0,
+        'Unrelated passes leaked into the selected game ledger',
+      );
+    }
+    verify(
+      (await page.locator('#dirty').innerText()) === 'No changes',
+      'Prefix scoring edited the source collection',
+    );
+    await studioControl(page, '#score-profile', 'scoring', () =>
+      page.locator('#score-profile').selectOption('japanese-territory'),
+    );
+    await studioControl(page, '#score-close', 'scoring', () =>
+      page.locator('#score-close').click(),
+    );
     await open(page);
+    await page.waitForFunction(
+      () => document.querySelector('#game-name').textContent === 'Scoring fixture',
+    );
     await page.locator('#last').click();
     await download('scoring-before');
     await studioControl(page, '#score-open', 'scoring', () => page.locator('#score-open').click());

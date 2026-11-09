@@ -155,8 +155,17 @@ which components count and which are reference-only. Inputs start from the selec
 `KM`/`HA`, default zero, and remain editable. Invalid inputs clear the stale report;
 correcting them preserves the current group selections.
 
-The selected counting preset replays a serialized snapshot with its pass-accounting
-policy. It does not change the source controller's legal-move policy or certify its
+The selected counting preset replays only the selected game's root-to-cursor
+ancestor path with its pass-accounting policy. Other games, sibling branches and
+future continuations are omitted from the temporary snapshot. The shared example
+prefix builder preserves all ancestor properties/raw escapes, checks selection
+identity and rebases the temporary locator to game zero with single-child edges.
+The source controller still validates the imported collection; the temporary
+controller still validates the selected SGF prefix and replays setup/move/pass
+history under the counting preset. The live Position is not reused, because its
+pass ledger can differ. The existing omission of the unused superko index and
+temporary-controller disposal on success/failure remain unchanged.
+This does not change the source controller's legal-move policy or certify its
 move history. Scoring marks and input overrides reset on source record edits,
 node/game navigation and import; changing only the counting preset preserves marks.
 Export acknowledgment preserves marks when the source record/node remains identical.

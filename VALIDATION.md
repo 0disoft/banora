@@ -1,5 +1,34 @@
 # Validation
 
+## Selected-Path Scoring Replay
+
+Manual scoring now materializes just the selected game's ancestor prefix through
+a shared, immutable example helper also used by Studio puzzle drafting. All
+ancestor properties/raw escapes are preserved, selection identity is checked,
+and the temporary locator is rebased to game zero/single-child indices. Source
+collection validation, temporary SGF validation, rule-preset replay, AGA pass
+prisoners, historical move behavior and auxiliary-controller disposal are retained.
+The live Position, source selection/history/baseline and scoring cache/confirmation
+behavior are unchanged. No public SDK API/schema, DB, dependency, version, hygiene
+or CI configuration change; focused cases extend existing test/browser routes.
+
+Owning contracts: [public API](docs/sdk/public-api.md),
+[specification](docs/product/02-spec.md), [puzzle authoring](docs/sdk/studio-puzzles.md)
+and [performance evidence](docs/engineering/03-performance-budget.md#selected-path-scoring-reconstruction).
+Focused tests compare complete old/new Positions and score reports for every
+preset across roots, captures, passes, setup/turn resets, historical occupied-point
+replacement, branches and multiple games. They check marks/adjustments, raw
+properties, source/checkpoint identity, stale-path and semantic/limit rejection,
+and disposal on success/failure. Existing puzzle-draft/scoring/result tests are
+retained. Windows Chrome 156 scoring/result smoke passes with the new 20,000-move
+collection case, all presets, manual marks, mobile touch, preview preservation
+and explicit undoable RE confirmation. Browser timing is not claimed.
+The focused run passed 19 tests / 462 assertions; types, lint, example/adapter
+builds, boundaries and docs passed. The separate Chrome puzzle-authoring route
+also passed after sharing the prefix helper. Full root `check`, installed-package
+and other browser-engine/device checks are skipped for this example-only change;
+public SDK sources/exports and package formats are unchanged.
+
 ## CLI Deep Tree Response and Output Ordering
 
 Compact CLI JSON now uses an explicit frame stack rather than recursive object

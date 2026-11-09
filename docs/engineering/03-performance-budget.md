@@ -5,6 +5,38 @@
 - Technical owner: `0disoft` (solo maintainer)
 - Decision: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 
+## Selected-path scoring reconstruction
+
+Scoring now constructs its temporary controller from the selected root-to-cursor
+prefix rather than the complete collection. The same validated prefix builder
+serves puzzle authoring. Ancestor properties/raw escapes and the preset-specific
+capture/pass ledger are retained; source validation and temporary SGF validation
+remain in place. Only selected ancestors are cloned/serialized/reparsed. Finding
+an ancestor still scans that parent's child IDs, so wide sibling lookup and long
+selected histories remain costs; no constant-time reconstruction is claimed.
+
+Windows x64, Node 24.14.0, 5x5 first game with two selected moves (three nodes),
+AGA territory, plus a second game containing unrelated alternating passes:
+
+| Unrelated moves | Parsed nodes before | Parsed nodes now | Median before | Median now |
+| --------------- | ------------------- | ---------------- | ------------- | ---------- |
+| 1,000           | 1,004               | 3                | 7.85 ms       | 0.230 ms   |
+| 10,000          | 10,004              | 3                | 78.38 ms      | 0.221 ms   |
+| 20,000          | 20,004              | 3                | 143.87 ms     | 0.226 ms   |
+
+Two warmups, then seven interleaved samples of each reconstruction. Initial source
+construction/navigation are excluded. Complete Positions were asserted equal
+before timing. At 20,000 unrelated moves the temporary SGF shrinks from 80,067 to
+40 UTF-8 bytes. This measures headless reconstruction only, not import latency,
+browser paint, UI end-to-end latency, memory peaks or universal speedups. There is
+no timing pass/fail threshold. The reference baseline and parity fixtures are in
+`scripts/scoring-position.test.ts`; the ignored local timing report and harness
+are `.tmp/scoring-prefix-measurement.json` and `.tmp/scoring-prefix-measure.ts`.
+
+The focused Chrome scoring flow also loads a 20,000-move unrelated game while
+scoring the short first game under every preset, retaining the original marks,
+touch, non-mutating preview and confirmed-result regressions.
+
 ## Workloads and Measurements
 
 | Workload                | Measure                                                      |
