@@ -40,7 +40,7 @@ export interface SgfLimits {
   readonly maxNodes: number;
   readonly maxDepth: number;
   readonly maxValueLength: number;
-  /** Total point-list area across all games; defaults to one million. */
+  /** Total point-list area plus label/connection entries across all games; defaults to one million. */
   readonly maxExpandedPoints?: number;
 }
 export const DEFAULT_SGF_LIMITS: Required<SgfLimits> = Object.freeze({
@@ -104,6 +104,14 @@ const pointLists = new Set([
   'VW',
 ]);
 const rootOnly = new Set(['FF', 'GM', 'CA', 'AP', 'SZ', 'ST']);
+const markerPointLists = new Set(['CR', 'SQ', 'TR', 'MA', 'SL']);
+const MAX_NODE_ANNOTATIONS = 4096;
+
+function spendPoints(budget: { remaining: number }, count: number, annotations: number): void {
+  budget.remaining -= count;
+  if (budget.remaining < 0) fail('limit', 'SGF expanded point budget exceeded');
+  if (annotations > MAX_NODE_ANNOTATIONS) fail('limit', 'SGF node annotation limit exceeded');
+}
 const scalar = new Set([
   'B',
   'W',
@@ -253,6 +261,7 @@ function validateGame(root: SgfNode, budget: { remaining: number }): void {
   while (pending.length) {
     const node = pending.pop()!;
     const props = node.properties;
+    let annotations = 0;
     try {
       decodeStrokes(props.BPN, { width, height });
     } catch (error) {
@@ -265,19 +274,28 @@ function validateGame(root: SgfNode, budget: { remaining: number }): void {
       if (scalar.has(key) && values.length !== 1) fail('property', `${key} requires one value`);
       if (rootOnly.has(key) && node !== root)
         fail('property', `${key} is only valid on a game root`);
+      if (key === 'LB' || key === 'LN' || key === 'AR') {
+        annotations += values.length;
+        // Charge composed entries before validating their contents: even unique
+        // arrows must not evade the rendering bound or collection-wide budget.
+        spendPoints(budget, values.length, annotations);
+      }
       if (pointLists.has(key)) {
         const seen = new Uint32Array(height * 2);
         for (const value of values) {
           if (value === '' && ['DD', 'VW', 'TB', 'TW'].includes(key)) continue;
-          budget.remaining -= claimPoints(value, width, height, seen, `Duplicate ${key} point`);
-          if (budget.remaining < 0) fail('limit', 'SGF expanded point budget exceeded');
+          const count = claimPoints(value, width, height, seen, `Duplicate ${key} point`);
+          if (markerPointLists.has(key)) annotations += count;
+          spendPoints(budget, count, annotations);
         }
       }
-      if (key === 'LB')
+      if (key === 'LB') {
+        const seen = new Uint32Array(height * 2);
         for (const value of values) {
           if (value[2] !== ':') fail('property', 'Labels require point:text');
-          pointFromSgf(value.slice(0, 2), width, height);
+          claimPoints(value.slice(0, 2), width, height, seen, 'Duplicate LB point');
         }
+      }
       if (key === 'LN' || key === 'AR') {
         const seen = new Set<string>();
         for (const value of values) {

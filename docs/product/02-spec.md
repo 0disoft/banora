@@ -512,6 +512,12 @@ Point-list validation uses row bitsets for compressed rectangles and enforces a
 collection-wide expanded area budget (one million points by default, configurable
 with `maxExpandedPoints`). Empty permitted lists cost zero. Setup conflicts and
 within-property duplicates remain errors, including across 32-bit word boundaries.
+The same collection budget charges one per label/connection (`LB`/`LN`/`AR`).
+Classic rendered markers and connections additionally share a 4,096-entry bound
+per node, counting compressed marker rectangles by expanded area. Labels must
+have unique coordinates within each node. Setup/visibility/territory/ink retain
+their separate checks. Rejected imports/edits leave the active record, selection,
+history, dirty baseline and checkpoint unchanged; no annotations are truncated.
 
 Decode file bytes according to declared encoding; string input is already decoded.
 Export UTF-8. Implemented encoding/default/limit policies are documented in

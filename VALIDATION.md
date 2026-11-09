@@ -1,5 +1,25 @@
 # Validation
 
+## SGF Rendered Annotation Bounds
+
+The existing collection-wide expanded-point budget now also charges each label
+and line/arrow entry. A node may contain at most 4,096 classic marker points,
+labels and connections combined. Rectangles charge their expanded area, and
+duplicate label coordinates reject with a property diagnostic. Text and byte
+imports use the same validation; neither imports nor edits truncate annotations.
+No SDK signature/schema, DB, dependency, version, hygiene or runner change.
+Owning contracts: [public API](docs/sdk/public-api.md) and
+[product specification](docs/product/02-spec.md).
+
+Focused regressions cover exact 4,096/4,097 bounds, mixed annotation kinds,
+collection budgets across games/nodes, original coordinate/duplicate/direction
+checks, 32-bit coordinate boundaries, 100,000-entry label/arrow inputs, canonical
+round trips and rejected import/edit retention of source escapes, selection,
+dirty state, checkpoint and Undo/Redo. Existing SGF/controller/checkpoint/automation
+tests passed: 66 tests / 4,953 assertions, plus types, lint, boundaries and docs.
+Browser timing and broad packaging checks are not claimed
+for this headless input-validation change.
+
 ## Studio Puzzle Authoring Integration
 
 The board/header menu opens a localized authoring dialog directly. It owns a

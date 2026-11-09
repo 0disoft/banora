@@ -345,8 +345,15 @@ readonly array of zero-based child indices from that game's root; `recordNodeAt`
 returns the matching node or null. This differs from snapshot `path`, which holds
 record-local string IDs. Parsing returns a structured success/diagnostic result.
 Limits include optional `maxExpandedPoints`, defaulting to 1,000,000: the sum of
-point-list areas across every property, node and game. Compressed rectangles count
-their full area; permitted empty lists count zero. Exceeding it returns `limit`.
+point-list areas plus label (`LB`) and connection (`LN`/`AR`) entries across every
+node and game. Each label/connection costs one; compressed rectangles count
+their full area and permitted empty lists count zero. Exceeding it returns `limit`.
+Each node additionally permits at most 4,096 classic rendered annotations in total:
+expanded `CR`/`SQ`/`TR`/`MA`/`SL` points, labels and connections. Setup, visibility,
+territory and ink retain their separate existing checks. `LB` coordinates must
+be unique within that node. Oversized input rejects before controller adoption;
+annotations are never truncated or silently deduplicated. Existing diagnostic
+codes, parser signatures and failure atomicity are unchanged.
 See [compatibility](compatibility.md#record-compatibility) for the supported subset.
 
 SGF size projection and core position creation share the same internal 2-through-52
