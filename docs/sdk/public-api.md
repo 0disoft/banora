@@ -877,8 +877,15 @@ across cursor-only controller notifications when the immutable record, pinned ID
 and captured import generation are unchanged. Its accessibility announcement still
 refreshes. Record edits, branch deletion/Undo, import replacement and explicit
 `update` calls retain the normal render path; keyboard focus/cursor handlers still
-render their interaction changes. Unpinned and controlled boards keep their
-existing notification behavior. This uses the already held frame/paint layer,
+render their interaction changes. An unpinned record board additionally retains
+a completed SVG paint across validated C-only record replacements at the same
+node/game/import generation, including comment batches and their Undo/Redo.
+The private comment-only identity proves moves, MN, markers, fork hints and
+comparison references are unchanged. The current frame and announcements still
+refresh; pending ink/touch input is cancelled as before, its preview is cleared,
+and placement animation synchronizes against the retained elements. All other
+edits, navigation, imports and explicit `update` calls keep the normal render path.
+Controlled boards keep their existing behavior. This uses the already held frame/paint layer,
 without another cache of records or positions; presentation changes use `update`.
 A failed full paint clears its completion marker so a later notification retries.
 

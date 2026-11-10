@@ -392,3 +392,39 @@ legal 128-attempt opening followed by passes to check a fuller map. The projecti
 tests bound observed property reads linearly and cover setup, MN including zero,
 legacy pass, maximum-board tt, annotations, delayed frames, branches, backward
 movement, edits/Undo/Redo, game/import changes and private checkpoint isolation.
+
+## Comment-Only Live-Board Paint Retention
+
+Previously an unpinned record board called `paintBoard` on every comment
+notification, replacing the complete SVG subtree despite identical display data.
+After a completed paint, the surface now reuses the existing weak C-only key to
+prove the same game, node and import generation still have identical moves, MN,
+markers, hints and comparison references. It retains existing SVG elements while
+refreshing the current frame, announcements, placement animation and cancellation
+of pending ink/touch input. No additional record/history cache is introduced.
+Non-comment edits, navigation, imports, explicit `update` calls and cold/failed
+paints retain normal rendering; pinned/controlled board behavior is unchanged.
+
+The existing hover/full browser smoke routes now include `comment-paint-scenario.js`.
+On Windows Chrome 156, against parent commit `03fde13` and this implementation,
+a 19x19 fixture has two placements followed by 5,000 alternating passes, plus an
+unselected second game. The selected path contains 5,003 nodes. Move numbers,
+variation hints and a root comparison reference are enabled. Only the 20
+synchronous comment edits are counted: `document.createElementNS` records SVG
+creation, and a root-only MutationObserver records subtree replacement.
+
+| Twenty comment edits            | Before | After |
+| ------------------------------- | -----: | ----: |
+| New SVG elements                |  2,740 |     0 |
+| Root child replacements         |     20 |     0 |
+| Original surface/stone retained |     No |   Yes |
+
+Retained markup is compared with a forced fresh paint. Additional checks cover
+comment Undo/Redo, cross-game batches, child comments with actual fork hints,
+navigation, marker edits, transforms, changed-size and same-board MN imports, and
+keyboard ink cancellation. Existing animation and touch scenarios verify motion
+continuity and clearing of pending aim/magnifier state. These are deterministic
+DOM work counts, not end-to-end latency, browser memory or general CPU speedups;
+SGF validation and controller edit costs remain unchanged. Ignored
+`.tmp/comment-paint-before.json`, logs and `output/playwright/comment-paint-samples.json`
+retain the local evidence. No timing thresholds or extra CI jobs are added.

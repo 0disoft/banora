@@ -1,5 +1,30 @@
 # Validation
 
+## Comment-Only Live-Board Paint Retention
+
+After a completed paint, unpinned record boards retain their SVG on validated
+C-only replacement at the same node/game/import generation. The existing weak
+comment-only provenance key proves all display properties are unchanged. The
+current frame, input cancellation/preview cleanup, animation and announcements
+still refresh. Pinned/controlled behavior, non-comment redraws, navigation,
+import and explicit presentation updates are preserved; no extra record cache
+or public API/schema, DB, dependency, version, hygiene or CI runner change.
+
+Owning contracts: [public API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#comment-only-live-board-paint-retention).
+The new comment-paint scenario extends the existing hover/full browser routes.
+Windows Chrome 156 on a 5,003-node selected path with move numbers, variation
+hints and a comparison reference measured 20 comment edits: SVG element creation
+2,740 -> 0; direct root replacement 20 -> 0; surface/stone identity retained.
+Retained markup matches forced fresh painting. Comment Undo/Redo, cross-game
+batches, child comment/fork hints, navigation, marker invalidation, option
+rotation, size imports and same-board MN imports are checked. Full SDK tests
+pass 318 tests / 17,458 assertions. Broad root `check`, packed consumer and other
+engine/device runs are skipped for this internal DOM-only optimization.
+SDK/adapter/example builds, types, lint, formatting, module boundaries and docs
+checks pass. Chrome hover/comment, animation, touch and comparison routes pass,
+including pending keyboard ink cancellation and active touch/magnifier cleanup.
+
 ## Comment-Only Move-Number Reuse
 
 Validated single/batch comment commits now share an opaque weak numbering key.

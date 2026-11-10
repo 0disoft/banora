@@ -24,6 +24,7 @@ import { BOARD_PADDING } from './board-layout.js';
 import { paintBoard, paintBoardHover, paintBoardTouch, paintBoardInk } from './board-paint.js';
 import { boardNotices, boardFailureLabelKeys } from './board-notices.js';
 import type { ControllerFailure } from './controller.js';
+import { recordNumberingKey } from './record-numbering-key.js';
 const namespace = 'http://www.w3.org/2000/svg';
 const padding = BOARD_PADDING;
 const letters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
@@ -807,6 +808,31 @@ export function mountBoardSurface(
     if (state.identity !== current.identity || state.nodeId !== current.nodeId) {
       cancelInk();
       cancelTouch();
+    }
+    // A shared key proves the entire record changed only in validated C values:
+    // numbers, marks, fork hints and comparison references remain identical.
+    // Keep record identity distinct so input cancellation and other consumers
+    // still observe the edit; only the completed, unpinned SVG paint is retained.
+    if (
+      !options.nodeId &&
+      hoverLayer &&
+      available &&
+      state.identity !== current.identity &&
+      current.recordState &&
+      state.recordState &&
+      state.nodeId === current.nodeId &&
+      state.recordGeneration === current.recordGeneration &&
+      state.recordState.gameIndex === current.recordState.gameIndex &&
+      recordNumberingKey(state.recordState.record) ===
+        recordNumberingKey(current.recordState.record)
+    ) {
+      current = state;
+      inkPreview?.remove();
+      inkPreview = undefined;
+      renderTouch(true);
+      placement.sync(state.recordState, options, animationOptions);
+      announce(current);
+      return;
     }
     render(state);
     announce(current);

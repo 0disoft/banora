@@ -509,6 +509,8 @@ try {
     await browserPerformance();
   } else if (scope === '--hover-only') {
     await scenario('hover', 'banora-hover-complete');
+    await scenario('comment-paint', 'banora-comment-paint-complete');
+    console.log('Focused hover/comment paint smoke passed.');
   } else if (scope === '--ink-only') {
     await scenario('ink', 'banora-ink-complete');
     console.log('Focused ink smoke passed.');
@@ -717,6 +719,7 @@ try {
     await cli('snapshot');
     await scenario('presentation', 'banora-presentation-complete');
     await scenario('hover', 'banora-hover-complete');
+    await scenario('comment-paint', 'banora-comment-paint-complete');
     console.log(
       'Presentation smoke passed: eight rectangular/cropped transforms, logical mouse input, screen keyboard axes, upright labels and atomic configuration.',
     );
