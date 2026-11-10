@@ -1,15 +1,16 @@
 import { numberNode } from './record-numbers.js';
+import { recordNumberingKey } from './record-numbering-key.js';
 import type { BoardFrame, BoardBinding } from './board-frame.js';
 import type { RecordController, ControllerState } from './controller.js';
 import { pointFromSgf } from './sgf.js';
-import type { SgfNode, SgfRecord } from './sgf.js';
+import type { SgfNode } from './sgf.js';
 import { variationCandidates } from './variations.js';
 
 /** A projection, not another record or rules engine. Number traversal stays lazy. */
 export function recordBoardBinding(controller: RecordController, owned: boolean): BoardBinding {
   const cache = new WeakMap<ControllerState, BoardFrame>();
   let checkpoint = new WeakMap<
-    SgfRecord,
+    object,
     {
       node: SgfNode;
       game: number;
@@ -43,13 +44,22 @@ export function recordBoardBinding(controller: RecordController, owned: boolean)
       overlays: [],
       numbers() {
         if (numbers) return numbers;
-        const before = checkpoint.get(state.record);
+        const key = recordNumberingKey(state.record);
+        const before = checkpoint.get(key);
         let number: number;
         if (
           before &&
           before.game === state.gameIndex &&
+          before.depth === state.path.length &&
+          before.node.id === state.node.id
+        ) {
+          numbers = new Map(before.values);
+          number = before.number;
+        } else if (
+          before &&
+          before.game === state.gameIndex &&
           before.depth + 1 === state.path.length &&
-          before.node.children.includes(state.node)
+          before.node.children.some((child) => child.id === state.node.id)
         ) {
           numbers = new Map(before.values);
           number = numberNode(state.node, numbers, before.number, width, height);
@@ -63,11 +73,11 @@ export function recordBoardBinding(controller: RecordController, owned: boolean)
             number = numberNode(node, numbers, number, width, height);
           }
         }
-        // Exactly one weak record key, no retained history cache. Copy the private
+        // Exactly one weak numbering key, no retained history cache. Copy the private
         // checkpoint so even a mutated returned map cannot affect future frames.
         checkpoint = new WeakMap([
           [
-            state.record,
+            key,
             {
               node: state.node,
               game: state.gameIndex,

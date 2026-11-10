@@ -28,6 +28,7 @@ export type { Stroke, StrokeStyle } from './annotations.js';
 import { CHECKPOINT_SCHEMA, parseRecordCheckpoint } from './checkpoint.js';
 import type { RecordCheckpoint } from './checkpoint.js';
 import { matches } from './json-schema.js';
+import { inheritCommentNumbering } from './record-numbering-key.js';
 import { buildCommentBatch, CommentBatchError } from './comment-batch.js';
 import type { CommentChange, CommentBatchPreview } from './comment-batch.js';
 export type { CommentChange, CommentBatchPreview, CommentBatchEdit } from './comment-batch.js';
@@ -476,6 +477,7 @@ export class RecordController {
       this.#groupRecorded = true;
     }
     this.#redo = [];
+    if (options.commentOnly) inheritCommentNumbering(this.#record, candidate);
     this.#record = candidate;
     this.#selected = selected;
     this.#reindex(options.commentOnly);

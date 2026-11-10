@@ -325,18 +325,38 @@ GC survival/time thresholds are not added to default CI.
 `board-record.ts` previously recalculated numbers from the root for each new
 frame. Sequentially displaying an N-move linear record processes (N+1)(N+2)/2
 nodes, including the root at each step: 12,507,501 visits for 5,000 moves. The
-projection now proves same immutable record, same game, one extra path node and
-exact direct-child identity before reusing the previous counter/map. That sequence
+projection now proves same numbering identity, same game, one extra path node and
+direct-child ID membership before reusing the previous counter/map. That sequence
 applies node properties 5,001 times, with bounded map copying. Non-adjacent moves,
-fork changes, new records and cold reads retain the original path calculation.
+fork changes, non-comment edits, imports and cold reads retain the original path calculation.
 
 For a linear record without expanded setup lists, projection work changes O(N^2)
 to O(N*A) for A board points (constant board dimensions). General adjacent work
 includes direct-child membership and the current node's setup expansion. This
 does not change controller path construction or SVG painting complexity.
-Only one weak record key is stored per binding, preventing a history cache or
+Only one weak numbering key is stored per binding, preventing a history cache or
 record-retention root. A private map copy isolates future frames from mutation of
 returned maps; old immutable-frame projections remain independently memoized.
+
+### Comment-Only Numbering Reuse
+
+Validated `C`-only commits inherit an opaque numbering key; tokens contain no
+record, node or predecessor references and are registered in a WeakMap. All
+candidate validation and comment-preview ownership/freshness checks precede key
+inheritance. Non-comment edits/imports receive independent keys, including MN
+changes that leave board contents, game, depth and node IDs unchanged.
+
+On Bun 1.4.4 / Windows, a 19x19 fixture with two placements and 5,000 alternating
+passes has a 5,003-node selected path and two numbered intersections. A `numberNode`
+spy reproduced 5,003 calls on each comment edit before this change. Afterward,
+cold numbering still calls it 5,003 times, each comment edit and comment Undo/Redo
+calls it zero times, and a direct-child step calls it once. Same-position comment
+projection changes from O(P + K) to O(K), where P is selected path length and
+K is the checkpoint's numbered intersections (K <= board area); defensive map
+copies remain. These are SDK projection counts, not end-to-end editor latency,
+SVG repaint, parsing or memory-return measurements. Existing non-comment
+invalidation, batch comments, delayed frames and map-mutation isolation have
+deterministic regression coverage; no timing threshold or extra CI route is added.
 
 Paired Bun 1.4.3 / Windows comparisons use the exact `baaefea` projection with the
 working projection on the same controller/state. Two full warmups precede nine

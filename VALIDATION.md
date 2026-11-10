@@ -1,5 +1,29 @@
 # Validation
 
+## Comment-Only Move-Number Reuse
+
+Validated single/batch comment commits now share an opaque weak numbering key.
+Same-node projections reuse an isolated map/counter; direct-child checks use IDs
+across comment-only node replacements. All candidate validation, preview ownership
+and freshness checks, non-comment/import invalidation, selected-path fallbacks and
+independent old frames are retained. Tokens contain no record/history references.
+Owning contracts: [public API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#comment-only-numbering-reuse).
+
+Focused cases cover a 5,003-node legal opening/pass path (initial 5,003 numbering
+calls; each comment and comment Undo/Redo zero; next step one), batch comments
+across branches/games, replaced child objects, delayed frames, defensive map
+isolation, setup removal, MN imports with identical board/node IDs and stale or
+foreign previews. The complete SDK suite passes 318 tests / 17,458 assertions.
+No public API/schema, DB, dependency, version, hygiene or CI runner changes.
+Broad root `check`, packed-consumer and other engine/device runs are outside
+this internal cache change; targeted build, type/lint/docs and playback regression
+checks cover its implementation and existing consumer behavior.
+Windows Chrome 156 playback smoke passed (speed/pause/end, keyboard guards,
+import/SGF preservation and six consumer lifecycles); SDK/adapter/example builds,
+typecheck, lint, module boundaries and docs checks passed. The private token
+module is classified as headless in the existing boundary map; no rules are relaxed.
+
 ## Selected-Path Scoring Replay
 
 Manual scoring now materializes just the selected game's ancestor prefix through

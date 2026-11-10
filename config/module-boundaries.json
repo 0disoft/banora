@@ -58,6 +58,7 @@
     "board-content",
     "board-overlays",
     "record-numbers",
+    "record-numbering-key",
     "diagram",
     "diagram-state",
     "diagram-shared"
