@@ -1,5 +1,33 @@
 # Validation
 
+## Adjacent-Liberty Proof Before Own-Group Traversal
+
+Legal play and recorded playback now skip full own-group traversal when a neighbor
+of the placed stone is empty after enemy captures. The same neighbor indices are
+reused from capture inspection. With no adjacent liberty, the complete existing
+traversal still decides suicide and enumerates all self-captured stones. Enemy
+group traversal, capture order, error precedence, ko/superko, immutable snapshots
+and public signatures are unchanged. No cache or additional shared state is added.
+
+Owning contracts: [core API](docs/sdk/public-api.md#implemented-core-exports) and
+[performance evidence](docs/engineering/03-performance-budget.md#adjacent-liberty-proof-before-own-group-traversal).
+New tests bound neighbor enumeration at 19x19 and 52x52 for legal play and replay,
+check a remote-only liberty, capture-created liberty, and forbidden/allowed
+multi-stone suicide with exact prisoner accounting and unchanged source snapshots.
+The SDK suite passes 332 tests / 21,202 assertions. A separate before/after Node
+oracle checks 67,968 complete MoveResults across all 2x2 layouts and 200 seeded
+3x3 layouts, both turns, both suicide policies, all four ko policies and play/replay.
+Results, including board/captures/history, are identical. No timing assertion is
+added. Internal group work drops from 326 to one neighbor enumeration on the
+documented 19x19 fixture and 2,603 to one on 52x52.
+
+SDK/adapter/example builds, types, lint, formatting, module boundaries and docs
+checks pass; Windows Chrome 156 focused repetition-rules smoke passes. Full root
+`check`, packed-consumer and other browser-engine/device checks are skipped for
+this narrow internal core change; focused builds and the existing rules browser
+route cover integration. No browser route or timing threshold is added.
+No public API/schema, DB, dependency, hygiene or CI/runner changes.
+
 ## Shared Hashes for Checked Superko Insertion
 
 Legal placements now check and insert a candidate situation in one private

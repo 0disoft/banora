@@ -186,7 +186,8 @@ export function play(position: Position, point: Point, color: Color = position.t
   board[index] = color;
   const captured: Point[] = [];
   const visited = new Set<number>();
-  for (const neighbor of neighbors(index, position.width, position.height)) {
+  const adjacent = neighbors(index, position.width, position.height);
+  for (const neighbor of adjacent) {
     if (board[neighbor] !== opposite(color) || visited.has(neighbor)) continue;
     const enemy = group(board, neighbor, position.width, position.height);
     for (const stone of enemy.stones) visited.add(stone);
@@ -196,9 +197,13 @@ export function play(position: Position, point: Point, color: Color = position.t
         captured.push({ x: stone % position.width, y: Math.floor(stone / position.width) });
       }
   }
-  const own = group(board, index, position.width, position.height);
+  // Capture removal can create a liberty. An adjacent empty point proves the
+  // entire own group survives; enumerate it only when that proof is unavailable.
+  const own = adjacent.some((neighbor) => board[neighbor] === null)
+    ? null
+    : group(board, index, position.width, position.height);
   const captures = { ...position.captures, [color]: position.captures[color] + captured.length };
-  if (own.liberties.size === 0) {
+  if (own && own.liberties.size === 0) {
     if (position.rules.suicide === 'forbid') return { ok: false, reason: 'suicide' };
     for (const stone of own.stones) board[stone] = null;
     captures[opposite(color)] += own.stones.size;

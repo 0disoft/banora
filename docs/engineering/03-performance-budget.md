@@ -533,3 +533,48 @@ and deterministic hash counts are the evidence used here. Ignored
 `.tmp/paired-superko.mjs`, `paired-superko.json`, old/new source bundles and
 `superko-state-parity.mjs` retain the procedure. No timing threshold, new browser
 route or extra CI job is added.
+
+## Adjacent-Liberty Proof Before Own-Group Traversal
+
+After capturing enemy groups, `play` used to traverse the complete own group and
+collect all liberties even when an empty neighbor of the new stone already proved
+it could survive. This affects legal play and `replayMove`, which delegates its
+capture/self-capture work to `play`. The new check reuses the placement's neighbor
+indices, inspects at most four cells after captures, and skips own-group traversal
+when any is empty. No adjacent liberty retains the original complete traversal,
+including remote liberties and full multi-stone self-capture. Enemy traversal and
+the order/values of captures, errors, repetition and snapshots are unchanged.
+
+For a board of width W, the measured connected fixture fills the upper-left
+(W-1)x(W-1) square with black stones using `setup`, leaving its last row and column
+empty; Black plays at (W-1,W-2). Both operations below start from this same input
+independently each iteration. The 19x19 resulting chain has 325 stones and neighbor
+enumeration/array creation drops from 326 to one; the 52x52 chain has 2,602 stones
+and drops from 2,603 to one. Tests count `Math.floor` calls during only the action:
+on these no-capture fixtures that operation occurs once per neighbor enumeration.
+The own-group component falls from O(G) to O(1) for this adjacent-liberty case;
+overall placement retains O(A) board copying, and the fallback remains O(G).
+
+Paired Node 24.14.0 / Windows timings bundle parent/current core separately, run
+both in one process with four warmups and nine samples per case, and alternate
+before/after order. Input creation is excluded. Median milliseconds are:
+
+| Fixture         | Independent actions/sample | Operation    | Before ms | After ms |
+| --------------- | -------------------------: | ------------ | --------: | -------: |
+| 19x19 connected |                      2,000 | `play`       |     74.11 |     3.30 |
+| 19x19 connected |                      2,000 | `replayMove` |     77.90 |     7.70 |
+| 52x52 connected |                        250 | `play`       |     97.82 |     0.88 |
+| 52x52 connected |                        250 | `replayMove` |     98.89 |     1.68 |
+| 19x19 empty     |                     10,000 | `play`       |     24.67 |    22.13 |
+| 19x19 empty     |                     10,000 | `replayMove` |     48.89 |    42.47 |
+
+These are core fixture timings, not whole SGF import, typical-game, rendering,
+browser latency, p95 or memory measurements. No timing thresholds are added.
+A separate old/new oracle compares 67,968 complete MoveResults: all 81 2x2
+layouts and 200 seeded 3x3 layouts, both turns/suicide policies, all four ko
+policies and both play/replay at every point. All are equal, including captures
+and complete repetition histories. Committed tests also cover capture-created
+and remote-only liberties, forbidden/allowed multi-stone suicide and old snapshots.
+Ignored `.tmp/liberty-{probe.ts,bench.mjs,bench.json,parity.mjs,parity.json}` and
+before/after source bundles retain the local procedure; no cache, browser route
+or CI job is added.
