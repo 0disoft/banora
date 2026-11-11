@@ -35,6 +35,40 @@ async (page, studioControl) => {
       { bytes: [...bytes], name },
     );
   }
+  async function cancelReplacement(deferClose = false) {
+    // Hidden is observable before native close settles the import cancellation.
+    await page.locator('#unsaved').evaluate((dialog, deferred) => {
+      dialog.dataset.dropClose = 'pending';
+      dialog.addEventListener(
+        'close',
+        () => {
+          dialog.dataset.dropClose = 'complete';
+        },
+        { once: true },
+      );
+      if (deferred) {
+        // Force the queued-close race without controller hooks or extra retries.
+        dialog.addEventListener(
+          'close',
+          (event) => {
+            event.stopImmediatePropagation();
+            setTimeout(() => dialog.dispatchEvent(new Event('close')), 500);
+          },
+          { capture: true, once: true },
+        );
+      }
+    }, deferClose);
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await page.waitForFunction(
+      () => document.querySelector('#unsaved').dataset.dropClose === 'complete',
+    );
+    await page.locator('#unsaved').evaluate((dialog) => delete dialog.dataset.dropClose);
+    verify(
+      (await page.locator('#game-name').innerText()) === 'Drop archive' &&
+        (await page.locator('#comment').inputValue()) === 'Unsaved drop note',
+      'Cancelled drop lost the active record',
+    );
+  }
   try {
     await page.goto(`${origin}/studio/`);
     await page.locator('#board svg').waitFor();
@@ -121,16 +155,13 @@ async (page, studioControl) => {
     await page.locator('#comment').blur();
     const replacement = Buffer.from('(;SZ[13]GN[Replacement])');
     await drop(replacement, 'replacement.sgf');
-    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-    verify(
-      (await page.locator('#game-name').innerText()) === 'Drop archive' &&
-        (await page.locator('#comment').inputValue()) === 'Unsaved drop note',
-      'Cancelled drop lost the active record',
-    );
+    await cancelReplacement();
     await drop(replacement, 'replacement.sgf');
-    const saved = page.waitForEvent('download');
-    await page.getByRole('button', { name: 'Export & continue', exact: true }).click();
-    const download = await saved;
+    await cancelReplacement(true);
+    await drop(replacement, 'replacement.sgf');
+    const exportButton = page.getByRole('button', { name: 'Export & continue', exact: true });
+    await exportButton.waitFor({ state: 'visible' });
+    const [download] = await Promise.all([page.waitForEvent('download'), exportButton.click()]);
     await download.saveAs('output/playwright/drop-preserved.sgf');
     await page.waitForFunction(
       () => document.querySelector('#game-name').textContent === 'Replacement',

@@ -1,5 +1,39 @@
 # Validation
 
+## File-Drop Cancellation Before the Second Download
+
+The file-drop smoke could dispatch a new drop after Cancel hid the replacement
+dialog but before its queued native `close` event settled the previous import.
+Studio still had `opening = true` and rejected the new import. The next export
+button therefore never appeared. Because a download waiter was already pending
+while the click auto-waited, its 30-second rejection masked the missing dialog.
+Deferring the cancellation close delivery by 500 ms reproduced both the missing
+export button and the original 30-second download timeout. Unmodified ordinary
+runs also passed; this is an event-order reproduction, not a measured flake rate.
+
+The scenario now arms a one-shot close observer before the real Cancel click and
+waits for its completion before the next synthetic drop. Its temporary DOM marker
+is removed afterward. The export button must be visible before download waiting
+starts; click and download promises are observed together. No timeout was raised,
+no retry was added, and no production behavior, browser permissions, dependency,
+API/schema, DB, CI job or new browser route changes. The same scenario retains
+the ordinary native cancellation and adds a delayed-close cancellation regression.
+Both real SGF downloads, Japanese encoding/edit/export/reopen, metadata escaping,
+unknown properties, branches, dirty baseline, invalid bytes and stale file-read
+success/error/new-record/sample protections remain covered.
+
+Validation uses Windows Chrome 156, `bun scripts/browser-smoke.ts --drop-only`,
+the current example build and the focused browser-runner unit tests (9 tests /
+173 assertions). The fixed complete route passed three consecutive runs, each
+including the ordinary and 500-ms deferred-close cases; the last two whole-run
+wall times were 12.43 and 12.06 seconds. The induced pre-change case failed in
+the original 30-second download wait. These are local completion observations,
+not throughput or production latency measurements. Example builds, types, lint,
+formatting, boundaries and docs checks pass. Full root `check`, SDK/CLI suites
+and other browser engines/devices are skipped because this change only
+synchronizes the existing smoke scenario; their behavior is unchanged. Skills:
+`bugfix` and `test-hardening`. Versions remain manually managed at 0.1.3.
+
 ## Skip Raw-Proof Misses for Plain SGF Records
 
 The parser weakly classifies its own fully frozen records when decoding leaves
