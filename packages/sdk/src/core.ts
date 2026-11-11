@@ -1,4 +1,4 @@
-import { boardKey, hasSituation, rememberSituation } from './repetition-history.js';
+import { boardKey, rememberSituation, tryRememberSituation } from './repetition-history.js';
 import { validBoardDimensions } from './board-dimensions.js';
 import type { RepetitionHistory } from './repetition-history.js';
 export type { RepetitionHistory } from './repetition-history.js';
@@ -212,15 +212,16 @@ export function play(position: Position, point: Point, color: Color = position.t
   }
   const toPlay = opposite(color);
   const repetitionKey = superko(position.rules) ? boardKey(board) : null;
-  if (
-    repetitionKey !== null &&
-    hasSituation(
-      position.repetitionHistory,
-      repetitionKey,
-      position.rules.ko === 'situational-superko' ? toPlay : undefined,
-    )
-  )
-    return { ok: false, reason: 'superko' };
+  const repetitionHistory =
+    repetitionKey === null
+      ? null
+      : tryRememberSituation(
+          position.repetitionHistory,
+          repetitionKey,
+          toPlay,
+          position.rules.ko === 'positional-superko',
+        );
+  if (repetitionKey !== null && repetitionHistory === null) return { ok: false, reason: 'superko' };
   return {
     ok: true,
     position: seal(
@@ -232,10 +233,7 @@ export function play(position: Position, point: Point, color: Color = position.t
         moveNumber: position.moveNumber + 1,
         previousBoard: position.board,
         consecutivePasses: 0,
-        repetitionHistory:
-          repetitionKey === null
-            ? null
-            : rememberSituation(position.repetitionHistory, repetitionKey, toPlay),
+        repetitionHistory,
       },
       true,
     ),

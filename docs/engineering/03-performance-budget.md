@@ -493,3 +493,43 @@ situational superko and pass prisoners enabled, not browser/frame/import/RSS
 measurements or a claim about ordinary match duration. Timing thresholds are not
 added to CI. Ignored `.tmp/pass-key-bench.ts`, before/after bundles and
 `.tmp/pass-key-before.json` / `pass-key-after.json` preserve the local procedure.
+
+## Shared Hashes for Checked Superko Insertion
+
+For every accepted normal placement, core previously queried `hasSituation` and
+then called `rememberSituation` with the same candidate. Situational superko
+hashed that exact turn key twice; positional superko hashed black and white for
+lookup, then hashed the chosen next-player key again for insertion. The private
+`tryRememberSituation` now reuses lookup hashes for insertion, without any new
+cache or retained input. Asymptotic hashing remains O(A) for A board points; one
+complete candidate hash pass is removed per accepted move. Null history still
+hashes once; positional duplicate rejection retains black-first short-circuiting,
+and hash matches still require exact key equality. Unconditional insertion for
+pass/setup/replay is unchanged, as is rejection/validation order.
+
+Bun 1.4.4 / Windows character-read instrumentation starts after creating an empty
+19x19 superko position. One legal black placement yields 724 -> 362 hash character
+reads for situational superko, and 1,086 -> 724 for positional superko. Oracle
+tests compare with the separate lookup/insertion for turns, empty and 2,704-cell
+keys, branched history and deliberate FNV collisions. A Node comparison of 200
+legal moves under each policy yields 400 identical complete MoveResults against
+parent `7700595` (boards, captures, counters and entire immutable history).
+
+Paired Node 24.14.0 / Windows measurements compare separately bundled parent and
+changed core modules within one process. Each timed sample creates 50 independent
+19x19 games and plays 200 legal row-order placements in each, checking 201 history
+entries per completed game. Four warmups per version/policy precede nine samples,
+alternating before/after order. Position creation is included; parsing, rendering
+and browser code are absent. Median time for 10,000 legal moves is:
+
+| Policy              | Before ms | After ms |
+| ------------------- | --------: | -------: |
+| Situational superko |    127.01 |   111.49 |
+| Positional superko  |    149.95 |   130.22 |
+
+These are local core-workload measurements, not whole-game/browser latency or
+p95 claims. Early independent-process samples were noisy, so the paired results
+and deterministic hash counts are the evidence used here. Ignored
+`.tmp/paired-superko.mjs`, `paired-superko.json`, old/new source bundles and
+`superko-state-parity.mjs` retain the procedure. No timing threshold, new browser
+route or extra CI job is added.

@@ -1,5 +1,33 @@
 # Validation
 
+## Shared Hashes for Checked Superko Insertion
+
+Legal placements now check and insert a candidate situation in one private
+history operation, reusing computed hashes within that call. Positional lookup
+still checks black before white and short-circuits; exact key equality still
+resolves hash collisions. Wrong-turn, bounds, occupied, suicide and simple-ko
+precedence is unchanged. Pass, setup and historical replay retain unconditional
+history insertion and their existing behavior. No new cache, public API/schema,
+DB, dependency, hygiene or CI/runner change.
+
+Owning contracts: [public API](docs/sdk/public-api.md),
+[ADR 0006](docs/adr/0006-explicit-repetition-and-rule-profile-boundaries.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#shared-hashes-for-checked-superko-insertion).
+The separate old lookup/insertion is the test oracle across null history, turns,
+nested tries, empty/max-length board keys and deliberate hash collisions. Other
+tests check immutable history, positional short-circuit order, rejection precedence
+and hash character reads: one 19x19 legal move drops from 724 to 362 under
+situational superko and 1,086 to 724 under positional superko. The full SDK suite
+passes 328 tests / 21,164 assertions. A separate Node before/after comparison checks
+400 complete MoveResults, including board, captures and history, with exact parity.
+Broader root `check`, packed consumer and other engine/device checks are skipped
+for this internal history change; focused build/type/lint/docs and the existing
+rules browser route cover the affected implementation and consumer behavior.
+SDK/adapter/example builds, types, lint, formatting, module boundaries and docs
+checks pass; Windows Chrome 156 focused repetition-rules smoke passes. No new
+browser route or CI job is added. Paired Node timings and their scope are recorded
+in the performance evidence; no timing threshold is added to tests.
+
 ## Owned Immutable Repetition Board Keys
 
 Superko history updates now reuse a board-content key only for arrays registered

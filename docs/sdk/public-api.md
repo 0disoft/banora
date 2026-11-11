@@ -343,8 +343,12 @@ while preserving move/capture counters. Failed setup preserves the entire positi
 deeply immutable `RepetitionHistory` with `size` distinct board/turn situations and
 an SDK-owned persistent `root` index. Treat its representation as an implementation
 detail, not a move log or edit history. The index checks exact keys after hashing;
-hash collisions cannot cause a false rejection. Use core-produced positions rather
-than recreating history from visible stones. Replaying a recorded move bypasses
+hash collisions cannot cause a false rejection. Accepted legal placements reuse
+each candidate turn's hash for insertion within that call, without a new cache.
+Positional lookup still checks black then white
+and short-circuits on a match; exact equality still resolves collisions.
+Use core-produced positions rather than recreating history from visible stones.
+Replaying a recorded move bypasses
 normal rejection but remembers the resulting situation under the original policy.
 The setup/playback choices and profile boundaries are recorded in
 [ADR 0006](../adr/0006-explicit-repetition-and-rule-profile-boundaries.md).

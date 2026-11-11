@@ -52,8 +52,7 @@ function insert(node: Node | null, key: string, hash: number, depth = 0): Node {
   children[index] = next;
   return branch(children);
 }
-function contains(history: RepetitionHistory, key: string): boolean {
-  const hash = hashKey(key);
+function contains(history: RepetitionHistory, key: string, hash = hashKey(key)): boolean {
   let node = history.root,
     depth = 0;
   while (node && 'children' in node) node = node.children[(hash >>> (depth++ * 4)) & 15]!;
@@ -78,6 +77,35 @@ export function rememberSituation(
 ): RepetitionHistory {
   const previous = history ?? empty,
     key = board + (toPlay === 'black' ? 'B' : 'W');
-  const root = insert(previous.root, key, hashKey(key));
+  return rememberKey(previous, key, hashKey(key));
+}
+function rememberKey(previous: RepetitionHistory, key: string, hash: number): RepetitionHistory {
+  const root = insert(previous.root, key, hash);
   return root === previous.root ? previous : Object.freeze({ size: previous.size + 1, root });
+}
+
+/** Check exact repetition before insertion, sharing hashes within this call only. */
+export function tryRememberSituation(
+  history: RepetitionHistory | null,
+  board: string,
+  toPlay: Color,
+  positional = false,
+): RepetitionHistory | null {
+  let key: string, hash: number;
+  if (history && positional) {
+    // Preserve positional lookup order: black first, then white if absent.
+    const black = board + 'B',
+      blackHash = hashKey(black);
+    if (contains(history, black, blackHash)) return null;
+    const white = board + 'W',
+      whiteHash = hashKey(white);
+    if (contains(history, white, whiteHash)) return null;
+    key = toPlay === 'black' ? black : white;
+    hash = toPlay === 'black' ? blackHash : whiteHash;
+  } else {
+    key = board + (toPlay === 'black' ? 'B' : 'W');
+    hash = hashKey(key);
+    if (history && contains(history, key, hash)) return null;
+  }
+  return rememberKey(history ?? empty, key, hash);
 }
