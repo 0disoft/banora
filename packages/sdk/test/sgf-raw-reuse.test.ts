@@ -52,6 +52,53 @@ test('plain-only records do not allocate per-node weak proof entries', () => {
   }
 });
 
+test('plain records skip every node proof lookup in normalized-size checking and export', () => {
+  const spy = spyOn(WeakMap.prototype, 'get');
+  try {
+    const record = parsed('(;SZ[19]' + ';C[plain review text]'.repeat(5000) + ')');
+    expect(spy.mock.calls).toHaveLength(0);
+    const text = serializeSgf(record);
+    expect(spy.mock.calls).toHaveLength(0);
+    expect(text).toContain('C[plain review text]');
+  } finally {
+    spy.mockRestore();
+  }
+});
+
+test('mixed collections and wrappers combining plain and escaped records retain escaped proofs', () => {
+  const plain = parsed('(;C[plain])');
+  const escaped = parsed('(;C[escaped\\]value])');
+  const combined = Object.freeze({ games: Object.freeze([...plain.games, ...escaped.games]) });
+  const parsedMixed = parsed('(;C[plain])(;C[escaped\\]value])');
+  const originalTest = RegExp.prototype.test;
+  const pattern = /[\\\r\n]/.source;
+  let decodes = 0;
+  const spy = spyOn(RegExp.prototype, 'test').mockImplementation(function (
+    this: RegExp,
+    value: string,
+  ) {
+    if (this.source === pattern) decodes++;
+    return Reflect.apply(originalTest, this, [value]);
+  });
+  try {
+    for (const record of [combined, parsedMixed]) {
+      decodes = 0;
+      expect(serializeSgf(record)).toContain('C[escaped\\]value]');
+      expect(decodes).toBe(1); // Plain root only; the escaped root still reuses its proof.
+    }
+  } finally {
+    spy.mockRestore();
+  }
+});
+
+test('an escaped edit to a plain record cannot inherit the record classification', () => {
+  const root = parsed('(;C[plain])').games[0]!;
+  const edited = createSgfNode(root.id, { C: ['new]value'] }, [], root.rawProperties);
+  const text = serializeSgf({ games: [edited] });
+  expect(text).toContain('C[new\\]value]');
+  expect(parsed(text).games[0]!.properties.C).toEqual(['new]value']);
+});
+
 test('changed properties with old raw text use the ordinary exact decoded comparison', () => {
   const root = parsed('(;C[old\\]comment]XX[unchanged\\:value])').games[0]!;
   const edited = createSgfNode(

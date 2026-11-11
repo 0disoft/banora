@@ -1,5 +1,36 @@
 # Validation
 
+## Skip Raw-Proof Misses for Plain SGF Records
+
+The parser weakly classifies its own fully frozen records when decoding leaves
+every raw value unchanged. The serializer checks that exact record once and skips
+per-node proof lookups, while retaining every ordinary decoded-value comparison.
+Edited/unknown/mixed records retain the established proof/fallback path; escaped
+nodes still reuse the original exact properties/raw-string proof. The call-local
+changed-node Set is now allocated only when needed. One weak entry per plain
+record owns no record/tree strongly; there are no per-node plain entries or new
+public flags. Signatures, output bytes, root headers, diagnostics and all limits
+are unchanged. No API/schema, DB, dependency, hygiene or CI/runner changes.
+
+Owning contracts: [SGF API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#skip-raw-proof-misses-for-plain-sgf-records).
+On the 5,001-node plain fixture, normalized-size serialization and later export
+each drop from 5,001 WeakMap.get calls to zero. Escaped decode counts remain
+5,002 during parsing / one during export. New tests check zero plain lookups,
+mixed collections/wrappers and escaped edits after plain input. Existing tests
+retain foreign frozen/getter, raw replacement, Text/SimpleText, canonical header
+and boundary coverage. The SDK suite passes 346 tests / 21,391 assertions. A
+567-case before/after oracle retains complete parse results/diagnostics and exact
+export strings across Unicode/escapes and byte/value/node/expansion limits.
+SDK/adapter/example builds, types, lint, formatting, boundaries and docs checks
+pass. Packed public SDK, classic global, ambient declarations and entrypoints pass.
+Windows Chrome 156 focused file-drop smoke passes on an unchanged-build retry;
+the first run again timed out after 30 seconds waiting for the second download,
+as recorded for the previous change. The cause is still not established and no
+timeout/runner change was made. Full root `check` and other browser-engine/device
+checks are skipped for this internal classification change. Three-way timing
+evidence compares pre-proof/parent/changed code, including residual differences.
+
 ## Reuse Proven Immutable SGF Raw Values
 
 SGF parsing previously decoded each raw property, then decoded it again while

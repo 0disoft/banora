@@ -16,6 +16,8 @@ export interface SgfRecord {
 // Only parser-owned immutable maps prove that these exact raw values were
 // decoded into these properties. Weak keys never retain a record or its tree.
 const parsedRawValues = new WeakMap<SgfNode['properties'], SgfNode['rawProperties']>();
+// One weak classification per parser-owned record avoids node-by-node misses.
+const plainRecords = new WeakSet<SgfRecord>();
 /** Stable locator within a serialized collection; path contains child indices. */
 export interface RecordLocator {
   readonly gameIndex: number;
@@ -349,7 +351,7 @@ function parse(text: string, limits: SgfLimits, size?: ParseSize): SgfRecord {
     fail('limit', 'SGF input exceeds byte limit');
   let offset = 0;
   const nodes: MutableNode[] = [];
-  const decodedRaw = new Set<MutableNode>();
+  let decodedRaw: Set<MutableNode> | undefined;
   const roots: MutableNode[] = [];
   const stack: { last: MutableNode | null; branched: boolean }[] = [];
   const valueBoundary = /[\\\]]/g;
@@ -429,7 +431,7 @@ function parse(text: string, limits: SgfLimits, size?: ParseSize): SgfRecord {
           rawValues.push(raw);
           const decoded = decodeValue(raw, key);
           values.push(decoded);
-          if (decoded !== raw) decodedRaw.add(node);
+          if (decoded !== raw) (decodedRaw ??= new Set()).add(node);
           whitespace();
         }
         if (!values.length) fail('syntax', `Missing value for ${key}`, offset);
@@ -450,8 +452,10 @@ function parse(text: string, limits: SgfLimits, size?: ParseSize): SgfRecord {
     Object.freeze(node.children);
     Object.freeze(node);
   }
-  for (const node of decodedRaw) parsedRawValues.set(node.properties, node.rawProperties);
+  if (decodedRaw)
+    for (const node of decodedRaw) parsedRawValues.set(node.properties, node.rawProperties);
   const record: SgfRecord = Object.freeze({ games: Object.freeze(roots) });
+  if (!decodedRaw) plainRecords.add(record);
   const budget = { remaining: limits.maxExpandedPoints ?? DEFAULT_SGF_LIMITS.maxExpandedPoints };
   for (const root of record.games) validateGame(root, budget);
   const normalizedBytes = new TextEncoder().encode(serializeSgf(record)).length;
@@ -593,10 +597,10 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
 function escapeValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/\]/g, '\\]');
 }
-function nodeText(node: SgfNode, root: boolean): string {
+function nodeText(node: SgfNode, root: boolean, checkRawProof: boolean): string {
   const original = node.properties;
   const properties = root ? { ...original, FF: ['4'], GM: ['1'], CA: ['UTF-8'] } : original;
-  const verified = parsedRawValues.get(original);
+  const verified = checkRawProof ? parsedRawValues.get(original) : undefined;
   let result = ';';
   for (const key of Object.keys(properties).sort()) {
     const values = properties[key]!;
@@ -620,6 +624,7 @@ function nodeText(node: SgfNode, root: boolean): string {
   return result;
 }
 export function serializeSgf(record: SgfRecord): string {
+  const checkRawProof = !plainRecords.has(record);
   const pieces: string[] = [];
   const stack: (string | { node: SgfNode; root: boolean })[] = [];
   for (let i = record.games.length - 1; i >= 0; i--)
@@ -632,10 +637,10 @@ export function serializeSgf(record: SgfRecord): string {
     }
     pieces.push('(');
     let node = item.node;
-    pieces.push(nodeText(node, item.root));
+    pieces.push(nodeText(node, item.root, checkRawProof));
     while (node.children.length === 1) {
       node = node.children[0]!;
-      pieces.push(nodeText(node, false));
+      pieces.push(nodeText(node, false, checkRawProof));
     }
     stack.push(')');
     for (let i = node.children.length - 1; i >= 0; i--)

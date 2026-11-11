@@ -399,6 +399,12 @@ retain the normal decoded-value comparison; foreign frozen/accessor objects are
 never trusted by freezing alone. Canonical root headers and all semantic, byte,
 value, expansion and annotation limits remain unchanged. Plain-only nodes create
 no per-node proof entry. The weak metadata owns neither nodes nor record trees.
+The parser also weakly classifies each fully frozen record whose raw values were
+unchanged by decoding. Serialization of that exact record skips all node proof
+lookups while still performing the ordinary decoded-value comparisons. Unknown,
+edited and mixed records retain the existing proof/fallback path. The temporary
+changed-node Set is allocated only after the first changed value; no public flag,
+extra wire field or skipped validation is introduced.
 
 `@0disoft/banora/controller` exports `RecordController` and related state/command types.
 Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.

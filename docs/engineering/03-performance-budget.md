@@ -665,3 +665,47 @@ entries. A separate 567-case oracle preserves complete parser results/diagnostic
 and exact serialized strings across Unicode, Text/SimpleText/label/unknown escapes
 and byte/value/node/expansion boundaries. Ignored `.tmp/raw-value-{probe.ts,
 bench.mjs,bench.json,parity.mjs}` and parent/current bundles retain the procedure.
+
+## Skip Raw-Proof Misses for Plain SGF Records
+
+The raw-value optimization still performed one WeakMap lookup on every node,
+including plain-only records with no matching proof entries. The parser now weakly
+classifies its own fully frozen record when every decoded value equals its raw
+value. Serialization checks that exact record once, skips node proof lookups, and
+still performs all ordinary raw/decoded comparisons. Mixed, edited and external
+records retain the previous proof/fallback path. The temporary changed-node Set
+is allocated only after the first changed value. One weak classification entry
+per plain record does not strongly retain records or trees.
+
+On the 5,001-node plain fixture, WeakMap.get calls drop from 5,001 to zero both
+inside normalized-size checking and on a later export, replaced by one WeakSet
+membership check per serialization. The escaped fixture retains 5,002 decodeValue
+calls during parse / one during export. Output construction and validation remain
+O(T); only these metadata misses fall from O(N) to O(1).
+
+Node 24.14.0 / Windows measurements compare three separately bundled versions
+in one process: pre-proof `bd27019`, previous `e4cc653`, and the changed source.
+The pre-proof source is verified against Git after only import-path rewriting.
+Each sample performs three complete parses or three exports; four warmups precede
+nine samples per input/operation, rotating all three execution orders. Input
+preparation and exact output comparisons are excluded. Fixtures contain 5,001
+nodes with 5,000 comments: plain input is 2,060,009 bytes, escaped input 2,180,009.
+Median milliseconds per three operations are:
+
+| Input   | Operation | Pre-proof | Previous | Changed |
+| ------- | --------- | --------: | -------: | ------: |
+| Plain   | Parse     |    125.35 |   127.87 |  125.20 |
+| Plain   | Serialize |     11.16 |    11.60 |   11.30 |
+| Escaped | Parse     |    389.31 |   288.67 |  284.36 |
+| Escaped | Serialize |    102.51 |     8.64 |    8.72 |
+
+Plain parse/export drops about 2.1% / 2.5% relative to the immediate parent in
+this run. Plain parsing is close to the pre-proof baseline; export still has a
+small residual difference. The large escaped-value gains remain, with unchanged
+decode counts. These are local component medians; small timing differences are
+not universal latency guarantees, browser/p95 claims or memory measurements.
+No timing threshold is added. New tests enforce zero plain-node lookups, preserve
+mixed collections/wrappers and reject stale classification after edits. All
+567 paired parser/diagnostic/export boundary cases agree. Ignored
+`.tmp/sgf-plain-{probe.ts,bench.mjs,bench.json,parity.mjs}` and before/after bundles
+retain the procedure. No public API, dependency or benchmark/CI runner is added.
