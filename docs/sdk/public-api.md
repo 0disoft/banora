@@ -78,8 +78,12 @@ place only after their last mutation. Foreign arrays are still defensively copie
 without freezing caller state, even when already frozen: an external frozen array
 can contain accessors whose values change. Ownership is tracked weakly inside the
 core, without a public trust flag or a strong cache of previous boards. For owned
-boards under simple/no ko, pass sealing no longer scans the board; superko retains
-its board-key/history work and ordinary moves retain their working copy.
+boards under simple/no ko, pass sealing no longer scans the board. Superko reuses
+board-content keys in a private WeakMap only for those owned immutable arrays;
+foreign mutable/frozen accessor arrays are always read again. Board changes use
+new keys. Turn-specific history hashing/membership, counters and rule validation
+still run normally, and ordinary moves retain their working copy. Keys add O(A)
+space per live cached board of A points without keeping the board itself alive.
 Move color defaults to the current turn; a mismatched color is rejected.
 
 ### Named Rule Presets

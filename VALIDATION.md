@@ -1,5 +1,32 @@
 # Validation
 
+## Owned Immutable Repetition Board Keys
+
+Superko history updates now reuse a board-content key only for arrays registered
+in the existing SDK-owned sealed-board WeakSet. A WeakMap does not keep boards
+alive. Foreign mutable arrays and frozen accessor arrays still rebuild keys;
+changed boards get separate entries. History hashing/insertion and exact
+equality, rule/rejection order, pass prisoners, out-of-turn replay, setup resets
+and immutable snapshots are unchanged. No public API/schema, DB, dependency,
+repository hygiene or CI/runner change.
+
+Owning contracts: [public API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#owned-immutable-repetition-board-keys).
+New tests cover both superko policies on 52x52 boards, 1,000 consecutive passes,
+post-play/setup changes, out-of-turn recorded passes, mutable/frozen getter
+inputs, history membership and the absence of key work under simple/no ko.
+The full SDK suite passes 324 tests / 20,602 assertions, including existing
+triple-ko, hash-collision, self-capture and controller history tests. In a separate
+5,000-pass run key constructions drop from 5,000 to one; Node 24.14.0 / Windows
+52x52 median drops from 354.75 to 52.77 ms (one warmup/five samples per version).
+These are direct-transition measurements, excluding import, UI and GC guarantees.
+Broad root `check`, packed-consumer and other engine/device checks are skipped
+for this private core cache; focused build/type/lint/docs and rules browser checks
+cover the affected implementation and consumer path.
+SDK/adapter/example builds, types, lint, formatting, module boundaries and docs
+checks pass; Windows Chrome 156 focused repetition-rules smoke passes. The
+existing rules route is reused, with no new CI job or browser route.
+
 ## Incremental Variation Fork-Path Keys
 
 Studio/focused Viewer reuse checks now compute `variationPathKey` incrementally

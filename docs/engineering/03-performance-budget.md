@@ -461,3 +461,35 @@ The regression uses a 1,000-move linear fixture and a deterministic read budget,
 plus a cold-traversal oracle for nested forks, games, older frames, independent
 controllers, comment edits, topology changes and imports. No timing threshold,
 new browser route or CI job is introduced.
+
+## Owned Immutable Repetition Board Keys
+
+The earlier immutable-board sealing work left superko board-key generation in
+place. `nextHistory` rebuilt `board.map(...).join('')` on every pass, although the
+owned frozen board object remained identical. It now uses a private WeakMap only
+after the existing SDK-owned WeakSet proves content stability. Merely being
+frozen is insufficient: foreign arrays can have changing getters. Those inputs
+are never cached. New play/setup boards get independent keys. No history lookup,
+hash, exact collision check, rule validation, pass ledger or snapshot is skipped.
+
+For P transitions sharing an owned A-point board, the content-key work changes
+from O(P*A) to O(P+A), with one O(A) string per live cached board. The WeakMap
+does not own boards or positions. Repetition-history hashing still scans keys;
+this does not claim constant-time superko transitions or lower memory usage.
+
+On Bun 1.4.4 / Windows, spying only after initial position creation measures
+5,000 situational-superko passes on a 52x52 board: key constructions fall from
+5,000 to one; final history size remains two and pass prisoners remain 2,500 for
+each color. This removes 4,999 temporary map arrays, each holding 2,704 entries.
+Regression tests additionally cover positional superko, post-play/setup boards,
+recorded out-of-turn passes and foreign mutable/frozen accessor input changes.
+
+Independent Node 24.14.0 processes run the same source benchmark, bundled before
+(parent `86b8af4`) and after the change. Each size gets one warmup and five timed
+5,000-pass samples, with position creation outside the timer and final counters/
+history verified. At 52x52 the median is 354.75 ms before (352.11-359.21) and
+52.77 ms after (52.59-53.51). These are direct core transitions with
+situational superko and pass prisoners enabled, not browser/frame/import/RSS
+measurements or a claim about ordinary match duration. Timing thresholds are not
+added to CI. Ignored `.tmp/pass-key-bench.ts`, before/after bundles and
+`.tmp/pass-key-before.json` / `pass-key-after.json` preserve the local procedure.

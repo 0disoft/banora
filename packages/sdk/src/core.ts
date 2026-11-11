@@ -59,12 +59,24 @@ function nextHistory(
   toPlay: Color,
 ): RepetitionHistory | null {
   return superko(position.rules)
-    ? rememberSituation(position.repetitionHistory, boardKey(board), toPlay)
+    ? rememberSituation(position.repetitionHistory, repetitionBoardKey(board), toPlay)
     : null;
 }
 
 // Only arrays frozen here are trusted; a foreign frozen array may contain getters.
 const sealedBoards = new WeakSet<readonly (Color | null)[]>();
+// Reuse content keys only for arrays sealed by this SDK, never foreign arrays
+// (even frozen ones may expose changing getters). Weak keys do not own boards.
+const repetitionKeys = new WeakMap<readonly (Color | null)[], string>();
+function repetitionBoardKey(board: readonly (Color | null)[]): string {
+  if (!sealedBoards.has(board)) return boardKey(board);
+  let key = repetitionKeys.get(board);
+  if (key === undefined) {
+    key = boardKey(board);
+    repetitionKeys.set(board, key);
+  }
+  return key;
+}
 function sealBoard(board: readonly (Color | null)[], owned = false): readonly (Color | null)[] {
   if (sealedBoards.has(board)) return board;
   const sealed = Object.freeze(owned ? board : [...board]);
