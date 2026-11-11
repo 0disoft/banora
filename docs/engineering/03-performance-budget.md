@@ -619,3 +619,49 @@ measurements, not browser storage/rendering, typical-game, p95 or memory claims.
 No timing threshold is added. Ignored `.tmp/checkpoint-{probe.ts,bench.mjs,bench.json}`
 and parent/current bundles retain the local procedure. No new browser route, CI
 job, global cache or public package export is introduced.
+
+## Reuse Proven Immutable SGF Raw Values
+
+The parser decodes raw property strings, then serializes the record to enforce
+the normalized UTF-8 byte limit. Serialization used to decode the same raw strings
+again to prove preservation, and every later export repeated that work. A private
+WeakMap now proves the relation between parser-owned frozen properties and their
+original raw maps. It is populated only for nodes where decoding changes a raw
+value, avoiding per-node entries for plain-only input. Serialization still checks
+the exact raw string at the current key/index. Edited properties, replacement raw
+values and foreign frozen/accessor inputs retain decoded comparison. Root headers,
+output bytes, diagnostics and all parser/annotation/expansion limits are unchanged.
+
+For 5,000 escaped-comment nodes plus a plain SZ root, decodeValue calls fall from
+10,002 to 5,002 during parsing and from 5,001 to one during later serialization.
+Only the unregistered plain root is decoded again. The weak map has no reference
+to record trees; changed-node references during parsing are call-local. Export
+still produces O(T) text and parsing remains O(T); this removes repeated decoding
+and intermediate strings in the proven cases, not all string traversal.
+
+Paired Node 24.14.0 / Windows measurements bundle parent/current SGF modules
+separately, run both in one process, and alternate version order. Each sample
+performs three complete parses or three serializations of its own parsed record.
+Three warmups precede seven samples per operation/input; the table reports median
+milliseconds per three operations. Input preparation and exact output comparison
+are outside the timer. Both fixtures contain 5,001 nodes / 5,000 comments: plain
+text is 2,060,009 input bytes, escaped text is 2,180,009 bytes. Results are:
+
+| Input            | Operation                        | Before ms | After ms |
+| ---------------- | -------------------------------- | --------: | -------: |
+| Escaped comments | Full parse, including validation |    375.04 |   293.22 |
+| Escaped comments | Serialize                        |    115.70 |    10.87 |
+| Plain comments   | Full parse, including validation |    131.96 |   138.01 |
+| Plain comments   | Serialize                        |     11.43 |    12.21 |
+
+The escaped fixture improves about 21.8% for parsing and 90.6% for serialization.
+The plain control is about 4.6% / 6.8% slower here (roughly 2.02 / 0.26 ms per
+operation); this is a measured tradeoff, not a universal speedup. An initial
+all-node proof implementation regressed plain parsing more and was narrowed to
+changed values. These local component timings do not establish browser latency,
+typical-game, p95 or memory results. No timing threshold or new benchmark runner is
+added. Committed tests bound decoding and verify plain nodes allocate no weak
+entries. A separate 567-case oracle preserves complete parser results/diagnostics
+and exact serialized strings across Unicode, Text/SimpleText/label/unknown escapes
+and byte/value/node/expansion boundaries. Ignored `.tmp/raw-value-{probe.ts,
+bench.mjs,bench.json,parity.mjs}` and parent/current bundles retain the procedure.

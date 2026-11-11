@@ -13,6 +13,9 @@ export interface SgfNode {
 export interface SgfRecord {
   readonly games: readonly SgfNode[];
 }
+// Only parser-owned immutable maps prove that these exact raw values were
+// decoded into these properties. Weak keys never retain a record or its tree.
+const parsedRawValues = new WeakMap<SgfNode['properties'], SgfNode['rawProperties']>();
 /** Stable locator within a serialized collection; path contains child indices. */
 export interface RecordLocator {
   readonly gameIndex: number;
@@ -346,6 +349,7 @@ function parse(text: string, limits: SgfLimits, size?: ParseSize): SgfRecord {
     fail('limit', 'SGF input exceeds byte limit');
   let offset = 0;
   const nodes: MutableNode[] = [];
+  const decodedRaw = new Set<MutableNode>();
   const roots: MutableNode[] = [];
   const stack: { last: MutableNode | null; branched: boolean }[] = [];
   const valueBoundary = /[\\\]]/g;
@@ -423,7 +427,9 @@ function parse(text: string, limits: SgfLimits, size?: ParseSize): SgfRecord {
           // Retain the exact original escapes without allocating per character.
           const raw = text.slice(valueStart, offset - 1);
           rawValues.push(raw);
-          values.push(decodeValue(raw, key));
+          const decoded = decodeValue(raw, key);
+          values.push(decoded);
+          if (decoded !== raw) decodedRaw.add(node);
           whitespace();
         }
         if (!values.length) fail('syntax', `Missing value for ${key}`, offset);
@@ -444,6 +450,7 @@ function parse(text: string, limits: SgfLimits, size?: ParseSize): SgfRecord {
     Object.freeze(node.children);
     Object.freeze(node);
   }
+  for (const node of decodedRaw) parsedRawValues.set(node.properties, node.rawProperties);
   const record: SgfRecord = Object.freeze({ games: Object.freeze(roots) });
   const budget = { remaining: limits.maxExpandedPoints ?? DEFAULT_SGF_LIMITS.maxExpandedPoints };
   for (const root of record.games) validateGame(root, budget);
@@ -587,9 +594,9 @@ function escapeValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/\]/g, '\\]');
 }
 function nodeText(node: SgfNode, root: boolean): string {
-  const properties = root
-    ? { ...node.properties, FF: ['4'], GM: ['1'], CA: ['UTF-8'] }
-    : node.properties;
+  const original = node.properties;
+  const properties = root ? { ...original, FF: ['4'], GM: ['1'], CA: ['UTF-8'] } : original;
+  const verified = parsedRawValues.get(original);
   let result = ';';
   for (const key of Object.keys(properties).sort()) {
     const values = properties[key]!;
@@ -599,7 +606,8 @@ function nodeText(node: SgfNode, root: boolean): string {
       const raw = node.rawProperties[key]?.[index];
       const preserved =
         raw !== undefined &&
-        decodeValue(raw, key) === value &&
+        ((verified !== undefined && verified[key]?.[index] === raw) ||
+          decodeValue(raw, key) === value) &&
         !(root && ['FF', 'GM', 'CA'].includes(key));
       const encoded = preserved
         ? raw

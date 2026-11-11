@@ -391,6 +391,15 @@ no public signature, global record cache or relaxed limit is introduced.
 Multibyte input, unsupported/mixed declarations, BOM conflicts and failed proofs
 retain the original strict decoding and recovery path.
 
+When parsing actually changes a raw value during decoding, a private weak map
+records that frozen node's original properties/raw-value relationship. Serialization
+may reuse this proof only for the same immutable properties and the exact raw
+string at that property/index. Edited properties and changed/external raw values
+retain the normal decoded-value comparison; foreign frozen/accessor objects are
+never trusted by freezing alone. Canonical root headers and all semantic, byte,
+value, expansion and annotation limits remain unchanged. Plain-only nodes create
+no per-node proof entry. The weak metadata owns neither nodes nor record trees.
+
 `@0disoft/banora/controller` exports `RecordController` and related state/command types.
 Create it with `{ sgf?, size?, rules?, limits? }`; invalid initial input throws.
 `prepareImport(input, {locator?})` validates under that controller's fixed limits

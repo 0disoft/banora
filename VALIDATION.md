@@ -1,5 +1,37 @@
 # Validation
 
+## Reuse Proven Immutable SGF Raw Values
+
+SGF parsing previously decoded each raw property, then decoded it again while
+serializing for normalized UTF-8 size validation. Every later export repeated
+that comparison. A private weak map now records parser-owned frozen properties
+and raw maps only on nodes whose decoded value differs from its raw text. The
+serializer requires both that exact properties identity and an exact raw-string
+match; edits and foreign/mismatched raw input use the previous decoded comparison.
+No public signature/schema/export, root-header behavior, diagnostic or limit
+changes. The metadata cannot retain nodes or record trees. Plain-only records
+allocate no per-node weak entries; no unbounded strong cache is added.
+
+Owning contracts: [SGF API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#reuse-proven-immutable-sgf-raw-values).
+On a 5,001-node escaped-comment fixture, decodeValue calls during parse drop from
+10,002 to 5,002, including the unchanged plain SZ root; later serialization drops
+from 5,001 to one. New tests cover Text/SimpleText/unknown/label escapes, canonical
+headers, edited properties, replaced raw maps, foreign frozen getters, reused
+properties/root context, and no proof entries on plain-only input. The SDK suite
+passes 343 tests / 21,382 assertions. A separate 567-case parent/current oracle
+checks complete parse results/diagnostics and exact export strings across text,
+Unicode, escape and byte/value/node/expansion-limit boundaries. SDK/adapter/example
+builds, types, lint, formatting, boundaries and docs checks pass. Packed public SDK,
+classic global, ambient declarations and entrypoint consumers pass. Windows Chrome
+156 focused file-drop smoke passes encoding, guarded replacement, export/reopen
+and malformed-byte preservation on an unchanged-build retry. The first run timed
+out waiting 30 seconds for the second download; its cause is not established and
+the runner/timeout was not changed. Full root `check` and other browser-engine/
+device checks are skipped for this private SGF change. Local timings also record
+the plain-text control regression, rather than claiming a universal speedup.
+No DB, dependency, hygiene or CI/runner changes.
+
 ## Reuse the Validated Checkpoint Replay Window
 
 Checkpoint restore previously validated the entire selected path, then replayed
