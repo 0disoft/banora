@@ -578,3 +578,44 @@ and remote-only liberties, forbidden/allowed multi-stone suicide and old snapsho
 Ignored `.tmp/liberty-{probe.ts,bench.mjs,bench.json,parity.mjs,parity.json}` and
 before/after source bundles retain the local procedure; no cache, browser route
 or CI job is added.
+
+## Reuse the Validated Checkpoint Replay Window
+
+`loadCheckpoint` used to replay the selected path during checkpoint validation,
+discard those positions, then replay it again when creating its first published
+controller state. Restore now adopts the immutable replay results only after the
+full validation and unsaved-change guard succeed. Internal preparation retains at
+most 120 positions, matching the existing replay-cache tail, rather than every
+ancestor; the eight requested-position slots remain unchanged. This temporary
+window can coexist with the old controller's cache until the replacement guard.
+Failure/refusal discards it without touching that cache. The standalone public
+parser retains no such window and has the same result fields and exports.
+
+For a selected path with N moves, root/node transitions drop from 2(N+1) to N+1;
+SGF parsing, byte/shape/rule/locator checks and replay validation are not skipped.
+Both remain O(N), with one complete replay removed. In a 5,000-pass checkpoint,
+`applyRecordNode` calls fall from 10,002 to 5,001 and immediate Previous/Next stays
+at zero replay calls. A committed 240-move fixture also verifies the exact tail:
+119 Previous actions require no replay; the 120th falls back to replaying 121
+nodes, preserving the former bounded-cache behavior.
+
+Paired Node 24.14.0 / Windows measurements bundle parent/current controllers
+separately and run both within one process. Each sample performs five complete
+`loadCheckpoint` calls on a 5,000-pass SGF with a tail selection and situational
+superko/pass-prisoner accounting; working and baseline SGFs are identical. SGF
+parsing, full validation, dirty computation, cache adoption and first state
+creation are timed. Input/controller creation and final state comparisons are
+excluded. Four warmups precede nine samples per version/size, alternating order.
+Median milliseconds for five restorations are:
+
+| Board | Before ms | After ms | Reduction |
+| ----- | --------: | -------: | --------: |
+| 19x19 |    393.84 |   284.67 |     27.7% |
+| 52x52 |    811.68 |   497.48 |     38.7% |
+
+After each paired case the complete positions, paths, dirty/history flags,
+generation and re-exported checkpoints agree. These are local controller-restore
+measurements, not browser storage/rendering, typical-game, p95 or memory claims.
+No timing threshold is added. Ignored `.tmp/checkpoint-{probe.ts,bench.mjs,bench.json}`
+and parent/current bundles retain the local procedure. No new browser route, CI
+job, global cache or public package export is introduced.

@@ -10,6 +10,13 @@ policy. `RecordController.createCheckpoint()` reads data without acknowledging a
 export. `loadCheckpoint()` validates both records, policy and selected-path replay
 before replacement and respects the existing unsaved-change guard.
 
+The destination controller may adopt the immutable positions from that validation
+only after its normal replacement guard succeeds. Retain the existing bounded
+120-position replay tail, with the eight requested-position slots unchanged, so
+successful restore avoids a second selected-path replay without losing backward
+navigation locality. Failed or refused restoration cannot adopt a partial tail.
+The public checkpoint parser's result and wire schema remain unchanged.
+
 Restore starts a new controller generation and editing session, invalidating old
 export tickets and clearing Undo/Redo. Dirty state is derived from semantic content
 against the restored baseline; a caller cannot assert that unsaved work is clean.

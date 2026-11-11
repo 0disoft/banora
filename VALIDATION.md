@@ -1,5 +1,34 @@
 # Validation
 
+## Reuse the Validated Checkpoint Replay Window
+
+Checkpoint restore previously validated the entire selected path, then replayed
+it again during the first controller state notification. The private checkpoint
+validator now returns the same bounded 120-position tail used by ordinary replay.
+The controller adopts it only after full validation and the unsaved-change guard;
+its existing eight requested-position slots, replacement generation, dirty state,
+Undo/Redo/ticket reset and notification behavior are unchanged. The public parser
+remains a facade with exactly its prior exports, signature and result fields;
+validation/schema/types live in the internal headless module, classified in the
+existing module-boundary map. No API/schema, DB, dependency, hygiene or CI change.
+
+Owning contracts: [recovery](docs/sdk/recovery.md),
+[ADR 0016](docs/adr/0016-portable-record-recovery.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#reuse-the-validated-checkpoint-replay-window).
+For 5,000 recorded passes, applyRecordNode calls drop from 10,002 to 5,001;
+immediate Previous/Next remains zero extra replays. New tests cover one complete
+replay, the exact 120-position backward window and out-of-window fallback, public
+parser shape/exports, root-only restore, unchanged prisoner/history state, dirty
+refusal after validation, invalid input and an injected partial-replay failure.
+Failed/refused work preserves the active snapshot, position cache and pending
+export ticket. The SDK suite passes 336 tests / 21,352 assertions. SDK/adapter/
+example builds, types, lint, formatting, boundaries and docs checks pass. Packed
+SDK consumers pass public entrypoints, SSR, classic globals and declarations.
+Windows Chrome 156 focused recovery smoke passes real IndexedDB, reload, two tabs,
+quotas, backups, guards, deletion and locale/mobile controls. Broad root `check`
+and other engine/device checks are skipped for this internal restore change;
+focused consumer checks cover recovery. No browser route or CI job is added.
+
 ## Adjacent-Liberty Proof Before Own-Group Traversal
 
 Legal play and recorded playback now skip full own-group traversal when a neighbor

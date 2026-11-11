@@ -25,7 +25,8 @@ import type { RecordContentCache, RecordIndex } from './record-runtime.js';
 import { createStroke, decodeStrokes, encodeStroke, strokeLimits } from './annotations.js';
 import type { Stroke, StrokeStyle } from './annotations.js';
 export type { Stroke, StrokeStyle } from './annotations.js';
-import { CHECKPOINT_SCHEMA, parseRecordCheckpoint } from './checkpoint.js';
+import { CHECKPOINT_SCHEMA } from './checkpoint.js';
+import { prepareRecordCheckpoint } from './checkpoint-validation.js';
 import type { RecordCheckpoint } from './checkpoint.js';
 import { matches } from './json-schema.js';
 import { inheritCommentNumbering } from './record-numbering-key.js';
@@ -954,7 +955,11 @@ export class RecordController {
   /** Validate before replacement; restored history begins a new session. */
   loadCheckpoint(input: unknown, options: { discardChanges?: boolean } = {}): CommandResult {
     this.#assertLive();
-    const parsed = parseRecordCheckpoint(input, this.#limits);
+    const parsed = prepareRecordCheckpoint(
+      input,
+      this.#limits,
+      POSITION_CACHE_LIMIT - REQUESTED_POSITION_LIMIT,
+    );
     if (!parsed.ok)
       return { ok: false, reason: 'invalid-checkpoint', diagnostics: parsed.diagnostics };
     if (this.#dirty && !options.discardChanges) return { ok: false, reason: 'unsaved-changes' };
@@ -971,6 +976,9 @@ export class RecordController {
     this.#tickets.clear();
     this.#serialized.clear();
     this.#reindex();
+    // Adopt only fully validated positions, after the unsaved-change guard and
+    // record replacement. This is the same bounded tail as ordinary path replay.
+    for (const [id, position] of parsed.positions) this.#positionCache.set(id, position);
     this.#refreshDirty();
     this.#notify();
     return { ok: true };

@@ -20,6 +20,7 @@
     "board-notice-locales",
     "board-state",
     "checkpoint",
+    "checkpoint-validation",
     "comment-batch",
     "comparison-rows",
     "controller",

@@ -44,6 +44,16 @@ It also adopts the checkpoint's explicit rules, unlike ordinary SGF import which
 retains the existing controller policy. Navigation rebuilds rule history from the
 selected path; superko is not reduced to a stone-only snapshot.
 
+Successful restore reuses the positions produced by its own complete selected-path
+validation, rather than replaying that path again after replacement. The internal
+validator retains only the same 120-position replay tail used by ordinary controller
+navigation; the existing eight requested-position slots remain unchanged. The
+temporary tail is adopted only after validation and the unsaved-change guard,
+and is discarded on failure or refusal. Backward navigation keeps its existing
+cache window. The public parser still returns the same fields and performs full
+replay without retaining this controller-only window; no checkpoint schema or
+package export is added.
+
 Checkpoint/export serialization reuses at most two recently accessed immutable
 records. Repeated checkpoints keep the acknowledged baseline hot as edits rotate
 the working record. This avoids repeatedly serializing unchanged baseline data;
