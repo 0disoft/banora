@@ -637,6 +637,11 @@ child without an edit, including on read-only boards. A custom `onPoint` retains
 host authority. Hints follow transforms/crops and never appear in diagram exports.
 `getVariationRows(state, focused?, limit?)`, `variationPathKey(state)` and
 `variationCandidates(state)` expose DOM-free projections from controller state.
+The fork-path key uses one weak checkpoint. Same-node reads and validated C-only
+edits reuse its key; a direct-child step in the same game appends an ID only when
+leaving a fork. Backward/branch jumps, game switches, other edits and imports use
+the original full-path calculation. Calls across controllers safely evict this
+single checkpoint; no ancestor arrays or historical record cache are retained.
 The row projection keeps its default 500-row bound (custom limits remain 1 through
 50,000). Sibling traversal is lazy: a bounded prefix does not allocate scheduling
 entries for every hidden sibling. Exhausted sibling cursors are dropped before

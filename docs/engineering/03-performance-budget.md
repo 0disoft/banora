@@ -428,3 +428,36 @@ DOM work counts, not end-to-end latency, browser memory or general CPU speedups;
 SGF validation and controller edit costs remain unchanged. Ignored
 `.tmp/comment-paint-before.json`, logs and `output/playwright/comment-paint-samples.json`
 retain the local evidence. No timing thresholds or extra CI jobs are added.
+
+## Incremental Variation Fork-Path Keys
+
+Both Studio and the focused Viewer call `variationPathKey` when deciding whether
+to reuse their bounded outline. Previously every call copied/traversed the entire
+selected path, even when moving one node forward through a linear game and
+returning the same empty key. For N single-child moves, parent `children` reads
+sum to N(N+1): two reads per visited edge, over depths zero through N.
+
+The projection now keeps one weak C-only-context checkpoint. Same game/node/depth
+reuses the key; a verified direct-child step reads the previous node's children
+once and appends a child ID only at a fork. A fork count preserves the exact join
+delimiter behavior. Other navigation, games, non-comment edits and imports use
+the original traversal; interleaved records/controllers safely evict the single
+checkpoint. Tokens and cache entries do not retain ancestor arrays or a record
+history. Caller input, original key formatting and outline decisions are unchanged.
+
+On Bun 1.4.4 / Windows, a 19x19 legal aa/bb opening followed by 4,998 alternating
+passes gives 5,000 moves / 5,001 selected states. Getter-observed node wrappers
+count only `children` reads made by the key projection; controllers still produce
+the actual state/path/positions. The parent `b3219b1` implementation reports
+25,005,000 reads; the changed implementation reports 5,000, with identical empty
+keys for every state. Sequential linear key work changes from O(N^2) to O(N).
+Same-node and C-only reuse need no path traversal; backward/branch jumps remain
+full-path reads. Direct-child membership in a wide fork costs O(S) for S siblings,
+and constructing longer fork strings still depends on output length. This does
+not change controller snapshots, position replay, outline recentering or SVG
+painting complexity, and is not a whole-UI latency or CPU speedup measurement.
+
+The regression uses a 1,000-move linear fixture and a deterministic read budget,
+plus a cold-traversal oracle for nested forks, games, older frames, independent
+controllers, comment edits, topology changes and imports. No timing threshold,
+new browser route or CI job is introduced.

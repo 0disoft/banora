@@ -2,6 +2,7 @@ import type { ControllerState } from './controller.js';
 import type { SgfNode } from './sgf.js';
 import { pointFromSgf } from './sgf.js';
 import type { Point } from './core.js';
+import { recordNumberingKey } from './record-numbering-key.js';
 
 export interface VariationRow {
   readonly node: SgfNode;
@@ -12,15 +13,50 @@ export interface VariationRow {
   readonly branch: boolean;
 }
 
-/** Identifies chosen fork paths without rebuilding rows on linear navigation. */
-export function variationPathKey(state: ControllerState): string {
+interface ForkKey {
+  readonly key: string;
+  readonly forks: number;
+}
+interface ForkCheckpoint extends ForkKey {
+  readonly node: SgfNode;
+  readonly game: number;
+  readonly depth: number;
+}
+// One weak entry, no ancestor arrays or historical record keys retained.
+let forkCheckpoint = new WeakMap<object, ForkCheckpoint>();
+
+function fullForkKey(state: ControllerState): ForkKey {
   let node = state.record.games[state.gameIndex]!;
   const chosen: string[] = [];
   for (const id of state.path.slice(1)) {
     if (node.children.length > 1) chosen.push(id);
     node = node.children.find((child) => child.id === id)!;
   }
-  return chosen.join('/');
+  return { key: chosen.join('/'), forks: chosen.length };
+}
+
+/** Identifies chosen fork paths without rebuilding rows on linear navigation. */
+export function variationPathKey(state: ControllerState): string {
+  const identity = recordNumberingKey(state.record);
+  const before = forkCheckpoint.get(identity);
+  let result: ForkKey | undefined;
+  if (before?.game === state.gameIndex) {
+    if (before.depth === state.path.length && before.node.id === state.node.id) result = before;
+    else if (before.depth + 1 === state.path.length) {
+      const children = before.node.children;
+      if (children.some((child) => child.id === state.node.id)) {
+        const branch = children.length > 1;
+        let key = before.key;
+        if (branch) key = before.forks ? `${key}/${state.node.id}` : state.node.id;
+        result = { key, forks: before.forks + Number(branch) };
+      }
+    }
+  }
+  result ??= fullForkKey(state);
+  forkCheckpoint = new WeakMap([
+    [identity, { ...result, node: state.node, game: state.gameIndex, depth: state.path.length }],
+  ]);
+  return result.key;
 }
 
 function* visibleRows(state: ControllerState, focused: boolean): Generator<VariationRow> {

@@ -1,5 +1,30 @@
 # Validation
 
+## Incremental Variation Fork-Path Keys
+
+Studio/focused Viewer reuse checks now compute `variationPathKey` incrementally
+for same-node reads and direct-child moves in the same immutable/C-only context.
+One weak checkpoint holds the selected node, depth, game, key and fork count;
+no ancestor arrays or historical records are cached. Backward/branch jumps, game
+switches, non-comment edits and imports retain the original full-path calculation.
+The exported signature, key strings, row bounds/collapse and UI cache policy are
+unchanged. No public API/schema, DB, dependency, hygiene or CI/runner changes.
+
+Owning contracts: [public API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#incremental-variation-fork-path-keys).
+On Bun 1.4.4 / Windows, a 5,000-move linear record followed across 5,001 states
+produces identical empty keys while parent `children` reads drop from 25,005,000
+to 5,000. New tests bound linear work and cover repeat reads, nested forks, old
+states, interleaved controllers, games, C-only replacement of child objects,
+comment batches/Undo/Redo, branch removal/Undo/Redo and same-ID imports. The full
+SDK suite passes 321 tests / 20,547 assertions. Broader root `check`, packed
+consumer and other browser-engine/device checks are skipped for this internal
+projection change; SDK/adapter/example builds and the existing focused tree
+browser route cover the actual consumer behavior.
+Types, lint, formatting, module boundaries and docs checks pass. Windows Chrome
+156 focused tree smoke passes keyboard focus, bounded tail rows, game/record/
+language changes, comment Undo and export/reopen. No new browser route is added.
+
 ## Comment-Only Live-Board Paint Retention
 
 After a completed paint, unpinned record boards retain their SVG on validated
