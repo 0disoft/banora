@@ -117,8 +117,12 @@ validations, without weakening pre-approval rejection or the SDK trust boundary.
 
 Draft writes run serially. A checkpoint queued during a save's completion handoff
 is drained before existing flush/close waiters complete, including explicit retry
-after a storage failure. This does not add automatic retries or strengthen abrupt
-exit durability.
+after a storage failure. If capturing a newer checkpoint fails, flush/close still
+waits for accepted writes to finish before the consumer closes the store. The
+uncaptured edit remains in memory with invalid status and its existing dirty state;
+finishing an older write cannot report it as saved. With no work pending, capture
+failure still completes immediately. Explicit retry may capture the edit again.
+This does not add automatic retries or strengthen abrupt exit durability.
 
 **Download backup** saves current work as `.banora.json`; **Back up draft** exports
 the selected draft without replacing current work, including raw unknown versions

@@ -1,5 +1,46 @@
 # Validation
 
+## Failed Autosave Capture Retains Accepted Write Waiters
+
+The autosave capture-error branch previously returned an already resolved promise
+even while its serial drain was active. Recovery teardown closes DraftStore after
+`autosave.close()` settles, so a failed new capture could close storage before an
+older accepted queued checkpoint submitted its transaction. The error branch now
+returns the existing drain promise when present, matching its other early-return
+branches. It retains invalid feedback for the uncaptured edit, revision checks,
+serial ordering, pending-work cleanup and explicit-only retry. With no drain, it
+still resolves immediately. This is a completion-order fix, not a timeout change.
+
+Owning contracts: [recovery](docs/sdk/recovery.md) and
+[ADR 0017](docs/adr/0017-studio-local-draft-storage.md). Three new regressions fail
+against parent `7aa6a6d` because flush/close finishes before the held write. Fixed
+draft-session/storage/restore checks pass 19 tests / 165 assertions. They retain
+the queued checkpoint after either first-write success or quota failure, exact
+revision accounting, invalid/dirty latest state, no automatic retry, explicit
+retry recovery, and no-pending-write completion. The existing restore test's
+final-validation spy now observes `prepareRecordCheckpoint`, the owning function
+since the checkpoint replay-window refactor, instead of its unused public facade;
+all validation-count, destination-limit, ownership, dirty and Undo assertions remain.
+
+A separate Windows / Node 24.14.0 before/after probe uses the real built
+RecordController, an injected new-capture exception and a deferred storage model.
+It mirrors recovery's `close().finally(store.close)` order. Two checkpoints are
+accepted before the exception. With a successful first write, committed
+checkpoints rise from one to two; with a failed first write, from zero to one.
+The queued valid second checkpoint is saved in both fixed cases. Premature close
+occurs in two of two controlled pre-change cases and zero of two fixed cases;
+closed-store submissions drop from two total to zero. Invalid feedback and the
+latest unsaved in-memory edit remain unchanged. These counts establish the fault
+ordering, not a production incidence rate, browser storage or abrupt-exit guarantee.
+
+Prepared example build, types, lint, formatting, module boundaries and docs checks
+pass. Full root `check`, SDK/adapter/CLI suites, installed-package smoke and live
+browser/device/IndexedDB checks are skipped for this Studio-only promise fix;
+the dependency-injected lifecycle tests cover the changed completion boundary.
+No SDK/public API, DB schema, dependency, repository hygiene, CI/runner or release
+changes. Skills: `bugfix`, `sdk` and `test-hardening`. Versions remain manually
+managed at 0.1.3.
+
 ## Reuse Completed Comparison Paths
 
 The existing eight requested-position entries now retain their complete frozen

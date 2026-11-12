@@ -1,6 +1,6 @@
 import { expect, spyOn, test } from 'bun:test';
 import * as checkpoint from '@0disoft/banora/checkpoint';
-import * as sdkCheckpoint from '../packages/sdk/src/checkpoint.js';
+import * as sdkCheckpoint from '../packages/sdk/src/checkpoint-validation.js';
 import { RecordController } from '../packages/sdk/src/controller.js';
 import { prepareDraftRestore } from '../examples/studio/restore-input.js';
 
@@ -21,7 +21,7 @@ test('restore preparation parses once, owns input and retains final controller v
     }),
   );
   const prepareParser = spyOn(checkpoint, 'parseRecordCheckpoint');
-  const finalParser = spyOn(sdkCheckpoint, 'parseRecordCheckpoint');
+  const finalParser = spyOn(sdkCheckpoint, 'prepareRecordCheckpoint');
   try {
     const prepared = prepareDraftRestore(input);
     expect(prepareParser).toHaveBeenCalledTimes(1);

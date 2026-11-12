@@ -154,7 +154,8 @@ export class DraftAutosave {
       this.#capturedEpoch = this.#epoch;
     } catch {
       this.#publish('invalid');
-      return Promise.resolve();
+      // A failed new capture must not let callers close storage under accepted work.
+      return this.#running ?? Promise.resolve();
     }
     return this.#running ?? this.#startDrain();
   }

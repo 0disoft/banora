@@ -231,6 +231,140 @@ for (const firstStatus of ['saved', 'quota'] as const)
     }
   });
 
+for (const firstWrite of ['saved', 'failed'] as const)
+  test(`capture failure during close preserves queued work after a ${firstWrite} first write`, async () => {
+    const controller = new RecordController({ size: 5 });
+    const scheduler = new TestScheduler();
+    const calls: { draft: StudioDraft; expected: number }[] = [];
+    const committed: StudioDraft[] = [];
+    const statuses: string[] = [];
+    let storeClosed = false;
+    let blockedWrites = 0;
+    let release = () => {};
+    const first = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const autosave = new DraftAutosave(
+      controller,
+      () => 'draft.sgf',
+      {
+        async save(draft, expected) {
+          calls.push({ draft, expected });
+          if (storeClosed) {
+            blockedWrites++;
+            throw new DraftError('unavailable');
+          }
+          if (calls.length === 1) {
+            await first;
+            if (firstWrite === 'failed') throw new DraftError('quota');
+          }
+          committed.push(draft);
+        },
+      },
+      true,
+      (status) => statuses.push(status),
+      undefined,
+      { scheduler },
+    );
+    controller.setComment('first valid checkpoint');
+    const running = autosave.flush();
+    controller.setComment('second valid checkpoint');
+    void autosave.flush();
+    controller.setComment('uncaptured latest edit');
+    const capture = spyOn(controller, 'createCheckpoint').mockImplementation(() => {
+      throw Error('Checkpoint capture failed');
+    });
+    try {
+      // This mirrors recovery-controls: close the store only after autosave closes.
+      const closing = autosave.close().finally(() => {
+        storeClosed = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const closedBeforeWriteFinished = storeClosed;
+      release();
+      await Promise.all([running, closing]);
+      expect(closedBeforeWriteFinished).toBe(false);
+      expect(blockedWrites).toBe(0);
+      expect(calls).toHaveLength(2);
+      expect(committed).toHaveLength(firstWrite === 'saved' ? 2 : 1);
+      expect(committed.at(-1)!.checkpoint.sgf).toContain('second valid checkpoint');
+      expect(calls[1]!.expected).toBe(firstWrite === 'saved' ? 1 : 0);
+      expect(calls[1]!.draft.revision).toBe(firstWrite === 'saved' ? 2 : 1);
+      expect(autosave.getStatus()).toBe('invalid');
+      expect(statuses).not.toContain('saved');
+      expect(controller.getState().node.properties.C).toEqual(['uncaptured latest edit']);
+      expect(controller.getState().dirty).toBe(true);
+      expect(scheduler.pending).toBe(0);
+      scheduler.advance(1000);
+      expect(calls).toHaveLength(2);
+    } finally {
+      release();
+      capture.mockRestore();
+      await autosave.close();
+      await autosave.idle();
+      controller.dispose();
+    }
+  });
+
+test('failed capture flush waits for existing work and permits explicit retry afterward', async () => {
+  const controller = new RecordController({ size: 5 });
+  const scheduler = new TestScheduler();
+  const saved: StudioDraft[] = [];
+  let release = () => {};
+  const autosave = new DraftAutosave(
+    controller,
+    () => 'draft.sgf',
+    {
+      async save(draft) {
+        saved.push(draft);
+        if (saved.length === 1)
+          await new Promise<void>((resolve) => {
+            release = resolve;
+          });
+      },
+    },
+    true,
+    () => {},
+    undefined,
+    { scheduler },
+  );
+  controller.setComment('accepted');
+  const running = autosave.flush();
+  controller.setComment('retry this edit');
+  const capture = spyOn(controller, 'createCheckpoint').mockImplementation(() => {
+    throw Error('Checkpoint capture failed');
+  });
+  try {
+    let flushed = false;
+    const failedFlush = autosave.flush().then(() => {
+      flushed = true;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const flushedBeforeWriteFinished = flushed;
+    release();
+    await Promise.all([running, failedFlush]);
+    expect(flushedBeforeWriteFinished).toBe(false);
+    expect(autosave.getStatus()).toBe('invalid');
+    expect(saved).toHaveLength(1);
+    // With no work pending, capture failure still completes and reports invalid.
+    await autosave.flush();
+    expect(saved).toHaveLength(1);
+    expect(autosave.getStatus()).toBe('invalid');
+    capture.mockRestore();
+    autosave.retry();
+    await autosave.idle();
+    expect(saved).toHaveLength(2);
+    expect(saved[1]!.revision).toBe(2);
+    expect(saved[1]!.checkpoint.sgf).toContain('retry this edit');
+    expect(autosave.getStatus()).toBe('saved');
+  } finally {
+    release();
+    capture.mockRestore();
+    await autosave.close();
+    controller.dispose();
+  }
+});
+
 test('rapid board switches preserve every queued draft and reuse each board revision', async () => {
   const workspace = new StudioWorkspace();
   const calls: { draft: StudioDraft; expected: number; resolve(): void }[] = [];
