@@ -1,5 +1,40 @@
 # Validation
 
+## Reuse Completed Comparison Paths
+
+The existing eight requested-position entries now retain their complete frozen
+ancestor paths. Alternating warm comparison inspections reuse both instead of
+walking/copying the path again. Intermediate replay still has 120 slots, and the
+combined position limit remains 128. The space tradeoff is retaining at most
+eight already published path arrays (8 * D ID references at maximum resident
+path length D); paths retain no record/node objects. Ordinary edit/replacement/
+disposal invalidation and validated C-only retention are unchanged. Other snapshot
+fields are constructed from current state; no whole-state cache is added.
+
+Owning contracts: [controller API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#reuse-completed-comparison-paths).
+The added warm-path regression fails against parent `9eb0b22`, which returns a
+fresh path copy on each alternating inspection. At depth 5,000 one endpoint pair
+requires 10,004 parent reads and two frozen path copies before, zero of each after.
+Paired Windows / Node 24.14.0 measurements use four warmups and nine order-
+alternated samples: 1,000 inspections drop from 262.06 to 1.45 ms. The already-fast
+single-endpoint control rises about 3.5%; this is not a browser/UI latency claim.
+
+The SDK suite passes 352 tests / 21,497 assertions. Focused tests retain exact
+positions, selection and old snapshots; check no parent reads on warm hits,
+frozen-path reuse, recency eviction at eight entries, the total 128-position
+budget and disposal cleanup; and cover comment freshness, failed imports,
+Undo/Redo, same-ID topology replacement and branch deletion. Existing checkpoint
+rule/replay tests pass. SDK/declaration/classic builds, types, lint, formatting,
+boundaries and docs checks pass, as do packed public SDK, classic global,
+ambient declaration, entrypoint and license consumers.
+
+Full root `check`, adapter/CLI suites and browser-engine/device checks are skipped
+for this private controller cache change; SDK and installed consumers cover the
+changed logic. No public signature/schema, DB, dependency, repository hygiene,
+browser route or CI/runner changes. Skills: `refactor` and `sdk`. Versions remain
+manually managed at 0.1.3.
+
 ## Stop Group Traversal at the First Proven Liberty
 
 The private core group traversal now returns on its first liberty and reports

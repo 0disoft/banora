@@ -575,20 +575,24 @@ on record/rule replacement or edits. See the
 [measured SDK evidence](../engineering/14-sdk-performance-evidence.md); it changes
 neither public snapshot ownership nor rules/dirty/Undo behavior.
 
-Within that same budget, at most eight recently requested final positions are
+Within that same budget, at most eight recently requested final positions and
+their complete frozen ancestor paths are
 retained separately from at most 120 intermediate replay positions. Replaying a
 long alternate branch cannot evict a recently requested comparison endpoint from
-the intermediate cache alone. A warm final-position lookup reuses its immutable
-position without replay; constructing its complete published path can still cost
-O(depth). Cold or evicted positions follow the same validated replay as before.
+the intermediate cache alone. A warm final-position lookup reuses both its position
+and frozen path without replay, ancestor reads or another path copy. At most eight
+published path arrays are retained with these entries, adding O(8 * depth) ID
+references in the deepest case; they own no record/node objects. Cold or evicted
+positions follow the same path construction and validated replay as before.
 Both caches clear on topology/rule replacement, ordinary edits and disposal;
 validated comment-only edits may retain rule-relevant positions. No public cache
 controls or record/history ownership changes are introduced.
 
-One private path checkpoint is weakly keyed by the parent index. Adjacent forward
+When no requested entry has the path, one private path checkpoint is weakly keyed
+by the parent index. Adjacent forward
 and backward selection append or remove one ID from its private working array;
 each different path publishes a separate frozen copy. Repeated inspection of the
-same checkpoint reuses its frozen path. Branch jumps and index replacements
+same checkpoint reuses its frozen path. Uncached branch jumps and index replacements
 reconstruct the complete path; comment-only edits may reuse the unchanged parent
 index. Only one checkpoint is retained, and disposal releases it. This reduces
 ancestor lookups, but immutable path copying still costs O(depth) per changed path.

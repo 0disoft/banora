@@ -764,3 +764,52 @@ work, a remote-only liberty in a group touching all four sides, complete capture
 order, recorded suicide and unchanged original snapshots. Existing own-liberty,
 ko/superko, controller replay and SDK tests retain their coverage. No public API,
 DB, dependencies, repository hygiene, browser route or CI/runner changes.
+
+## Reuse Completed Comparison Paths
+
+Alternating `inspectNode` calls for two deep comparison endpoints previously hit
+the eight-entry final-position cache but still reconstructed each ancestor path.
+The single private adjacent-navigation checkpoint only remembered the other
+endpoint. Every inspection therefore walked O(depth) parents, created a private
+path and copied/froze a published path, even with zero board replay work.
+
+Each existing requested-position entry now also retains its already published
+frozen path. A hit reuses both, retaining the same eight-entry recency/eviction
+order and combined 128-position limit (120 intermediate plus eight requested).
+No additional cache or historical record/node references are introduced. This
+does retain up to eight full path arrays, adding at most 8 * D ID references for
+maximum resident path length D (up to 400,000 at the default 50,000-node bound).
+The existing private navigation checkpoint remains separate. No measured RSS or
+heap-size claim is made. Cold/evicted paths retain the previous construction and
+replay. Ordinary edits, topology/rule replacement and disposal clear the entries;
+validated C-only edits can reuse paths while state/node/dirty/history fields are
+read afresh. Full inspection snapshots are not cached.
+
+The local fixtures have a 19x19 root and one or two branches of alternating B/W
+passes at the stated depth; the root stays selected. All endpoints are inspected
+before measuring repeated independent inspections. Parent `9eb0b22` and changed
+controller bundles run in the same Windows / Node 24.14.0 process, with four
+warmups, nine samples and alternating before/after order. Construction, initial
+replay and work counters are excluded from timing. Median milliseconds:
+
+| Branch depth | Endpoints | Inspections/sample | Before ms | After ms |
+| -----------: | --------: | -----------------: | --------: | -------: |
+|        2,000 |         2 |              2,000 |    175.87 |     2.77 |
+|        5,000 |         2 |              1,000 |    262.06 |     1.45 |
+|            8 |         2 |             10,000 |     27.41 |    18.40 |
+|        2,000 |         1 |              1,000 |      1.37 |     1.42 |
+
+One pair of 5,000-deep endpoint reads drops from 10,004 parent-map reads and two
+frozen path copies to zero of each. At depth 2,000 the corresponding reads drop
+from 4,004 to zero. Both versions already avoid board replay in these warm cases.
+The single-endpoint control was already fast and rose about 3.5% in this run.
+These are headless repeated-inspection timings, not browser rendering, cold-import,
+typical-game or p95 claims; the added path retention is the space tradeoff.
+No timing threshold or CI benchmark job is added.
+
+Committed regressions check no repeated parent reads, shared frozen paths,
+unchanged positions/selection, eight-entry recency eviction, the total position
+budget and disposal cleanup. They also cover comment freshness, rejected import,
+Undo/Redo, same-ID imports with different parents, branch removal and old held
+paths. Existing controller/replay/checkpoint coverage remains in the SDK suite.
+No public signature/schema, DB, dependency, repository hygiene or runner changes.

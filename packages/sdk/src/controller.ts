@@ -139,7 +139,7 @@ export class RecordController {
   #selected: string;
   #index: RecordIndex;
   #positionCache = new Map<string, Position>();
-  #requestedPositions = new Map<string, Position>();
+  #requestedPositions = new Map<string, { position: Position; path: readonly string[] }>();
   #paths = new WeakMap<
     RecordIndex['parents'],
     { id: string; path: string[]; snapshot: readonly string[] }
@@ -188,6 +188,9 @@ export class RecordController {
     if (this.#disposed) throw new Error('RecordController is disposed');
   }
   #path(id = this.#selected): readonly string[] {
+    // Completed requests retain frozen paths with the same topology invalidation.
+    const requested = this.#requestedPositions.get(id);
+    if (requested) return requested.path;
     const parents = this.#index.parents;
     const previous = this.#paths.get(parents);
     if (previous?.id === id) return previous.snapshot;
@@ -216,15 +219,17 @@ export class RecordController {
   }
   #position(path: readonly string[]): Position {
     const id = path.at(-1)!;
-    let position = this.#requestedPositions.get(id);
-    if (position) {
+    const requested = this.#requestedPositions.get(id);
+    let position = requested?.position;
+    if (requested) {
       this.#requestedPositions.delete(id);
-      this.#requestedPositions.set(id, position);
-      return position;
+      this.#requestedPositions.set(id, requested);
+      return requested.position;
     }
     let start = 0;
     for (let i = path.length - 1; i >= 0; i--) {
-      const cached = this.#requestedPositions.get(path[i]!) ?? this.#positionCache.get(path[i]!);
+      const cached =
+        this.#requestedPositions.get(path[i]!)?.position ?? this.#positionCache.get(path[i]!);
       if (cached) {
         position = cached;
         start = i + 1;
@@ -239,7 +244,7 @@ export class RecordController {
         this.#positionCache.delete(this.#positionCache.keys().next().value!);
     }
     // Intermediate replay must not evict the other pane's completed position.
-    this.#requestedPositions.set(id, position);
+    this.#requestedPositions.set(id, { position, path });
     if (this.#requestedPositions.size > REQUESTED_POSITION_LIMIT)
       this.#requestedPositions.delete(this.#requestedPositions.keys().next().value!);
     return position;
