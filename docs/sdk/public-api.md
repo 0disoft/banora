@@ -72,10 +72,15 @@ out-of-turn passes restart the alternating streak without losing their credited
 prisoners. No automatic game ending is implied.
 The defaults forbid suicide and enforce simple ko, with no pass prisoners. Snapshots
 freeze their board, captures, pass ledger, rule policy and history.
-Placement removes captured enemy stones before checking suicide. If the resulting
+Placement checks enemy groups only until their first liberty: that proves the
+whole connected group survives, so no complete liberty list is built. Groups with
+no liberty are fully enumerated and removed in the same capture order. The same
+survival proof applies to the own-group fallback; self-capture still enumerates
+every stone when no liberty exists. If the resulting
 board has an empty neighbor of the new stone, the own group is known to have a
-liberty and its full traversal is skipped. Otherwise the original complete group
-check and optional self-capture accounting apply; error precedence is unchanged.
+liberty and its traversal is skipped. Otherwise traversal determines survival or
+fully enumerates the self-captured group. Enemy removal precedes suicide checks;
+error precedence is unchanged.
 SDK-owned frozen board arrays may be shared across immutable snapshots, including
 passes and a move's previous board. Fresh internal working arrays are frozen in
 place only after their last mutation. Foreign arrays are still defensively copied

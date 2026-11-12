@@ -163,18 +163,19 @@ function neighbors(index: number, width: number, height: number): number[] {
 
 function group(board: readonly (Color | null)[], start: number, width: number, height: number) {
   const stones = new Set<number>([start]);
-  const liberties = new Set<number>();
   const pending = [start];
   while (pending.length) {
     for (const next of neighbors(pending.pop()!, width, height)) {
-      if (board[next] === null) liberties.add(next);
-      else if (board[next] === board[start] && !stones.has(next)) {
+      // Survival needs only one liberty. Partial stones are all in that live
+      // group; only a dead group needs complete enumeration for removal.
+      if (board[next] === null) return { stones, hasLiberty: true };
+      if (board[next] === board[start] && !stones.has(next)) {
         stones.add(next);
         pending.push(next);
       }
     }
   }
-  return { stones, liberties };
+  return { stones, hasLiberty: false };
 }
 
 export function play(position: Position, point: Point, color: Color = position.toPlay): MoveResult {
@@ -191,7 +192,7 @@ export function play(position: Position, point: Point, color: Color = position.t
     if (board[neighbor] !== opposite(color) || visited.has(neighbor)) continue;
     const enemy = group(board, neighbor, position.width, position.height);
     for (const stone of enemy.stones) visited.add(stone);
-    if (enemy.liberties.size === 0)
+    if (!enemy.hasLiberty)
       for (const stone of enemy.stones) {
         board[stone] = null;
         captured.push({ x: stone % position.width, y: Math.floor(stone / position.width) });
@@ -203,7 +204,7 @@ export function play(position: Position, point: Point, color: Color = position.t
     ? null
     : group(board, index, position.width, position.height);
   const captures = { ...position.captures, [color]: position.captures[color] + captured.length };
-  if (own && own.liberties.size === 0) {
+  if (own && !own.hasLiberty) {
     if (position.rules.suicide === 'forbid') return { ok: false, reason: 'suicide' };
     for (const stone of own.stones) board[stone] = null;
     captures[opposite(color)] += own.stones.size;

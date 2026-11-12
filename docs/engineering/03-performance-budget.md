@@ -709,3 +709,58 @@ mixed collections/wrappers and reject stale classification after edits. All
 567 paired parser/diagnostic/export boundary cases agree. Ignored
 `.tmp/sgf-plain-{probe.ts,bench.mjs,bench.json,parity.mjs}` and before/after bundles
 retain the procedure. No public API, dependency or benchmark/CI runner is added.
+
+## Stop Group Traversal at the First Proven Liberty
+
+Core capture checks previously enumerated every stone and accumulated every
+liberty of each adjacent enemy group, even though the caller only needed to know
+whether any liberty existed. The private traversal now returns at the first
+liberty and reports a boolean instead of allocating a liberty Set. Every discovered
+stone belongs to that surviving connected group and can safely enter the move's
+visited Set. An unvisited adjacent stone may start another search; there are at
+most four adjacent entries. No cross-move cache or retained state is added.
+The own-group fallback uses the same survival proof. Groups without any liberty
+still visit every stone in the same order, preserving enemy removal order and
+complete self-capture accounting. Capture removal still precedes suicide/ko checks.
+
+The surviving-chain fixture fills the upper-left (width-1) squared intersections
+with white stones on a square board, then independently plays black at
+`{x:width-1,y:width-2}`. The left enemy neighbor has an empty bottom neighbor.
+On 19x19, neighbor enumeration falls from 325 to two; on 52x52, from 2,602 to two,
+for both ordinary play and recorded replay. The action-only `Math.floor` counter
+is exact on these no-capture fixtures because each neighbor enumeration calls it
+once. Live traversal stops after its first stone here; total placement still
+copies the board in O(A), and no-liberty traversal remains O(G) for G group stones.
+
+Paired Windows / Node 24.14.0 timings bundle parent `e6851bf` and changed core
+separately and run them in one process. Each case has four warmups and nine
+samples, alternating version order; fixture construction and counters are excluded
+from timing. Entries below are median milliseconds for independent actions:
+
+| Fixture                    | Actions/sample | Operation    | Before ms | After ms |
+| -------------------------- | -------------: | ------------ | --------: | -------: |
+| 19x19 live enemy chain     |          2,000 | `play`       |    103.79 |     4.12 |
+| 19x19 live enemy chain     |          2,000 | `replayMove` |    112.30 |     8.82 |
+| 52x52 live enemy chain     |            250 | `play`       |    157.53 |     1.01 |
+| 52x52 live enemy chain     |            250 | `replayMove` |    150.42 |     1.86 |
+| 19x19 empty control        |         10,000 | `play`       |     23.12 |    24.79 |
+| 19x19 empty control        |         10,000 | `replayMove` |     43.68 |    43.93 |
+| 19x19 captured enemy chain |          2,000 | `play`       |    186.69 |   190.29 |
+| 19x19 captured enemy chain |          2,000 | `replayMove` |    175.41 |   173.65 |
+
+The captured-chain control adds black stones along the bottom/right edges except
+the placement point; all 324 white stones must be captured. Its traversal work and
+exact capture order are unchanged. The empty control invokes no group traversal.
+These controls include increases of 7.2% for empty-board play and 1.9% for captured-
+chain play in this run. The live-chain gain does not establish a universal speedup,
+typical-game improvement, browser/p95 latency or measured memory reduction.
+No timing threshold is added.
+
+A separate before/after oracle retains all 67,968 complete MoveResults: every
+2x2 layout and 200 seeded 3x3 layouts, both turns and suicide policies, four ko
+policies, ordinary play and replay at every point, including capture order and
+complete repetition histories. Committed regressions enforce bounded live-chain
+work, a remote-only liberty in a group touching all four sides, complete capture
+order, recorded suicide and unchanged original snapshots. Existing own-liberty,
+ko/superko, controller replay and SDK tests retain their coverage. No public API,
+DB, dependencies, repository hygiene, browser route or CI/runner changes.

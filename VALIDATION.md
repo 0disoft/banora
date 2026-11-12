@@ -1,5 +1,39 @@
 # Validation
 
+## Stop Group Traversal at the First Proven Liberty
+
+The private core group traversal now returns on its first liberty and reports
+survival directly, avoiding a complete live-group scan and a liberty Set. Its
+discovered stones all belong to the same surviving group. No-liberty groups
+still enumerate every stone in the original order; capture removal, self-capture,
+error precedence, simple/superko, immutable snapshots and public signatures are
+unchanged. The own-group fallback also uses this proof. No new cache, dependency,
+API/schema, DB, hygiene, browser route or CI/runner changes.
+
+Owning contracts: [core API](docs/sdk/public-api.md#implemented-core-exports) and
+[performance evidence](docs/engineering/03-performance-budget.md#stop-group-traversal-at-the-first-proven-liberty).
+The new large-chain regression fails against parent `e6851bf` with 325 instead
+of two neighbor enumerations. Fixed 19x19/52x52 cases use two instead of
+325/2,602 for both ordinary play and replay. The regressions also cover a single
+remote liberty, one live group touching all four sides, original multi-stone
+capture order, recorded suicide and source snapshot preservation. The complete SDK
+suite passes 349 tests / 21,437 assertions. A separate Node 24.14.0 before/after
+oracle retains 67,968 complete MoveResults over exhaustive 2x2 and 200 seeded
+3x3 layouts, both turns/suicide policies, four ko policies and play/replay.
+
+Paired local measurements use four warmups and nine order-alternated samples.
+For the 19x19 live-enemy fixture, 2,000 independent ordinary moves drop from
+103.79 to 4.12 ms; recorded moves drop from 112.30 to 8.82 ms. Empty-board and
+full-capture controls are recorded too, including 7.2% / 1.9% increases for
+ordinary play; no general game/UI latency or memory claim is made.
+SDK/declaration/classic builds, types, lint, formatting, module boundaries and docs
+checks pass. Packed public SDK consumers, classic globals, ambient declarations,
+entrypoints and license checks pass. Full root
+`check`, adapter/CLI suites and browser-engine/device checks are skipped for this
+private core traversal change; SDK rule/replay/puzzle/analysis tests and exact
+old/new result comparison cover behavior. Skills: `refactor` and `sdk`.
+Package versions remain manually managed at 0.1.3.
+
 ## File-Drop Cancellation Before the Second Download
 
 The file-drop smoke could dispatch a new drop after Cancel hid the replacement
