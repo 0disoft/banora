@@ -588,6 +588,16 @@ Both caches clear on topology/rule replacement, ordinary edits and disposal;
 validated comment-only edits may retain rule-relevant positions. No public cache
 controls or record/history ownership changes are introduced.
 
+Each requested entry may also retain decoded frozen ink for its exact immutable
+`BPN` value array. Warm inspections reuse that geometry instead of repeating JSON
+parsing, point validation and freezing. A changed value-array identity decodes
+again, including after C-only edits; other snapshot metadata remains fresh.
+This uses the same eight slots, adding at most 32,768 decoded points and 512
+stroke objects across those slots. Intermediate replay entries do not retain ink.
+Eviction/invalidation/disposal releases it with its entry. Input without ink
+keeps the existing empty-result path; foreign display snapshots still validate
+their own data independently.
+
 When no requested entry has the path, one private path checkpoint is weakly keyed
 by the parent index. Adjacent forward
 and backward selection append or remove one ID from its private working array;

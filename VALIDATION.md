@@ -1,5 +1,45 @@
 # Validation
 
+## Reuse Decoded Ink in Warm Inspections
+
+The existing eight requested-position slots now optionally retain frozen decoded
+ink and its exact immutable BPN source-array identity. This removes repeat JSON
+parsing, point validation/rounding and freezing during warm comparison endpoint
+inspection. A replaced array decodes again, and snapshot record/node/history/
+dirty metadata is still constructed afresh. Empty ink follows the old path.
+Eviction, ordinary edits/imports/rule replacement and disposal clear the same
+entries. C-only retention checks the BPN identity. No intermediate replay entry,
+global cache, foreign display-input validation or public signature changes.
+
+Owning contracts: [controller API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#reuse-decoded-ink-in-warm-inspections).
+The three new ink regressions all fail against parent 228cc0e and pass after.
+They verify no warm JSON parsing or notifications, frozen shared geometry, fresh
+metadata, the existing eight-entry recency eviction, ink edits, Undo/Redo, same-ID
+imports and unchanged held snapshots. Existing total 128-position, rule and
+disposal checks pass. Full SDK: 362 tests / 21,587 assertions.
+
+Windows / Node 24.14.0 paired source-bundle measurements use identical 19x19
+two-sibling fixtures, full initial snapshot parity, four warmups, nine samples
+and alternating order. For 1,000 warm alternating inspections, two 128-point
+strokes per node fall from 61.64 to 1.45 ms (97.65%); eight 512-point strokes fall
+from 788.47 to 1.32 ms (99.83%). Warm 100-read JSON parse counts fall from 200/800
+to zero. The empty control rises from 1.41 to 1.44 ms (about 2.24%). These are
+headless component timings, not cold/browser/UI/p95 measurements. Added retention
+is at most eight nodes' ink: 32,768 points and 512 strokes, bounded arrays and
+source-array references. RSS/heap usage is not measured.
+
+SDK/declaration/classic builds and packed public SDK, classic global, ambient
+declaration, entrypoint and license smoke checks pass. Types, lint, formatting,
+module boundaries and docs checks pass. The boundary check records the
+40,316-byte controller as one cohesive-extraction review candidate; this change
+keeps the cache policy with its owning requested-position entries. Full root
+check, adapter/CLI suites and
+live browser/device checks are skipped for this controller-only reuse; their
+lifecycles and actual rendering speed are not newly measured. No API signature,
+DB, dependency, hygiene, CI/runner or release changes. Skills: refactor and sdk;
+versions remain manually managed at 0.1.3.
+
 ## Own and Validate Nested Ink Points
 
 The shared stroke normalizer now captures one bounded point-array length and

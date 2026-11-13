@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { RecordController } from '../src/controller.js';
 import { createSgfNode, parseSgf, serializeSgf } from '../src/sgf.js';
 
@@ -20,8 +20,84 @@ const wire = (overrides: Record<string, unknown> = {}) =>
   });
 const sgf = (values: string[]) =>
   serializeSgf({ games: [createSgfNode('root', { SZ: ['9'], XX: ['keep'], BPN: values })] });
+const inkForks = (count = 2) =>
+  serializeSgf({
+    games: [
+      createSgfNode(
+        'root',
+        { SZ: ['9'] },
+        Array.from({ length: count }, (_, index) =>
+          createSgfNode(`branch${index}`, { B: [''], BPN: [wire({ id: `ink${index}` })] }),
+        ),
+      ),
+    ],
+  });
 
 describe('node-local freehand annotations', () => {
+  test('warm alternating inspections reuse frozen ink without reparsing or publishing', () => {
+    const controller = new RecordController({ sgf: inkForks() });
+    const root = controller.getState();
+    const ids = root.node.children.map((node) => node.id);
+    let notifications = 0;
+    controller.subscribe(() => notifications++);
+    const parse = spyOn(JSON, 'parse');
+    try {
+      const first = ids.map((id) => controller.inspectNode(id)!);
+      expect(parse.mock.calls.length).toBe(2);
+      for (let round = 0; round < 4; round++)
+        for (let index = 0; index < ids.length; index++) {
+          const state = controller.inspectNode(ids[index]!)!;
+          expect(state).not.toBe(first[index]);
+          expect(state.strokes).toBe(first[index]!.strokes);
+          expect(Object.isFrozen(state.strokes[0]!.points[0])).toBe(true);
+        }
+      expect(parse.mock.calls.length).toBe(2);
+      expect(controller.getState()).toBe(root);
+      expect(notifications).toBe(1);
+    } finally {
+      parse.mockRestore();
+      controller.dispose();
+    }
+  });
+  test('inspection ink shares the existing eight-entry recency eviction', () => {
+    const controller = new RecordController({ sgf: inkForks(9) });
+    const ids = controller.getState().node.children.map((node) => node.id);
+    const first = ids.slice(0, 8).map((id) => controller.inspectNode(id)!);
+    expect(controller.inspectNode(ids[0]!)!.strokes).toBe(first[0]!.strokes);
+    controller.inspectNode(ids[8]!);
+    expect(controller.inspectNode(ids[0]!)!.strokes).toBe(first[0]!.strokes);
+    const evicted = controller.inspectNode(ids[1]!)!;
+    expect(evicted.strokes).not.toBe(first[1]!.strokes);
+    expect(evicted.strokes).toEqual(first[1]!.strokes);
+    controller.dispose();
+  });
+  test('cached ink keeps metadata fresh and invalidates on ink edits, Undo/Redo and same-ID imports', () => {
+    const source = inkForks();
+    const controller = new RecordController({ sgf: source });
+    const id = controller.getState().node.children[0]!.id;
+    const before = controller.inspectNode(id)!;
+    controller.setComment('fresh root comment');
+    const commented = controller.inspectNode(id)!;
+    expect(commented.strokes).toBe(before.strokes);
+    expect(commented.record).toBe(controller.getState().record);
+    expect(commented.dirty).toBe(true);
+    expect(commented.canUndo).toBe(true);
+    controller.goTo(id);
+    controller.setComment('fresh ink-node comment');
+    expect(controller.getState().strokes).toEqual(before.strokes);
+    expect(controller.removeStroke('ink0').ok).toBe(true);
+    expect(controller.getState().strokes).toEqual([]);
+    controller.undo();
+    expect(controller.getState().strokes).toEqual(before.strokes);
+    controller.redo();
+    expect(controller.getState().strokes).toEqual([]);
+    expect(
+      controller.loadSgf(source.replaceAll('#206650', '#aabbcc'), { discardChanges: true }).ok,
+    ).toBe(true);
+    expect(controller.inspectNode(id)!.strokes[0]!.color).toBe('#aabbcc');
+    expect(before.strokes[0]!.color).toBe('#206650');
+    controller.dispose();
+  });
   test('copies fractional points, survives SGF reopen, and restores each edit independently of comment groups', () => {
     const controller = new RecordController({ sgf: '(;SZ[9]XX[keep];B[aa])' });
     const initial = controller.getState();

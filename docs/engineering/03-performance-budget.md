@@ -813,3 +813,50 @@ budget and disposal cleanup. They also cover comment freshness, rejected import,
 Undo/Redo, same-ID imports with different parents, branch removal and old held
 paths. Existing controller/replay/checkpoint coverage remains in the SDK suite.
 No public signature/schema, DB, dependency, repository hygiene or runner changes.
+
+## Reuse Decoded Ink in Warm Inspections
+
+Warm non-selected `inspectNode` calls previously reused positions and paths but
+parsed every BPN JSON value, checked/rounded every ink point and froze new
+geometry each time. Comparison rendering repeatedly inspects its two endpoints,
+so ink-heavy nodes still allocated the same geometry on every read.
+
+The existing eight requested-position entries now optionally retain decoded ink
+and its exact SDK-owned immutable BPN value-array identity. A matching read reuses
+the frozen geometry; missing/replaced arrays decode through the same normalizer.
+All current snapshot metadata is still read afresh. There is no whole-state cache,
+new global cache, relaxed validation or ink retained by the 120 intermediate
+replay entries. Empty-ink reads retain their old decode path. Existing eviction,
+ordinary edit/import/rule invalidation and disposal release the added data; C-only
+edits check the value-array identity even while retaining the position.
+
+The space tradeoff is retaining at most eight nodes' decoded ink: 32,768 points,
+512 stroke objects and their bounded arrays, plus references to the source BPN
+arrays. These values reference no record/node objects. This is an object-count
+bound, not a measured RSS/heap claim; explicitly retained public snapshots may
+also retain their own geometry.
+
+Parent 228cc0e and changed controller source bundles run in one Windows /
+Node 24.14.0 process. Each fixture has a 19x19 root, two sibling B[] nodes and
+the stated ink per sibling. Root remains selected, and both siblings are warmed.
+Four 1,000-inspection warmups precede nine order-alternated samples of 1,000
+alternating endpoint reads. Construction, first decode and parse counters are
+excluded from timing; complete initial inspection values match between variants.
+Median milliseconds:
+
+| Ink per endpoint                                | Before ms | After ms | Time reduction |
+| ----------------------------------------------- | --------: | -------: | -------------: |
+| None (control)                                  |      1.41 |     1.44 |         -2.24% |
+| Two 128-point strokes                           |     61.64 |     1.45 |         97.65% |
+| Eight 512-point strokes (4096-point node limit) |    788.47 |     1.32 |         99.83% |
+
+Across 100 separate warm inspections, JSON parses drop from 200 to zero for the
+two-stroke fixture, and from 800 to zero at the node limit. The empty control
+performs zero parses in both variants and rises about 0.03 ms per 1,000 reads in
+this run. Results apply to repeated headless inspection, not browser rendering,
+cold imports, typical-game latency or p95. No timing assertion or CI job is added.
+
+Regressions retain frozen ownership, no inspection notifications, fresh dirty/
+Undo/record metadata, eight-entry recency eviction, edit/Undo/Redo and same-ID
+import freshness, and old held snapshots. Existing position/rule/disposal tests
+also pass. Public signatures, DB, dependencies, hygiene and runners are unchanged.

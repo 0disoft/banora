@@ -120,6 +120,11 @@ interface EditEntry {
   record: SgfRecord;
   selected: string;
 }
+interface RequestedPosition {
+  position: Position;
+  path: readonly string[];
+  ink?: { values: readonly string[]; strokes: readonly Stroke[] };
+}
 const markerProperties: Readonly<Record<MarkerKind, string>> = {
   triangle: 'TR',
   square: 'SQ',
@@ -139,7 +144,7 @@ export class RecordController {
   #selected: string;
   #index: RecordIndex;
   #positionCache = new Map<string, Position>();
-  #requestedPositions = new Map<string, { position: Position; path: readonly string[] }>();
+  #requestedPositions = new Map<string, RequestedPosition>();
   #paths = new WeakMap<
     RecordIndex['parents'],
     { id: string; path: string[]; snapshot: readonly string[] }
@@ -264,6 +269,16 @@ export class RecordController {
     const node = this.#index.nodes.get(id)!;
     const path = this.#path(id);
     const position = this.#position(path);
+    const values = node.properties.BPN;
+    let strokes: readonly Stroke[];
+    // Reuse only SDK-owned immutable ink in the existing eight requested slots.
+    // C-only edits retain positions but may replace the node's property arrays.
+    if (values) {
+      const requested = this.#requestedPositions.get(id)!;
+      if (!requested.ink || requested.ink.values !== values)
+        requested.ink = { values, strokes: decodeStrokes(values, position) };
+      strokes = requested.ink.strokes;
+    } else strokes = decodeStrokes(values, position);
     const markers: Marker[] = [];
     for (const [kind, key] of Object.entries(markerProperties) as [MarkerKind, string][]) {
       for (const value of node.properties[key] ?? []) {
@@ -307,7 +322,7 @@ export class RecordController {
       canRedo: this.#redo.length > 0,
       markers: Object.freeze(markers),
       connections: Object.freeze(connections),
-      strokes: decodeStrokes(node.properties.BPN, position),
+      strokes,
     });
   }
   subscribe(listener: (state: ControllerState) => void): () => void {
