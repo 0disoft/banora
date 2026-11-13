@@ -393,8 +393,13 @@ Latin-1 without a conflicting BOM. Both decoded input size and the original stri
 normalized UTF-8 export size must fit the configured byte budget. The parser
 passes the already measured normalized size through a private call-local collector;
 no public signature, global record cache or relaxed limit is introduced.
-Multibyte input, unsupported/mixed declarations, BOM conflicts and failed proofs
-retain the original strict decoding and recovery path.
+UTF-8 BOM input first tries strict UTF-8 decoding and complete parsing with the
+original limits. A successful result can return immediately only when every real
+root has the same normalized UTF-8 declaration, defaulting to UTF-8 where absent.
+Otherwise the original probe/recovery path runs, reusing that call's canonical
+UTF-8 result when needed. Raw-byte and normalized-export limits still apply.
+Other multibyte input, unsupported/mixed declarations, BOM conflicts and failed
+proofs retain the existing decoding policy and diagnostic precedence.
 
 When parsing actually changes a raw value during decoding, a private weak map
 records that frozen node's original properties/raw-value relationship. Serialization

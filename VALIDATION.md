@@ -1,5 +1,43 @@
 # Validation
 
+## Parse UTF-8 BOM Records Once
+
+UTF-8 BOM byte imports now first attempt strict UTF-8 decoding and a complete parse
+under the original limits. Only success with uniform real UTF-8 root declarations
+(including the existing BOM default) returns directly. This removes the full
+Latin-1 probe parse for normal non-ASCII BOM records. Failures/conflicts follow
+the original probe/recovery policy, reusing the canonical UTF-8 attempt locally.
+No global cache, retained input, signature or encoding/limit policy change.
+
+Owning contracts: [SGF API](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#parse-utf-8-bom-records-once).
+The new single-parse regression fails against parent e7dfc03 (four encoder calls
+instead of two). Fixed checks cover missing/explicit/alias CA, frozen ownership,
+raw escapes, mixed collections, false declarations, malformed-byte messages,
+legacy byte-probe offsets and strict raw-byte/point budgets. Existing encoding/
+character/value/normalized-byte tests pass. Full SDK: 364 tests / 21,610 assertions.
+
+A separate Windows / Node 24.14.0 oracle matches exact results for 3,208 input/
+limit combinations, including failures and offsets. Paired source bundles use
+four warmups, nine samples and alternating order. With identical explicit GC
+before each measured call, a 5,000-move / 115,021-byte CJK BOM file drops from
+118.29 to 62.19 ms (47.43%); 500 moves drop from 15.60 to 7.26 ms (53.49%).
+Non-BOM CJK, ASCII BOM and Latin-1 controls change by -1.28%, -2.52% and +0.25%
+respectively. The original uncontrolled-GC series, including a variable Latin-1
+control regression, is retained in the performance document. CJK BOM full parse/
+normalization passes fall from two to one; encoder calls from four to two.
+These are isolated decode timings and work counts, not browser/file I/O, RSS,
+whole-product latency or p95 measurements.
+
+SDK/declaration/classic builds, types, lint, formatting, boundaries and docs pass,
+as do packed public SDK, classic global, ambient declaration, entrypoint and
+license smoke checks. Boundaries retain the existing controller size-review
+candidate, outside this SGF change. Full root check, adapter/CLI suites and live
+browser/device checks are skipped for this headless decoder change; integration
+and actual browser import timing are not newly measured. No API signature, DB,
+dependency, hygiene, CI/runner or release changes. Skills: refactor and sdk;
+version remains manually managed at 0.1.3.
+
 ## Reuse Decoded Ink in Warm Inspections
 
 The existing eight requested-position slots now optionally retain frozen decoded

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { createSgfNode, decodeSgf, parseSgf, serializeSgf } from '../src/sgf.js';
 import type { SgfRecord, SgfResult } from '../src/sgf.js';
 import { semanticRecord } from '../src/record-runtime.js';
@@ -9,6 +9,60 @@ function parsed(result: SgfResult): SgfRecord {
 }
 
 describe('SGF FF4 preservation', () => {
+  test('UTF-8 BOM decoding validates and serializes once with real matching root declarations', () => {
+    for (const declaration of ['', 'CA[UTF-8]', 'CA[UTF8]', 'CA[UTF_8]']) {
+      const source = `(;SZ[9]${declaration}C[한글🙂]XX[a\\]b]AB[aa:bb];B[cc])`;
+      const bytes = new TextEncoder().encode(`\uFEFF${source}`);
+      const expected = parseSgf(source);
+      const encode = spyOn(TextEncoder.prototype, 'encode');
+      try {
+        const result = decodeSgf(bytes);
+        expect(encode.mock.calls.length).toBe(2);
+        expect(result).toEqual(expected);
+        expect(Object.isFrozen(parsed(result).games[0]!.properties.C)).toBe(true);
+      } finally {
+        encode.mockRestore();
+      }
+    }
+  });
+  test('BOM decoding preserves collection declaration policy and byte-probe failure offsets', () => {
+    const bytes = (text: string) => new TextEncoder().encode(`\uFEFF${text}`);
+    expect(decodeSgf(bytes('(;CA[UTF-8]C[한글])(;C[🙂])')).ok).toBe(true);
+    for (const source of [
+      '(;CA[UTF-8])(;CA[UTF8])',
+      '(;CA[UTF8])(;C[한글])',
+      '(;CA[alien]C[CA[UTF-8\\]])',
+      '(;CA[ISO-8859-1]C[한글])',
+    ])
+      expect(decodeSgf(bytes(source)).ok).toBe(false);
+    const incomplete = bytes('(;CA[UTF-8]C[한글];');
+    expect(decodeSgf(incomplete)).toEqual({
+      ok: false,
+      diagnostics: [
+        {
+          code: 'syntax',
+          message: 'Incomplete or empty SGF collection',
+          offset: incomplete.length - 3,
+        },
+      ],
+    });
+    const expanded = bytes('(;CA[UTF-8]AB[aa:bb])');
+    expect(decodeSgf(expanded, { maxExpandedPoints: 4 }).ok).toBe(true);
+    expect(decodeSgf(expanded, { maxExpandedPoints: 3 }).ok).toBe(false);
+    expect(decodeSgf(expanded, { maxBytes: expanded.length - 1 }).ok).toBe(false);
+    for (const declaration of ['UTF-8', 'UTF8']) {
+      const broken = new Uint8Array([...bytes(`(;CA[${declaration}]C[`), 255, 93, 41]);
+      expect(decodeSgf(broken)).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: 'encoding',
+            message: `Invalid bytes for SGF encoding: ${declaration.toLowerCase()}`,
+          },
+        ],
+      });
+    }
+  });
   test('plain boundary scans reset across values and games and retain UTF-16 limit offsets', () => {
     const plain = '한🙂'.repeat(1024);
     const input = `(;XX[][${plain}][a\\]b][tail])(;C[other]XX[last])`;

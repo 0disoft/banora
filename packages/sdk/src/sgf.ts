@@ -504,20 +504,7 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
   const limits = limitsFor(options);
   if (bytes.length > limits.maxBytes)
     return { ok: false, diagnostics: [{ code: 'limit', message: 'SGF input exceeds byte limit' }] };
-  // Parse an ASCII-compatible view to find real root CA properties, never a regex
-  // that could mistake comment contents for an encoding declaration.
-  const byteView = latin1(bytes);
-  const utf8Bom = byteView.startsWith('\xEF\xBB\xBF');
-  const probeText = utf8Bom ? byteView.slice(3) : byteView;
-  const size: ParseSize = { normalizedBytes: 0 };
-  const probe = parseResult(
-    probeText,
-    limitsFor({
-      ...limits,
-      maxBytes: limits.maxBytes * 2,
-    }),
-    size,
-  );
+  const utf8Bom = bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf;
   const normalize = (label: string) => label.toLowerCase().replace(/[_\s]/g, '-');
   const encodingOf = (record: SgfRecord) => {
     const encodings = record.games.map((root) =>
@@ -527,7 +514,9 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
   };
   const decoderLabel = (encoding: string) =>
     encoding === 'sjis' ? 'shift-jis' : encoding === 'utf8' ? 'utf-8' : encoding;
+  let bomDecoded: SgfResult | undefined;
   const decode = (encoding: string): SgfResult => {
+    if (encoding === 'utf-8' && bomDecoded) return bomDecoded;
     try {
       const text = ['iso-8859-1', 'latin1'].includes(encoding)
         ? latin1(bytes)
@@ -540,6 +529,28 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
       };
     }
   };
+  // A BOM lets strict UTF-8 lead, but only real, uniform root declarations can
+  // authorize reuse. Keep unsuccessful/conflicting results local for recovery.
+  if (utf8Bom) {
+    bomDecoded = decode('utf-8');
+    if (bomDecoded.ok) {
+      const declared = encodingOf(bomDecoded.record);
+      if (declared === 'utf-8' || declared === 'utf8') return bomDecoded;
+    }
+  }
+  // Parse an ASCII-compatible view to find real root CA properties, never a regex
+  // that could mistake comment contents for an encoding declaration.
+  const byteView = latin1(bytes);
+  const probeText = utf8Bom ? byteView.slice(3) : byteView;
+  const size: ParseSize = { normalizedBytes: 0 };
+  const probe = parseResult(
+    probeText,
+    limitsFor({
+      ...limits,
+      maxBytes: limits.maxBytes * 2,
+    }),
+    size,
+  );
   const recover = (failure: SgfResult): SgfResult => {
     // Multibyte trail bytes can resemble SGF escapes/delimiters, and the ASCII
     // probe can even succeed with fictional roots/CA labels inside a comment.

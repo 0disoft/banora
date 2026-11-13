@@ -860,3 +860,51 @@ Regressions retain frozen ownership, no inspection notifications, fresh dirty/
 Undo/record metadata, eight-entry recency eviction, edit/Undo/Redo and same-ID
 import freshness, and old held snapshots. Existing position/rule/disposal tests
 also pass. Public signatures, DB, dependencies, hygiene and runners are unchanged.
+
+## Parse UTF-8 BOM Records Once
+
+UTF-8 BOM imports previously parsed a Latin-1 byte view to discover real root CA
+properties before decoding/parsing UTF-8. Valid non-ASCII BOM input therefore
+allocated, validated and serialized two complete record trees. It now first uses
+the strict UTF-8 decoder and complete parser under the original limits. Only a
+successful parse with uniform real UTF-8 root declarations can return immediately;
+the BOM supplies the same existing UTF-8 default for roots without CA. Failed or
+conflicting attempts follow the original byte probe and recovery policy. The
+canonical UTF-8 attempt is held locally for reuse there. No global cache, retained
+record, public option, relaxed limit or regex encoding detection is introduced.
+
+Windows / Node 24.14.0 source bundles compare parent e7dfc03 with this change.
+An exact-result oracle covers 3,208 combinations of BOMs, encoding labels, Unicode,
+escapes, fake CA text, malformed structure, collections, byte/value/node/depth/
+point bounds and legacy trail bytes. Values, raw properties and failure diagnostics
+(including offsets) match. Deep benchmark records use iterative flattening for
+comparison so the measurement harness does not recurse through 5,000 nodes.
+
+Fixtures have one SZ[19] root and the stated number of B[] nodes, each with a
+comment: CJK uses code points U+D55C U+AE00 U+B178 U+D2B8 U+1F642,
+ASCII uses `plain note`, Latin-1 uses `café`.
+Four warmups precede nine order-alternated before/after samples, one decode per
+sample. Node's exposed GC runs twice before each measured decode; GC itself,
+fixture construction, correctness checks and counters are excluded from timing.
+Median milliseconds:
+
+| Fixture                 |   Bytes | Before ms | After ms | Time reduction |
+| ----------------------- | ------: | --------: | -------: | -------------: |
+| BOM CJK, 500 moves      |  11,521 |     15.60 |     7.26 |         53.49% |
+| BOM CJK, 5,000 moves    | 115,021 |    118.29 |    62.19 |         47.43% |
+| No BOM CJK, 5,000 moves | 115,018 |    115.15 |   113.68 |          1.28% |
+| BOM ASCII, 5,000 moves  |  85,021 |     60.10 |    58.58 |          2.52% |
+| Latin-1, 5,000 moves    |  55,019 |     59.12 |    59.27 |         -0.25% |
+
+Successful CJK BOM decoding drops from two complete parses/normalizations to one,
+and from four TextEncoder calls to two. The controls keep their existing counts:
+four without a CJK BOM, two for ASCII BOM and direct Latin-1. These work counts
+are independent of timing. RSS/heap size, browser/file I/O and end-to-end import
+latency are not measured; these are isolated decoding times with controlled GC.
+
+The first run without explicit GC had substantial allocation/GC variation. Its
+500/5,000-move BOM CJK medians were 19.22/130.69 ms before and 9.48/73.06 ms after;
+no-BOM CJK was 131.61 to 128.17 ms, BOM ASCII 57.25 to 55.53 ms, and Latin-1
+52.70 to 63.70 ms. That control regression prompted the common-GC comparison
+above. Neither series establishes production p95 or a speedup for other encodings.
+No timing assertion, CI benchmark or additional runner is introduced.
