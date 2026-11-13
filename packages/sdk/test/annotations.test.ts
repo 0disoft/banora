@@ -170,6 +170,52 @@ describe('node-local freehand annotations', () => {
       expect(controller.getState()).toBe(state);
     }
   });
+  test('sparse ink is invalid without changing snapshots, notifications or redo history', () => {
+    const controller = new RecordController({ size: 9 });
+    controller.setComment('keep redo');
+    controller.undo();
+    const before = controller.getState();
+    let notifications = 0;
+    controller.subscribe(() => notifications++);
+    for (let hole = 0; hole < 3; hole++) {
+      const points = Array.from({ length: 3 }, (_, x) => ({ x, y: 0 }));
+      delete points[hole];
+      expect(controller.addStroke(points)).toEqual({ ok: false, reason: 'invalid-annotation' });
+      expect(controller.getState()).toBe(before);
+    }
+    expect(notifications).toBe(1);
+    expect(controller.redo().ok).toBe(true);
+    expect(controller.getState().node.properties.C).toEqual(['keep redo']);
+    controller.dispose();
+  });
+  test('host ink array hooks cannot change the indexed geometry saved and reopened', () => {
+    const points = line.map((point) => ({ ...point }));
+    let hooks = 0;
+    const hostile = () => {
+      hooks++;
+      throw Error('Host array hook executed');
+    };
+    Object.defineProperties(points, {
+      map: { value: hostile },
+      [Symbol.iterator]: { get: hostile },
+      constructor: { get: hostile },
+    });
+    const controller = new RecordController({ size: 9 });
+    expect(controller.addStroke(points).ok).toBe(true);
+    const saved = controller.getState().strokes;
+    expect(hooks).toBe(0);
+    expect(Object.isFrozen(points)).toBe(false);
+    points[0]!.x = 7;
+    expect(saved[0]!.points[0]).toEqual({ x: 1.1257, y: 2 });
+    const reopened = new RecordController({ sgf: controller.prepareExport().text });
+    expect(reopened.getState().strokes).toEqual(saved);
+    controller.undo();
+    expect(controller.getState().strokes).toEqual([]);
+    controller.redo();
+    expect(controller.getState().strokes).toEqual(saved);
+    reopened.dispose();
+    controller.dispose();
+  });
   test('node limits and semantic JSON normalization retain drawing order', () => {
     const full = new RecordController({
       sgf: sgf(Array.from({ length: 64 }, (_, i) => wire({ id: `ink${i}` }))),

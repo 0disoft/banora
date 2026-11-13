@@ -40,27 +40,33 @@ export function createStroke(
   size: { width: number; height: number },
   style: StrokeStyle = {},
 ): Stroke {
+  const length = Array.isArray(points) ? points.length : NaN;
   if (
     !validId(id) ||
-    !Array.isArray(points) ||
-    points.length < 2 ||
-    points.length > strokeLimits.pointsPerStroke
+    !Number.isSafeInteger(length) ||
+    length < 2 ||
+    length > strokeLimits.pointsPerStroke
   ) {
     throw new RangeError('Ink requires an ID and 2 through 512 points');
   }
-  const copied = points.map((point) => {
+  // Own bounded indexed data; host map/species must not bypass point validation.
+  const copied = new Array<Point>(length);
+  for (let index = 0; index < length; index++) {
+    if (!Object.hasOwn(points, index)) throw new RangeError('Ink points must be a dense array');
+    const point = points[index];
+    if (!point) throw new RangeError('Ink point must be inside the logical board');
+    const { x, y } = point;
     if (
-      !point ||
-      !Number.isFinite(point.x) ||
-      !Number.isFinite(point.y) ||
-      point.x < 0 ||
-      point.y < 0 ||
-      point.x > size.width - 1 ||
-      point.y > size.height - 1
+      !Number.isFinite(x) ||
+      !Number.isFinite(y) ||
+      x < 0 ||
+      y < 0 ||
+      x > size.width - 1 ||
+      y > size.height - 1
     )
       throw new RangeError('Ink point must be inside the logical board');
-    return Object.freeze({ x: round(point.x), y: round(point.y) });
-  });
+    copied[index] = Object.freeze({ x: round(x), y: round(y) });
+  }
   if (!copied.some((point) => point.x !== copied[0]!.x || point.y !== copied[0]!.y))
     throw new RangeError('Ink points must describe a line');
   return Object.freeze({ id, points: Object.freeze(copied), ...normalizeStrokeStyle(style) });

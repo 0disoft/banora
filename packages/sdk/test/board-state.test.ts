@@ -225,3 +225,162 @@ test('malformed host state, sparse arrays and unsafe visual values are rejected'
   for (const patch of patches)
     expect(() => createBoardSnapshot({ ...fixture(), ...(patch as object) })).toThrow();
 });
+
+test('nested ink rejects sparse, inherited and invalid geometry despite overridden map', () => {
+  for (const kind of ['sparse', 'inherited', 'invalid'] as const) {
+    const points = [
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+    ];
+    if (kind === 'invalid') {
+      points[0] = { x: NaN, y: -1 };
+      Object.defineProperty(points, 'map', { value: () => points });
+    } else {
+      points.length = 3;
+      if (kind === 'inherited')
+        Object.setPrototypeOf(
+          points,
+          Object.assign(Object.create(Array.prototype), {
+            2: { x: 2, y: 1 },
+          }),
+        );
+    }
+    expect(() =>
+      createBoardSnapshot({
+        ...fixture(),
+        strokes: [{ id: kind, points, color: '#112233', width: 0.1 }],
+      }),
+    ).toThrow(RangeError);
+    expect(Object.isFrozen(points)).toBe(false);
+  }
+});
+
+test('nested ink copies bounded indexed points without hooks or freezing host data', () => {
+  const points = [
+    { x: 0.12567, y: 0 },
+    { x: 1, y: 1 },
+  ];
+  let hooks = 0;
+  Object.defineProperties(points, {
+    map: {
+      value: () => {
+        hooks++;
+        return Array.from({ length: 4096 }, (_, index) => points[index % 2]);
+      },
+    },
+    [Symbol.iterator]: {
+      get: () => {
+        hooks++;
+        throw Error('Host iterator');
+      },
+    },
+    constructor: {
+      get: () => {
+        hooks++;
+        throw Error('Host species');
+      },
+    },
+  });
+  const snapshot = createBoardSnapshot({
+    ...fixture(),
+    strokes: [{ id: 'owned', points, color: '#112233', width: 0.1 }],
+  });
+  expect(snapshot.strokes[0]!.points).toEqual([
+    { x: 0.1257, y: 0 },
+    { x: 1, y: 1 },
+  ]);
+  expect(hooks).toBe(0);
+  expect(Object.isFrozen(points)).toBe(false);
+  expect(Object.isFrozen(points[0])).toBe(false);
+  points[0]!.x = 2;
+  expect(snapshot.strokes[0]!.points[0]!.x).toBe(0.1257);
+  expect(Object.isFrozen(snapshot.strokes[0]!.points[0])).toBe(true);
+});
+
+test('nested ink captures length, indexed points and coordinates once', () => {
+  let lengths = 0,
+    indices = 0,
+    xs = 0,
+    ys = 0;
+  const source = [
+    {
+      get x() {
+        return ++xs === 1 ? 0 : NaN;
+      },
+      get y() {
+        return ++ys === 1 ? 0 : NaN;
+      },
+    },
+    { x: 1, y: 1 },
+  ];
+  const points = new Proxy(source, {
+    get(target, key, receiver) {
+      if (key === 'length') return ++lengths === 1 ? 2 : 4096;
+      if (key === '0' || key === '1') indices++;
+      return Reflect.get(target, key, receiver);
+    },
+  });
+  const snapshot = createBoardSnapshot({
+    ...fixture(),
+    strokes: [{ id: 'captured', points, color: '#112233', width: 0.1 }],
+  });
+  expect(snapshot.strokes[0]!.points).toEqual([
+    { x: 0, y: 0 },
+    { x: 1, y: 1 },
+  ]);
+  expect([lengths, indices, xs, ys]).toEqual([1, 2, 1, 1]);
+});
+
+test('nested ink rejects invalid lengths before reading indices', () => {
+  for (const length of [1, 513, -1, 1.5, NaN, Infinity]) {
+    let lengths = 0,
+      indices = 0;
+    const points = new Proxy([], {
+      get(target, key, receiver) {
+        if (key === 'length') {
+          lengths++;
+          return length;
+        }
+        if (key === '0') indices++;
+        return Reflect.get(target, key, receiver);
+      },
+    });
+    expect(() =>
+      createBoardSnapshot({
+        ...fixture(),
+        strokes: [{ id: 'bounded', points, color: '#112233', width: 0.1 }],
+      }),
+    ).toThrow(RangeError);
+    expect([lengths, indices]).toEqual([1, 0]);
+  }
+});
+
+test('nested ink retains exact per-stroke and aggregate point bounds', () => {
+  const strokes = Array.from({ length: 8 }, (_, index) => ({
+    id: `limit${index}`,
+    points: Array.from({ length: 512 }, (_, point) => ({ x: point % 3, y: 0 })),
+    color: '#112233',
+    width: 0.1,
+  }));
+  const snapshot = createBoardSnapshot({ ...fixture(), strokes });
+  expect(snapshot.strokes).toHaveLength(8);
+  expect(snapshot.strokes.every((stroke) => stroke.points.length === 512)).toBe(true);
+  expect(snapshot.strokes.reduce((total, stroke) => total + stroke.points.length, 0)).toBe(4096);
+  expect(() =>
+    createBoardSnapshot({
+      ...fixture(),
+      strokes: [
+        ...strokes,
+        {
+          id: 'excess',
+          points: [
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+          ],
+          color: '#112233',
+          width: 0.1,
+        },
+      ],
+    }),
+  ).toThrow('Too many ink points');
+});

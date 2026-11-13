@@ -635,6 +635,10 @@ direction. SGF AR/LN are validated under the
 controller and root entrypoints. Points use fractional logical coordinates, rounded
 to four decimal places, within the board's first/last intersections. A stroke has
 2 through 512 points and must include at least two distinct rounded points.
+Point normalization captures the bounded array length, each own indexed point and
+each coordinate once, without using host array methods, iterators or species.
+Sparse/inherited entries are invalid; normalized arrays and points are owned frozen
+copies, leaving host data mutable and independent of saved strokes.
 Style defaults to `{color:'#206650', width:0.08}`; color accepts six-digit hex only,
 width accepts 0.02 through 0.5 in intersection spacing. Each node allows 64 strokes
 and 4096 total points, also subject to configured SGF byte/value limits. Invalid

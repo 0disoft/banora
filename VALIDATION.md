@@ -1,5 +1,52 @@
 # Validation
 
+## Own and Validate Nested Ink Points
+
+The shared stroke normalizer now captures one bounded point-array length and
+copies own indexed entries into an SDK-owned array, capturing each x/y value once
+before validation and four-decimal rounding. It no longer invokes host map,
+iterator or species hooks. Sparse/inherited points reject before snapshot or
+record publication. Valid host arrays/points remain mutable; returned geometry is
+independent and deeply frozen. Existing per-stroke (512), per-node (4096) and
+stroke-count (64) bounds and BPN wire format are unchanged.
+
+Owning contracts: [controlled boards](docs/sdk/controlled-board.md) and
+[freehand record API](docs/sdk/public-api.md#freehand-record-format). Before this
+fix, nested points were the exception to the snapshot factory's defensive indexed
+copying. A host map could bypass geometry/length checks, supply unfrozen point
+references, or make snapshot creation freeze the caller's own array. Native sparse
+ink also escaped the normalizer and reached SGF validation, returning a misleading
+limit failure instead of invalid-annotation.
+
+Six new regressions all fail against parent a19a381 and pass after the fix. They
+cover sparse command rejection without notifications/history changes, host hook
+isolation, export/reopen/Undo/Redo, snapshot ownership, inherited/invalid points,
+single reads and invalid-length rejection before indexed access. One additional
+boundary control accepts eight 512-point strokes (4096 total) and rejects 4098.
+The full SDK suite passes 359 tests / 21,543 assertions.
+
+A separate Windows / Node 24.14.0 probe compares bundled source from a19a381 and
+this change with identical 3-by-2 host snapshots. Three malformed fixtures
+(sparse, inherited, and NaN/off-board points hidden by map) were accepted in three
+of three pre-change cases, and zero of three after. An overridden map inflated
+two indexed points to 4096 (eight times the single-stroke limit); after the fix,
+only the two indexed points are copied and the hook is never called. A retained
+host point mutation changed the old snapshot and no longer changes the new one;
+the caller's array is no longer frozen. A changing x getter is read once instead
+of four times, preserving its initially valid value rather than publishing NaN.
+Ordinary valid geometry is identical. These are controlled correctness and work
+counts, not production incident rates or latency/memory measurements.
+
+SDK/declaration/classic builds and packed public SDK, classic global, ambient
+declaration, entrypoint and license smoke checks pass. Types, lint, formatting,
+boundaries and docs checks pass. Full root check, adapter/CLI suites, live browser
+and device checks are skipped: the changed shared normalization is DOM-free and
+the SDK suite exercises its record, snapshot and diagram consumers. Browser input
+and adapter lifecycles are not newly measured. API signatures/exports and DB,
+dependencies, repository hygiene, CI/runner and release settings are unchanged;
+malformed ink is now rejected at the documented boundary. Skills: bugfix and sdk.
+Versions remain manually managed at 0.1.3.
+
 ## Failed Autosave Capture Retains Accepted Write Waiters
 
 The autosave capture-error branch previously returned an already resolved promise

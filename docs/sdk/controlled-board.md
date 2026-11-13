@@ -20,11 +20,14 @@ Dim points do not change the position. Colors are six-digit hex; labels/descript
 are bounded text. URLs, arbitrary SVG/HTML and provider-specific payloads are absent.
 
 The factory validates and deeply freezes owned copies. Top-level cell and annotation
-collections capture their array length once and copy only own indexed entries
-within that bound; host iterators, array methods and species cannot supply extra
+collections, including nested ink-point arrays, capture their array length once
+and copy only own indexed entries within that bound; host iterators, array methods and species cannot supply extra
 entries or hide invalid/sparse data. Cells still require exactly width * height
 entries, with existing independent bounds for optional collections. This bounds
 SDK copying work; it does not sandbox arbitrary host getters or proxy traps.
+Ink coordinates are captured once before finite/on-board checks and rounding;
+host point objects and arrays are never frozen or retained. A sparse or inherited
+ink point is invalid, just like a missing cell or top-level annotation.
 Invalid dimensions/cells, out-of-bounds points, duplicate mask/number/stroke entries
 and invalid presentation values throw before an update can commit. State keys are not authentication:
 hosts verify permissions, game legality, revision equality and stale replies.
