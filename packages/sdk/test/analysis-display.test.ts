@@ -1,4 +1,5 @@
-import { expect, test } from 'bun:test';
+import { expect, spyOn, test } from 'bun:test';
+import * as core from '../src/core.js';
 import { RecordController } from '../src/controller.js';
 import { AnalysisSession } from '../src/analysis.js';
 import type { AnalysisCandidate } from '../src/analysis.js';
@@ -6,6 +7,7 @@ import {
   analysisCoordinate,
   analysisDisplaySgf,
   analysisPreview,
+  createAnalysisPreview,
 } from '../src/analysis-display.js';
 import { mountAnalysis } from '../src/analysis-view.js';
 const candidate = (moves: AnalysisCandidate['principalVariation']): AnalysisCandidate => ({
@@ -16,6 +18,90 @@ const candidate = (moves: AnalysisCandidate['principalVariation']): AnalysisCand
   winProbabilityBlack: 0.7,
   scoreLeadBlack: 3,
   scoreLoss: 0,
+});
+
+test('one preview checkpoint advances captures and passes once and reuses unchanged steps', () => {
+  const source = new RecordController({
+    sgf: '(;SZ[5]MN[80]AB[ab][ba][cb]AW[bb])',
+    rules: { ko: 'positional-superko', passStones: true },
+  });
+  const before = source.getState();
+  const move = candidate([{ x: 1, y: 2 }, null, { x: 2, y: 2 }]);
+  const expected = Array.from({ length: 4 }, (_, step) =>
+    analysisPreview(before.position, move, step),
+  );
+  const previews = createAnalysisPreview();
+  const play = spyOn(core, 'play'),
+    pass = spyOn(core, 'pass');
+  try {
+    const held = [];
+    for (let step = 0; step < 4; step++) {
+      const value = previews.read(before.position, move, step);
+      held.push(value);
+      expect(value).toEqual(expected[step]!);
+      expect(analysisDisplaySgf(value)).toBe(analysisDisplaySgf(expected[step]!));
+      expect(previews.read(before.position, move, step)).toBe(value);
+    }
+    expect(play).toHaveBeenCalledTimes(2);
+    expect(pass).toHaveBeenCalledTimes(1);
+    expect(held.map((value) => value.played.length)).toEqual([0, 1, 2, 3]);
+    expect(Object.isFrozen(held[1]!.played)).toBe(true);
+    expect(held[1]!.position.captures.black).toBe(1);
+    expect(held[3]!.position.passPrisoners.black).toBe(1);
+    expect(source.getState()).toBe(before);
+  } finally {
+    play.mockRestore();
+    pass.mockRestore();
+    previews.clear();
+    source.dispose();
+  }
+});
+
+test('preview checkpoint falls back for backward/jump/root/candidate changes and clears retained work', () => {
+  const root = core.createPosition({ width: 5, rules: { ko: 'situational-superko' } });
+  const move = candidate([{ x: 0, y: 0 }, { x: 1, y: 0 }, null]);
+  const previews = createAnalysisPreview();
+  for (const step of [0, 1, 3, 2, 1, 2, 3])
+    expect(previews.read(root, move, step)).toEqual(analysisPreview(root, move, step));
+  const previous = previews.read(root, move, 3);
+  const replacement = { ...move };
+  const replaced = previews.read(root, replacement, 3);
+  expect(replaced).not.toBe(previous);
+  expect(replaced).toEqual(previous);
+  const otherRoot = core.createPosition({ width: 5, toPlay: 'white' });
+  expect(previews.read(otherRoot, move, 3)).toEqual(analysisPreview(otherRoot, move, 3));
+  const held = previews.read(root, move, 3);
+  previews.clear();
+  const replay = spyOn(core, 'play');
+  try {
+    const restored = previews.read(root, move, 3);
+    expect(restored).not.toBe(held);
+    expect(restored).toEqual(held);
+    expect(replay).toHaveBeenCalledTimes(2);
+  } finally {
+    replay.mockRestore();
+    previews.clear();
+  }
+});
+
+test('preview checkpoint preserves invalid-step/illegal-move failures and empty-PV behavior', () => {
+  const root = core.createPosition({ width: 5 });
+  const move = candidate([
+    { x: 0, y: 0 },
+    { x: 0, y: 0 },
+  ]);
+  const previews = createAnalysisPreview();
+  const valid = previews.read(root, move, 1);
+  for (const step of [-1, 1.5, 3, NaN, Infinity])
+    expect(() => previews.read(root, move, step)).toThrow('PV step');
+  expect(() => previews.read(root, move, 2)).toThrow('legal');
+  expect(previews.read(root, move, 1)).toBe(valid);
+  const only = { ...candidate([]), move: { x: 2, y: 2 } };
+  expect(previews.read(root, only, 0)).toEqual(analysisPreview(root, only, 0));
+  expect(previews.read(root, only, 1)).toEqual(analysisPreview(root, only, 1));
+  expect(previews.read(root, null, 0).position).toBe(root);
+  expect(() => previews.read(root, null, 1)).toThrow('PV step');
+  previews.clear();
 });
 test('analysis PV display follows legal captures/passes, numbers only present stones and preserves source history/export', () => {
   const source = new RecordController({

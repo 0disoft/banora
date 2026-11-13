@@ -88,6 +88,15 @@ Undo and imports, even if the model's diagnostic stays unchanged. This does not
 submit analysis or add predictions. Correcting the settings/history restores the
 normal context display without remounting.
 
+Each view retains one preview checkpoint keyed by its immutable root position,
+candidate identity and played length. Repainting the same step reuses that frozen
+preview; advancing one step applies only that next core transition. Backward
+navigation, jumps or changed roots/candidates use the existing complete replay.
+Published played arrays remain independent frozen copies, so copying their
+references still costs O(step). No array of historical PV positions is retained.
+Mount rollback and disposal clear the checkpoint; source history and provider
+validation are unchanged.
+
 ## Presentation, Export and Lifetime
 
 `board` accepts theme, coordinate visibility, crop, transform, touch configuration

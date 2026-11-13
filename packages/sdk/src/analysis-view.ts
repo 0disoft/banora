@@ -17,7 +17,11 @@ import type {
 } from './analysis.js';
 import type { Point } from './core.js';
 import { analysisRequestLimits } from './analysis-request.js';
-import { analysisCoordinate, analysisDisplaySgf, analysisPreview } from './analysis-display.js';
+import {
+  analysisCoordinate,
+  analysisDisplaySgf,
+  createAnalysisPreview,
+} from './analysis-display.js';
 import { drawAnalysisOverlay } from './analysis-overlay.js';
 export type AnalysisBoardOptions = Pick<
   BoardOptions,
@@ -135,7 +139,8 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
   overlay.setAttribute('aria-hidden', 'true');
   overlay.setAttribute('focusable', 'false');
   const initialPosition = state.context?.position ?? source().getState().position;
-  let lastSgf = analysisDisplaySgf(analysisPreview(initialPosition, null, 0));
+  const previews = createAnalysisPreview();
+  let lastSgf = analysisDisplaySgf(previews.read(initialPosition, null, 0));
   const display = new RecordController({ sgf: lastSgf });
   let board: BoardView | undefined,
     unsubscribe: (() => void) | undefined,
@@ -201,7 +206,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
       selectedRank = null;
       pvStep = 0;
     }
-    const preview = analysisPreview(position, candidate, pvStep),
+    const preview = previews.read(position, candidate, pvStep),
       sgf = analysisDisplaySgf(preview);
     const crop = options.board.crop;
     if (crop && (crop.x + crop.width > position.width || crop.y + crop.height > position.height))
@@ -440,6 +445,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
     unsubscribeSource?.();
     board?.dispose();
     display.dispose();
+    previews.clear();
     if (!borrowed) session.dispose();
     root.remove();
     throw error;
@@ -487,6 +493,7 @@ export function mountAnalysis(container: HTMLElement, initial: AnalysisViewOptio
       leases.clear();
       board!.dispose();
       display.dispose();
+      previews.clear();
       root.remove();
       if (!borrowed) session.dispose();
       // Retained closed handles must not retain a completed analysis payload.

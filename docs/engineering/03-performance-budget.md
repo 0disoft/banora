@@ -908,3 +908,55 @@ no-BOM CJK was 131.61 to 128.17 ms, BOM ASCII 57.25 to 55.53 ms, and Latin-1
 52.70 to 63.70 ms. That control regression prompted the common-GC comparison
 above. Neither series establishes production p95 or a speedup for other encodings.
 No timing assertion, CI benchmark or additional runner is introduced.
+
+## Advance Analysis PV Previews from One Checkpoint
+
+The analysis view previously replayed every move from the analyzed root for every
+render. Walking forward through N PV moves therefore performed N*(N+1)/2 core
+transitions; repainting the same step repeated them too. The view now owns one
+checkpoint over immutable root/candidate identities. Same-step reads reuse its
+frozen preview, and an adjacent forward read applies one normal play/pass from
+that checkpoint. Backward reads, jumps and changed inputs use the original full
+replay function, whose implementation is unchanged. Mount rollback/disposal clear
+the entry. Provider validation, source records and request submission are unchanged.
+
+Only one current preview is retained, plus its root/candidate identity. There is
+no PV position-history array or global cache. Core positions still carry their
+exact ko/superko and prisoner/pass state. Appending a played-list snapshot copies
+O(step) references; this reduces core transitions to linear work for a forward
+walk, not all array copying to linear work. Retained external snapshots remain
+immutable. No RSS/heap-size claim is made.
+
+Parent 9b96545 and changed source bundles run in Windows / Node 24.14.0. Each
+bundle creates its own SDK-owned 19x19 positional-superko root. The line scans
+row-major coordinates, retaining the first 16 or 128 legal plays, including
+captures. Every forward/backward prefix's complete core position, played metadata
+and display SGF match. Separate counters observe frozen Position creation outside
+timing. A repeated-step batch includes its first full calculation plus 99 repeats.
+
+Both variants first receive 256 equal direct 128-step replay warmups, followed by
+four warmups per fixture and nine order-alternated samples. Exposed GC runs twice
+before each timed batch, outside the timing. Median milliseconds:
+
+| PV length | Read pattern                | Positions before / after | Before ms | After ms |
+| --------: | --------------------------- | -----------------------: | --------: | -------: |
+|        16 | Forward 1 through N         |                 136 / 16 |      2.62 |     0.40 |
+|        16 | Same last step, 100 reads   |                1600 / 16 |     24.18 |     0.45 |
+|        16 | One unprimed last-step read |                  16 / 16 |      0.38 |     0.55 |
+|        16 | Backward N through 0        |                136 / 136 |      2.12 |     3.05 |
+|       128 | Forward 1 through N         |               8256 / 128 |    144.72 |     4.64 |
+|       128 | Same last step, 100 reads   |              12800 / 128 |    214.42 |     3.38 |
+|       128 | One unprimed last-step read |                128 / 128 |      2.39 |     2.78 |
+|       128 | Backward N through 0        |              8256 / 8256 |    171.52 |   153.72 |
+
+The 128-step forward batch falls 96.79% and repeated-step batch 98.42%. This is
+isolated preview computation, excluding display-SGF serialization/parsing, DOM,
+candidate-table rebuilding and painting. It does not establish UI latency or p95.
+Unprimed reads and short backward batches increased in this run; there is no
+blanket improvement claim for fallback paths. The 16-step backward increase is
+about 0.93 ms per complete batch. No timing assertion or CI runner is added.
+
+Regressions cover capture/pass and superko state parity, frozen held snapshots,
+single-transition forward work, same-step identity, backward/jump/input changes,
+explicit clearing, invalid steps/illegal continuations and empty-PV behavior.
+Public APIs, DB, dependencies, hygiene and runner configuration are unchanged.

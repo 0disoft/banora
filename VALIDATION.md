@@ -1,5 +1,44 @@
 # Validation
 
+## Advance Analysis PV Previews from One Checkpoint
+
+Each analysis view now owns one preview checkpoint keyed by immutable root and
+candidate identity. Same-step paints reuse the frozen preview, while adjacent
+forward steps apply one normal core play/pass. Backward navigation, jumps and
+changed inputs retain the original complete replay implementation. Mount rollback
+and disposal clear the checkpoint. No PV position-history array, global cache,
+source mutation, provider-validation or request behavior change is introduced.
+Played-array snapshots still copy O(step) references.
+
+Owning contracts: [analysis view](docs/sdk/analysis-view.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#advance-analysis-pv-previews-from-one-checkpoint).
+Three new regressions verify capture/pass and full repetition-state parity,
+unchanged source/held snapshots, one-transition forward work, same-step reuse,
+backward/jump/root/candidate changes, clearing and invalid/empty-PV behavior.
+Full SDK: 367 tests / 21,653 assertions. Existing view import/lifetime, model,
+provider and locale checks pass.
+
+Paired Windows / Node 24.14.0 source bundles compare parent 9b96545's stateless
+preview reads with the new checkpoint. All 16/128-step forward/backward prefixes
+match complete preview values and display SGF. Nine order-alternated timed samples
+follow equal direct-core and per-fixture warmups, with identical explicit GC
+outside timing. A 128-step forward walk creates 8256 versus 128 Positions, taking
+144.72 versus 4.64 ms (96.79% less). A 100-read last-step batch, including its
+first calculation, creates 12800 versus 128 Positions and takes 214.42 versus
+3.38 ms. One unprimed 128-step read rises from 2.39 to 2.78 ms; the short 16-step
+backward batch rises from 2.12 to 3.05 ms. All control rows are retained in the
+performance document. These component timings exclude serialization/parsing,
+DOM and painting; no whole-view latency, p95 or RSS/heap claim is made.
+
+SDK/declaration/classic and prepared example builds, types, lint, formatting,
+boundaries and docs pass, as do packed public SDK, classic global, ambient
+declaration, entrypoint and license smoke checks. The existing controller size
+review candidate remains outside this change. Full root check, adapter/CLI suites
+and live browser/device interaction checks are skipped for this isolated preview
+computation and wiring; real click/render latency and mounted lifecycle are not
+newly measured. No public API, DB, dependency, hygiene, CI/runner or release
+changes. Skills: refactor and sdk; version remains manually managed at 0.1.3.
+
 ## Parse UTF-8 BOM Records Once
 
 UTF-8 BOM byte imports now first attempt strict UTF-8 decoding and a complete parse

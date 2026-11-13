@@ -35,6 +35,40 @@ export function analysisPreview(
   }
   return Object.freeze({ position, line, played: Object.freeze(played) });
 }
+function advancePreview(previous: AnalysisPreview): AnalysisPreview {
+  const index = previous.played.length,
+    move = previous.line[index]!,
+    color = previous.position.toPlay,
+    result = move === null ? pass(previous.position) : play(previous.position, move);
+  if (!result.ok) throw Error('Analysis preview is no longer legal');
+  return Object.freeze({
+    position: result.position,
+    line: previous.line,
+    played: Object.freeze([...previous.played, Object.freeze({ move, color, number: index + 1 })]),
+  });
+}
+/** One view-owned checkpoint over immutable session data, never a PV position history. */
+export function createAnalysisPreview() {
+  let cached:
+    | { root: Position; candidate: AnalysisCandidate | null; value: AnalysisPreview }
+    | undefined;
+  return {
+    read(root: Position, candidate: AnalysisCandidate | null, step: number): AnalysisPreview {
+      const previous =
+        cached && cached.root === root && cached.candidate === candidate ? cached.value : undefined;
+      if (previous && step === previous.played.length) return previous;
+      const value =
+        previous && step === previous.played.length + 1 && step <= previous.line.length
+          ? advancePreview(previous)
+          : analysisPreview(root, candidate, step);
+      cached = { root, candidate, value };
+      return value;
+    },
+    clear() {
+      cached = undefined;
+    },
+  };
+}
 export function analysisDisplaySgf(preview: AnalysisPreview): string {
   const { position, played } = preview,
     properties: Record<string, string[]> = {
