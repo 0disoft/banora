@@ -96,6 +96,15 @@ require a legal candidate; mismatched first moves, illegal continuations, ko and
 all existing size/metric/identity bounds remain checked. The copy and published
 results remain immutable; no cross-request position cache is introduced.
 
+For an exact SDK-owned input returned by the KataGo decoder, the normalizer may
+reuse that decoder's already-validated prepared result. Request validity is still
+checked first, followed by exact context/input identity, request/provider IDs and
+all three limits. A private pair of weak keys authorizes this reuse; freezing,
+copying or matching data alone does not. Foreign provider data takes the complete
+normalization path. Mismatched limits take that same path and may reject, while
+stale IDs/contexts retain their existing failures. Neither key, a request wrapper
+nor a Position is strongly retained by this proof.
+
 `getState()` exposes immutable status (`idle`, `loading`, `ready`, `error`, `cancelled`
 or `unavailable`), provider ID, context, request ID, result and structured error.
 `subscribe(listener)` immediately supplies state and returns unsubscribe. Public

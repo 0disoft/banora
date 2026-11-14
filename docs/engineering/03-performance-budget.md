@@ -5,6 +5,52 @@
 - Technical owner: `0disoft` (solo maintainer)
 - Decision: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 
+## Reuse KataGo response validation
+
+KataGo decoding previously validated every candidate/PV through the core, then
+returned a provider-neutral input that the session validated by replaying all
+those moves again. The decoder now associates its deeply SDK-owned frozen input
+with the prepared normalized result. The normalizer first checks request validity,
+then reuses only an exact context/input identity pair with identical request ID,
+provider ID and visit/PV/ownership limits. Other inputs use full validation.
+The existing dense indexed array reader is shared with the decoder so host array
+hooks cannot undermine ownership. Context/input keys are weak, and proof values
+contain no Positions, host input or request wrappers. Retention scales with live
+caller-owned keys; no strong list of past responses or replay Positions is kept.
+
+Windows x64, Node 24.14.0, Bun 1.4.4 bundles compare parent `8102072` with the
+new implementation. The 19x19 fixtures use distinct legal candidate starts and
+generated legal non-pass PVs, Black-perspective metrics and 361 ownership values.
+Four warmups per side/fixture precede nine order-alternated samples, with two
+explicit GCs outside each timed batch. Batch sizes are 50, 5, 1 and 1 respectively;
+the table gives per-completion medians. Each completion includes a real session
+request, query encoding, in-memory JSON transport/final routing, decoding,
+normalization, state publication and promise completion. Context/session creation
+and fixture generation are excluded; no engine computation is simulated or timed.
+
+| Provider                         | Candidates x PV length | Core transitions before / after | Before    | After     | Time change |
+| -------------------------------- | ---------------------- | ------------------------------- | --------- | --------- | ----------- |
+| KataGo                           | 1 x 1                  | 2 / 1                           | 0.194 ms  | 0.171 ms  | -11.93%     |
+| KataGo                           | 8 x 16                 | 256 / 128                       | 1.359 ms  | 0.839 ms  | -38.27%     |
+| KataGo                           | 32 x 256               | 16384 / 8192                    | 71.990 ms | 38.998 ms | -45.83%     |
+| Foreign generic provider control | 32 x 256               | 8192 / 8192                     | 35.241 ms | 35.409 ms | +0.47%      |
+
+Transition counts follow the nonempty fixture PV lengths; a provider-to-session
+core spy independently checks one play/pass validation per step. Semantic parity
+compares complete normalized payloads after accounting for each module's issued
+request/context IDs. Core legality, bounds, ordering, derived loss, optional
+ownership, source immutability and context/ID/limit fallback have regression
+coverage. Generic provider data still gets the complete normalizer; its control
+has no claimed speedup. No timing threshold is used. The largest KataGo samples
+span 71.107-77.829 ms before and 38.378-43.192 ms after.
+
+These are headless integration timings without an engine, process, network, DOM
+or GPU. They do not establish engine speed, browser interaction, p95, RSS/heap or
+GC timing improvements. Local source bundles, harness and raw samples live in
+`work/katago-validation/{entry.ts,before.mjs,after.mjs,bench.mjs,results.json}` under
+the active Codex scratch workspace. The normalizer and decoder signatures,
+returned shapes, sorting and failure categories remain unchanged.
+
 ## Reuse SVG byte-accounting storage
 
 Headless `renderDiagramSvg` previously allocated a UTF-8 byte array for each

@@ -4,10 +4,36 @@ import { AnalysisError } from './analysis-types.js';
 import type {
   AnalysisCandidate,
   AnalysisCompletion,
+  AnalysisContext,
   AnalysisMetrics,
   AnalysisRequest,
+  AnalysisResult,
 } from './analysis-types.js';
 import { analysisFailure, isAnalysisContext } from './analysis-context.js';
+
+interface DecodedResult {
+  readonly result: AnalysisResult;
+  readonly maxVisits: number;
+  readonly maxPvLength: number;
+  readonly includeOwnership: boolean;
+}
+// Neither the context nor response is kept alive by a proof. Values own no Positions.
+const decodedResults = new WeakMap<AnalysisContext, WeakMap<object, DecodedResult>>();
+/** Internal: input must be deeply SDK-owned and frozen, after full validation. */
+export function rememberDecodedAnalysisResult(
+  request: AnalysisRequest,
+  input: object,
+  result: AnalysisResult,
+): void {
+  let results = decodedResults.get(request.context);
+  if (!results) decodedResults.set(request.context, (results = new WeakMap()));
+  results.set(input, {
+    result,
+    maxVisits: request.limits.maxVisits,
+    maxPvLength: request.limits.maxPvLength,
+    includeOwnership: request.limits.includeOwnership,
+  });
+}
 function fail(message: string): never {
   throw new AnalysisError('invalid-result', message);
 }
@@ -36,7 +62,7 @@ function metrics(value: unknown): AnalysisMetrics {
   });
 }
 /** Decode bounded indexed data into an SDK-owned dense array, never host array methods. */
-function array<T>(
+export function analysisArray<T>(
   input: unknown,
   minimum: number,
   maximum: number,
@@ -79,8 +105,18 @@ export function normalizeAnalysisResult(
       request.limits.maxPvLength > 256
     )
       fail('Invalid analysis request context or limits.');
-    const value = object(input),
-      position = request.context.position,
+    const value = object(input);
+    const decoded = decodedResults.get(request.context)?.get(value);
+    if (
+      decoded &&
+      decoded.result.requestId === request.id &&
+      decoded.result.providerId === request.providerId &&
+      decoded.maxVisits === request.limits.maxVisits &&
+      decoded.maxPvLength === request.limits.maxPvLength &&
+      decoded.includeOwnership === request.limits.includeOwnership
+    )
+      return { ok: true, result: decoded.result };
+    const position = request.context.position,
       area = position.width * position.height;
     if (value.requestId !== request.id || value.contextKey !== request.context.key)
       fail('Analysis response identity does not match the request.');
@@ -97,7 +133,7 @@ export function normalizeAnalysisResult(
     let pvTotal = 0;
     const moveKeys = new Set<string>(),
       ranks = new Set<number>();
-    const candidates: Omit<AnalysisCandidate, 'scoreLoss'>[] = array(
+    const candidates: Omit<AnalysisCandidate, 'scoreLoss'>[] = analysisArray(
       value.candidates,
       0,
       area + 1,
@@ -111,7 +147,7 @@ export function normalizeAnalysisResult(
           fail('Analysis candidates contain duplicate moves or ranks.');
         moveKeys.add(key(point));
         ranks.add(rank);
-        const principalVariation = array(
+        const principalVariation = analysisArray(
           pv,
           0,
           Math.min(request.limits.maxPvLength + 1, 8192 - pvTotal),
@@ -156,7 +192,7 @@ export function normalizeAnalysisResult(
     const rawOwnership = value.ownership;
     if (rawOwnership !== undefined) {
       ownership = Object.freeze(
-        array(
+        analysisArray(
           rawOwnership,
           area,
           area,

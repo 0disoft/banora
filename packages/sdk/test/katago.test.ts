@@ -2,7 +2,12 @@ import { expect, spyOn, test } from 'bun:test';
 import * as core from '../src/core.js';
 import { RecordController } from '../src/controller.js';
 import { getRuleProfile } from '../src/rules.js';
-import { AnalysisError, AnalysisSession, createAnalysisContext } from '../src/analysis.js';
+import {
+  AnalysisError,
+  AnalysisSession,
+  createAnalysisContext,
+  normalizeAnalysisResult,
+} from '../src/analysis.js';
 import type { AnalysisCancellation, AnalysisRequest, AnalysisSettings } from '../src/analysis.js';
 import { KataGoProvider, createKataGoQuery, decodeKataGoResult } from '../src/katago.js';
 import type { KataGoOptions } from '../src/katago.js';
@@ -344,6 +349,141 @@ test('response decoding normalizes metrics/ownership for all declared perspectiv
   expect(machine.candidates[0]?.principalVariation).toEqual([{ x: 2, y: 2 }, null]);
   controller.dispose();
 });
+test('decoder proofs avoid replay while preserving raw order, absent ownership and full-validation fallback', () => {
+  const controller = new RecordController({ size: 5 });
+  const current = request(controller);
+  const { ownership: _ownership, ...raw } = report(current.id);
+  raw.moveInfos.reverse();
+  const plays = spyOn(core, 'play'),
+    passes = spyOn(core, 'pass');
+  try {
+    const decoded = decodeKataGoResult(current, raw, options);
+    expect(plays).toHaveBeenCalledTimes(2);
+    expect(passes).toHaveBeenCalledTimes(1);
+    expect(decoded.candidates.map((candidate) => candidate.rank)).toEqual([1, 0]);
+    expect(Object.hasOwn(decoded, 'ownership')).toBe(false);
+    const completed = normalizeAnalysisResult(current, decoded);
+    if (!completed.ok) throw Error(completed.message);
+    expect(completed.result.candidates.map((candidate) => candidate.rank)).toEqual([0, 1]);
+    expect(completed.result.ownership).toBe(null);
+    const copiedRequest = { ...current, limits: { ...current.limits } };
+    expect(normalizeAnalysisResult(copiedRequest, decoded)).toEqual(completed);
+    expect(plays).toHaveBeenCalledTimes(2);
+    expect(passes).toHaveBeenCalledTimes(1);
+    const foreign = JSON.parse(JSON.stringify(decoded));
+    expect(normalizeAnalysisResult(current, foreign)).toEqual(completed);
+    expect(plays).toHaveBeenCalledTimes(4);
+    expect(passes).toHaveBeenCalledTimes(2);
+    foreign.candidates[0].move = { x: 99, y: 99 };
+    Object.freeze(foreign);
+    expect(normalizeAnalysisResult(current, foreign).ok).toBe(false);
+    expect(normalizeAnalysisResult(current, decoded)).toEqual(completed);
+
+    const captured = createAnalysisContext(controller.getState(), {
+      profile: 'japanese-territory',
+    });
+    if (!captured.ok) throw Error(captured.message);
+    expect(captured.value.key).not.toBe(current.context.key);
+    expect(captured.value).not.toBe(current.context);
+    expect(normalizeAnalysisResult({ ...current, context: captured.value }, decoded).ok).toBe(
+      false,
+    );
+    expect(
+      normalizeAnalysisResult({ ...current, context: { ...current.context } }, decoded).ok,
+    ).toBe(false);
+    for (const changed of [
+      { ...current, providerId: 'other' },
+      { ...current, limits: { ...current.limits, maxVisits: 101 } },
+      { ...current, limits: { ...current.limits, includeOwnership: false } },
+      { ...current, limits: { ...current.limits, maxPvLength: 17 } },
+    ]) {
+      plays.mockClear();
+      passes.mockClear();
+      const result = normalizeAnalysisResult(changed, decoded);
+      if (!result.ok) throw Error(result.message);
+      expect(result.result).not.toBe(completed.result);
+      expect(result.result.providerId).toBe(changed.providerId);
+      expect(plays).toHaveBeenCalledTimes(2);
+      expect(passes).toHaveBeenCalledTimes(1);
+    }
+    expect(normalizeAnalysisResult({ ...current, id: 'different' }, decoded).ok).toBe(false);
+    expect(
+      normalizeAnalysisResult(
+        { ...current, limits: { ...current.limits, maxPvLength: 0 } },
+        decoded,
+      ).ok,
+    ).toBe(false);
+    expect(
+      normalizeAnalysisResult({ ...current, limits: { ...current.limits, maxVisits: 0 } }, decoded)
+        .ok,
+    ).toBe(false);
+  } finally {
+    plays.mockRestore();
+    passes.mockRestore();
+    controller.dispose();
+  }
+});
+
+test('decoder proof inputs own indexed data and never retain host array hooks or mutable points', () => {
+  const controller = new RecordController({ size: 5 });
+  const current = request(controller),
+    raw = report(current.id);
+  const hook = () => {
+    throw Error('Host array hook must not run');
+  };
+  for (const array of [raw.moveInfos, raw.ownership, ...raw.moveInfos.map((move) => move.pv)])
+    for (const key of ['map', 'includes', 'constructor', Symbol.iterator])
+      Object.defineProperty(array, key, { value: hook });
+  try {
+    const decoded = decodeKataGoResult(current, raw, options);
+    const expected = normalizeAnalysisResult(current, JSON.parse(JSON.stringify(decoded)));
+    expect(Object.isFrozen(decoded.candidates)).toBe(true);
+    expect(Object.isFrozen(decoded.candidates[0])).toBe(true);
+    expect(Object.isFrozen(decoded.candidates[0]!.move)).toBe(true);
+    expect(Object.isFrozen(decoded.candidates[0]!.principalVariation[1])).toBe(true);
+    expect(Object.isFrozen(decoded.ownership)).toBe(true);
+    raw.moveInfos[0]!.pv[1] = 'C3';
+    raw.moveInfos[0]!.move = 'I3';
+    raw.ownership[0] = NaN;
+    expect(normalizeAnalysisResult(current, decoded)).toEqual(expected);
+    expect(() => decodeKataGoResult(current, raw, options)).toThrow(AnalysisError);
+    expect(() => decodeKataGoResult(current, { ...raw, moveInfos: new Array(1) }, options)).toThrow(
+      AnalysisError,
+    );
+  } finally {
+    controller.dispose();
+  }
+});
+
+test('provider-to-session completion validates each candidate/PV transition only once', async () => {
+  const controller = new RecordController({ size: 5 });
+  const sent: string[] = [];
+  const provider = new KataGoProvider({ sendLine: (line) => void sent.push(line) }, options);
+  const session = new AnalysisSession(controller, provider, { profile: 'japanese-territory' });
+  const before = controller.getState();
+  const plays = spyOn(core, 'play'),
+    passes = spyOn(core, 'pass');
+  try {
+    const pending = session.request();
+    const id = JSON.parse(sent[0]!).id;
+    expect(provider.receiveLine(JSON.stringify(report(id))).ok).toBe(true);
+    const completed = await pending;
+    if (!completed.ok) throw Error(completed.message);
+    expect(session.getState().status).toBe('ready');
+    expect(session.getState().result).toBe(completed.result);
+    expect(completed.result.candidates).toHaveLength(2);
+    expect(plays).toHaveBeenCalledTimes(2);
+    expect(passes).toHaveBeenCalledTimes(1);
+    expect(controller.getState()).toBe(before);
+  } finally {
+    plays.mockRestore();
+    passes.mockRestore();
+    session.dispose();
+    provider.dispose();
+    controller.dispose();
+  }
+});
+
 test('provider accepts out-of-order finals while ignoring unrelated IDs, action acknowledgements and interim reports', async () => {
   const sent: string[] = [],
     provider = new KataGoProvider(

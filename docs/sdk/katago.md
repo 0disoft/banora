@@ -140,6 +140,17 @@ points; only `pass` is a null move. It applies the common legal-candidate/PV res
 validator, ignores unknown extra fields and never uses engine board hashes as exact
 history identity. The session supplies provider identity and derived move score loss.
 
+The decoder copies candidate, PV and ownership arrays by bounded dense indices,
+without host array methods, iterators or species. Its returned input remains deeply
+SDK-owned and frozen, preserving engine order and omitting absent ownership.
+After full common validation, a private proof associates that exact input with
+the prepared normalized result. The session can reuse it for the same issued
+context, request/provider IDs and exact visit/PV/ownership limits, avoiding a
+second legal replay. Foreign copies, changed requests and failed decoding cannot
+authorize reuse. Both context and input are weak keys; proof values contain no
+Positions or request wrappers. Extra prepared data remains reachable only while
+both keys are live. No process, transport, cancellation or public API changes.
+
 Each incoming/outgoing line is limited to 1,048,576 UTF-16 code units. Malformed
 framing/JSON/missing bounded ID cannot be routed: pending requests fail and receive
 best-effort termination. Valid unrelated IDs are ignored. Candidate/ownership/PV

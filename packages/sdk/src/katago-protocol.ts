@@ -1,7 +1,11 @@
 import type { Color, Point, Position } from './core.js';
 import { AnalysisError } from './analysis-types.js';
 import type { AnalysisMetrics, AnalysisRequest, AnalysisResultInput } from './analysis-types.js';
-import { normalizeAnalysisResult } from './analysis-result.js';
+import {
+  analysisArray,
+  normalizeAnalysisResult,
+  rememberDecodedAnalysisResult,
+} from './analysis-result.js';
 
 export type KataGoPerspective = 'black' | 'white' | 'to-play';
 export interface KataGoOptions {
@@ -270,42 +274,39 @@ export function decodeKataGoResult(
       visits: numeric(data.visits, 0, 1e9, true),
     });
   };
-  const moves = value.moveInfos;
-  if (!Array.isArray(moves) || moves.length > area + 1 || moves.includes(undefined))
-    fail('Invalid KataGo candidate list.');
   let total = 0;
   const candidates = Object.freeze(
-    moves.map((input) => {
-      const data = object(input),
-        pv = data.pv;
-      if (
-        !Array.isArray(pv) ||
-        pv.includes(undefined) ||
-        pv.length > request.limits.maxPvLength + 1 ||
-        (total += pv.length) > 8192
-      )
-        fail('Invalid or unbounded KataGo PV.');
+    analysisArray(value.moveInfos, 0, area + 1, 'Invalid KataGo candidate list.', (input) => {
+      const data = object(input);
+      const pv = analysisArray(
+        data.pv,
+        0,
+        Math.min(request.limits.maxPvLength + 1, 8192 - total),
+        'Invalid or unbounded KataGo PV.',
+        (move) => point(move, position),
+      );
+      total += pv.length;
       return Object.freeze({
         ...metrics(data),
         move: point(data.move, position),
         rank: numeric(data.order, 0, area, true),
-        principalVariation: Object.freeze(pv.map((move) => point(move, position))),
+        principalVariation: Object.freeze(pv),
       });
     }),
   );
   let ownership: readonly number[] | undefined;
   if (value.ownership !== undefined) {
-    if (
-      !Array.isArray(value.ownership) ||
-      value.ownership.length !== area ||
-      value.ownership.includes(undefined)
-    )
-      fail('Invalid KataGo ownership dimensions.');
     ownership = Object.freeze(
-      value.ownership.map((value) => {
-        const number = numeric(value, -1, 1);
-        return black ? number : -number;
-      }),
+      analysisArray(
+        value.ownership,
+        area,
+        area,
+        'Invalid KataGo ownership dimensions.',
+        (value) => {
+          const number = numeric(value, -1, 1);
+          return black ? number : -number;
+        },
+      ),
     );
   }
   const result = Object.freeze({
@@ -317,5 +318,6 @@ export function decodeKataGoResult(
   });
   const normalized = normalizeAnalysisResult(request, result);
   if (!normalized.ok) throw new AnalysisError(normalized.reason, normalized.message);
+  rememberDecodedAnalysisResult(request, result, normalized.result);
   return result;
 }

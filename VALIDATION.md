@@ -1,5 +1,46 @@
 # Validation
 
+## Reuse KataGo Response Validation
+
+KataGo final decoding and session completion previously replayed the same legal
+candidate/PV transitions independently. A private proof now associates an exact
+deeply SDK-owned frozen decoded input with its already prepared normalized
+result. Request validation still runs first; reuse requires the same issued
+context, input, request/provider IDs and all three limits. The normalizer's dense
+indexed reader is shared with the decoder to establish ownership without host
+array hooks. Both keys are weak and values hold no Positions/request wrappers.
+Foreign inputs and changed limits retain complete validation; changed IDs or
+contexts retain their existing identity failures.
+
+Owning contracts: [KataGo](docs/sdk/katago.md), [analysis](docs/sdk/analysis.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#reuse-katago-response-validation).
+Three new regressions cover one-time play/pass validation through the real
+provider/session path; wrapper equivalence; raw order/absent ownership; foreign
+copies and frozen invalid data; changed context/provider/ID/limits; dense SDK
+ownership despite host hooks; source mutation and malformed-input rejection.
+Full SDK: 371 tests / 21,711 assertions, including existing cancellation, stale
+responses, reused IDs, disconnect, disposal and transport-failure recovery cases.
+
+Paired Node 24.14.0 source bundles against parent `8102072` use four warmups and
+nine alternating samples with explicit GC outside timing. A real headless session
+and in-memory KataGo transport complete 8 x 16-move reports in 1.359 -> 0.839 ms
+(38.27% less), and 32 x 256-move reports in 71.990 -> 38.998 ms (45.83% less).
+The latter fixture needs 16,384 -> 8192 core transitions. The generic-provider
+control remains fully validated and changes 35.241 -> 35.409 ms (+0.47%). Full
+normalized payloads match after accounting for issued request/context identities.
+This excludes engine/process/network/browser/GPU work and does not measure heap,
+RSS, p95 or whole-application latency. Timing rows and limitations are retained.
+
+SDK/declaration/classic and prepared example builds, SDK tests, types, lint,
+formatting, boundaries and docs pass. Packed public SDK, classic global, ambient
+declarations, entrypoints and license checks pass. The existing controller size
+review candidate and prepared-example classic-script bundling notice remain.
+Full root check, adapter/CLI suites, live engine/model runs and browser/device
+interaction checks are skipped for this isolated response-validation change;
+actual engine and UI latency remain unmeasured. No public API, DB, dependency,
+repository-hygiene, CI/runner or release changes. Skills: refactor and sdk;
+version remains manually managed at 0.1.3.
+
 ## Reuse Headless SVG Byte-accounting Storage
 
 `renderDiagramSvg` now reuses one local 8192-byte UTF-8 destination rather than
