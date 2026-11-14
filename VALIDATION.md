@@ -1,5 +1,40 @@
 # Validation
 
+## Reuse Headless SVG Byte-accounting Storage
+
+`renderDiagramSvg` now reuses one local 8192-byte UTF-8 destination rather than
+allocating one byte array per primitive. `encodeInto` reads are advanced by
+UTF-16 units; large escaped primitives are handled over multiple chunks. The
+independent 8 MiB guard still checks every chunk before retaining its primitive.
+No output cache, retained buffer or snapshot/painter change is introduced.
+
+Owning contracts: [headless diagrams](docs/sdk/diagrams.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#reuse-svg-byte-accounting-storage).
+The new regression accepts exactly 8 MiB of escaped/multibyte SVG with a long
+root primitive and deferred masked labels, then rejects one extra byte. Full SDK:
+368 tests / 21,659 assertions. Existing XML escaping, malformed scalars, geometry,
+immutability, record projection and oversize fixtures pass.
+
+Paired Windows / Node 24.14.0 source bundles against parent `382e8c7` use six
+warmups and nine alternating samples with explicit GC outside timing. Per-render
+medians: empty 19x19 1.471 -> 1.366 ms; 240-stone 19x19 4.654 -> 4.278 ms;
+annotated 52x52 308.08 -> 285.50 ms (7.33% less). The last fixture replaces
+23,499 encoded byte arrays totaling 3,206,203 bytes with one 8192-byte buffer.
+All SVG bytes and oversize errors match in the separate parity cases. These are
+headless export and destination-allocation measurements, not browser, PNG, p95,
+RSS or total-heap claims. Full sample ranges and controls remain in the owner doc.
+
+SDK/declaration/classic and prepared example builds, SDK tests, types, lint,
+formatting, boundaries and docs pass. Packed public SDK, headless diagram,
+classic-global, ambient declaration, entrypoint and license smoke checks pass.
+The existing controller size-review candidate remains outside this change;
+the prepared example build retains its classic-script bundling notice.
+Full root check, framework/CLI suites and live browser/device tests are outside
+this isolated synchronous exporter change; browser performance and actual device
+execution remain unmeasured. No API, DB, dependency, repository-hygiene, CI/runner
+or release changes. Skills: refactor and sdk; version remains manually managed
+at 0.1.3.
+
 ## Advance Analysis PV Previews from One Checkpoint
 
 Each analysis view now owns one preview checkpoint keyed by immutable root and

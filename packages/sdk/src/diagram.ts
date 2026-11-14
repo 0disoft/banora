@@ -77,10 +77,17 @@ export function renderDiagramSvg(source: DiagramSource, options: DiagramSvgOptio
   let masked: string[] | undefined;
   let clipId = '';
   const encoder = new TextEncoder();
+  const byteBuffer = new Uint8Array(8192);
   let bytes = 0;
   const append = (text: string, destination = parts) => {
-    bytes += encoder.encode(text).byteLength;
-    if (bytes > DIAGRAM_SVG_LIMITS.maxBytes) throw new RangeError('SVG diagram exceeds 8 MiB');
+    // Reuse bounded storage even when an escaped primitive exceeds the buffer.
+    let offset = 0;
+    while (offset < text.length) {
+      const encoded = encoder.encodeInto(text.slice(offset), byteBuffer);
+      bytes += encoded.written;
+      if (bytes > DIAGRAM_SVG_LIMITS.maxBytes) throw new RangeError('SVG diagram exceeds 8 MiB');
+      offset += encoded.read;
+    }
     destination.push(text);
   };
   const add = (name: string, attributes: Record<string, string | number>, text?: string) => {

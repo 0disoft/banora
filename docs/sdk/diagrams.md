@@ -67,6 +67,12 @@ budgets. `DIAGRAM_SVG_LIMITS.maxBytes` independently caps generated UTF-8 SVG at
 8 MiB, including escaped multibyte text and markup. XML-forbidden control
 characters and unpaired surrogates become U+FFFD; authored markup is escaped.
 
+UTF-8 accounting uses one local 8 KiB scratch buffer per render, reused across
+primitives. Oversized escaped primitives are encoded in chunks; the byte limit
+is checked after each chunk before retaining the primitive. This preserves the
+exact 8 MiB boundary without allocating a fresh encoded byte array per shape.
+The buffer and encoder are not retained after the synchronous call.
+
 This API exports one selected position. It does not split move ranges into pages,
 reset numbering, generate replay/capture footnotes, rasterize PNG, or derive
 authored puzzle semantics. Those operations remain host workflows. Mounted

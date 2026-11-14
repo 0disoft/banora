@@ -212,3 +212,43 @@ test('valid multibyte annotations cannot exceed the independent SVG byte budget'
   };
   expect(() => renderDiagramSvg(source)).toThrow('exceeds 8 MiB');
 });
+
+test('chunked UTF-8 counting accepts exactly 8 MiB including long escaped titles and masked text', () => {
+  const markers = Array.from({ length: 52 * 52 }, (_, index) => ({
+    kind: 'label' as const,
+    point: { x: index % 52, y: Math.floor(index / 52) },
+    label: '\u6F22'.repeat(900),
+  }));
+  const source: BoardSnapshot = {
+    key: 'exact-budget',
+    width: 52,
+    height: 52,
+    stones: Array(52 * 52).fill(null),
+    markers,
+    visiblePoints: markers.map((marker) => marker.point),
+  };
+  const options = { title: '"'.repeat(500) + '\u{1F600}' + '"'.repeat(522) };
+  const encoder = new TextEncoder();
+  const initial = renderDiagramSvg(source, options);
+  expect(encoder.encode(initial.slice(0, initial.indexOf('</title>'))).length).toBeGreaterThan(
+    8192,
+  );
+  let remaining = DIAGRAM_SVG_LIMITS.maxBytes - encoder.encode(initial).length;
+  expect(remaining).toBeGreaterThan(0);
+  for (const marker of markers) {
+    const count = Math.min(124, Math.floor(remaining / 3));
+    marker.label += '\u6F22'.repeat(count);
+    remaining -= count * 3;
+    if (remaining < 3 && count <= 122) {
+      marker.label += 'x'.repeat(remaining);
+      remaining = 0;
+    }
+    if (remaining === 0) break;
+  }
+  expect(remaining).toBe(0);
+  const exact = renderDiagramSvg(source, options);
+  expect(encoder.encode(exact).length).toBe(DIAGRAM_SVG_LIMITS.maxBytes);
+  expect(exact).toContain(`<title>${'&quot;'.repeat(500)}\u{1F600}${'&quot;'.repeat(522)}</title>`);
+  markers[markers.length - 1]!.label += 'x';
+  expect(() => renderDiagramSvg(source, options)).toThrow('exceeds 8 MiB');
+});

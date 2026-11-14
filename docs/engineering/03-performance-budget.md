@@ -5,6 +5,45 @@
 - Technical owner: `0disoft` (solo maintainer)
 - Decision: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 
+## Reuse SVG byte-accounting storage
+
+Headless `renderDiagramSvg` previously allocated a UTF-8 byte array for each
+emitted primitive solely to enforce its independent 8 MiB output limit. It now
+uses `TextEncoder.encodeInto` with one local 8192-byte destination per render.
+Primitives larger than the buffer are processed in chunks, checking the same
+limit after every chunk. Neither output text nor the destination is cached.
+
+Windows x64 / Node 24.14.0 / Bun 1.4.4 source bundles compare parent `382e8c7`
+with this change. Every timed render includes snapshot validation, painting,
+escaping, byte accounting and final string assembly. Six warmups per side and
+fixture precede nine order-alternated samples; two explicit GCs run before each
+batch outside timing. Rows show per-render medians; batch sizes are 100, 50 and
+2 respectively. Instrumentation is separate from timing.
+
+| Fixture                                      | Old byte arrays per render | New byte buffers | Before    | After     | Reduction |
+| -------------------------------------------- | -------------------------- | ---------------- | --------- | --------- | --------- |
+| Empty 19x19                                  | 126                        | 1                | 1.471 ms  | 1.366 ms  | 7.09%     |
+| 19x19, 240 stones                            | 366                        | 1                | 4.654 ms  | 4.278 ms  | 8.06%     |
+| 52x52, 2704 stones, 4096 labels, 8192 badges | 23499                      | 1                | 308.08 ms | 285.50 ms | 7.33%     |
+
+The dense fixture's encoded destinations total 3,206,203 allocated bytes before
+versus one 8192-byte buffer now (99.74% less destination storage allocated).
+This excludes JavaScript strings, objects, snapshots and GC overhead; it is not
+an RSS, peak-memory or total-allocation measurement. Small diagrams still incur
+the fixed 8 KiB scratch allocation. Timing variation remains: dense samples span
+293.23-365.51 ms before and 265.05-382.35 ms after; no timing threshold is used.
+
+All timed SVGs match byte for byte. Additional parity checks cover Unicode,
+unpaired surrogates, escaped long titles, long ink, masks, dimming, crops and
+transforms, plus ASCII, U+AC00, U+1F600 and XML-escaped large-label outputs or
+identical oversize errors. A regression accepts exactly 8,388,608 UTF-8 bytes
+including a root primitive longer than the scratch buffer and deferred masked
+labels, then rejects one extra byte. Existing deterministic/security/geometry
+checks remain. This measures headless export, not live board paint, PNG encoding,
+browser interaction, p95 or universal throughput. The local external harness
+and raw samples are `work/svg-bytes/{entry.ts,before.mjs,after.mjs,bench.mjs,results.json}`
+under the active Codex scratch workspace.
+
 ## Selected-path scoring reconstruction
 
 Scoring now constructs its temporary controller from the selected root-to-cursor
