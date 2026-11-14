@@ -19,6 +19,7 @@ interface ForkKey {
 }
 interface ForkCheckpoint extends ForkKey {
   readonly node: SgfNode;
+  readonly parentId: string | undefined;
   readonly game: number;
   readonly depth: number;
 }
@@ -50,11 +51,26 @@ export function variationPathKey(state: ControllerState): string {
         if (branch) key = before.forks ? `${key}/${state.node.id}` : state.node.id;
         result = { key, forks: before.forks + Number(branch) };
       }
+    } else if (before.depth === state.path.length + 1 && before.parentId === state.node.id) {
+      const branch = state.node.children.length > 1;
+      const key = branch
+        ? before.key.slice(0, before.key.length - before.node.id.length - Number(before.forks > 1))
+        : before.key;
+      result = { key, forks: before.forks - Number(branch) };
     }
   }
   result ??= fullForkKey(state);
   forkCheckpoint = new WeakMap([
-    [identity, { ...result, node: state.node, game: state.gameIndex, depth: state.path.length }],
+    [
+      identity,
+      {
+        ...result,
+        node: state.node,
+        parentId: state.path[state.path.length - 2],
+        game: state.gameIndex,
+        depth: state.path.length,
+      },
+    ],
   ]);
   return result.key;
 }

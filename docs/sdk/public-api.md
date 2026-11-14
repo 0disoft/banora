@@ -694,9 +694,12 @@ host authority. Hints follow transforms/crops and never appear in diagram export
 `variationCandidates(state)` expose DOM-free projections from controller state.
 The fork-path key uses one weak checkpoint. Same-node reads and validated C-only
 edits reuse its key; a direct-child step in the same game appends an ID only when
-leaving a fork. Backward/branch jumps, game switches, other edits and imports use
-the original full-path calculation. Calls across controllers safely evict this
-single checkpoint; no ancestor arrays or historical record cache are retained.
+leaving a fork. A one-level backward step matching the checkpoint's parent ID
+removes the departing ID only when returning to a fork; it does not scan siblings.
+Other backward/branch jumps, game switches, other edits and imports use the
+original full-path calculation. Calls across controllers safely evict this single
+checkpoint; only one parent ID is added, with no ancestor arrays, retained paths
+or historical record cache.
 The row projection keeps its default 500-row bound (custom limits remain 1 through
 50,000). Sibling traversal is lazy: a bounded prefix does not allocate scheduling
 entries for every hidden sibling. Exhausted sibling cursors are dropped before

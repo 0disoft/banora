@@ -5,6 +5,55 @@
 - Technical owner: `0disoft` (solo maintainer)
 - Decision: [ADR 0001](../adr/0001-initial-architecture-boundaries.md)
 
+## Incremental Backward Variation Fork Keys
+
+Studio and focused Viewer outline reuse both call `variationPathKey`. Their
+existing checkpoint handled repeated nodes and forward steps, but each backward
+step still copied/traversed the entire root-to-cursor path. Returning N linear
+moves to the root caused N(N-1) child-list reads, even though every key was empty.
+
+The same single weak checkpoint now stores one parent ID, not a parent object or
+path. A matching game, one-level depth decrease and parent ID prove an adjacent
+backward step in the same immutable topology epoch. Only the parent's child count
+is read; an exact departing-ID suffix is removed at a fork. No sibling membership
+scan, ancestor array, extra history entry or second checkpoint is introduced.
+Non-parent jumps and identity changes retain full traversal. C-only provenance
+continues to preserve topology; structural edits/imports invalidate it.
+
+Windows x64 / Node 24.14.0 / Bun 1.4.4 source bundles compare parent `9655a0a`
+with this implementation. A legal 19x19 aa/bb opening is followed by alternating
+passes, for 1000 or 5000 total moves. Both modules receive the same SDK-owned
+immutable states. State/path/position preparation is outside timing. Four warmups
+per side/mode precede nine order-alternated samples with two explicit GCs outside
+each sample. The leaf checkpoint is primed outside reverse-walk timing. Each
+reverse/forward sample is a complete walk; cold reads average 16 forced misses.
+Getter instrumentation is separate from timing; timed trees use native nodes.
+
+| Key projection workload     | Child reads before / after | Before      | After    | Time reduction |
+| --------------------------- | -------------------------- | ----------- | -------- | -------------- |
+| 1000-step reverse walk      | 999000 / 1000              | 92.633 ms   | 0.294 ms | 99.68%         |
+| 5000-step reverse walk      | 24995000 / 5000            | 2776.733 ms | 2.934 ms | 99.89%         |
+| 5000-step forward control   | Unchanged path             | 3.669 ms    | 3.638 ms | 0.84%          |
+| Cold 5000-depth key control | Unchanged traversal        | 1.047 ms    | 1.012 ms | 3.35%          |
+
+The 5000-step reverse samples span 2365.439-4554.949 ms before and 1.827-5.050 ms
+after. Timing varies; no threshold or control-workload speedup is claimed.
+Deterministic counts establish linear key work for sequential linear backtracking.
+All timed/instrumented keys match. The expanded regression reproduces 999000
+versus 1000 reads on a 1000-move reverse walk, plus zero extra reads on repeated
+frames. Further oracle checks cover nested fork removal, C-only child replacement,
+non-parent one-level jumps, forward recovery, games, old states, other controllers,
+Undo/Redo, topology edits and reused IDs after import. A 1000-sibling parent step
+reads no sibling indices. Key format and outline decisions are unchanged.
+
+This measures only the DOM-free fork-key projection, not controller navigation,
+path creation, position replay, outline recentering, SVG/DOM painting, UI latency,
+p95 or heap/RSS. Forward sibling checks and fork-string operations retain their
+existing width/output-size costs; interleaved views still evict the one checkpoint.
+The local bundles, harness and raw samples are
+`work/backward-fork-key/{entry.ts,before.mjs,after.mjs,bench.mjs,results.json}` under
+the active Codex scratch workspace. No public API or CI job is added.
+
 ## Reuse KataGo response validation
 
 KataGo decoding previously validated every candidate/PV through the core, then
@@ -525,7 +574,7 @@ sum to N(N+1): two reads per visited edge, over depths zero through N.
 The projection now keeps one weak C-only-context checkpoint. Same game/node/depth
 reuses the key; a verified direct-child step reads the previous node's children
 once and appends a child ID only at a fork. A fork count preserves the exact join
-delimiter behavior. Other navigation, games, non-comment edits and imports use
+delimiter behavior. Other nonadjacent navigation, games, non-comment edits and imports use
 the original traversal; interleaved records/controllers safely evict the single
 checkpoint. Tokens and cache entries do not retain ancestor arrays or a record
 history. Caller input, original key formatting and outline decisions are unchanged.
@@ -536,8 +585,9 @@ count only `children` reads made by the key projection; controllers still produc
 the actual state/path/positions. The parent `b3219b1` implementation reports
 25,005,000 reads; the changed implementation reports 5,000, with identical empty
 keys for every state. Sequential linear key work changes from O(N^2) to O(N).
-Same-node and C-only reuse need no path traversal; backward/branch jumps remain
-full-path reads. Direct-child membership in a wide fork costs O(S) for S siblings,
+Same-node and C-only reuse need no path traversal. At that increment backward/branch
+jumps remained full-path reads; the later [backward-step improvement](#incremental-backward-variation-fork-keys)
+now handles adjacent parent steps. Direct-child membership in a wide fork costs O(S) for S siblings,
 and constructing longer fork strings still depends on output length. This does
 not change controller snapshots, position replay, outline recentering or SVG
 painting complexity, and is not a whole-UI latency or CPU speedup measurement.

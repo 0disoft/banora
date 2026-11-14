@@ -45,6 +45,93 @@ test('linear fork-key work stays linear and repeated frames do not read children
       expect(reads).toBe(before);
     } while (controller.next().ok);
     expect(reads).toBeLessThanOrEqual(2 * (nodes.length - 1));
+    reads = 0;
+    while (controller.previous().ok) {
+      const state = controller.getState();
+      const projected = { ...state, record, node: observed.get(state.node.id)! };
+      expect(variationPathKey(projected)).toBe('');
+      const before = reads;
+      expect(variationPathKey(projected)).toBe('');
+      expect(reads).toBe(before);
+    }
+    expect(reads).toBe(nodes.length - 1);
+  } finally {
+    controller.dispose();
+  }
+});
+
+test('backward fork keys remove only the departed branch and preserve comment provenance and jump fallback', () => {
+  const controller = new RecordController({
+    sgf: '(;SZ[9];B[aa](;W[bb];C[note](;B[];W[dd])(;B[ee];W[]))(;W[cc];B[ff]))',
+  });
+  const leaves: string[] = [];
+  const pending = [...controller.getState().record.games];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (node.children.length) pending.push(...node.children);
+    else leaves.push(node.id);
+  }
+  const check = (expectedSlices?: number) => {
+    const state = controller.getState();
+    let slices = 0;
+    const projected = {
+      ...state,
+      path: new Proxy(state.path, {
+        get(target, property, receiver) {
+          if (property === 'slice') slices++;
+          return Reflect.get(target, property, receiver);
+        },
+      }),
+    };
+    expect(variationPathKey(projected)).toBe(fullKey(state));
+    if (expectedSlices !== undefined) expect(slices).toBe(expectedSlices);
+  };
+  try {
+    for (const id of leaves) {
+      expect(controller.goTo(id).ok).toBe(true);
+      check();
+      // The checkpoint still has the pre-comment child object during the parent step.
+      expect(controller.setComment('leaf metadata').ok).toBe(true);
+      while (controller.previous().ok) check(0);
+      expect(variationPathKey(controller.getState())).toBe('');
+    }
+    const black = controller.getState().node.children[0]!;
+    const nested = black.children[0]!.children[0]!.children[0]!;
+    const unrelated = black.children[1]!.children[0]!;
+    expect(controller.goTo(nested.id).ok).toBe(true);
+    check();
+    expect(controller.goTo(unrelated.id).ok).toBe(true);
+    // Exactly one level shallower, but not the checkpoint's parent.
+    check(1);
+    expect(controller.previous().ok).toBe(true);
+    check(0);
+    expect(controller.next().ok).toBe(true);
+    check(0);
+  } finally {
+    controller.dispose();
+  }
+});
+
+test('backward fork keys verify the cached parent without scanning a wide sibling list', () => {
+  const controller = new RecordController({
+    sgf: '(;SZ[9];B[aa]' + '(;W[])'.repeat(1000) + ')',
+  });
+  try {
+    const parent = controller.getState().node.children[0]!;
+    const leaf = parent.children.at(-1)!;
+    expect(controller.goTo(leaf.id).ok).toBe(true);
+    expect(variationPathKey(controller.getState())).toBe(leaf.id);
+    expect(controller.previous().ok).toBe(true);
+    const state = controller.getState();
+    let indexedReads = 0;
+    const children = new Proxy(state.node.children, {
+      get(target, property, receiver) {
+        if (typeof property === 'string' && /^\d+$/.test(property)) indexedReads++;
+        return Reflect.get(target, property, receiver);
+      },
+    });
+    expect(variationPathKey({ ...state, node: { ...state.node, children } })).toBe('');
+    expect(indexedReads).toBe(0);
   } finally {
     controller.dispose();
   }

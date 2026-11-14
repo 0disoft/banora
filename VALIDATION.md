@@ -1,5 +1,42 @@
 # Validation
 
+## Incremental Backward Variation Fork Keys
+
+`variationPathKey` now updates its existing checkpoint on a proven adjacent
+backward step. One scalar parent ID verifies the relation within the same
+C-only topology epoch; only the current child count is read. At a fork the exact
+departing-ID suffix is removed. No sibling scan, retained path/ancestor array,
+history list or additional checkpoint is added. Other navigation/identity changes
+retain full traversal, and public key formatting is unchanged.
+
+Owning contracts: [SDK projections](docs/sdk/public-api.md) and
+[performance evidence](docs/engineering/03-performance-budget.md#incremental-backward-variation-fork-keys).
+The expanded linear regression fails on parent `9655a0a` with 999000 rather than
+1000 child-list reads on a 1000-step reverse walk, then passes with the new code.
+Two added regressions cover nested forks, C-only child replacement, non-parent
+one-level jumps, forward recovery and zero sibling-index reads at a 1000-way fork.
+Existing oracle coverage retains old frames, games/controllers, structural edits,
+Undo/Redo and same-ID imports. No timing threshold is added.
+
+Node 24.14.0 paired source bundles use four warmups and nine alternating samples,
+with explicit GC outside timing and identical prepared immutable controller states.
+1000 reverse steps: 92.633 -> 0.294 ms; 5000 reverse steps: 2776.733 -> 2.934 ms
+(99.89% less), with 24,995,000 -> 5000 child-list reads. Forward and cold controls
+retain their algorithms and measure 3.669 -> 3.638 ms and 1.047 -> 1.012 ms.
+All keys match; ranges and limitations are retained in the performance document.
+These are fork-key computation measurements, excluding navigation/path creation,
+position replay, DOM/SVG painting, real UI latency, p95 and memory measurements.
+
+Full SDK: 373 tests / 24,766 assertions pass. SDK/declaration/classic and prepared
+example builds, types, lint, formatting, boundaries and docs pass, as do packed
+public SDK, classic global, ambient declaration, entrypoint and license checks.
+The existing controller size-review candidate and classic-script bundling notice
+remain outside this change. Full root check, adapter/CLI suites and browser/device
+interaction checks are skipped for
+this isolated projection change; actual mounted navigation/render time remains
+unmeasured. No public API, DB, dependency, repository-hygiene, CI/runner or release
+changes. Skills: refactor and sdk; version remains manually managed at 0.1.3.
+
 ## Reuse KataGo Response Validation
 
 KataGo final decoding and session completion previously replayed the same legal
