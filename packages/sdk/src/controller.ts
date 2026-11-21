@@ -22,6 +22,7 @@ import {
   sgfColor,
 } from './record-runtime.js';
 import type { RecordContentCache, RecordIndex } from './record-runtime.js';
+import { RecordPositionCache } from './record-position-cache.js';
 import { createStroke, decodeStrokes, encodeStroke, strokeLimits } from './annotations.js';
 import type { Stroke, StrokeStyle } from './annotations.js';
 export type { Stroke, StrokeStyle } from './annotations.js';
@@ -135,7 +136,6 @@ const markerProperties: Readonly<Record<MarkerKind, string>> = {
 
 // No authored data is retained by a closed handle; live access is guarded below.
 const disposedRecord: SgfRecord = Object.freeze({ games: Object.freeze([]) });
-const POSITION_CACHE_LIMIT = 128;
 const REQUESTED_POSITION_LIMIT = 8;
 
 export class RecordController {
@@ -143,7 +143,7 @@ export class RecordController {
   #recordGeneration = 0;
   #selected: string;
   #index: RecordIndex;
-  #positionCache = new Map<string, Position>();
+  #positionCache = new RecordPositionCache();
   #requestedPositions = new Map<string, RequestedPosition>();
   #paths = new WeakMap<
     RecordIndex['parents'],
@@ -234,7 +234,8 @@ export class RecordController {
     let start = 0;
     for (let i = path.length - 1; i >= 0; i--) {
       const cached =
-        this.#requestedPositions.get(path[i]!)?.position ?? this.#positionCache.get(path[i]!);
+        this.#requestedPositions.get(path[i]!)?.position ??
+        this.#positionCache.get(path[i]!, i + 1);
       if (cached) {
         position = cached;
         start = i + 1;
@@ -244,9 +245,7 @@ export class RecordController {
     position ??= initialRecordPosition(this.#index.nodes.get(path[0]!)!, this.#rules);
     for (let i = start; i < path.length; i++) {
       position = applyRecordNode(position, this.#index.nodes.get(path[i]!)!);
-      this.#positionCache.set(path[i]!, position);
-      if (this.#positionCache.size > POSITION_CACHE_LIMIT - REQUESTED_POSITION_LIMIT)
-        this.#positionCache.delete(this.#positionCache.keys().next().value!);
+      this.#positionCache.remember(path[i]!, i + 1, position);
     }
     // Intermediate replay must not evict the other pane's completed position.
     this.#requestedPositions.set(id, { position, path });
@@ -980,11 +979,8 @@ export class RecordController {
   /** Validate before replacement; restored history begins a new session. */
   loadCheckpoint(input: unknown, options: { discardChanges?: boolean } = {}): CommandResult {
     this.#assertLive();
-    const parsed = prepareRecordCheckpoint(
-      input,
-      this.#limits,
-      POSITION_CACHE_LIMIT - REQUESTED_POSITION_LIMIT,
-    );
+    const positions = new RecordPositionCache();
+    const parsed = prepareRecordCheckpoint(input, this.#limits, positions);
     if (!parsed.ok)
       return { ok: false, reason: 'invalid-checkpoint', diagnostics: parsed.diagnostics };
     if (this.#dirty && !options.discardChanges) return { ok: false, reason: 'unsaved-changes' };
@@ -1001,9 +997,8 @@ export class RecordController {
     this.#tickets.clear();
     this.#serialized.clear();
     this.#reindex();
-    // Adopt only fully validated positions, after the unsaved-change guard and
-    // record replacement. This is the same bounded tail as ordinary path replay.
-    for (const [id, position] of parsed.positions) this.#positionCache.set(id, position);
+    // Adopt only fully validated positions, after record replacement.
+    this.#positionCache = positions;
     this.#refreshDirty();
     this.#notify();
     return { ok: true };

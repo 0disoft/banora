@@ -1,4 +1,5 @@
-import type { Position, RulePolicy } from './core.js';
+import type { RulePolicy } from './core.js';
+import type { RecordPositionCache } from './record-position-cache.js';
 import { DEFAULT_SGF_LIMITS, parseSgf, recordNodeAt } from './sgf.js';
 import type { RecordLocator, SgfDiagnostic, SgfLimits, SgfNode, SgfRecord } from './sgf.js';
 import { initialRecordPosition, applyRecordNode } from './record-runtime.js';
@@ -57,12 +58,6 @@ export type RecordCheckpointResult =
     }
   | { readonly ok: false; readonly diagnostics: readonly SgfDiagnostic[] };
 
-type PreparedCheckpointResult =
-  | (Extract<RecordCheckpointResult, { ok: true }> & {
-      readonly positions: ReadonlyMap<string, Position>;
-    })
-  | Extract<RecordCheckpointResult, { ok: false }>;
-
 function parseCheckpointSgf(text: string, limits: Partial<SgfLimits>) {
   const strict = parseSgf(text, limits);
   const maxValueLength = limits.maxValueLength ?? DEFAULT_SGF_LIMITS.maxValueLength;
@@ -89,8 +84,8 @@ function parseCheckpointSgf(text: string, limits: Partial<SgfLimits>) {
 export function prepareRecordCheckpoint(
   input: unknown,
   limits: Partial<SgfLimits> = {},
-  positionLimit = 0,
-): PreparedCheckpointResult {
+  positions?: RecordPositionCache,
+): RecordCheckpointResult {
   const fail = (message: string): Extract<RecordCheckpointResult, { ok: false }> => ({
     ok: false,
     diagnostics: [{ code: 'property', message }],
@@ -109,19 +104,14 @@ export function prepareRecordCheckpoint(
   // Recorded moves retain SGF replay semantics, distinct from new legal play.
   let current = record.record.games[data.selection.gameIndex]!;
   let position = initialRecordPosition(current, data.rules);
-  const positions = new Map<string, Position>();
-  const remember = () => {
-    if (positionLimit === 0) return;
-    positions.set(current.id, position);
-    if (positions.size > positionLimit) positions.delete(positions.keys().next().value!);
-  };
   try {
     position = applyRecordNode(position, current);
-    remember();
+    let depth = 1;
+    positions?.remember(current.id, depth, position);
     for (const index of data.selection.path) {
       current = current.children[index]!;
       position = applyRecordNode(position, current);
-      remember();
+      positions?.remember(current.id, ++depth, position);
     }
   } catch {
     return fail('Checkpoint selected path contains an invalid recorded transition.');
@@ -136,5 +126,5 @@ export function prepareRecordCheckpoint(
     }),
     rules: Object.freeze({ ...data.rules }),
   });
-  return { ok: true, value, record: record.record, baseline: baseline.record, node, positions };
+  return { ok: true, value, record: record.record, baseline: baseline.record, node };
 }

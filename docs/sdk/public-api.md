@@ -584,7 +584,10 @@ Within that same budget, at most eight recently requested final positions and
 their complete frozen ancestor paths are
 retained separately from at most 120 intermediate replay positions. Replaying a
 long alternate branch cannot evict a recently requested comparison endpoint from
-the intermediate cache alone. A warm final-position lookup reuses both its position
+the intermediate cache alone. Up to 32 of the intermediate slots keep sparse
+ancestors at 256-node intervals, including during checkpoint restore, so backward
+navigation beyond the recent cache can resume from a matching ancestor.
+A warm final-position lookup reuses both its position
 and frozen path without replay, ancestor reads or another path copy. At most eight
 published path arrays are retained with these entries, adding O(8 * depth) ID
 references in the deepest case; they own no record/node objects. Cold or evicted

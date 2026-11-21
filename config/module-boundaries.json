@@ -47,6 +47,7 @@
     "puzzle-locale",
     "widget-messages",
     "puzzle-types",
+    "record-position-cache",
     "record-runtime",
     "record-search",
     "rules",

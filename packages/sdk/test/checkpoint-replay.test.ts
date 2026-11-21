@@ -68,6 +68,42 @@ test('unsaved and invalid recovery never adopts prepared positions or changes li
   }
 });
 
+test('deep restored and selected positions both bound backward replay across cache misses', () => {
+  const input = checkpoint(2000);
+  for (const restore of [false, true]) {
+    const controller = new RecordController({ sgf: input.sgf, rules: input.rules });
+    const replay = spyOn(runtime, 'applyRecordNode');
+    try {
+      if (restore) expect(controller.loadCheckpoint(input)).toEqual({ ok: true });
+      else {
+        let leaf = controller.getState().node;
+        while (leaf.children[0]) leaf = leaf.children[0];
+        expect(controller.goTo(leaf.id).ok).toBe(true);
+      }
+      const endpoint = controller.getState().position;
+      let largestReplay = 0;
+      for (let moves = 1999; moves >= 1640; moves--) {
+        replay.mockClear();
+        expect(controller.previous().ok).toBe(true);
+        largestReplay = Math.max(largestReplay, replay.mock.calls.length);
+        expect(controller.getState().position).toMatchObject({
+          moveNumber: moves,
+          passPrisoners: { black: Math.floor(moves / 2), white: Math.ceil(moves / 2) },
+        });
+      }
+      expect(largestReplay).toBeGreaterThan(0);
+      expect(largestReplay).toBeLessThan(256);
+      expect(endpoint).toMatchObject({
+        moveNumber: 2000,
+        passPrisoners: { black: 1000, white: 1000 },
+      });
+    } finally {
+      replay.mockRestore();
+      controller.dispose();
+    }
+  }
+});
+
 test('a replay failure discards the partially prepared cache before any replacement', () => {
   const controller = new RecordController({ sgf: '(;SZ[9];B[aa])' });
   controller.next();
