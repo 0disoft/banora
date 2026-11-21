@@ -1,6 +1,6 @@
 import { createPosition, replayMove, setup } from './core.js';
 import type { Color, Position, RulePolicy, SetupStone } from './core.js';
-import { expandSgfPoints, pointFromSgf, pointToSgf, sgfBoardSize } from './sgf.js';
+import { expandSgfPoints, isSgfPass, pointFromSgf, pointToSgf, sgfBoardSize } from './sgf.js';
 import type { SgfNode, SgfRecord } from './sgf.js';
 import { decodeStrokes, encodeStroke } from './annotations.js';
 
@@ -37,10 +37,9 @@ export function applyRecordNode(position: Position, node: SgfNode): Position {
   ] as const) {
     const value = props[key]?.[0];
     if (value === undefined) continue;
-    const point =
-      value === '' || (value === 'tt' && position.width <= 19 && position.height <= 19)
-        ? null
-        : pointFromSgf(value, position.width, position.height);
+    const point = isSgfPass(value, position.width, position.height)
+      ? null
+      : pointFromSgf(value, position.width, position.height);
     const result = replayMove(position, point, color);
     if (!result.ok) throw new Error(`Invalid move at ${node.id}: ${result.reason}`);
     position = result.position;

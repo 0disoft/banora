@@ -1,4 +1,4 @@
-import { DEFAULT_SGF_LIMITS, expandSgfPoints, pointFromSgf } from './sgf.js';
+import { DEFAULT_SGF_LIMITS, expandSgfPoints, isSgfPass, pointFromSgf } from './sgf.js';
 import type { SgfNode } from './sgf.js';
 
 /** Mutates only the fresh map being built for this frame. */
@@ -22,7 +22,7 @@ export function numberNode(
   const value = node.properties.B?.[0] ?? node.properties.W?.[0];
   if (value !== undefined) number++;
   if (node.properties.MN) number = Number(node.properties.MN[0]);
-  if (value && !(value === 'tt' && width <= 19 && height <= 19)) {
+  if (value !== undefined && !isSgfPass(value, width, height)) {
     const point = pointFromSgf(value, width, height);
     numbers.set(point.y * width + point.x, number);
   }

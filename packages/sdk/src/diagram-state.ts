@@ -2,7 +2,7 @@ import type { Position } from './core.js';
 import type { ControllerState } from './controller.js';
 import { createBoardSnapshot } from './board-state.js';
 import type { BoardSnapshot, BoardSnapshotValue } from './board-state.js';
-import { DEFAULT_SGF_LIMITS, pointFromSgf } from './sgf.js';
+import { DEFAULT_SGF_LIMITS, isSgfPass, pointFromSgf } from './sgf.js';
 import { numberNode } from './record-numbers.js';
 
 export type DiagramSource = BoardSnapshot | Position | ControllerState;
@@ -37,7 +37,7 @@ export function diagramSnapshot(source: DiagramSource, moveNumbers: boolean): Bo
     captures: position.captures,
     moveNumber: position.moveNumber,
     lastMove:
-      move && !(move === 'tt' && position.width <= 19 && position.height <= 19)
+      move !== undefined && !isSgfPass(move, position.width, position.height)
         ? pointFromSgf(move, position.width, position.height)
         : null,
     markers: source.markers,

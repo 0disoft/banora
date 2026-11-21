@@ -5,6 +5,7 @@ import {
   DEFAULT_SGF_LIMITS,
   decodeSgf,
   expandSgfPoints,
+  isSgfPass,
   parseSgf,
   pointFromSgf,
   pointToSgf,
@@ -538,7 +539,7 @@ export class RecordController {
     const children = state.node.children;
     const existing =
       children.find((child) => child.properties[key]?.[0] === value) ??
-      (point === null && state.position.width <= 19 && state.position.height <= 19
+      (point === null && isSgfPass('tt', state.position.width, state.position.height)
         ? children.find((child) => child.properties[key]?.[0] === 'tt')
         : undefined);
     if (existing) return this.goTo(existing.id);

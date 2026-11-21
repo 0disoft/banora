@@ -1,7 +1,7 @@
 import type { BoardOptions } from './board.js';
 import type { ControllerState } from './controller.js';
 import type { Point } from './core.js';
-import { pointFromSgf } from './sgf.js';
+import { isSgfPass, pointFromSgf } from './sgf.js';
 
 export interface PlacementAnimationOptions {
   readonly durationMs?: number;
@@ -38,7 +38,7 @@ export function placementTarget(
     return null;
   const color = after.node.properties.B ? 'black' : 'white',
     value = after.node.properties.B?.[0] ?? after.node.properties.W?.[0];
-  if (!value || (value === 'tt' && b.width <= 19 && b.height <= 19)) return null;
+  if (value === undefined || isSgfPass(value, b.width, b.height)) return null;
   let point: Point;
   try {
     point = pointFromSgf(value, b.width, b.height);

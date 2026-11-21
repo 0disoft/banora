@@ -1,5 +1,12 @@
 import { describe, expect, spyOn, test } from 'bun:test';
-import { createSgfNode, decodeSgf, parseSgf, serializeSgf } from '../src/sgf.js';
+import {
+  createSgfNode,
+  decodeSgf,
+  isSgfPass,
+  parseSgf,
+  pointFromSgf,
+  serializeSgf,
+} from '../src/sgf.js';
 import type { SgfRecord, SgfResult } from '../src/sgf.js';
 import { semanticRecord } from '../src/record-runtime.js';
 
@@ -9,6 +16,20 @@ function parsed(result: SgfResult): SgfRecord {
 }
 
 describe('SGF FF4 preservation', () => {
+  test('pass classification distinguishes absent moves and respects both board dimensions', () => {
+    expect(isSgfPass(undefined)).toBe(false);
+    expect(isSgfPass('', 52, 52)).toBe(true);
+    expect(isSgfPass('tt')).toBe(true);
+    expect(isSgfPass('tt', 19, 20)).toBe(false);
+    expect(isSgfPass('tt', 20, 19)).toBe(false);
+    expect(isSgfPass('tt', 20)).toBe(false);
+    expect(pointFromSgf('tt', 20)).toEqual({ x: 19, y: 19 });
+    expect(pointFromSgf.bind(undefined, 'tt')).toThrow('Invalid SGF point');
+    expect(parseSgf('(;SZ[19];B[tt])').ok).toBe(true);
+    expect(parseSgf('(;SZ[19:20];B[tt])').ok).toBe(false);
+    expect(parseSgf('(;SZ[20];B[tt])').ok).toBe(true);
+  });
+
   test('byte decoding accepts the full safe integer range for the configured byte limit', () => {
     for (const source of ['(;SZ[9])', '(;CA[UTF-8]C[\uD55C\uAE00])']) {
       const bytes = new TextEncoder().encode(source);

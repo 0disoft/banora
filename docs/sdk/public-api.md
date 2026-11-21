@@ -366,7 +366,9 @@ The setup/playback choices and profile boundaries are recorded in
 
 `@0disoft/banora/sgf` exports `parseSgf(text, limits?)`, `decodeSgf(bytes, limits?)`,
 `serializeSgf(record)`, `createSgfNode`, point helpers, immutable record types and
-`DEFAULT_SGF_LIMITS`. `RecordLocator` is `{ gameIndex, path }`, where path is a
+`DEFAULT_SGF_LIMITS`. Use `isSgfPass(value, width?, height?)` for a recorded move:
+it recognizes the empty value and the legacy `tt` spelling when both axes are at
+most 19. An absent move property is not a pass. `RecordLocator` is `{ gameIndex, path }`, where path is a
 readonly array of zero-based child indices from that game's root; `recordNodeAt`
 returns the matching node or null. This differs from snapshot `path`, which holds
 record-local string IDs. Parsing returns a structured success/diagnostic result.

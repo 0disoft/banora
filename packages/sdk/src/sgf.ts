@@ -209,6 +209,10 @@ export function pointFromSgf(value: string, width = 19, height = width): Point {
     fail('property', `Invalid SGF point: ${value}`);
   return Object.freeze(point);
 }
+/** Recognizes a recorded pass; an absent move property is not a pass. */
+export function isSgfPass(value: string | undefined, width = 19, height = width): boolean {
+  return value === '' || (value === 'tt' && width <= 19 && height <= 19);
+}
 export function expandSgfPoints(value: string, width: number, height = width): readonly Point[] {
   if (!value.includes(':')) return [pointFromSgf(value, width, height)];
   const parts = value.split(':');
@@ -325,7 +329,7 @@ function validateGame(root: SgfNode, budget: { remaining: number }): void {
       fail('property', 'Move and setup properties cannot share a node');
     }
     const move = props.B?.[0] ?? props.W?.[0];
-    if (move !== undefined && move !== '' && !(move === 'tt' && width <= 19 && height <= 19)) {
+    if (move !== undefined && !isSgfPass(move, width, height)) {
       pointFromSgf(move, width, height);
     }
     const occupied = new Uint32Array(height * 2);

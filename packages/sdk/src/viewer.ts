@@ -4,7 +4,7 @@ import { mountBoard } from './board.js';
 import type { BoardOptions, BoardView, DiagramOptions } from './board.js';
 import { RecordController, getMoveAssessment } from './controller.js';
 import type { CommandResult, ControllerState } from './controller.js';
-import { pointFromSgf } from './sgf.js';
+import { isSgfPass, pointFromSgf } from './sgf.js';
 import type { SgfNode } from './sgf.js';
 import { mountPlaybackControls } from './playback-controls.js';
 import { normalizePlaybackInterval } from './playback.js';
@@ -183,7 +183,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
         (node.id === state.record.games[state.gameIndex]!.id ? ui.start : ui.annotation)
       );
     const color = node.properties.B ? ui.black : ui.white;
-    if (!value || (value === 'tt' && state.position.width <= 19 && state.position.height <= 19))
+    if (isSgfPass(value, state.position.width, state.position.height))
       return formatUiMessage(ui.colorPass, { color });
     const point = pointFromSgf(value, state.position.width, state.position.height);
     return `${color} ${'ABCDEFGHJKLMNOPQRSTUVWXYZ'[point.x] ?? point.x + 1}${state.position.height - point.y}`;

@@ -2,7 +2,7 @@ import { numberNode } from './record-numbers.js';
 import { recordNumberingKey } from './record-numbering-key.js';
 import type { BoardFrame, BoardBinding } from './board-frame.js';
 import type { RecordController, ControllerState } from './controller.js';
-import { pointFromSgf } from './sgf.js';
+import { isSgfPass, pointFromSgf } from './sgf.js';
 import type { SgfNode } from './sgf.js';
 import { variationCandidates } from './variations.js';
 
@@ -47,7 +47,7 @@ export function recordBoardBinding(controller: RecordController, owned: boolean)
     const { width, height } = state.position;
     const value = state.node.properties.B?.[0] ?? state.node.properties.W?.[0];
     const lastMove =
-      value && !(value === 'tt' && width <= 19 && height <= 19)
+      value !== undefined && !isSgfPass(value, width, height)
         ? pointFromSgf(value, width, height)
         : null;
     let numbers: Map<number, number> | undefined;

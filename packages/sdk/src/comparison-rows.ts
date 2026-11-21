@@ -1,5 +1,5 @@
 import type { SgfNode, SgfRecord } from './sgf.js';
-import { pointFromSgf, sgfBoardSize } from './sgf.js';
+import { isSgfPass, pointFromSgf, sgfBoardSize } from './sgf.js';
 import { boardColumnLabel } from './board-layout.js';
 import { formatUiMessage } from './locale.js';
 import type { UiMessages } from './locale.js';
@@ -28,9 +28,7 @@ export function comparisonRows(record: SgfRecord, ui: Required<UiMessages>) {
       const move = node.properties.B?.[0] ?? node.properties.W?.[0];
       if (node.properties.N === undefined && move !== undefined) {
         const color = node.properties.B ? ui.black : ui.white;
-        // SGF tt is the legacy pass encoding on boards up to 19 lines.
-        if (!move || (move === 'tt' && width <= 19 && height <= 19))
-          caption = formatUiMessage(ui.colorPass, { color });
+        if (isSgfPass(move, width, height)) caption = formatUiMessage(ui.colorPass, { color });
         else {
           const point = pointFromSgf(move, width, height);
           caption = `${color} ${boardColumnLabel(point.x)}${height - point.y}`;

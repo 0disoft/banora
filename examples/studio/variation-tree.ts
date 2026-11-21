@@ -2,6 +2,7 @@ import { getVariationRows, variationPathKey, getMoveAssessment } from '@0disoft/
 import type { ControllerState, SgfNode } from '@0disoft/banora';
 import { formatUiMessage } from '@0disoft/banora/locale';
 import type { UiMessages } from '@0disoft/banora/locale';
+import { isSgfPass } from '@0disoft/banora/sgf';
 import { coordinateTitle, setupNodeTitle } from './setup-editing.js';
 
 /** Bounded outline presentation; authored controller state remains owned by Studio. */
@@ -39,8 +40,7 @@ export function createVariationTree(
       if (node.properties.N) return node.properties.N[0]!;
       return setupNodeTitle(node, height) ?? ui.annotation;
     }
-    if (!value || (value === 'tt' && width <= 19 && height <= 19))
-      return formatUiMessage(ui.colorPass, { color });
+    if (isSgfPass(value, width, height)) return formatUiMessage(ui.colorPass, { color });
     return `${color} ${coordinateTitle(value, height)}`;
   }
   function revealTreeSelection(id: string): void {

@@ -2,7 +2,7 @@ import { pass, play, replayMove } from './core.js';
 import type { Position } from './core.js';
 import type { ControllerState } from './controller.js';
 import { applyRecordNode, initialRecordPosition } from './record-runtime.js';
-import { createSgfNode, pointFromSgf } from './sgf.js';
+import { createSgfNode, isSgfPass, pointFromSgf } from './sgf.js';
 import { getRuleProfile } from './rules.js';
 import type { ScoringPolicy } from './rules.js';
 import { AnalysisError } from './analysis-types.js';
@@ -245,10 +245,9 @@ function capture(
       ] as const) {
         const value = props[key]?.[0];
         if (value === undefined) continue;
-        const move =
-          value === '' || (value === 'tt' && position.width <= 19 && position.height <= 19)
-            ? null
-            : Object.freeze(pointFromSgf(value, position.width, position.height));
+        const move = isSgfPass(value, position.width, position.height)
+          ? null
+          : Object.freeze(pointFromSgf(value, position.width, position.height));
         const recorded = replayMove(position, move, color);
         if (!recorded.ok) fail('Recorded move is unavailable.', 'unsupported-history');
         position = recorded.position;

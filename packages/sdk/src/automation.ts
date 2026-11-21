@@ -1,7 +1,7 @@
 import { RecordController } from './controller.js';
 import type { MarkerKind, ConnectionKind, ControllerState, MoveAssessment } from './controller.js';
 import type { Point, SetupStone, Color } from './core.js';
-import { recordNodeAt, serializeSgf, pointFromSgf } from './sgf.js';
+import { recordNodeAt, serializeSgf, pointFromSgf, isSgfPass } from './sgf.js';
 import type { RecordLocator } from './sgf.js';
 import { createBoardSnapshot } from './board-state.js';
 import type { BoardSnapshot } from './board-state.js';
@@ -92,7 +92,7 @@ function snapshot(state: ControllerState, key: string) {
     captures: position.captures,
     moveNumber: position.moveNumber,
     lastMove:
-      move && !(move === 'tt' && position.width <= 19 && position.height <= 19)
+      move !== undefined && !isSgfPass(move, position.width, position.height)
         ? pointFromSgf(move, position.width, position.height)
         : null,
     markers: state.markers,

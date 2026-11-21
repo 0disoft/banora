@@ -1,6 +1,6 @@
 import type { ControllerState } from './controller.js';
 import type { SgfNode } from './sgf.js';
-import { pointFromSgf } from './sgf.js';
+import { isSgfPass, pointFromSgf } from './sgf.js';
 import type { Point } from './core.js';
 import { recordNumberingKey } from './record-numbering-key.js';
 import { indexedSnapshotNodes } from './record-runtime.js';
@@ -241,7 +241,7 @@ export function variationCandidates(
   const candidates: { node: SgfNode; point: Point; label: string }[] = [];
   for (const node of state.node.children) {
     const value = node.properties.B?.[0] ?? node.properties.W?.[0];
-    if (!value || (value === 'tt' && width <= 19 && height <= 19)) continue;
+    if (value === undefined || isSgfPass(value, width, height)) continue;
     const point = pointFromSgf(value, width, height);
     const index = point.y * width + point.x;
     if (board[index] !== null || seen.has(index)) continue;

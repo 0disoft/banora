@@ -1,4 +1,4 @@
-import { DEFAULT_SGF_LIMITS, pointFromSgf, serializeSgf } from '@0disoft/banora/sgf';
+import { DEFAULT_SGF_LIMITS, isSgfPass, pointFromSgf, serializeSgf } from '@0disoft/banora/sgf';
 import type { RecordLocator } from '@0disoft/banora/sgf';
 import { pass, play } from '@0disoft/banora/core';
 import type { Color, Point, Position } from '@0disoft/banora/core';
@@ -101,11 +101,9 @@ export function createPuzzleDraft(state: ControllerState): PuzzleDraft {
         ...(value !== undefined
           ? {
               color: props.B ? ('black' as const) : ('white' as const),
-              move:
-                value === '' ||
-                (value === 'tt' && state.position.width <= 19 && state.position.height <= 19)
-                  ? null
-                  : pointFromSgf(value, state.position.width, state.position.height),
+              move: isSgfPass(value, state.position.width, state.position.height)
+                ? null
+                : pointFromSgf(value, state.position.width, state.position.height),
             }
           : {}),
       };
