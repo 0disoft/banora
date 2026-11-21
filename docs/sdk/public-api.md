@@ -927,11 +927,12 @@ source, including batch comments and their Undo/Redo. At the same game/node/dept
 the next frame copies the checkpoint without replaying any nodes. Adjacent frames
 sharing that identity reuse the checkpoint when depth increases by one and the
 previous node owns the current child ID, even when comments replaced node objects.
-They apply only that child's setup, pass, move and MN properties. All other edits,
-imports, cold reads and non-adjacent navigation retain selected-path calculation.
-A one-entry weak numbering cache adds O(A)
-space for A board points without retaining historical records; its private map is
-copied separately from returned frame maps. Existing frames remain independent.
+They apply only that child's setup, pass, move and MN properties. Other navigation
+can replay from a sparse checkpoint whose node is on the selected path in the
+same game and numbering epoch. The binding keeps up to 32 such checkpoints at
+128-node intervals beside the latest frame, and starts at the root when none
+matches. Other edits and imports start a separate epoch. Private maps are copied
+separately from returned frame maps. Existing frames remain independent.
 Pinned boards never issue their own play/ink/touch-aim commands or Page Up/Down
 navigation; optional `onPoint` remains a host-owned inspection callback.
 

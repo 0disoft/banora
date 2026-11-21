@@ -3,6 +3,32 @@ import { recordBoardBinding } from '../src/board-record.js';
 import { RecordController } from '../src/controller.js';
 import * as numbering from '../src/record-numbers.js';
 
+test('backward numbering replays a bounded suffix and preserves map order across setup and MN', () => {
+  const controller = new RecordController({
+    sgf: '(;SZ[19];B[aa];W[bb]' + ';B[];W[]'.repeat(340) + ';AE[aa];B[aa]MN[70];W[];B[cc])',
+  });
+  const count = spyOn(numbering, 'numberNode');
+  try {
+    let last = controller.getState().node;
+    while (last.children[0]) last = last.children[0];
+    controller.goTo(last.id);
+    const binding = recordBoardBinding(controller, false);
+    const frozen = binding.getState();
+    const end = [...frozen.numbers()];
+    for (let i = 0; i < 12; i++) {
+      expect(controller.previous().ok).toBe(true);
+      const cold = recordBoardBinding(controller, false).getState().numbers();
+      count.mockClear();
+      expect([...binding.getState().numbers()]).toEqual([...cold]);
+      expect(count.mock.calls.length).toBeLessThan(128);
+    }
+    expect([...frozen.numbers()]).toEqual(end);
+  } finally {
+    count.mockRestore();
+    controller.dispose();
+  }
+});
+
 test('deep comment edits and their Undo/Redo reuse isolated numbers without replaying nodes', () => {
   const controller = new RecordController({
     sgf: '(;SZ[19];B[aa];W[bb]' + ';B[];W[]'.repeat(2500) + ')',

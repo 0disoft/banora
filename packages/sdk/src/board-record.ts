@@ -6,17 +6,39 @@ import { pointFromSgf } from './sgf.js';
 import type { SgfNode } from './sgf.js';
 import { variationCandidates } from './variations.js';
 
+const NUMBER_CHECKPOINT_INTERVAL = 128;
+const NUMBER_CHECKPOINT_LIMIT = 32;
+
+interface NumberCheckpoint {
+  node: SgfNode;
+  depth: number;
+  number: number;
+  values: ReadonlyMap<number, number>;
+}
+
+function rememberNumberCheckpoint(
+  checkpoints: Map<number, NumberCheckpoint>,
+  node: SgfNode,
+  depth: number,
+  number: number,
+  values: ReadonlyMap<number, number>,
+): void {
+  if (depth % NUMBER_CHECKPOINT_INTERVAL) return;
+  checkpoints.delete(depth);
+  checkpoints.set(depth, { node, depth, number, values: new Map(values) });
+  if (checkpoints.size > NUMBER_CHECKPOINT_LIMIT)
+    checkpoints.delete(checkpoints.keys().next().value!);
+}
+
 /** A projection, not another record or rules engine. Number traversal stays lazy. */
 export function recordBoardBinding(controller: RecordController, owned: boolean): BoardBinding {
   const cache = new WeakMap<ControllerState, BoardFrame>();
   let checkpoint = new WeakMap<
     object,
     {
-      node: SgfNode;
       game: number;
-      depth: number;
-      number: number;
-      values: ReadonlyMap<number, number>;
+      latest: NumberCheckpoint;
+      sparse: Map<number, NumberCheckpoint>;
     }
   >();
   function frame(state: ControllerState): BoardFrame {
@@ -45,45 +67,48 @@ export function recordBoardBinding(controller: RecordController, owned: boolean)
       numbers() {
         if (numbers) return numbers;
         const key = recordNumberingKey(state.record);
-        const before = checkpoint.get(key);
+        const cached = checkpoint.get(key);
+        const sameGame = cached?.game === state.gameIndex ? cached : undefined;
+        const before = sameGame?.latest;
+        const sparse = sameGame?.sparse ?? new Map<number, NumberCheckpoint>();
+        const depth = state.path.length;
         let number: number;
-        if (
-          before &&
-          before.game === state.gameIndex &&
-          before.depth === state.path.length &&
-          before.node.id === state.node.id
-        ) {
+        if (before && before.depth === depth && before.node.id === state.node.id) {
           numbers = new Map(before.values);
           number = before.number;
         } else if (
           before &&
-          before.game === state.gameIndex &&
-          before.depth + 1 === state.path.length &&
+          before.depth + 1 === depth &&
           before.node.children.some((child) => child.id === state.node.id)
         ) {
           numbers = new Map(before.values);
           number = numberNode(state.node, numbers, before.number, width, height);
+          rememberNumberCheckpoint(sparse, state.node, depth, number, numbers);
         } else {
-          numbers = new Map();
-          number = 0;
-          let node = state.record.games[state.gameIndex]!;
-          // Non-adjacent navigation keeps the original selected-path traversal.
-          for (let index = 0; index < state.path.length; index++) {
+          let ancestor: NumberCheckpoint | undefined;
+          for (const candidate of sparse.values()) {
+            if (
+              candidate.depth > (ancestor?.depth ?? 0) &&
+              state.path[candidate.depth - 1] === candidate.node.id
+            )
+              ancestor = candidate;
+          }
+          numbers = new Map(ancestor?.values);
+          number = ancestor?.number ?? 0;
+          let node = ancestor?.node ?? state.record.games[state.gameIndex]!;
+          for (let index = ancestor?.depth ?? 0; index < depth; index++) {
             if (index) node = node.children.find((child) => child.id === state.path[index])!;
             number = numberNode(node, numbers, number, width, height);
+            rememberNumberCheckpoint(sparse, node, index + 1, number, numbers);
           }
         }
-        // Exactly one weak numbering key, no retained history cache. Copy the private
-        // checkpoint so even a mutated returned map cannot affect future frames.
         checkpoint = new WeakMap([
           [
             key,
             {
-              node: state.node,
               game: state.gameIndex,
-              depth: state.path.length,
-              number,
-              values: new Map(numbers),
+              latest: { node: state.node, depth, number, values: new Map(numbers) },
+              sparse,
             },
           ],
         ]);
