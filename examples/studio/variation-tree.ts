@@ -1,4 +1,4 @@
-import { getVariationRows, variationPathKey, getMoveAssessment } from '@0disoft/banora';
+import { createVariationTreeModel, getMoveAssessment } from '@0disoft/banora';
 import type { ControllerState, SgfNode } from '@0disoft/banora';
 import { formatUiMessage } from '@0disoft/banora/locale';
 import type { UiMessages } from '@0disoft/banora/locale';
@@ -11,19 +11,7 @@ export function createVariationTree(
   note: HTMLElement,
   onSelect: (id: string) => void,
 ) {
-  let lastTreeState:
-    | {
-        record: ControllerState['record'];
-        generation: number;
-        ui: UiMessages;
-        gameIndex: number;
-        id: string;
-        branches: string;
-        presentation: string;
-        outlineIds: ReadonlySet<string>;
-        tailPresentation: string | undefined;
-      }
-    | undefined;
+  const treeModel = createVariationTreeModel();
   const treeButtons = new Map<string, HTMLButtonElement>();
   let selectedTreeRow: HTMLDivElement | undefined;
   function nodeTitle(
@@ -52,17 +40,6 @@ export function createVariationTree(
     else if (selected.bottom > bounds.bottom) tree.scrollTop += selected.bottom - bounds.bottom;
   }
   function render(state: ControllerState, ui: UiMessages): void {
-    const previous = lastTreeState;
-    const branches = variationPathKey(state);
-    const reuse =
-      previous?.record === state.record &&
-      previous.generation === state.recordGeneration &&
-      previous.ui === ui &&
-      previous.gameIndex === state.gameIndex &&
-      previous.branches === branches &&
-      previous.outlineIds.has(state.node.id);
-    if (reuse && previous.id === state.node.id) return;
-    const outline = reuse ? undefined : getVariationRows(state, true);
     const describe = (
       node: SgfNode,
       depth: number,
@@ -80,47 +57,14 @@ export function createVariationTree(
       assessment: getMoveAssessment(node),
       hasComment: !!node.properties.C?.[0]?.trim(),
     });
-    const rows = outline?.rows.map((entry) =>
-      describe(
-        entry.node,
-        entry.depth,
-        entry.indent,
-        entry.moveNumber,
-        entry.branch,
-        entry.collapsed,
-      ),
-    );
-    const outlineIds = outline
-      ? new Set(outline.rows.map((entry) => entry.node.id))
-      : previous!.outlineIds;
-    const tail = !outlineIds.has(state.node.id)
-      ? describe(state.node, state.path.length - 1, 0, state.position.moveNumber)
-      : undefined;
-    const tailPresentation = JSON.stringify(tail);
-    // The same display model drives both cache invalidation and row rendering.
-    const presentation = outline
-      ? JSON.stringify([rows, outline.truncated])
-      : previous!.presentation;
-    lastTreeState = {
-      record: state.record,
-      generation: state.recordGeneration,
-      ui,
-      gameIndex: state.gameIndex,
-      id: state.node.id,
-      branches,
-      presentation,
-      outlineIds,
-      tailPresentation,
-    };
-    if (
-      previous?.generation === state.recordGeneration &&
-      previous.ui === ui &&
-      previous.gameIndex === state.gameIndex &&
-      previous.id === state.node.id &&
-      previous.presentation === presentation &&
-      previous.tailPresentation === tailPresentation
-    )
-      return;
+    const projection = treeModel.update(state, {
+      focused: true,
+      presentationScope: ui,
+      describe: ({ node, depth, indent, moveNumber, branch, collapsed }) =>
+        describe(node, depth, indent, moveNumber, branch, collapsed),
+    });
+    if (!projection) return;
+    const { rows, tail, reusedWindow, previousSelection } = projection;
     const fragment = document.createDocumentFragment();
     const row = (model: ReturnType<typeof describe>) => {
       const wrapper = document.createElement('div');
@@ -166,12 +110,13 @@ export function createVariationTree(
       treeButtons.set(model.id, button);
       return wrapper;
     };
-    if (reuse) {
+    if (reusedWindow) {
       const restoreFocus = selectedTreeRow?.contains(document.activeElement) ?? false;
-      treeButtons.get(previous.id)?.setAttribute('aria-current', 'false');
+      if (previousSelection !== undefined)
+        treeButtons.get(previousSelection)?.setAttribute('aria-current', 'false');
       if (selectedTreeRow) {
         selectedTreeRow.remove();
-        treeButtons.delete(previous.id);
+        if (previousSelection !== undefined) treeButtons.delete(previousSelection);
         selectedTreeRow = undefined;
       }
       const current = treeButtons.get(state.node.id);
@@ -188,17 +133,17 @@ export function createVariationTree(
     }
     treeButtons.clear();
     selectedTreeRow = undefined;
-    for (const model of rows!) row(model);
+    for (const model of rows ?? []) row(model);
     if (tail) selectedTreeRow = row(tail);
     tree.replaceChildren(fragment);
     revealTreeSelection(state.node.id);
-    note.textContent = outline!.truncated ? ui.treeLimit : '';
+    note.textContent = projection.truncated ? ui.treeLimit : '';
   }
   return {
     render,
     buttons: treeButtons as ReadonlyMap<string, HTMLButtonElement>,
     reset() {
-      lastTreeState = undefined;
+      treeModel.reset();
       treeButtons.clear();
       selectedTreeRow = undefined;
     },

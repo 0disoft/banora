@@ -14,6 +14,7 @@ export * from './board-state.js';
 export * from './controlled-board.js';
 export * from './viewer.js';
 export * from './variations.js';
+export { createVariationTreeModel } from './variation-tree-model.js';
 export * from './comparison.js';
 export * from './share.js';
 export * from './textures.js';

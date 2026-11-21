@@ -720,6 +720,11 @@ needs to decide whether to fold a fork. One layout of up to 500 rows can be
 reused at the same selection after a validated comment edit. The layout stores
 only row metadata and obtains fresh nodes from the controller index. Older
 snapshots with a replaced game root are projected from their own tree.
+For custom tree views, the root export `createVariationTreeModel()` tracks one
+window. Call `update(state, { focused, presentationScope, describe })` with a
+stable presentation scope such as the active locale and a JSON-serializable
+row description. It returns row and selection changes, or `undefined` when the
+presentation and selection match. Call `reset()` when releasing the view.
 
 An externally supplied controller survives view disposal. If omitted, the view
 creates and disposes its own controller. The SDK owns its appended SVG, live

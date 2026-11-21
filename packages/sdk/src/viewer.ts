@@ -10,7 +10,7 @@ import { mountPlaybackControls } from './playback-controls.js';
 import { normalizePlaybackInterval } from './playback.js';
 import type { PlaybackOptions, RecordPlayback } from './playback.js';
 import { selectStyles } from './select-style.js';
-import { getVariationRows, variationPathKey } from './variations.js';
+import { createVariationTreeModel } from './variation-tree-model.js';
 
 export interface ViewerOptions extends LocaleOptions {
   readonly controller?: RecordController;
@@ -149,18 +149,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     if (owned) controller.dispose();
     throw error;
   }
-  let lastTree:
-    | {
-        record: ControllerState['record'];
-        generation: number;
-        gameIndex: number;
-        branches: string;
-        selected: string;
-        outlineIds: ReadonlySet<string>;
-        presentation: string;
-        tailPresentation: string | undefined;
-      }
-    | undefined;
+  const treeModel = createVariationTreeModel();
   const treeButtons = new Map<string, HTMLButtonElement>();
   let gameOptions:
     | { source: ControllerState['record']['games']; template: string; selected: number }
@@ -189,16 +178,6 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     return `${color} ${'ABCDEFGHJKLMNOPQRSTUVWXYZ'[point.x] ?? point.x + 1}${state.position.height - point.y}`;
   }
   function renderTree(state: ControllerState): void {
-    const previous = lastTree;
-    const branches = options.variationMode === 'focused' ? variationPathKey(state) : '';
-    const sameScope =
-      previous?.generation === state.recordGeneration && previous.gameIndex === state.gameIndex;
-    const reuse =
-      sameScope &&
-      previous.record === state.record &&
-      previous.branches === branches &&
-      previous.outlineIds.has(state.node.id);
-    if (reuse && previous.selected === state.node.id) return;
     const describe = (
       node: SgfNode,
       indent: number,
@@ -216,39 +195,14 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       assessment: getMoveAssessment(node),
       hasComment: !!node.properties.C?.[0]?.trim(),
     });
-    const outline = reuse
-      ? undefined
-      : getVariationRows(state, options.variationMode === 'focused');
-    const rows = outline?.rows.map((item) =>
-      describe(item.node, item.indent, item.moveNumber, item.branch, item.collapsed),
-    );
-    const outlineIds = outline
-      ? new Set(outline.rows.map((item) => item.node.id))
-      : previous!.outlineIds;
-    const tail = outlineIds.has(state.node.id)
-      ? undefined
-      : describe(state.node, 0, state.position.moveNumber);
-    const presentation = outline
-      ? JSON.stringify([rows, outline.truncated])
-      : previous!.presentation;
-    const tailPresentation = JSON.stringify(tail);
-    lastTree = {
-      record: state.record,
-      generation: state.recordGeneration,
-      gameIndex: state.gameIndex,
-      branches,
-      selected: state.node.id,
-      outlineIds,
-      presentation,
-      tailPresentation,
-    };
-    const unchanged = sameScope && previous.presentation === presentation;
-    if (
-      unchanged &&
-      previous.selected === state.node.id &&
-      previous.tailPresentation === tailPresentation
-    )
-      return;
+    const projection = treeModel.update(state, {
+      focused: options.variationMode === 'focused',
+      presentationScope: ui,
+      describe: ({ node, indent, moveNumber, branch, collapsed }) =>
+        describe(node, indent, moveNumber, branch, collapsed),
+    });
+    if (!projection) return;
+    const { rows, tail, sameRows, previousSelection } = projection;
     const focusInside = tree.contains(document.activeElement);
     const fragment = document.createDocumentFragment();
     let selected: HTMLButtonElement | undefined;
@@ -298,10 +252,12 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       fragment.append(item);
       return item;
     };
-    if (unchanged) {
-      treeButtons.get(previous.selected)?.setAttribute('aria-current', 'false');
+    if (sameRows) {
+      if (previousSelection !== undefined) {
+        treeButtons.get(previousSelection)?.setAttribute('aria-current', 'false');
+        if (tailRow) treeButtons.delete(previousSelection);
+      }
       if (tailRow) {
-        treeButtons.delete(previous.selected);
         tailRow.remove();
         tailRow = undefined;
       }
@@ -314,10 +270,10 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
     } else {
       treeButtons.clear();
       tailRow = undefined;
-      for (const model of rows!) row(model);
+      for (const model of rows ?? []) row(model);
       if (tail) tailRow = row(tail);
       tree.replaceChildren(fragment);
-      treeNote.textContent = outline!.truncated ? ui.treeLimit : '';
+      treeNote.textContent = projection.truncated ? ui.treeLimit : '';
     }
     if (focusInside) selected?.focus({ preventScroll: true });
   }
@@ -446,7 +402,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       options = merged;
       ui = nextUi;
       root.lang = options.locale ?? 'en';
-      lastTree = undefined;
+      treeModel.reset();
       renderLabels();
       renderStatus();
       playbackControls.update(options);
@@ -463,7 +419,7 @@ export function mountViewer(container: HTMLElement, initial: ViewerOptions = {})
       playbackControls.dispose();
       board.dispose();
       treeButtons.clear();
-      lastTree = undefined;
+      treeModel.reset();
       tailRow = undefined;
       gameOptions = undefined;
       root.remove();
