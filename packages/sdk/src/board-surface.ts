@@ -17,6 +17,7 @@ import type { BoardCrop } from './geometry.js';
 import { rasterizeBoardDiagram, serializeBoardDiagram } from './diagram-export.js';
 import type { DiagramOptions } from './diagram-export.js';
 import { normalizeStrokeStyle, strokeLimits } from './annotations.js';
+import { BoardInput } from './board-input.js';
 import { mountTouchUI, normalizeTouchOptions } from './touch-aim.js';
 import { normalizeStoneTextures } from './stone-textures.js';
 import { mountPlacementAnimation, normalizePlacementAnimation } from './placement-animation.js';
@@ -57,11 +58,14 @@ export function mountBoardSurface(
   let hoverLayer: SVGElement | undefined;
   let touchLayer: SVGElement | undefined;
   let inkPreview: SVGElement | undefined;
-  let pendingStroke: { pointer: number | null; points: Point[] } | null = null;
-  let cancelledPointer: number | null = null;
-  let touchAim: { pointer: number | null; point: Point | null; screen: Point | null } | null = null;
   const abort = new AbortController();
   const svg = document.createElementNS(namespace, 'svg');
+  const input = new BoardInput(
+    (pointer) => svg.setPointerCapture(pointer),
+    (pointer) => {
+      if (svg.hasPointerCapture(pointer)) svg.releasePointerCapture(pointer);
+    },
+  );
   svg.setAttribute('role', 'application');
   svg.setAttribute('tabindex', '0');
   svg.setAttribute(
@@ -112,7 +116,7 @@ export function mountBoardSurface(
     svg,
     confirmTouch,
     () => {
-      cancelTouch();
+      input.cancelTouch();
       render(current);
       svg.focus({ preventScroll: true });
       sayNotice('placementCancelled');
@@ -123,8 +127,8 @@ export function mountBoardSurface(
   document.defaultView?.addEventListener(
     'resize',
     () => {
-      if (touchAim) {
-        cancelTouch();
+      if (input.touch) {
+        input.cancelTouch();
         render(current);
         sayNotice('viewportChanged');
       }
@@ -219,8 +223,7 @@ export function mountBoardSurface(
         placement.cancel();
         available = false;
         current = state;
-        cancelInk();
-        cancelTouch();
+        input.cancel();
         hover = null;
         hoverLayer = undefined;
         svg.setAttribute('viewBox', '0 0 12 3');
@@ -324,8 +327,8 @@ export function mountBoardSurface(
       textureId,
       focus,
       hover,
-      pendingStroke,
-      touchAim,
+      pendingStroke: input.ink,
+      touchAim: input.touch,
       reference,
       element,
       displayPoint,
@@ -342,29 +345,20 @@ export function mountBoardSurface(
   }
   function renderTouch(repaint = false): void {
     if (repaint && touchLayer)
-      paintBoardTouch(touchLayer, { state: current, touchAim, displayPoint, element });
+      paintBoardTouch(touchLayer, { state: current, touchAim: input.touch, displayPoint, element });
     touchUI.render(
-      touchAim?.point ? displayPoint(touchAim.point) : null,
-      touchAim?.screen ?? null,
-      touchAim?.point ? coordinate(touchAim.point) : '',
-      touchAim?.pointer === null,
+      input.touch?.point ? displayPoint(input.touch.point) : null,
+      input.touch?.screen ?? null,
+      input.touch?.point ? coordinate(input.touch.point) : '',
+      input.touch?.pointer === null,
       options.touch.magnifier,
     );
   }
   function coordinate(point: Point): string {
     return `${columnLabel(point.x)}${current.position.height - point.y}`;
   }
-  function cancelTouch(): void {
-    const pointer = touchAim?.pointer;
-    touchAim = null;
-    if (pointer !== undefined && pointer !== null) {
-      cancelledPointer = pointer;
-      if (svg.hasPointerCapture(pointer)) svg.releasePointerCapture(pointer);
-    }
-  }
   function confirmTouch(): void {
-    const point = touchAim?.pointer === null ? touchAim.point : null;
-    cancelTouch();
+    const point = input.takeConfirmation();
     try {
       if (point && !readOnly() && !options.drawing) {
         focus = point;
@@ -450,25 +444,11 @@ export function mountBoardSurface(
       y: Math.max(crop.y, Math.min(crop.y + crop.height - 1, point.y)),
     };
   }
-  function cancelInk(): void {
-    const pointer = pendingStroke?.pointer;
-    pendingStroke = null;
-    if (pointer !== undefined && pointer !== null) cancelledPointer = pointer;
-    if (pointer !== undefined && pointer !== null && svg.hasPointerCapture(pointer))
-      svg.releasePointerCapture(pointer);
-  }
   function appendInk(point: Point): void {
-    if (!pendingStroke) return;
-    const last = pendingStroke.points.at(-1)!;
-    if (Math.hypot(point.x - last.x, point.y - last.y) < 0.01) return;
-    if (pendingStroke.points.length >= strokeLimits.pointsPerStroke) {
-      cancelInk();
-      sayNotice('strokeLimit', { limit: strokeLimits.pointsPerStroke });
-    } else pendingStroke.points.push(point);
+    if (input.appendInk(point)) sayNotice('strokeLimit', { limit: strokeLimits.pointsPerStroke });
   }
   function finishInk(): void {
-    const points = pendingStroke?.points;
-    cancelInk();
+    const points = input.takeInk();
     if (!points || points.length < 2 || !options.drawing || readOnly()) {
       render(current);
       return;
@@ -481,7 +461,7 @@ export function mountBoardSurface(
   svg.addEventListener(
     'pointerdown',
     (event) => {
-      if (cancelledPointer === event.pointerId) cancelledPointer = null;
+      input.takeCancelledPointer(event.pointerId);
       if (
         !options.drawing &&
         event.pointerType === 'touch' &&
@@ -489,50 +469,35 @@ export function mountBoardSurface(
         !readOnly() &&
         event.button === 0 &&
         event.isPrimary &&
-        touchAim?.pointer == null
+        input.touch?.pointer == null
       ) {
         const point = pointerPoint(event);
         if (!point) {
-          cancelTouch();
+          input.cancelTouch();
           render(current);
           return;
         }
-        cancelTouch();
+        input.cancelTouch();
         event.preventDefault();
         svg.focus({ preventScroll: true });
         hover = null;
-        touchAim = {
-          pointer: event.pointerId,
-          point,
-          screen: { x: event.clientX, y: event.clientY },
-        };
-        try {
-          svg.setPointerCapture(event.pointerId);
-        } catch {
-          cancelTouch();
+        if (!input.startTouch(event.pointerId, point, { x: event.clientX, y: event.clientY }))
           sayNotice('placementCaptureUnavailable');
-        }
         render(current);
-        if (touchAim)
+        if (input.touch)
           sayNotice(options.touch.mode === 'confirm' ? 'aimConfirm' : 'aimRelease', {
             coordinate: coordinate(point),
           });
         return;
       }
-      if (!options.drawing || readOnly() || event.button !== 0 || !event.isPrimary || pendingStroke)
+      if (!options.drawing || readOnly() || event.button !== 0 || !event.isPrimary || input.ink)
         return;
       const point = inkPoint(event);
       if (!point) return;
       event.preventDefault();
       svg.focus({ preventScroll: true });
       hover = null;
-      pendingStroke = { pointer: event.pointerId, points: [point] };
-      try {
-        svg.setPointerCapture(event.pointerId);
-      } catch {
-        cancelInk();
-        sayNotice('inkCaptureUnavailable');
-      }
+      if (!input.startInk(event.pointerId, point)) sayNotice('inkCaptureUnavailable');
       render(current);
     },
     { signal: abort.signal },
@@ -540,16 +505,14 @@ export function mountBoardSurface(
   svg.addEventListener(
     'pointermove',
     (event) => {
-      if (touchAim?.pointer === event.pointerId) {
+      if (input.touch?.pointer === event.pointerId) {
         event.preventDefault();
         const point = pointerPoint(event);
-        const changed = point?.x !== touchAim.point?.x || point?.y !== touchAim.point?.y;
-        touchAim.point = point;
-        touchAim.screen = { x: event.clientX, y: event.clientY };
+        const changed = input.moveTouch(point, { x: event.clientX, y: event.clientY });
         if (changed && !touchLayer) render(current);
         else renderTouch(changed);
-        if (touchAim.point) {
-          const selected = coordinate(touchAim.point);
+        if (input.touch.point) {
+          const selected = coordinate(input.touch.point);
           say(() =>
             boardMessage(options.labels?.selected ?? '{coordinate} selected.', {
               coordinate: selected,
@@ -558,14 +521,14 @@ export function mountBoardSurface(
         } else sayNotice('outsideBoard');
         return;
       }
-      if (pendingStroke?.pointer === event.pointerId) {
+      if (input.ink?.pointer === event.pointerId) {
         event.preventDefault();
         const point = inkPoint(event);
-        const samples = pendingStroke.points.length;
+        const samples = input.ink.points.length;
         if (point) appendInk(point);
-        if (pendingStroke?.points.length === samples) return;
-        if (pendingStroke && inkPreview)
-          paintBoardInk({ pendingStroke, options, displayPoint, element }, inkPreview);
+        if (input.ink?.points.length === samples) return;
+        if (input.ink && inkPreview)
+          paintBoardInk({ pendingStroke: input.ink, options, displayPoint, element }, inkPreview);
         else render(current);
         return;
       }
@@ -590,20 +553,17 @@ export function mountBoardSurface(
   svg.addEventListener(
     'pointerup',
     (event) => {
-      if (cancelledPointer === event.pointerId) {
-        cancelledPointer = null;
-        return;
-      }
+      if (input.takeCancelledPointer(event.pointerId)) return;
       if (event.button !== 0) return;
-      if (touchAim?.pointer === event.pointerId) {
+      if (input.touch?.pointer === event.pointerId) {
         event.preventDefault();
         const point = pointerPoint(event);
-        cancelTouch();
+        input.cancelTouch();
         try {
           if (point) {
             focus = point;
             if (options.touch.mode === 'confirm') {
-              touchAim = { pointer: null, point, screen: null };
+              input.awaitConfirmation(point);
               sayNotice('confirmHint', { coordinate: coordinate(point) });
             } else activate(point);
           } else sayNotice('placementReleaseInside');
@@ -620,16 +580,16 @@ export function mountBoardSurface(
         !options.drawing
       )
         return;
-      if (touchAim) cancelTouch();
+      if (input.touch) input.cancelTouch();
       if (options.drawing) {
-        if (pendingStroke?.pointer !== event.pointerId) return;
+        if (input.ink?.pointer !== event.pointerId) return;
         event.preventDefault();
         const point = inkPoint(event);
         if (point) {
           appendInk(point);
           finishInk();
         } else {
-          cancelInk();
+          input.cancelInk();
           render(current);
           sayNotice('inkReleaseInside');
         }
@@ -649,13 +609,13 @@ export function mountBoardSurface(
     svg.addEventListener(
       name,
       (event) => {
-        if (touchAim?.pointer === event.pointerId) {
-          cancelTouch();
+        if (input.touch?.pointer === event.pointerId) {
+          input.cancelTouch();
           render(current);
           sayNotice('placementCancelled');
         }
-        if (pendingStroke?.pointer === event.pointerId) {
-          cancelInk();
+        if (input.ink?.pointer === event.pointerId) {
+          input.cancelInk();
           render(current);
           sayNotice('inkCancelled');
         }
@@ -680,8 +640,8 @@ export function mountBoardSurface(
   svg.addEventListener(
     'blur',
     () => {
-      cancelInk();
-      if (touchAim?.pointer !== null) cancelTouch();
+      input.cancelInk();
+      if (input.touch?.pointer !== null) input.cancelTouch();
       render(current);
     },
     { signal: abort.signal },
@@ -735,7 +695,7 @@ export function mountBoardSurface(
             target = { x: target.x + dx, y: target.y + dy };
         }
         if (visible(target)) focus = target;
-        if (touchAim?.pointer === null) touchAim.point = { ...focus };
+        input.moveConfirmation(focus);
         render(current);
         const stone = current.position.board[focus.y * current.position.width + focus.x];
         const description = current.overlays
@@ -756,22 +716,21 @@ export function mountBoardSurface(
             }) + (description ? ' ' + description : ''),
         );
       } else if (event.key === 'Escape') {
-        cancelInk();
-        cancelTouch();
+        input.cancel();
         render(current);
         sayNotice('pendingCancelled');
       } else if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         if (!visible(focus)) return;
-        if (touchAim?.pointer === null) {
+        if (input.touch?.pointer === null) {
           confirmTouch();
           return;
         }
-        if (touchAim) return;
+        if (input.touch) return;
         if (options.drawing) {
-          if (readOnly() || (pendingStroke && pendingStroke.pointer !== null)) return;
-          if (!pendingStroke) {
-            pendingStroke = { pointer: null, points: [{ ...focus }] };
+          if (readOnly() || (input.ink && input.ink.pointer !== null)) return;
+          if (!input.ink) {
+            input.startInk(null, { ...focus });
             sayNotice('inkStarted');
           } else {
             appendInk({ ...focus });
@@ -806,8 +765,7 @@ export function mountBoardSurface(
       return;
     }
     if (state.identity !== current.identity || state.nodeId !== current.nodeId) {
-      cancelInk();
-      cancelTouch();
+      input.cancel();
     }
     // A shared key proves the entire record changed only in validated C values:
     // numbers, marks, fork hints and comparison references remain identical.
@@ -899,10 +857,9 @@ export function mountBoardSurface(
         (Object.hasOwn(next, 'compareTo') && next.compareTo !== previous.compareTo)
       )
         compareGeneration = next.referenceGeneration ?? controller.getState().recordGeneration;
-      const pendingInput = !!pendingStroke || !!touchAim;
+      const pendingInput = !!input.ink || !!input.touch;
       const wasAvailable = available;
-      cancelInk();
-      cancelTouch();
+      input.cancel();
       render(controller.getState());
       if (!wasAvailable && available) announce(current);
       else if (pendingInput && available) sayNotice('pendingCancelled');
@@ -914,8 +871,7 @@ export function mountBoardSurface(
     dispose() {
       if (disposed) return;
       disposed = true;
-      cancelInk();
-      cancelTouch();
+      input.cancel();
       abort.abort();
       unsubscribe();
       touchUI.dispose();
