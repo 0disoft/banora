@@ -926,21 +926,32 @@ export class RecordController {
     if (this.#importPreviews.get(preview) !== this.#recordGeneration)
       return { ok: false, reason: 'stale-preview' };
     if (this.#dirty && !options.discardChanges) return { ok: false, reason: 'unsaved-changes' };
+    this.#replaceRecord(preview.record, preview.node.id, preview.record);
+    return { ok: true };
+  }
+
+  #replaceRecord(
+    record: SgfRecord,
+    selected: string,
+    baseline: SgfRecord,
+    recovery?: { rules: RulePolicy; positions: RecordPositionCache },
+  ): void {
     this.endEditGroup();
-    this.#record = preview.record;
+    this.#record = record;
     this.#recordGeneration++;
-    this.#selected = preview.node.id;
+    this.#selected = selected;
+    if (recovery) this.#rules = recovery.rules;
     this.#importPreviews = new WeakMap();
     this.#undo = [];
     this.#redo = [];
     this.#tickets.clear();
-    this.#baselineRecord = this.#record;
+    this.#baselineRecord = baseline;
     this.#baselineContent = new WeakMap();
     this.#serialized.clear();
-    this.#dirty = false;
     this.#reindex();
+    if (recovery) this.#positionCache = recovery.positions;
+    this.#refreshDirty();
     this.#notify();
-    return { ok: true };
   }
   #rememberSerialized(record: SgfRecord, text: string): void {
     this.#serialized.delete(record);
@@ -988,23 +999,10 @@ export class RecordController {
     if (!parsed.ok)
       return { ok: false, reason: 'invalid-checkpoint', diagnostics: parsed.diagnostics };
     if (this.#dirty && !options.discardChanges) return { ok: false, reason: 'unsaved-changes' };
-    this.endEditGroup();
-    this.#record = parsed.record;
-    this.#selected = parsed.node.id;
-    this.#importPreviews = new WeakMap();
-    this.#rules = parsed.value.rules;
-    this.#baselineRecord = parsed.baseline;
-    this.#baselineContent = new WeakMap();
-    this.#recordGeneration++;
-    this.#undo = [];
-    this.#redo = [];
-    this.#tickets.clear();
-    this.#serialized.clear();
-    this.#reindex();
-    // Adopt only fully validated positions, after record replacement.
-    this.#positionCache = positions;
-    this.#refreshDirty();
-    this.#notify();
+    this.#replaceRecord(parsed.record, parsed.node.id, parsed.baseline, {
+      rules: parsed.value.rules,
+      positions,
+    });
     return { ok: true };
   }
   prepareExport(): ExportTicket {

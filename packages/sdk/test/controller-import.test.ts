@@ -134,3 +134,39 @@ test('preparation keeps controller-specific input limits and locator checks befo
     controller.dispose();
   }
 });
+
+test('import and restore publish one fresh session while applying their own baseline and rules', () => {
+  const controller = new RecordController({ size: 9, rules: { ko: 'positional-superko' } });
+  const source = new RecordController({ size: 5, rules: { ko: 'situational-superko' } });
+  const states: ReturnType<RecordController['getState']>[] = [];
+  const unsubscribe = controller.subscribe((state) => states.push(state));
+  try {
+    expect(source.setComment('draft').ok).toBe(true);
+    for (const restore of [false, true]) {
+      expect(controller.setComment('one').ok).toBe(true);
+      expect(controller.setComment('two').ok).toBe(true);
+      expect(controller.undo().ok).toBe(true);
+      const before = controller.getState();
+      expect(before.canUndo && before.canRedo).toBe(true);
+      const ticket = controller.prepareExport();
+      states.length = 0;
+      const result = restore
+        ? controller.loadCheckpoint(source.createCheckpoint(), { discardChanges: true })
+        : controller.loadSgf('(;SZ[5])', { discardChanges: true });
+      expect(result.ok).toBe(true);
+      expect(states).toEqual([controller.getState()]);
+      expect(states[0]).toMatchObject({
+        recordGeneration: before.recordGeneration + 1,
+        canUndo: false,
+        canRedo: false,
+        dirty: restore,
+        position: { rules: { ko: restore ? 'situational-superko' : 'positional-superko' } },
+      });
+      expect(controller.acknowledgeExport(ticket.id).ok).toBe(false);
+    }
+  } finally {
+    unsubscribe();
+    source.dispose();
+    controller.dispose();
+  }
+});
