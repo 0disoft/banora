@@ -533,7 +533,12 @@ export class RecordController {
     if (!result.ok) return result;
     const key = sgfColor(state.position.toPlay);
     const value = point ? pointToSgf(point) : '';
-    const existing = state.node.children.find((child) => child.properties[key]?.[0] === value);
+    const children = state.node.children;
+    const existing =
+      children.find((child) => child.properties[key]?.[0] === value) ??
+      (point === null && state.position.width <= 19 && state.position.height <= 19
+        ? children.find((child) => child.properties[key]?.[0] === 'tt')
+        : undefined);
     if (existing) return this.goTo(existing.id);
     if (this.#index.nodes.size >= (this.#limits.maxNodes ?? 50_000))
       return { ok: false, reason: 'limit' };
@@ -543,7 +548,7 @@ export class RecordController {
       createSgfNode(
         state.node.id,
         state.node.properties,
-        [...state.node.children, child],
+        [...children, child],
         state.node.rawProperties,
       ),
       id,

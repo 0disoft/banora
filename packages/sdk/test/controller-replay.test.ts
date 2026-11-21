@@ -25,6 +25,29 @@ function expectColdReplay(state: ControllerState): void {
   }
 }
 
+test('playing a pass reuses legacy pass continuations only on boards that interpret them as passes', () => {
+  for (const [sgf, selected, dirty] of [
+    ['(;SZ[19:9];B[tt]C[legacy])', 0, false],
+    ['(;SZ[19](;B[tt])(;B[]C[canonical]))', 1, false],
+    ['(;SZ[20];B[tt])', 1, true],
+  ] as const) {
+    const controller = new RecordController({ sgf });
+    try {
+      const before = controller.getState();
+      expect(controller.play(null).ok).toBe(true);
+      const after = controller.getState();
+      const expected = after.record.games[0]?.children[selected];
+      if (!expected) throw new Error('Expected pass continuation is missing');
+      expect(after.node).toBe(expected);
+      expect(after.position.consecutivePasses).toBe(1);
+      expect(after.dirty).toBe(dirty);
+      if (!dirty) expect(after.record).toBe(before.record);
+    } finally {
+      controller.dispose();
+    }
+  }
+});
+
 test('warm and evicted controller replay preserves captures, passes, setup, move overrides and collection branches', () => {
   const sgf =
     '(;SZ[5]PL[B]AB[aa][bb][cc]AW[ab][ba];B[ca];W[];B[];W[dd]MN[50]' +
