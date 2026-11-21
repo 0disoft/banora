@@ -547,7 +547,7 @@ export function decodeSgf(bytes: Uint8Array, options: Partial<SgfLimits> = {}): 
     probeText,
     limitsFor({
       ...limits,
-      maxBytes: limits.maxBytes * 2,
+      maxBytes: Math.min(limits.maxBytes * 2, Number.MAX_SAFE_INTEGER),
     }),
     size,
   );

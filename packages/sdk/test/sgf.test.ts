@@ -9,6 +9,15 @@ function parsed(result: SgfResult): SgfRecord {
 }
 
 describe('SGF FF4 preservation', () => {
+  test('byte decoding accepts the full safe integer range for the configured byte limit', () => {
+    for (const source of ['(;SZ[9])', '(;CA[UTF-8]C[\uD55C\uAE00])']) {
+      const bytes = new TextEncoder().encode(source);
+      for (const maxBytes of [2 ** 52 - 1, 2 ** 52, Number.MAX_SAFE_INTEGER]) {
+        expect(decodeSgf(bytes, { maxBytes })).toEqual(parseSgf(source, { maxBytes }));
+      }
+    }
+  });
+
   test('UTF-8 BOM decoding validates and serializes once with real matching root declarations', () => {
     for (const declaration of ['', 'CA[UTF-8]', 'CA[UTF8]', 'CA[UTF_8]']) {
       const source = `(;SZ[9]${declaration}C[한글🙂]XX[a\\]b]AB[aa:bb];B[cc])`;
