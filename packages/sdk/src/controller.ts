@@ -17,6 +17,7 @@ import {
   indexRecord,
   initialRecordPosition,
   refreshCommentIndex,
+  rememberSnapshotNodes,
   replaceRecordChildren,
   sameRecordContent,
   sgfColor,
@@ -309,7 +310,7 @@ export class RecordController {
           }),
         );
     }
-    return Object.freeze({
+    const state = Object.freeze({
       record: this.#record,
       node,
       position,
@@ -323,6 +324,8 @@ export class RecordController {
       connections: Object.freeze(connections),
       strokes,
     });
+    rememberSnapshotNodes(state, this.#index);
+    return state;
   }
   subscribe(listener: (state: ControllerState) => void): () => void {
     this.#assertLive();

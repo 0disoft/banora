@@ -3,6 +3,7 @@ import type { SgfNode } from './sgf.js';
 import { pointFromSgf } from './sgf.js';
 import type { Point } from './core.js';
 import { recordNumberingKey } from './record-numbering-key.js';
+import { indexedSnapshotNodes } from './record-runtime.js';
 
 export interface VariationRow {
   readonly node: SgfNode;
@@ -12,6 +13,22 @@ export interface VariationRow {
   readonly collapsed: boolean;
   readonly branch: boolean;
 }
+
+interface OutlineRow extends VariationRow {
+  readonly parentMove: number;
+}
+
+interface OutlineCheckpoint {
+  readonly game: number;
+  readonly selected: string;
+  readonly focused: boolean;
+  readonly limit: number;
+  readonly rows: readonly (Omit<OutlineRow, 'node'> & { id: string })[];
+  readonly truncated: boolean;
+}
+
+// Keep one bounded layout. Entries own IDs and row metadata, not authored nodes.
+let outlineCheckpoint = new WeakMap<object, OutlineCheckpoint>();
 
 interface ForkKey {
   readonly key: string;
@@ -75,70 +92,130 @@ export function variationPathKey(state: ControllerState): string {
   return result.key;
 }
 
-function* visibleRows(state: ControllerState, focused: boolean): Generator<VariationRow> {
-  const path = new Set(state.path);
-  const pending = [
-    {
-      nodes: [state.record.games[state.gameIndex]!] as readonly SgfNode[],
-      index: 0,
-      depth: 0,
-      indent: 0,
-      parentMove: 0,
-      branch: false,
-    },
-  ];
-  while (pending.length) {
-    const frame = pending.at(-1)!;
-    const node = frame.nodes[frame.index++]!;
-    // Drop an exhausted sibling cursor before descending: linear games keep one frame.
-    if (frame.index === frame.nodes.length) pending.pop();
-    const { depth, indent, parentMove, branch } = frame;
+function visibleRowCursor(state: ControllerState, focused: boolean) {
+  const root = state.record.games[state.gameIndex]!;
+  const row = {
+    node: root,
+    depth: 0,
+    indent: 0,
+    parentMove: 0,
+    branch: false,
+    moveNumber: 0,
+    collapsed: false,
+  };
+  let path: Set<string> | undefined;
+  const siblings: {
+    nodes: readonly SgfNode[];
+    index: number;
+    depth: number;
+    indent: number;
+    parentMove: number;
+  }[] = [];
+  function select(
+    node: SgfNode,
+    depth: number,
+    indent: number,
+    parentMove: number,
+    branch: boolean,
+  ) {
     const props = node.properties;
-    const moveNumber = props.MN ? Number(props.MN[0]) : parentMove + (props.B || props.W ? 1 : 0);
-    const collapsed = focused && branch && !path.has(node.id) && node.children.length > 0;
-    const row = { node, depth, indent, parentMove, branch, moveNumber, collapsed };
-    yield row;
-    if (collapsed || !node.children.length) continue;
-    const childBranch = node.children.length > 1;
-    pending.push({
-      nodes: node.children,
-      index: 0,
-      depth: depth + 1,
-      indent: indent + (childBranch ? 1 : 0),
-      parentMove: moveNumber,
-      branch: childBranch,
-    });
+    row.node = node;
+    row.depth = depth;
+    row.indent = indent;
+    row.parentMove = parentMove;
+    row.branch = branch;
+    row.moveNumber = props.MN ? Number(props.MN[0]) : parentMove + (props.B || props.W ? 1 : 0);
+    row.collapsed =
+      focused && branch && node.children.length > 0 && !(path ??= new Set(state.path)).has(node.id);
   }
+  select(root, 0, 0, 0, false);
+  function next(): boolean {
+    const children = row.node.children;
+    if (!row.collapsed && children.length) {
+      const depth = row.depth + 1;
+      const branch = children.length > 1;
+      const indent = row.indent + Number(branch);
+      const parentMove = row.moveNumber;
+      if (branch) siblings.push({ nodes: children, index: 1, depth, indent, parentMove });
+      select(children[0]!, depth, indent, parentMove, branch);
+      return true;
+    }
+    const fork = siblings.at(-1);
+    if (!fork) return false;
+    const node = fork.nodes[fork.index++]!;
+    if (fork.index === fork.nodes.length) siblings.pop();
+    select(node, fork.depth, fork.indent, fork.parentMove, true);
+    return true;
+  }
+  return { row, next };
 }
 
 /** A bounded selected neighborhood; collapsing never modifies the record. */
-export function getVariationRows(state: ControllerState, focused = false, limit = 500) {
+export function getVariationRows(
+  state: ControllerState,
+  focused = false,
+  limit = 500,
+): { rows: VariationRow[]; truncated: boolean } {
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50_000)
     throw new RangeError('Variation row limit must be 1 through 50000');
-  const iterator = visibleRows(state, focused);
-  const rows: VariationRow[] = [];
+  const nodes =
+    limit <= 500 && state.path.length > 500
+      ? indexedSnapshotNodes(state, state.record.games[state.gameIndex]!)
+      : undefined;
+  if (!nodes) return projectVariationRows(state, focused, limit);
+  const key = recordNumberingKey(state.record);
+  const selected = state.node.id;
+  const before = outlineCheckpoint.get(key);
+  if (
+    before?.game === state.gameIndex &&
+    before.selected === selected &&
+    before.focused === focused &&
+    before.limit === limit
+  )
+    return {
+      rows: before.rows.map(({ id, ...layout }) => ({ node: nodes.get(id)!, ...layout })),
+      truncated: before.truncated,
+    };
+  const result = projectVariationRows(state, focused, limit);
+  outlineCheckpoint = new WeakMap([
+    [
+      key,
+      {
+        game: state.gameIndex,
+        selected,
+        focused,
+        limit,
+        rows: result.rows.map(({ node, ...layout }) => ({ id: node.id, ...layout })),
+        truncated: result.truncated,
+      },
+    ],
+  ]);
+  return result;
+}
+
+function projectVariationRows(
+  state: ControllerState,
+  focused: boolean,
+  limit: number,
+): { rows: OutlineRow[]; truncated: boolean } {
+  const { row, next } = visibleRowCursor(state, focused);
+  const rows: (typeof row)[] = [];
   let selected = false;
   while (rows.length < limit) {
-    const step = iterator.next();
-    if (step.done) return { rows, truncated: false };
-    rows.push(step.value);
-    selected ||= step.value.node.id === state.node.id;
+    rows.push({ ...row });
+    selected ||= row.node.id === state.node.id;
+    if (!next()) return { rows, truncated: false };
   }
-  let step = iterator.next();
-  if (selected || step.done) return { rows, truncated: !step.done };
-  // Keep bounded preceding context without shifting an array for every skipped row.
+  if (selected) return { rows, truncated: true };
+  // Reuse slots when scanning the prefix. The initial rows remain a separate fallback.
   const capacity = limit - 1;
-  const before = capacity ? rows.slice(-capacity) : [];
+  const before = capacity ? rows.slice(-capacity).map((entry) => ({ ...entry })) : [];
   let head = 0;
-  while (!step.done) {
-    const current = step.value;
-    if (current.node.id === state.node.id) {
-      const after: VariationRow[] = [];
-      while (after.length < Math.ceil(capacity / 2)) {
-        const next = iterator.next();
-        if (next.done) break;
-        after.push(next.value);
-      }
+  do {
+    if (row.node.id === state.node.id) {
+      const current = { ...row };
+      const after: OutlineRow[] = [];
+      while (after.length < Math.ceil(capacity / 2) && next()) after.push({ ...row });
       const preceding = before.slice(head).concat(before.slice(0, head));
       const count = capacity - after.length;
       return {
@@ -147,11 +224,10 @@ export function getVariationRows(state: ControllerState, focused = false, limit 
       };
     }
     if (capacity) {
-      before[head] = current;
+      Object.assign(before[head]!, row);
       head = (head + 1) % capacity;
     }
-    step = iterator.next();
-  }
+  } while (next());
   return { rows, truncated: true };
 }
 

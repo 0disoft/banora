@@ -712,8 +712,12 @@ contiguous neighborhood around that node, including nearby continuations and for
 choices. Global depth, indentation, move-number overrides and focused collapse
 rules remain intact. `truncated` also indicates omitted preceding rows. Studio
 and Viewer retain a window during navigation inside it and recenter when the
-selection leaves it. Recentring scans the visible prefix once with bounded row
-storage; it does not promise constant-time random access or render the whole tree.
+selection leaves it. Recentring scans the visible prefix with a reusable cursor
+and bounded row slots. A focused walk builds its selected-path set only when it
+needs to decide whether to fold a fork. One layout of up to 500 rows can be
+reused at the same selection after a validated comment edit. The layout stores
+only row metadata and obtains fresh nodes from the controller index. Older
+snapshots with a replaced game root are projected from their own tree.
 
 An externally supplied controller survives view disposal. If omitted, the view
 creates and disposes its own controller. The SDK owns its appended SVG, live

@@ -151,3 +151,41 @@ test('distant wide forks retain sibling choices and collapse rules within the sa
     controller.dispose();
   }
 });
+
+test('deep linear outlines skip building a branch path and keep earlier comment rows independent', () => {
+  const controller = new RecordController({ sgf: '(;SZ[9]' + ';B[];W[]'.repeat(600) + ')' });
+  try {
+    let node = controller.getState().node;
+    for (let i = 0; i < 1000; i++) node = node.children[0]!;
+    expect(controller.goTo(node.id).ok).toBe(true);
+    const state = controller.getState();
+    let pathIterations = 0;
+    const path = new Proxy(state.path, {
+      get(target, key, receiver) {
+        if (key === Symbol.iterator) pathIterations++;
+        return Reflect.get(target, key, receiver);
+      },
+    });
+    const before = getVariationRows({ ...state, path }, true, 9);
+    expect(pathIterations).toBe(0);
+    expect(before.rows.map((row) => row.moveNumber)).toEqual([
+      996, 997, 998, 999, 1000, 1001, 1002, 1003, 1004,
+    ]);
+    const primed = getVariationRows(state, true, 9);
+    primed.rows.splice(0);
+    expect(
+      controller.setComments([
+        { nodeId: node.id, text: 'edited' },
+        { nodeId: node.children[0]!.id, text: 'next' },
+      ]).ok,
+    ).toBe(true);
+    const after = getVariationRows(controller.getState(), true, 9);
+    expect(after.rows.map((row) => row.node.id)).toEqual(before.rows.map((row) => row.node.id));
+    expect(after.rows[4]!.node.properties.C).toEqual(['edited']);
+    expect(after.rows[5]!.node.properties.C).toEqual(['next']);
+    expect(before.rows[4]!.node.properties.C).toBeUndefined();
+    expect(getVariationRows(state, true, 9).rows[4]!.node).toBe(node);
+  } finally {
+    controller.dispose();
+  }
+});

@@ -56,11 +56,34 @@ export function replaceRecordChildren(node: SgfNode, children: readonly SgfNode[
 
 export interface RecordIndex {
   nodes: Map<string, SgfNode>;
+  nodeReference: WeakRef<ReadonlyMap<string, SgfNode>>;
   parents: Map<string, string | null>;
   games: Map<string, number>;
 }
+const snapshotNodes = new WeakMap<object, RecordIndex['nodeReference']>();
+
+export function rememberSnapshotNodes(state: object, index: RecordIndex): void {
+  snapshotNodes.set(state, index.nodeReference);
+}
+
+export function indexedSnapshotNodes(
+  state: object,
+  root: SgfNode,
+): ReadonlyMap<string, SgfNode> | undefined {
+  const nodes = snapshotNodes.get(state)?.deref();
+  // A comment edit can update the same index in place. An older snapshot may
+  // use it only if the root still owns the exact unchanged subtree.
+  return nodes?.get(root.id) === root ? nodes : undefined;
+}
+
 export function indexRecord(record: SgfRecord): RecordIndex {
-  const index: RecordIndex = { nodes: new Map(), parents: new Map(), games: new Map() };
+  const nodes = new Map<string, SgfNode>();
+  const index: RecordIndex = {
+    nodes,
+    nodeReference: new WeakRef(nodes),
+    parents: new Map(),
+    games: new Map(),
+  };
   const pending: { node: SgfNode; parent: string | null; game: number }[] = [];
   record.games.forEach((node, game) => pending.push({ node, game, parent: null }));
   while (pending.length) {
