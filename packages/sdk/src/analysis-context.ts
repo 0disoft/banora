@@ -13,7 +13,7 @@ import type {
   AnalysisMove,
   AnalysisSettings,
 } from './analysis-types.js';
-const signatures = new WeakMap<AnalysisContext, string>();
+const signatures = new WeakMap<AnalysisContext, { base: string; moves?: string }>();
 let sequence = 0;
 export function analysisFailure(
   reason: AnalysisFailure['reason'],
@@ -61,7 +61,9 @@ export function sameAnalysisContext(
   if (!left || !right) return left === right;
   const a = signatures.get(left),
     b = signatures.get(right);
-  return a !== undefined && a === b;
+  if (!a || !b || a.base !== b.base) return false;
+  if (left === right) return true;
+  return (a.moves ??= JSON.stringify(left.moves)) === (b.moves ??= JSON.stringify(right.moves));
 }
 export function isAnalysisContext(value: AnalysisContext): boolean {
   return signatures.has(value);
@@ -79,6 +81,23 @@ interface ContextProof {
   state: ControllerState;
   value: AnalysisContext;
   legal: Position;
+  history: MoveHistory | null;
+}
+
+interface MoveHistory {
+  readonly previous: MoveHistory | null;
+  readonly moves: readonly AnalysisMove[];
+  readonly length: number;
+}
+
+function flattenMoves(history: MoveHistory): readonly AnalysisMove[] {
+  const moves = new Array<AnalysisMove>(history.length);
+  let end = history.length;
+  for (let segment: MoveHistory | null = history; segment; segment = segment.previous) {
+    end -= segment.moves.length;
+    for (let i = 0; i < segment.moves.length; i++) moves[end + i] = segment.moves[i]!;
+  }
+  return Object.freeze(moves);
 }
 
 /** Session-local bounded proofs; the public context builder always validates afresh. */
@@ -87,7 +106,7 @@ export function cachedAnalysisContext() {
   let last: ContextProof | undefined;
   const proofs = new Map<string, ContextProof>();
   let retainedSteps = 0;
-  const cost = (proof: ContextProof) => proof.state.path.length + proof.value.moves.length;
+  const cost = (proof: ContextProof) => proof.state.path.length + (proof.history?.length ?? 0);
   const clear = () => {
     proofs.clear();
     retainedSteps = 0;
@@ -197,9 +216,9 @@ function capture(
     let node = extendsPrevious ? previous.state.node : root,
       position = extendsPrevious ? previous.value.position : initialRecordPosition(root, rules),
       initial = extendsPrevious ? previous.value.initial : position,
-      moves: AnalysisMove[] = extendsPrevious ? [...previous.value.moves] : [];
+      prefix = extendsPrevious ? previous.history : null,
+      moves: AnalysisMove[] = [];
     let legalBase = extendsPrevious ? previous.legal : initial;
-    let legalStart = moves.length;
     for (
       let index = extendsPrevious ? state.path.length - 1 : 0;
       index < state.path.length;
@@ -216,9 +235,9 @@ function capture(
         for (const key of ['AB', 'AW', 'AE', 'PL']) if (props[key]) setup[key] = props[key]!;
         position = applyRecordNode(position, createSgfNode(node.id, setup));
         initial = position;
+        prefix = null;
         moves = [];
         legalBase = initial;
-        legalStart = 0;
       }
       for (const [key, color] of [
         ['B', 'black'],
@@ -240,7 +259,7 @@ function capture(
     if (JSON.stringify(positionData(position)) !== JSON.stringify(positionData(state.position)))
       fail('Record snapshot and selected position do not match.');
     let legal = legalBase;
-    for (const move of moves.slice(legalStart)) {
+    for (const move of moves) {
       const result =
         move.move === null ? pass(legal, move.color) : play(legal, move.move, move.color);
       if (!result.ok)
@@ -257,31 +276,40 @@ function capture(
       nodeId: state.node.id,
       recordGeneration: state.recordGeneration,
     });
-    const value: AnalysisContext = Object.freeze({
+    const segment = Object.freeze(moves);
+    const history: MoveHistory | null = moves.length
+      ? { previous: prefix, moves: segment, length: (prefix?.length ?? 0) + moves.length }
+      : prefix;
+    const value: AnalysisContext = {
       key: `context-${++sequence}`,
       source,
       position,
       initial,
-      moves: Object.freeze(moves),
+      moves: history?.moves ?? segment,
       profile: profile?.id ?? null,
       scoring,
       komi,
       handicap,
-    });
-    signatures.set(
-      value,
-      JSON.stringify({
+    };
+    if (history?.previous) {
+      let materialized: readonly AnalysisMove[] | undefined;
+      Object.defineProperty(value, 'moves', {
+        get: () => (materialized ??= flattenMoves(history)),
+      });
+    }
+    Object.freeze(value);
+    signatures.set(value, {
+      base: JSON.stringify({
         source,
         position: positionData(position),
         initial: positionData(initial),
-        moves,
         profile: value.profile,
         scoring,
         komi,
         handicap,
       }),
-    );
-    remember?.({ state, value, legal });
+    });
+    remember?.({ state, value, legal, history });
     return { ok: true, value };
   } catch (error) {
     return error instanceof AnalysisError

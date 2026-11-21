@@ -97,6 +97,62 @@ test('session proof invalidation matches full extraction across setup, MN, edits
     controller.dispose();
   }
 });
+
+test('idle navigation defers move serialization and exposes immutable independent history', () => {
+  const controller = new RecordController({
+    sgf: '(;SZ[9];B[aa];W[ab]' + ';B[];W[]'.repeat(100) + ';PL[B];B[bb])',
+  });
+  const session = new AnalysisSession(controller, controlled().provider, settings);
+  const stringify = JSON.stringify;
+  let histories = 0;
+  const spy = spyOn(JSON, 'stringify').mockImplementation((value, replacer, space) => {
+    const moves = Array.isArray(value) ? value : value?.moves;
+    if (moves?.length && moves[0]?.color) histories++;
+    return typeof replacer === 'function'
+      ? stringify(value, replacer, space)
+      : stringify(value, replacer, space);
+  });
+  try {
+    for (let i = 0; i < 201; i++) expect(controller.next().ok).toBe(true);
+    const held = session.getState().context!;
+    expect(controller.next().ok).toBe(true);
+    const beforeSetup = session.getState().context!;
+    expect(histories).toBe(0);
+    expect(beforeSetup.moves).toHaveLength(202);
+    expect(beforeSetup.moves).toBe(beforeSetup.moves);
+    expect(Object.isFrozen(beforeSetup.moves)).toBe(true);
+    expect(Object.keys(beforeSetup)).toContain('moves');
+    const full = context(createAnalysisContext(controller.getState(), settings));
+    expect(beforeSetup.moves).toEqual(full.moves);
+    expect(sameAnalysisContext(beforeSetup, full)).toBe(true);
+    controller.next();
+    controller.next();
+    expect(session.getState().context!.moves).toEqual([{ color: 'black', move: { x: 1, y: 1 } }]);
+    expect(held.moves).toEqual(full.moves.slice(0, -1));
+    expect(beforeSetup.moves).toEqual(full.moves);
+  } finally {
+    spy.mockRestore();
+    session.dispose();
+    controller.dispose();
+  }
+});
+
+test('equal context metadata and position still distinguish different move orders', () => {
+  const left = new RecordController({ sgf: '(;SZ[9];B[aa];W[ab];B[cc];W[cd];B[];W[])' });
+  const right = new RecordController({ sgf: '(;SZ[9];B[cc];W[cd];B[aa];W[ab];B[];W[])' });
+  try {
+    for (const controller of [left, right]) for (let i = 0; i < 6; i++) controller.next();
+    const a = context(createAnalysisContext(left.getState(), settings));
+    const b = context(createAnalysisContext(right.getState(), settings));
+    expect(a.source).toEqual(b.source);
+    expect(a.position).toEqual(b.position);
+    expect(a.moves).not.toEqual(b.moves);
+    expect(sameAnalysisContext(a, b)).toBe(false);
+  } finally {
+    left.dispose();
+    right.dispose();
+  }
+});
 const context = (result: AnalysisContextResult) => {
   if (!result.ok) throw Error(result.message);
   return result.value;

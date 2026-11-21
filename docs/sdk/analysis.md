@@ -113,7 +113,10 @@ and can invalidate a loading request before provider submission. Listener except
 are isolated. The session rechecks its live source before publishing any result.
 SDK-controller sessions reuse proven contexts for comment/export-only notifications
 and validate only the added node when extending a proven path in the same immutable
-record. The session retains at most 128 proofs and 100,000 combined path/move steps.
+record. Extended contexts share immutable move segments and build the frozen public
+move array on first access. Equality compares the move history only when the other
+context fields match. The session retains at most 128 proofs and 100,000 combined
+path/move steps.
 Record generations, game/settings changes and structural edits invalidate proofs;
 setup epochs reset incremental legal history. Unknown controller implementations
 and the public `createAnalysisContext` builder retain full validation. Disposal
