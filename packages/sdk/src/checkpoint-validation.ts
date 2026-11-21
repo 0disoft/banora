@@ -63,6 +63,28 @@ type PreparedCheckpointResult =
     })
   | Extract<RecordCheckpointResult, { ok: false }>;
 
+function parseCheckpointSgf(text: string, limits: Partial<SgfLimits>) {
+  const strict = parseSgf(text, limits);
+  const maxValueLength = limits.maxValueLength ?? DEFAULT_SGF_LIMITS.maxValueLength;
+  if (strict.ok || maxValueLength >= 'UTF-8'.length) return strict;
+
+  // Checkpoints are already Unicode text. Their serializer adds this exact root
+  // header even when it exceeds the controller's authored value limit.
+  const canonical = parseSgf(text, { ...limits, maxValueLength: 'UTF-8'.length });
+  if (!canonical.ok) return strict;
+  const roots = new Set(canonical.record.games);
+  const pending = [...roots];
+  while (pending.length) {
+    const node = pending.pop()!;
+    for (const [key, values] of Object.entries(node.rawProperties)) {
+      if (key === 'CA' && roots.has(node) && values[0] === 'UTF-8') continue;
+      if (values.some((value) => value.length > maxValueLength)) return strict;
+    }
+    for (const child of node.children) pending.push(child);
+  }
+  return canonical;
+}
+
 /** Internal validation plus a bounded replay window, adopted only after approval. */
 export function prepareRecordCheckpoint(
   input: unknown,
@@ -76,9 +98,10 @@ export function prepareRecordCheckpoint(
   if (!matches(input, CHECKPOINT_SCHEMA))
     return fail('Unsupported or malformed record checkpoint.');
   const data = input as RecordCheckpoint;
-  const record = parseSgf(data.sgf, limits);
+  const record = parseCheckpointSgf(data.sgf, limits);
   if (!record.ok) return record;
-  const baseline = data.baselineSgf === data.sgf ? record : parseSgf(data.baselineSgf, limits);
+  const baseline =
+    data.baselineSgf === data.sgf ? record : parseCheckpointSgf(data.baselineSgf, limits);
   if (!baseline.ok) return baseline;
   const node = recordNodeAt(record.record, data.selection);
   if (!node) return fail('Checkpoint selection was not found.');

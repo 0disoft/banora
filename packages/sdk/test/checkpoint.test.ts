@@ -4,6 +4,27 @@ import { CHECKPOINT_SCHEMA, parseRecordCheckpoint } from '../src/checkpoint.js';
 import { executeAutomation } from '../src/automation.js';
 import * as sgf from '../src/sgf.js';
 
+test('canonical checkpoint headers round-trip under short SGF value limits', () => {
+  const limits = { maxValueLength: 4 };
+  const source = new RecordController({ sgf: '(;SZ[9];B[aa])(;SZ[5])', limits });
+  try {
+    expect(source.next().ok).toBe(true);
+    const checkpoint = source.createCheckpoint();
+    expect(sgf.parseSgf(checkpoint.sgf, limits).ok).toBe(false);
+    expect(source.loadCheckpoint(checkpoint).ok).toBe(true);
+    expect(source.createCheckpoint()).toEqual(checkpoint);
+    expect(source.getState().dirty).toBe(false);
+
+    for (const field of ['sgf', 'baselineSgf'] as const) {
+      for (const invalid of ['(;CA[UTF-8]C[abcde])', '(;CA[utf-8])', '(;CA[UTF-8];CA[UTF-8])']) {
+        expect(parseRecordCheckpoint({ ...checkpoint, [field]: invalid }, limits).ok).toBe(false);
+      }
+    }
+  } finally {
+    source.dispose();
+  }
+});
+
 test('validated edit SGF is reused for checkpoint and export without skipping full validation', () => {
   const source = new RecordController({ sgf: '(;SZ[9]XX[keep])(;SZ[5];B[])' });
   const original = source.createCheckpoint();

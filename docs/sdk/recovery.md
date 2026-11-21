@@ -30,7 +30,10 @@ A checkpoint has exactly `schemaVersion: "banora.checkpoint/v1"`, `sgf`,
 `rules: {suicide, ko, passStones}`. Locators use child indices, never session IDs.
 Unknown fields, versions, invalid policy/SGF and missing selections fail.
 The discovery envelope uses default SGF bounds; the controller additionally applies
-its own parser limits to both documents. Broader host SGF limits do not expand the
+its own parser limits to both documents. The exact canonical root `CA[UTF-8]`
+header added during checkpoint creation is accepted even when the value limit
+is shorter than five characters. The value limit still applies to all other raw
+values and ordinary SGF imports. Broader host SGF limits do not expand the
 checkpoint envelope. The schema bounds characters; parsers also enforce UTF-8 bytes.
 Creating a checkpoint throws `RangeError` if a broader host record exceeds the
 portable envelope; it leaves the document and ordinary SGF export available.
