@@ -18,6 +18,7 @@
     "board-layout",
     "board-notices",
     "board-notice-locales",
+    "board-snapshot-contract",
     "board-state",
     "checkpoint",
     "checkpoint-validation",

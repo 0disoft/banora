@@ -3,6 +3,13 @@ import type { Marker, Connection } from './controller.js';
 import { createStroke, strokeLimits } from './annotations.js';
 import type { Stroke } from './annotations.js';
 import type { BoardNotices, BoardFailureLabels } from './board-notices.js';
+import { MAX_BOARD_SIDE, MIN_BOARD_SIDE } from './board-dimensions.js';
+import {
+  boardConnectionKinds,
+  boardMarkerKinds,
+  boardOverlayKinds,
+  boardSnapshotLimits,
+} from './board-snapshot-contract.js';
 export type { BoardNotices, BoardFailureLabels } from './board-notices.js';
 
 export interface BoardNumber {
@@ -24,7 +31,7 @@ export interface BoardLabels extends Partial<BoardNotices>, Partial<BoardFailure
 }
 /** Bounded presentation primitives; labels are text, never HTML or SVG source. */
 export interface BoardOverlay {
-  readonly kind: 'heatmap' | 'badge' | 'ring';
+  readonly kind: (typeof boardOverlayKinds)[number];
   readonly point: Point;
   readonly color: string;
   readonly opacity?: number;
@@ -104,11 +111,12 @@ const hex = (value: unknown): string => {
 export function createBoardSnapshot(input: BoardSnapshot): BoardSnapshotValue {
   if (!input || typeof input !== 'object' || Array.isArray(input))
     throw new TypeError('Board snapshot must be an object');
-  const key = text(input.key, 'State key', 512);
+  const key = text(input.key, 'State key', boardSnapshotLimits.key);
   if (!key) throw new TypeError('State key must not be empty');
-  const width = integer(input.width, 'Width', 52),
-    height = integer(input.height, 'Height', 52);
-  if (width < 2 || height < 2) throw new RangeError('Dimensions must be 2 through 52');
+  const width = integer(input.width, 'Width', MAX_BOARD_SIDE),
+    height = integer(input.height, 'Height', MAX_BOARD_SIDE);
+  if (width < MIN_BOARD_SIDE || height < MIN_BOARD_SIDE)
+    throw new RangeError(`Dimensions must be ${MIN_BOARD_SIDE} through ${MAX_BOARD_SIDE}`);
   const area = width * height;
   const stones = list(input.stones, 'Stones', area, true).map((color) => {
     if (color !== null && color !== 'black' && color !== 'white')
@@ -144,25 +152,30 @@ export function createBoardSnapshot(input: BoardSnapshot): BoardSnapshotValue {
     numberPoints.add(index);
     return Object.freeze({ point: at, value: integer(number.value, 'Move number') });
   });
-  const markers = list(input.markers, 'Markers', 4096).map((marker) => {
-    if (!marker || !['triangle', 'square', 'circle', 'cross', 'label'].includes(marker.kind))
+  const markers = list(input.markers, 'Markers', boardSnapshotLimits.markers).map((marker) => {
+    if (!marker || !boardMarkerKinds.includes(marker.kind))
       throw new TypeError('Invalid marker kind');
-    const label = marker.kind === 'label' ? text(marker.label, 'Marker label', 1024) : undefined;
+    const label =
+      marker.kind === 'label'
+        ? text(marker.label, 'Marker label', boardSnapshotLimits.markerLabel)
+        : undefined;
     return Object.freeze({
       kind: marker.kind,
       point: point(marker.point),
       ...(label === undefined ? {} : { label }),
     });
   });
-  const connections = list(input.connections, 'Connections', 4096).map((connection) => {
-    if (!connection || !['line', 'arrow'].includes(connection.kind))
-      throw new TypeError('Invalid connection kind');
-    const from = point(connection.from),
-      to = point(connection.to);
-    if (from.x === to.x && from.y === to.y)
-      throw new RangeError('Connection endpoints must differ');
-    return Object.freeze({ kind: connection.kind, from, to });
-  });
+  const connections = list(input.connections, 'Connections', boardSnapshotLimits.connections).map(
+    (connection) => {
+      if (!connection || !boardConnectionKinds.includes(connection.kind))
+        throw new TypeError('Invalid connection kind');
+      const from = point(connection.from),
+        to = point(connection.to);
+      if (from.x === to.x && from.y === to.y)
+        throw new RangeError('Connection endpoints must differ');
+      return Object.freeze({ kind: connection.kind, from, to });
+    },
+  );
   let strokePoints = 0;
   const ids = new Set<string>();
   const strokes = list(input.strokes, 'Strokes', strokeLimits.strokes).map((stroke) => {
@@ -173,8 +186,8 @@ export function createBoardSnapshot(input: BoardSnapshot): BoardSnapshotValue {
     if (strokePoints > strokeLimits.pointsPerNode) throw new RangeError('Too many ink points');
     return copy;
   });
-  const overlays = list(input.overlays, 'Overlays', 8192).map((overlay) => {
-    if (!overlay || !['heatmap', 'badge', 'ring'].includes(overlay.kind))
+  const overlays = list(input.overlays, 'Overlays', boardSnapshotLimits.overlays).map((overlay) => {
+    if (!overlay || !boardOverlayKinds.includes(overlay.kind))
       throw new TypeError('Invalid overlay kind');
     const opacity = overlay.opacity === undefined ? 1 : overlay.opacity;
     if (typeof opacity !== 'number' || !Number.isFinite(opacity) || opacity < 0 || opacity > 1)
@@ -184,11 +197,19 @@ export function createBoardSnapshot(input: BoardSnapshot): BoardSnapshotValue {
       point: point(overlay.point),
       color: hex(overlay.color),
       opacity,
-      ...(overlay.label === undefined ? {} : { label: text(overlay.label, 'Overlay label', 64) }),
+      ...(overlay.label === undefined
+        ? {}
+        : { label: text(overlay.label, 'Overlay label', boardSnapshotLimits.overlayLabel) }),
       ...(overlay.textColor === undefined ? {} : { textColor: hex(overlay.textColor) }),
       ...(overlay.ariaLabel === undefined
         ? {}
-        : { ariaLabel: text(overlay.ariaLabel, 'Overlay description', 512) }),
+        : {
+            ariaLabel: text(
+              overlay.ariaLabel,
+              'Overlay description',
+              boardSnapshotLimits.overlayDescription,
+            ),
+          }),
     });
   });
   const captures = input.captures === undefined ? { black: 0, white: 0 } : input.captures;

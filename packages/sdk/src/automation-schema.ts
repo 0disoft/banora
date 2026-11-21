@@ -5,8 +5,22 @@ import { freezeSchema, matches } from './json-schema.js';
 import type { Schema } from './json-schema.js';
 import { CHECKPOINT_SCHEMA } from './checkpoint.js';
 import { AUTOMATION_LIMITS } from './automation-limits.js';
+import { MAX_BOARD_SIDE, MIN_BOARD_SIDE } from './board-dimensions.js';
+import { strokeLimits } from './annotations.js';
+import {
+  boardConnectionKinds,
+  boardMarkerKinds,
+  boardOverlayKinds,
+  boardSnapshotLimits,
+} from './board-snapshot-contract.js';
+const maxBoardArea = MAX_BOARD_SIDE ** 2;
+const maxCoordinate = MAX_BOARD_SIDE - 1;
 const text = (maxLength = 65_536): Schema => ({ type: 'string', maxLength });
-const integer = (minimum = 0, maximum = 52): Schema => ({ type: 'integer', minimum, maximum });
+const integer = (minimum = 0, maximum = MAX_BOARD_SIDE): Schema => ({
+  type: 'integer',
+  minimum,
+  maximum,
+});
 const list = (items: Schema, maxItems: number): Schema => ({ type: 'array', items, maxItems });
 const object = (
   properties: Record<string, Schema>,
@@ -19,10 +33,10 @@ const object = (
 });
 const choice = (values: readonly unknown[]): Schema => ({ enum: values });
 const color = choice(['black', 'white']);
-const point = object({ x: integer(0, 51), y: integer(0, 51) });
+const point = object({ x: integer(0, maxCoordinate), y: integer(0, maxCoordinate) });
 const fractionalPoint = object({
-  x: { type: 'number', minimum: 0, maximum: 51 },
-  y: { type: 'number', minimum: 0, maximum: 51 },
+  x: { type: 'number', minimum: 0, maximum: maxCoordinate },
+  y: { type: 'number', minimum: 0, maximum: maxCoordinate },
 });
 // Linear move paths are bounded by total nodes, not nested SGF variation depth.
 const locator = object({
@@ -67,26 +81,32 @@ const definitions: Record<string, Schema> = {
   marker: object(
     {
       point,
-      kind: choice(['triangle', 'square', 'circle', 'cross', 'label', null]),
-      label: text(1024),
+      kind: choice([...boardMarkerKinds, null]),
+      label: text(boardSnapshotLimits.markerLabel),
     },
     ['point', 'kind'],
   ),
   setup: object(
     {
       stones: list(
-        object({ x: integer(0, 51), y: integer(0, 51), color: choice(['black', 'white', null]) }),
-        2704,
+        object({
+          x: integer(0, maxCoordinate),
+          y: integer(0, maxCoordinate),
+          color: choice(['black', 'white', null]),
+        }),
+        maxBoardArea,
       ),
       toPlay: color,
     },
     ['stones'],
   ),
   connection: object(
-    { from: point, to: point, kind: choice(['line', 'arrow']), present: { type: 'boolean' } },
+    { from: point, to: point, kind: choice(boardConnectionKinds), present: { type: 'boolean' } },
     ['from', 'to', 'kind'],
   ),
-  stroke: object({ points: list(fractionalPoint, 512), ...style }, ['points']),
+  stroke: object({ points: list(fractionalPoint, strokeLimits.pointsPerStroke), ...style }, [
+    'points',
+  ]),
   'remove-stroke': object({ id: text(128) }),
   'clear-strokes': object({}),
   'remove-branch': object({ target: locator }, []),
@@ -99,8 +119,8 @@ const definitions: Record<string, Schema> = {
       profile,
       komi: { type: 'number' },
       handicap: integer(0, 1_000_000_000),
-      deadStones: list(point, 2704),
-      sekiStones: list(point, 2704),
+      deadStones: list(point, maxBoardArea),
+      sekiStones: list(point, maxBoardArea),
       adjustments: object({ black: { type: 'number' }, white: { type: 'number' } }, []),
     },
     ['profile'],
@@ -113,10 +133,10 @@ const operations = Object.entries(definitions).map(([op, schema]) => ({
 }));
 const snapshotSchema = object(
   {
-    key: { ...text(512), minLength: 1 },
-    width: integer(2, 52),
-    height: integer(2, 52),
-    stones: list(choice(['black', 'white', null]), 2704),
+    key: { ...text(boardSnapshotLimits.key), minLength: 1 },
+    width: integer(MIN_BOARD_SIDE, MAX_BOARD_SIDE),
+    height: integer(MIN_BOARD_SIDE, MAX_BOARD_SIDE),
+    stones: list(choice(['black', 'white', null]), maxBoardArea),
     toPlay: color,
     moveNumber: integer(0, Number.MAX_SAFE_INTEGER),
     captures: object({
@@ -124,36 +144,46 @@ const snapshotSchema = object(
       white: integer(0, Number.MAX_SAFE_INTEGER),
     }),
     lastMove: { anyOf: [point, { type: 'null' }] },
-    numbers: list(object({ point, value: integer(0, Number.MAX_SAFE_INTEGER) }), 2704),
+    numbers: list(object({ point, value: integer(0, Number.MAX_SAFE_INTEGER) }), maxBoardArea),
     markers: list(
       object(
         {
           point,
-          kind: choice(['triangle', 'square', 'circle', 'cross', 'label']),
-          label: text(1024),
+          kind: choice(boardMarkerKinds),
+          label: text(boardSnapshotLimits.markerLabel),
         },
         ['point', 'kind'],
       ),
-      4096,
+      boardSnapshotLimits.markers,
     ),
-    connections: list(object({ from: point, to: point, kind: choice(['line', 'arrow']) }), 4096),
-    strokes: list(object({ id: text(64), points: list(fractionalPoint, 512), ...style }), 64),
-    visiblePoints: { anyOf: [list(point, 2704), { type: 'null' }] },
-    dimPoints: list(point, 2704),
+    connections: list(
+      object({ from: point, to: point, kind: choice(boardConnectionKinds) }),
+      boardSnapshotLimits.connections,
+    ),
+    strokes: list(
+      object({
+        id: text(64),
+        points: list(fractionalPoint, strokeLimits.pointsPerStroke),
+        ...style,
+      }),
+      strokeLimits.strokes,
+    ),
+    visiblePoints: { anyOf: [list(point, maxBoardArea), { type: 'null' }] },
+    dimPoints: list(point, maxBoardArea),
     overlays: list(
       object(
         {
-          kind: choice(['heatmap', 'badge', 'ring']),
+          kind: choice(boardOverlayKinds),
           point,
           color: text(7),
           opacity: { type: 'number', minimum: 0, maximum: 1 },
-          label: text(64),
+          label: text(boardSnapshotLimits.overlayLabel),
           textColor: text(7),
-          ariaLabel: text(512),
+          ariaLabel: text(boardSnapshotLimits.overlayDescription),
         },
         ['kind', 'point', 'color'],
       ),
-      8192,
+      boardSnapshotLimits.overlays,
     ),
   },
   ['key', 'width', 'height', 'stones'],
