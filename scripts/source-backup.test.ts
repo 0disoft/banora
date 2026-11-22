@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
 import * as childProcess from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, resolve } from 'node:path';
 import {
   sourceBackup,
   sourceRecovery,
@@ -11,13 +12,9 @@ import {
   SourceOperationError,
 } from './source-backup.js';
 
-async function fixture() {
-  await mkdir('.tmp', { recursive: true });
-  const root = await mkdtemp(resolve('.tmp/source-backup-test-'));
-  await mkdir(resolve(root, '.tmp/hooks'), { recursive: true });
+function fixtureGit(root: string) {
   const config = resolve(root, '.tmp/empty.gitconfig');
-  await writeFile(config, '');
-  const git = (...args: string[]) => {
+  return (...args: string[]) => {
     const result = spawnSync(
       'git',
       [
@@ -42,28 +39,80 @@ async function fixture() {
     if (result.status !== 0) throw Error('Authored Git fixture failed.');
     return result.stdout.trim();
   };
+}
+
+async function createSourceSeed(root: string): Promise<void> {
+  await mkdir(resolve(root, '.tmp/hooks'), { recursive: true });
+  await writeFile(resolve(root, '.tmp/empty.gitconfig'), '');
+  const git = fixtureGit(root);
   await writeFile(resolve(root, '.gitignore'), '.tmp/\n.artifacts/\n');
   await writeFile(
     resolve(root, 'package.json'),
     JSON.stringify({ name: 'banora-workspace', private: true }),
   );
   await writeFile(resolve(root, 'README.md'), 'Authored offline source recovery fixture.\n');
-  git('init', '-b', 'main');
+  git('init', '-b', 'main', '--template=');
   git('add', '.');
   git('commit', '-m', 'Authored initial fixture');
   git('tag', '-a', 'v0.1.0', '-m', 'Authored tag');
   await writeFile(resolve(root, 'README.md'), 'Authored next source recovery fixture.\n');
   git('add', '.');
   git('commit', '-m', 'Authored next fixture');
-  return { root, git };
 }
 describe('isolated authored Git source', () => {
-  let source: Awaited<ReturnType<typeof fixture>>;
+  let suite: { parent: string; root: string } | undefined;
+  let seed: string;
+  let source: { root: string; git: ReturnType<typeof fixtureGit> };
+  let reviewed: {
+    root: string;
+    backup: Awaited<ReturnType<typeof sourceBackup>>;
+    alternative: string;
+  };
 
-  // Preparation and the real backup/recovery each retain their own default deadline.
-  // Every test gets fresh history and refs; mutation tests never share a repository.
+  beforeAll(async () => {
+    const parent = await realpath(tmpdir());
+    suite = { parent, root: await mkdtemp(resolve(parent, 'banora-source-backup-')) };
+    seed = resolve(suite.root, 'source');
+    await createSourceSeed(seed);
+  });
+
+  beforeAll(async () => {
+    const root = resolve(seed, '..', 'reviewed');
+    await cp(seed, root, { recursive: true });
+    const git = fixtureGit(root);
+    // Keep a same-tree alternative in the bundle for the checkout identity case.
+    const alternative = git(
+      'commit-tree',
+      'HEAD^{tree}',
+      '-p',
+      'HEAD',
+      '-m',
+      'Authored alternative',
+    );
+    git('tag', 'same-tree-alternative', alternative);
+    reviewed = { root, backup: await sourceBackup(root), alternative };
+  });
+
+  async function copyReviewedBackup(root: string) {
+    const { backup, manifestSha256, source } = reviewed.backup;
+    const destination = resolve(root, backup);
+    await cp(resolve(reviewed.root, backup), destination, { recursive: true });
+    return { backup: destination, manifestSha256, sourceCommit: source.commit };
+  }
+
+  // Each test owns its repository and any backup it mutates; the seeds are read-only inputs.
   beforeEach(async () => {
-    source = await fixture();
+    const root = await mkdtemp(resolve(seed, '..', 'case-'));
+    await cp(seed, root, { recursive: true });
+    source = { root, git: fixtureGit(root) };
+  });
+
+  afterAll(async () => {
+    if (!suite) return;
+    const root = await realpath(suite.root);
+    if (root !== suite.root || dirname(root) !== suite.parent)
+      throw Error('Authored fixture directory changed.');
+    await rm(root, { recursive: true, force: true });
   });
 
   test('initial identity is batched while final source and ref checks stay fresh', async () => {
@@ -157,20 +206,10 @@ describe('isolated authored Git source', () => {
   test.each(['dirty', 'untracked', 'head'] as const)(
     'recovery rejects a %s checkout without writing a success receipt',
     async (kind) => {
-      const { root, git } = source;
-      let value = 'Authored concurrent checkout work.\n';
-      if (kind === 'head') {
-        // Include a same-tree alternative, so only checkout identity changes.
-        value =
-          git('commit-tree', 'HEAD^{tree}', '-p', 'HEAD', '-m', 'Authored alternative') + '\n';
-        git('tag', 'same-tree-alternative', value.trim());
-      }
-      const backup = await sourceBackup(root);
-      const request = {
-        backup: resolve(root, backup.backup),
-        manifestSha256: backup.manifestSha256,
-        sourceCommit: backup.source.commit,
-      };
+      const { root } = source;
+      const value =
+        kind === 'head' ? reviewed.alternative + '\n' : 'Authored concurrent checkout work.\n';
+      const request = await copyReviewedBackup(root);
       const original = await readFile(resolve(request.backup, 'source.bundle'));
       let changed = '',
         directory = '';
@@ -220,18 +259,9 @@ describe('isolated authored Git source', () => {
     let request: ReturnType<typeof sourceRecoveryOptions> | undefined;
     let bytes: Buffer<ArrayBuffer> | undefined;
 
-    // Keep each real backup fresh and outside the failure diagnostic's budget.
-    // The actual Git prefix, injected failure and preservation checks stay in the test.
     beforeEach(async () => {
       const { root } = source;
-      const backup = operation === 'recovery' ? await sourceBackup(root) : undefined;
-      request = backup
-        ? {
-            backup: resolve(root, backup.backup),
-            manifestSha256: backup.manifestSha256,
-            sourceCommit: backup.source.commit,
-          }
-        : undefined;
+      request = operation === 'recovery' ? await copyReviewedBackup(root) : undefined;
       bytes = request ? await readFile(resolve(request.backup, 'source.bundle')) : undefined;
     });
 
